@@ -1,0 +1,26 @@
+{
+  "name": "@rotorsoft/eventually-gcp",
+  "version": "0.1.0",
+  "description": "Eventually Framework GCP Services",
+  "author": "rotorsoft",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "libs/eventually-gcp"
+  },
+  "main": "dist/index",
+  "types": "dist/index",
+  "files": [
+    "dist"
+  ],
+  "scripts": {},
+  "dependencies": {
+    "@google-cloud/firestore": "^4.15.1",
+    "@google-cloud/pubsub": "^2.17.0",
+    "@rotorsoft/eventually": "workspace:^0.1.0",
+    "axios": "^0.21.4",
+    "joi": "^17.4.2",
+    "protobufjs": "^6.11.2"
+  }
+}
