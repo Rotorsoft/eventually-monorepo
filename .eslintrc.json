@@ -1,0 +1,49 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "createDefaultProgram": true
+  },
+  "plugins": ["@typescript-eslint", "jest"],
+  "env": {
+    "es2017": true
+  },
+  "rules": {
+    // note you must disable the base rule as it can report incorrect errors
+    "require-await": "off",
+    "@typescript-eslint/require-await": "error",
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      {
+        "checksVoidReturn": false
+      }
+    ],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "varsIgnorePattern": "^_.*"
+      }
+    ],
+    "@typescript-eslint/no-explicit-any": 0,
+    "@typescript-eslint/explicit-function-return-type": [
+      "error",
+      { "allowExpressions": true }
+    ],
+    "jest/no-mocks-import": "off",
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/restrict-template-expressions": "off"
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:jest/recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier"
+  ]
+}

@@ -1,0 +1,43 @@
+GET http://localhost:3000/calculator/calc1
+###
+GET http://localhost:3000/calculator/calc1/stream
+###
+
+POST http://localhost:3000/calculator/calc1/press-key
+Content-Type: application/json
+
+{
+  "name": "PressKey",
+  "data": "1"
+}
+
+###
+
+POST http://localhost:3000/calculator/calc1/press-key
+Content-Type: application/json
+
+{
+  "name": "PressKey",
+  "data": "+"
+}
+
+###
+
+POST http://localhost:3000/calculator/calc1/press-key
+Content-Type: application/json
+
+{
+  "name": "PressKey",
+  "data": "="
+}
+
+### POST UserAuthenticated Event - Triggers profile choreography
+POST http://localhost:3000/counter/digit-pressed
+Content-Type: application/json
+
+{
+  "id": "test",
+  "version": "0",
+  "name": "DigitPressed",
+  "data": "1"
+}

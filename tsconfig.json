@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "references": [
+    { "path": "./libs/eventually" },
+    { "path": "./services/calculator" }
+  ],
+  "files": [],
+  "include": [],
+  "compilerOptions": {
+    "incremental": true
+  }
+}

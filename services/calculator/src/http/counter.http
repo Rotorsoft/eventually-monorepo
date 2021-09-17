@@ -1,0 +1,32 @@
+POST http://localhost:3000/counter/digit-pressed
+Content-Type: application/json
+
+{
+  "id": "calc2",
+  "version": 0,
+  "name": "DigitPressed",
+  "data": "1"
+}
+
+###
+
+POST http://localhost:3000/counter/digit-pressed
+Content-Type: application/json
+
+{
+  "id": "calc3",
+  "version": 1,
+  "name": "DigitPressed",
+  "data": "2"
+}
+
+###
+
+POST http://localhost:3000/counter/dot-pressed
+Content-Type: application/json
+
+{
+  "id": "calc2",
+  "version": 1,
+  "name": "DotPressed"
+}

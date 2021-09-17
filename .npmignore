@@ -1,0 +1,16 @@
+assets
+node_modules
+templates
+vscode
+.DS_Store
+.eslintrc.json
+.gitignore
+.npmignore
+.prettierignore
+.prettierrc
+jest.config.js
+README.md
+tsconfig.json
+yarn-error.log
+yarn.lock
+*.key.json

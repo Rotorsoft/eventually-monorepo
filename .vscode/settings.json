@@ -1,0 +1,97 @@
+{
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "eslint.nodePath": ".yarn/sdks",
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+  "typescript.tsdk": ".yarn/sdks/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "vsicons.presets.tsOfficial": true,
+  "vsicons.associations.files": [
+    {
+      "icon": "json",
+      "extensions": [
+        "Schemas.ts",
+        "Schema.ts"
+      ]
+    },
+    {
+      "icon": "Command",
+      "extensions": [
+        "Commands.ts",
+        "Command.ts"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "Event",
+      "extensions": [
+        "Events.ts",
+        "Event.ts"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "Aggregate",
+      "extensions": [
+        "Aggregates.ts",
+        "Aggregate.ts"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "Policy",
+      "extensions": [
+        "Policies.ts",
+        "Policy.ts"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "Projector",
+      "extensions": [
+        "Projectors.ts",
+        "Projector.ts"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "sql",
+      "extensions": [
+        "Models.ts",
+        "Model.ts"
+      ],
+      "format": "svg"
+    }
+  ],
+  "vsicons.associations.folders": [
+    {
+      "icon": "Aggregate",
+      "extensions": [
+        "Aggregates"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "Policy",
+      "extensions": [
+        "Policies"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "Projector",
+      "extensions": [
+        "Projectors"
+      ],
+      "format": "svg"
+    },
+    {
+      "icon": "json",
+      "extensions": [
+        "Schemas"
+      ]
+    }
+  ]
+}
