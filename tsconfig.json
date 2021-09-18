@@ -2,6 +2,7 @@
   "extends": "./tsconfig.base.json",
   "references": [
     { "path": "./libs/eventually" },
+    { "path": "./libs/eventually-pg" },
     { "path": "./libs/eventually-gcp" },
     { "path": "./services/calculator" }
   ],

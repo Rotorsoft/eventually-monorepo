@@ -928,6 +928,7 @@ __metadata:
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
     "@rotorsoft/eventually": "workspace:^0.1.0"
+    "@rotorsoft/eventually-pg": "workspace:^0.1.0"
     joi: ^17.4.2
     ts-node-dev: ^1.1.8
     typescript: ^4.4.3
@@ -941,6 +942,7 @@ __metadata:
     "@google-cloud/firestore": ^4.15.1
     "@google-cloud/pubsub": ^2.17.0
     "@rotorsoft/eventually": "workspace:^0.1.0"
+    "@types/node": ^16.9.2
     axios: ^0.21.4
     joi: ^17.4.2
     protobufjs: ^6.11.2
@@ -964,6 +966,16 @@ __metadata:
     prettier: ^2.3.2
     ts-jest: ^27.0.5
     typescript: ^4.4.3
+  languageName: unknown
+  linkType: soft
+
+"@rotorsoft/eventually-pg@workspace:^0.1.0, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+  version: 0.0.0-use.local
+  resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
+  dependencies:
+    "@rotorsoft/eventually": "workspace:^0.1.0"
+    "@types/node": ^16.9.2
+    joi: ^17.4.2
   languageName: unknown
   linkType: soft
 
@@ -1212,7 +1224,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:>=12.12.47, @types/node@npm:>=13.7.0":
+"@types/node@npm:>=12.12.47, @types/node@npm:>=13.7.0, @types/node@npm:^16.9.2":
   version: 16.9.2
   resolution: "@types/node@npm:16.9.2"
   checksum: 204aa883bc93a267f43804af8872e538935369ab905d5ca702d2c17a213339f8df974bb95d21e2e714e8f83f669b185d8526f7c4b5d16adbdb5d96d4f2e75fa9

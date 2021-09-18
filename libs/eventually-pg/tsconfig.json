@@ -6,10 +6,7 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "composite": true
   },
-  "references": [
-    { "path": "../../libs/eventually" },
-    { "path": "../../libs/eventually-pg" }
-  ],
+  "references": [{ "path": "../eventually" }],
   "include": ["src"],
   "exclude": ["**/__mocks__/**", "**/__tests__/**"]
 }

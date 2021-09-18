@@ -40,6 +40,6 @@ export const config: Config = extend(
       .required()
       .valid(...Object.keys(Environments)),
     host: joi.string().required().min(5),
-    port: joi.number().integer().required().min(3000).max(9000)
+    port: joi.number().port().required()
   })
 );

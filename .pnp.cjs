@@ -31,6 +31,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:libs/eventually-gcp"
       },
       {
+        "name": "@rotorsoft/eventually-pg",
+        "reference": "workspace:libs/eventually-pg"
+      },
+      {
         "name": "@rotorsoft/calculator",
         "reference": "workspace:services/calculator"
       }
@@ -41,7 +45,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@rotorsoft/calculator", ["workspace:services/calculator"]],
       ["@rotorsoft/eventually", ["workspace:libs/eventually"]],
       ["@rotorsoft/eventually-gcp", ["workspace:libs/eventually-gcp"]],
-      ["@rotorsoft/eventually-monorepo", ["workspace:."]]
+      ["@rotorsoft/eventually-monorepo", ["workspace:."]],
+      ["@rotorsoft/eventually-pg", ["workspace:libs/eventually-pg"]]
     ],
     "fallbackPool": [
     ],
@@ -1432,6 +1437,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@rotorsoft/calculator", "workspace:services/calculator"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
             ["joi", "npm:17.4.2"],
             ["ts-node-dev", "virtual:d6a2488fefd43573ea45a1b3d62abd5508d1dbbedb05327e374951ecc7116132bc1dcf084a7f5bac2a7f896d26a2ca59b8bd2a53b7679ede4c2d94fafb5048b5#npm:1.1.8"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
@@ -1464,6 +1470,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@google-cloud/firestore", "npm:4.15.1"],
             ["@google-cloud/pubsub", "npm:2.17.0"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@types/node", "npm:16.9.2"],
             ["axios", "npm:0.21.4"],
             ["joi", "npm:17.4.2"],
             ["protobufjs", "npm:6.11.2"]
@@ -1489,6 +1496,18 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prettier", "npm:2.4.1"],
             ["ts-jest", "virtual:34a3aac6a8e58ddc6157f2a989d1e16e0c0086a5b9571617edd3211b40fbbbd64c94e579e19657e221447e0beca7c626744d2af492fc0ebe95e7a380acabdac0#npm:27.0.5"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
+      ["@rotorsoft/eventually-pg", [
+        ["workspace:libs/eventually-pg", {
+          "packageLocation": "./libs/eventually-pg/",
+          "packageDependencies": [
+            ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
+            ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@types/node", "npm:16.9.2"],
+            ["joi", "npm:17.4.2"]
           ],
           "linkType": "SOFT",
         }]
