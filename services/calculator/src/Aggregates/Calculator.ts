@@ -42,23 +42,23 @@ export const Calculator = (
 
   applyDigitPressed: (
     model: CalculatorModel,
-    event: CommittedEvent<"DigitPressed", Digits>
+    event: CommittedEvent<"DigitPressed", { digit: Digits }>
   ) => {
     if (model.operator) {
-      const right = (model.right || "").concat(event.data || "");
+      const right = (model.right || "").concat(event.data.digit || "");
       return { ...model, right };
     }
-    const left = (model.left || "").concat(event.data || "");
+    const left = (model.left || "").concat(event.data.digit || "");
     return { ...model, left };
   },
 
   applyOperatorPressed: (
     model: CalculatorModel,
-    event: CommittedEvent<"OperatorPressed", Operators>
+    event: CommittedEvent<"OperatorPressed", { operator: Operators }>
   ) => {
     if (model.left) {
       const newmodel = compute(model);
-      return { ...newmodel, operator: event.data };
+      return { ...newmodel, operator: event.data.operator };
     }
     return { ...model };
   },
@@ -84,8 +84,12 @@ export const Calculator = (
     if (key === SYMBOLS[0]) return CalculatorEventsFactory.DotPressed();
     if (key === SYMBOLS[1]) return CalculatorEventsFactory.EqualsPressed();
     if (DIGITS.includes(key as Digits))
-      return CalculatorEventsFactory.DigitPressed(key as Digits);
-    return CalculatorEventsFactory.OperatorPressed(key as Operators);
+      return CalculatorEventsFactory.DigitPressed({ digit: key } as {
+        digit: Digits;
+      });
+    return CalculatorEventsFactory.OperatorPressed({ operator: key } as {
+      operator: Operators;
+    });
   },
 
   // eslint-disable-next-line

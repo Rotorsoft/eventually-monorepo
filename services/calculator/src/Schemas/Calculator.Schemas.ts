@@ -5,10 +5,12 @@ export const DigitPressedSchema = joi.object({
   id: joi.string().required(),
   version: joi.number().required(),
   name: joi.string().required().valid("DigitPressed"),
-  data: joi
-    .string()
-    .required()
-    .valid(...DIGITS)
+  data: joi.object({
+    digit: joi
+      .string()
+      .required()
+      .valid(...DIGITS)
+  })
 });
 export const DotPressedSchema = joi.object({
   id: joi.string().required(),
@@ -26,10 +28,12 @@ export const OperatorPressedSchema = joi.object({
   id: joi.string().required(),
   version: joi.number().required(),
   name: joi.string().required().valid("OperatorPressed"),
-  data: joi
-    .string()
-    .required()
-    .valid(...OPERATORS)
+  data: joi.object({
+    operator: joi
+      .string()
+      .required()
+      .valid(...OPERATORS)
+  })
 });
 
 export const ClearedSchema = joi.object({

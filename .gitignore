@@ -2,6 +2,7 @@ coverage
 dist
 *.env
 .DS_Store
+data
 
 # Yarn 2
 .yarn/*

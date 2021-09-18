@@ -9,8 +9,8 @@ import {
 import { Digits, Operators } from "./Calculator.Model";
 
 export type CalculatorEvents = {
-  DigitPressed: Digits;
-  OperatorPressed: Operators;
+  DigitPressed: { digit: Digits };
+  OperatorPressed: { operator: Operators };
   DotPressed: undefined;
   EqualsPressed: undefined;
   Cleared: undefined;
@@ -18,9 +18,9 @@ export type CalculatorEvents = {
 
 // Event handlers receive committed events with id and version - required
 export const CalculatorEventsFactory: MessageFactory<CalculatorEvents> = {
-  DigitPressed: (digit?: Digits) => ({
+  DigitPressed: (data: { digit: Digits }) => ({
     name: "DigitPressed",
-    data: digit,
+    data,
     schema: () => DigitPressedSchema
   }),
 
@@ -34,9 +34,9 @@ export const CalculatorEventsFactory: MessageFactory<CalculatorEvents> = {
     schema: () => EqualsPressedSchema
   }),
 
-  OperatorPressed: (operator?: Operators) => ({
+  OperatorPressed: (data: { operator: Operators }) => ({
     name: "OperatorPressed",
-    data: operator,
+    data,
     schema: () => OperatorPressedSchema
   }),
 

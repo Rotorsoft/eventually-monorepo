@@ -1,62 +1,55 @@
-//import { Store, CommittedEvent, Message } from "@rotorsoft/eventually";
-//import { config } from "./config";
+import { Pool } from "pg";
+import { Store, CommittedEvent, Message } from "@rotorsoft/eventually";
+import { config } from "./config";
 
-// const db = new Firestore({
-//   projectId: config.gcp?.project,
-//   keyFilename: config.gcp?.keyfilename,
-//   ignoreUndefinedProperties: true
-// });
+const pool = new Pool(config.pg);
 
-// export const FirestoreStore = (): Store => {
-//   return {
-//     load: async (
-//       id: string,
-//       reducer: (event: CommittedEvent<string, any>) => void
-//     ): Promise<void> => {
-//       const eventsRef = db.collection(`streams/${id}/events`);
-//       const eventsSnap = await eventsRef.orderBy("version", "asc").get();
-//       eventsSnap.docs.map((doc) => {
-//         const { version, data } = doc.data();
-//         reducer({
-//           id,
-//           version: version.toString(),
-//           name: doc.id.substr(7),
-//           data
-//         });
-//       });
-//     },
+export const PostgresStore = (): Store => ({
+  load: async (
+    id: string,
+    reducer: (event: CommittedEvent<string, any>) => void
+  ): Promise<void> => {
+    const result = await pool.query<CommittedEvent<string, any>>(
+      "SELECT version, name, data FROM events WHERE id=$1 ORDER BY version",
+      [id]
+    );
+    result.rows.map(({ version, name, data }) =>
+      reducer({
+        id,
+        version: version.toString(),
+        name,
+        data
+      })
+    );
+  },
 
-//     commit: async (
-//       id: string,
-//       { name, data }: Message<string, any>,
-//       expectedVersion?: string
-//     ): Promise<CommittedEvent<string, any>> => {
-//       return db.runTransaction(
-//         async (
-//           transaction: Transaction
-//         ): Promise<CommittedEvent<string, any>> => {
-//           const eventsRef = db.collection(`streams/${id}/events`);
-//           const lastEventRef = eventsRef.orderBy("version", "desc").limit(1);
-//           const lastEventSnap = await transaction.get(lastEventRef);
-//           const lastEvent = lastEventSnap.docs[0]?.data() || {
-//             version: -1
-//           };
-
-//           if (expectedVersion && lastEvent.version != expectedVersion)
-//             throw Error("Concurrency Error");
-
-//           const version = (lastEvent.version as number) + 1;
-
-//           const newEventRef = db.doc(
-//             `streams/${id}/events/${version
-//               .toString()
-//               .padStart(6, "0")}:${name}`
-//           );
-//           transaction.set(newEventRef, { version, data });
-
-//           return { id, version: version.toString(), name, data };
-//         }
-//       );
-//     }
-//   };
-// };
+  commit: async (
+    id: string,
+    { name, data }: Message<string, any>,
+    expectedVersion?: string
+  ): Promise<CommittedEvent<string, any>> => {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const last = await client.query<CommittedEvent<string, any>>(
+        "SELECT version FROM events WHERE id=$1 ORDER BY version DESC LIMIT 1",
+        [id]
+      );
+      let version = last.rowCount ? last.rows[0].version : "-1";
+      if (expectedVersion && version !== expectedVersion)
+        throw Error("Concurrency Error");
+      version = (Number.parseInt(version) + 1).toString();
+      await client.query<CommittedEvent<string, any>>(
+        "INSERT INTO events(id, version, name, data) VALUES($1, $2, $3, $4)",
+        [id, version, name, data]
+      );
+      await client.query("COMMIT");
+      return { id, version, name, data };
+    } catch (e) {
+      await client.query("ROLLBACK");
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
+});
