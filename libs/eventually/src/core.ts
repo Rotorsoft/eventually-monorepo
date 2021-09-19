@@ -1,112 +1,110 @@
-import { AxiosResponse } from "axios";
 import * as joi from "joi";
 
-export type Message<Name, Type> = {
+/**
+ * Message payloads are records
+ */
+export type Payload = Record<string, unknown>;
+
+/**
+ * Messages transfer validatable information across service boundaries
+ * Commands and Events are messages
+ */
+export type Message<Name extends string, Type extends Payload> = {
   readonly name: Name;
   readonly data?: Type;
   schema: () => joi.ObjectSchema<Message<Name, Type>>;
 };
 
-export interface CommittedEvent<Name, Type> {
-  readonly id: string;
-  readonly version: string;
-  readonly name: Name;
-  readonly data?: Type;
-}
-
+/**
+ * Typed message factories
+ */
 export type MessageFactory<Messages> = {
   [Name in keyof Messages]: (
     data?: Messages[Name]
-  ) => Message<string & Name, Messages[Name]>;
+  ) => Message<Name & string, Messages[Name] & Payload>;
 };
 
-export type CommandHandler<Model, Commands, Events> = {
-  [Name in keyof Commands as `on${Capitalize<string & Name>}`]: (
+/**
+ * Events committed to a stream have id and version
+ */
+export type CommittedEvent<Name extends string, Type extends Payload> = {
+  readonly id: string;
+  readonly version: string;
+  readonly timestamp: Date;
+} & Omit<Message<Name, Type>, "schema">;
+
+/**
+ * Typed command handlers validate model invariants
+ * from current model state and incoming command,
+ * producing uncommitted events when rules hold.
+ * State is officially mutated once these events are
+ * committed to the stream.
+ * **TODO** return array of events
+ */
+export type CommandHandler<Model extends Payload, Commands, Events> = {
+  [Name in keyof Commands as `on${Capitalize<Name & string>}`]: (
     state: Readonly<Model>,
-    data?: Commands[Name]
-  ) => Promise<Message<string & keyof Events, any>>;
+    data?: Commands[Name] & Payload
+  ) => Promise<Message<keyof Events & string, Payload>>;
 };
 
-export type PolicyResponse<Commands> = {
-  id: string;
-  expectedVersion?: string;
-  command: Message<string & keyof Commands, any>;
-};
-
+/**
+ * Typed generic event handlers that react to committed events by
+ * executing logic and producing a type of response
+ */
 export type EventHandler<Response, Events> = {
-  [Name in keyof Events as `on${Capitalize<string & Name>}`]: (
-    event: CommittedEvent<string & Name, Events[Name]>
+  [Name in keyof Events as `on${Capitalize<Name & string>}`]: (
+    event: CommittedEvent<Name & string, Events[Name] & Payload>
   ) => Promise<Response>;
 };
 
-export type ModelReducer<Model, Events> = {
+/**
+ * Policies respond with commands targetting aggregates.
+ * The expected version of the targetted aggregate is optional.
+ */
+export type PolicyResponse<Commands> = {
+  id: string;
+  expectedVersion?: string;
+  command: Message<keyof Commands & string, Payload>;
+};
+
+/**
+ * Typed model reducers apply committed events to the current model,
+ * returning a new mutated state
+ */
+export type ModelReducer<Model extends Payload, Events> = {
   readonly id: string;
   name: () => string;
   init: () => Readonly<Model>;
 } & {
-  [Name in keyof Events as `apply${Capitalize<string & Name>}`]: (
+  [Name in keyof Events as `apply${Capitalize<Name & string>}`]: (
     state: Readonly<Model>,
-    event: CommittedEvent<string & Name, Events[Name]>
+    event: CommittedEvent<Name & string, Events[Name] & Payload>
   ) => Readonly<Model>;
 };
 
-export type Aggregate<Model, Commands, Events> = ModelReducer<Model, Events> &
+/**
+ * Aggregates are command handlers and model reducers
+ */
+export type Aggregate<Model extends Payload, Commands, Events> = ModelReducer<
+  Model,
+  Events
+> &
   CommandHandler<Model, Commands, Events>;
 
+/**
+ * Policies are event handlers responding with optional targetted commands
+ */
 export type Policy<Commands, Events> = { name: () => string } & EventHandler<
   PolicyResponse<Commands> | undefined,
   Events
 >;
 
+/**
+ * Projectors are event handlers without response, side effects
+ * are projected events to other persistent state
+ */
 export type Projector<Events> = { name: () => string } & EventHandler<
   void,
   Events
 >;
-
-export interface Bus {
-  /**
-   * Subscribes an event handler to an event
-   * @param event The event and service path to be subscribed
-   */
-  subscribe: (
-    event: CommittedEvent<string, any>,
-    factory: () => { name: () => string } & EventHandler<any, any>,
-    path: string
-  ) => Promise<void>;
-
-  /**
-   * Emits events to subscribed services
-   * @param event A committed event to be emitted
-   */
-  emit(event: CommittedEvent<string, any>): Promise<void>;
-
-  /**
-   * Request body adapter
-   * @param body The body in a POST request
-   */
-  body(body: any): any;
-
-  /**
-   * Sends a command to a routed service
-   * @param command The command instance
-   */
-  send(
-    command: Message<string, any>,
-    factory: (id: string) => CommandHandler<any, any, any>,
-    path: string,
-    id: string,
-    expectedVersion?: string
-  ): Promise<AxiosResponse | [any, CommittedEvent<string, any>]>;
-}
-
-export interface Store {
-  load: (
-    id: string,
-    reducer: (event: CommittedEvent<string, any>) => void
-  ) => Promise<void>;
-  commit: (
-    id: string,
-    event: Message<string, any>,
-    expectedVersion?: string
-  ) => Promise<CommittedEvent<string, any>>;
-}

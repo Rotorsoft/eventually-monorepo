@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { Store, CommittedEvent, Message } from "@rotorsoft/eventually";
+import { Store, CommittedEvent, Message, Payload } from "@rotorsoft/eventually";
 import { config } from "./config";
 
 const pool = new Pool(config.pg);
@@ -7,16 +7,17 @@ const pool = new Pool(config.pg);
 export const PostgresStore = (): Store => ({
   load: async (
     id: string,
-    reducer: (event: CommittedEvent<string, any>) => void
+    reducer: (event: CommittedEvent<string, Payload>) => void
   ): Promise<void> => {
-    const result = await pool.query<CommittedEvent<string, any>>(
-      "SELECT version, name, data FROM events WHERE id=$1 ORDER BY version",
+    const result = await pool.query<CommittedEvent<string, Payload>>(
+      "SELECT version, timestamp, name, data FROM events WHERE id=$1 ORDER BY version",
       [id]
     );
-    result.rows.map(({ version, name, data }) =>
+    result.rows.map(({ version, name, timestamp, data }) =>
       reducer({
         id,
         version: version.toString(),
+        timestamp,
         name,
         data
       })
@@ -25,13 +26,13 @@ export const PostgresStore = (): Store => ({
 
   commit: async (
     id: string,
-    { name, data }: Message<string, any>,
+    { name, data }: Message<string, Payload>,
     expectedVersion?: string
-  ): Promise<CommittedEvent<string, any>> => {
+  ): Promise<CommittedEvent<string, Payload>> => {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const last = await client.query<CommittedEvent<string, any>>(
+      const last = await client.query<CommittedEvent<string, Payload>>(
         "SELECT version FROM events WHERE id=$1 ORDER BY version DESC LIMIT 1",
         [id]
       );
@@ -39,12 +40,18 @@ export const PostgresStore = (): Store => ({
       if (expectedVersion && version !== expectedVersion)
         throw Error("Concurrency Error");
       version = (Number.parseInt(version) + 1).toString();
-      await client.query<CommittedEvent<string, any>>(
-        "INSERT INTO events(id, version, name, data) VALUES($1, $2, $3, $4)",
+      const committed = await client.query<CommittedEvent<string, Payload>>(
+        "INSERT INTO events(id, version, name, data) VALUES($1, $2, $3, $4) RETURNING timestamp",
         [id, version, name, data]
       );
       await client.query("COMMIT");
-      return { id, version, name, data };
+      return {
+        id,
+        version,
+        timestamp: committed.rows[0].timestamp,
+        name,
+        data
+      };
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;

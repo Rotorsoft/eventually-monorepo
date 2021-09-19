@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from "axios";
-import { App } from "..";
+import { App } from "../App";
+import { Broker } from "../Broker";
 import {
   Aggregate,
-  Bus,
   CommandHandler,
   CommittedEvent,
   EventHandler,
@@ -15,7 +15,7 @@ interface Subscription {
 }
 const subscriptions: Subscription = {};
 
-export const InMemoryBus = (host: string): Bus => ({
+export const InMemoryBroker = (host: string): Broker => ({
   subscribe: (
     event: CommittedEvent<string, any>,
     factory: () => { name: () => string } & EventHandler<any, any>,

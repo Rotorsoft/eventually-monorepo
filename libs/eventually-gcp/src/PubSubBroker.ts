@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import {
-  Bus,
+  Broker,
   CommandHandler,
   CommittedEvent,
   EventHandler,
@@ -9,7 +9,7 @@ import {
 import { config } from "./config";
 import { Topic } from "./Topic";
 
-export const PubSubBus = (): Bus => {
+export const PubSubBroker = (): Broker => {
   return {
     subscribe: async (
       event: CommittedEvent<string, any>,

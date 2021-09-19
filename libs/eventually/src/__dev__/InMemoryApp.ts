@@ -1,19 +1,14 @@
-import {
-  Aggregate,
-  Bus,
-  MessageFactory,
-  Policy,
-  Projector,
-  Store
-} from "../core";
+import { Broker } from "../Broker";
+import { Aggregate, MessageFactory, Payload, Policy, Projector } from "../core";
 import { AppBase, decamelize, handlersOf } from "../engine";
+import { Store } from "../Store";
 
 export class InMemoryApp extends AppBase {
-  constructor(bus: Bus, store: Store) {
-    super(bus, store);
+  constructor(broker: Broker, store: Store) {
+    super(broker, store);
   }
 
-  routeAggregate<Model, Commands, Events>(
+  routeAggregate<Model extends Payload, Commands, Events>(
     aggregate: (id: string) => Aggregate<Model, Commands, Events>,
     factory: MessageFactory<Commands>
   ): Promise<void> {

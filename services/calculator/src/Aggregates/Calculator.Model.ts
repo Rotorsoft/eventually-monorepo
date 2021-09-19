@@ -17,9 +17,9 @@ export type Operators = typeof OPERATORS[number];
 export type Symbols = typeof SYMBOLS[number];
 export type Keys = Digits | Operators | Symbols;
 
-export interface CalculatorModel {
+export type CalculatorModel = {
   readonly left?: string;
   readonly right?: string;
   readonly operator?: Operators;
   readonly result: number;
-}
+};

@@ -11,11 +11,11 @@ describe("Counter", () => {
 
   it("should return Reset on DigitPressed", async () => {
     const c = Calculator("test");
-    await Test.command(c, CalculatorCommandsFactory.PressKey("1"));
-    await Test.command(c, CalculatorCommandsFactory.PressKey("1"));
-    await Test.command(c, CalculatorCommandsFactory.PressKey("2"));
-    await Test.command(c, CalculatorCommandsFactory.PressKey("."));
-    await Test.command(c, CalculatorCommandsFactory.PressKey("3"));
+    await Test.command(c, CalculatorCommandsFactory.PressKey({ key: "1" }));
+    await Test.command(c, CalculatorCommandsFactory.PressKey({ key: "1" }));
+    await Test.command(c, CalculatorCommandsFactory.PressKey({ key: "2" }));
+    await Test.command(c, CalculatorCommandsFactory.PressKey({ key: "." }));
+    await Test.command(c, CalculatorCommandsFactory.PressKey({ key: "3" }));
 
     expect(await App().load(c)).toEqual({ result: 0 });
   });

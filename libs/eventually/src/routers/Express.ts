@@ -1,22 +1,23 @@
-import express, { Router, Request, Response, NextFunction } from "express";
-import { AppBase, decamelize, handlersOf, LogEntry } from "../engine";
+import express, { NextFunction, Request, Response, Router } from "express";
+import { config } from "../config";
 import {
-  MessageFactory,
   Aggregate,
-  Policy,
+  MessageFactory,
   ModelReducer,
+  Payload,
+  Policy,
   Projector
 } from "../core";
-import { config } from "../config";
+import { AppBase, decamelize, handlersOf, LogEntry } from "../engine";
 
-type GetCallback = <Model, Events>(
+type GetCallback = <Model extends Payload, Events>(
   reducer: ModelReducer<Model, Events>
 ) => Promise<Model | LogEntry<Model>[]>;
 
 export class Express extends AppBase {
   private router: Router = Router();
 
-  private _get<Model, Events>(
+  private _get<Model extends Payload, Events>(
     factory: (id: string) => ModelReducer<Model, Events>,
     callback: GetCallback,
     suffix?: string
@@ -44,7 +45,7 @@ export class Express extends AppBase {
     this.log.trace("green", `[GET ${name}]`, path.concat(suffix || ""));
   }
 
-  async routeAggregate<Model, Commands, Events>(
+  async routeAggregate<Model extends Payload, Commands, Events>(
     aggregate: (id: string) => Aggregate<Model, Commands, Events>,
     factory: MessageFactory<Commands>
   ): Promise<void> {
@@ -107,7 +108,7 @@ export class Express extends AppBase {
           async (req: Request, res: Response, next: NextFunction) => {
             const { error, value } = event
               .schema()
-              .validate(this.bus.body(req.body));
+              .validate(this.broker.body(req.body));
             if (error) res.status(400).send(error.toString());
             else {
               try {
@@ -144,7 +145,7 @@ export class Express extends AppBase {
           async (req: Request, res: Response, next: NextFunction) => {
             const { error, value } = event
               .schema()
-              .validate(this.bus.body(req.body));
+              .validate(this.broker.body(req.body));
             if (error) res.status(400).send(error.toString());
             else {
               try {

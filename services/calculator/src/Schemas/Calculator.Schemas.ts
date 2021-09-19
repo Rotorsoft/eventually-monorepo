@@ -4,6 +4,7 @@ import { DIGITS, OPERATORS, SYMBOLS } from "../Aggregates/Calculator.Model";
 export const DigitPressedSchema = joi.object({
   id: joi.string().required(),
   version: joi.number().required(),
+  timestamp: joi.date().required(),
   name: joi.string().required().valid("DigitPressed"),
   data: joi.object({
     digit: joi
@@ -15,18 +16,21 @@ export const DigitPressedSchema = joi.object({
 export const DotPressedSchema = joi.object({
   id: joi.string().required(),
   version: joi.number().required(),
+  timestamp: joi.date().required(),
   name: joi.string().required().valid("DotPressed")
 });
 
 export const EqualsPressedSchema = joi.object({
   id: joi.string().required(),
   version: joi.number().required(),
+  timestamp: joi.date().required(),
   name: joi.string().required().valid("EqualsPressed")
 });
 
 export const OperatorPressedSchema = joi.object({
   id: joi.string().required(),
   version: joi.number().required(),
+  timestamp: joi.date().required(),
   name: joi.string().required().valid("OperatorPressed"),
   data: joi.object({
     operator: joi
@@ -39,17 +43,20 @@ export const OperatorPressedSchema = joi.object({
 export const ClearedSchema = joi.object({
   id: joi.string().required(),
   version: joi.number().required(),
+  timestamp: joi.date().required(),
   name: joi.string().required().valid("Cleared")
 });
 
 export const PressKeySchema = joi.object({
   name: joi.string().required().valid("PressKey"),
-  data: joi
-    .string()
-    .required()
-    .min(1)
-    .max(1)
-    .valid(...DIGITS, ...OPERATORS, ...SYMBOLS)
+  data: joi.object({
+    key: joi
+      .string()
+      .required()
+      .min(1)
+      .max(1)
+      .valid(...DIGITS, ...OPERATORS, ...SYMBOLS)
+  })
 });
 
 export const ResetSchema = joi.object({

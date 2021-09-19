@@ -1,21 +1,22 @@
+import { Broker } from "./Broker";
 import {
   Aggregate,
-  Policy,
-  Bus,
-  Store,
-  Message,
+  CommandHandler,
   CommittedEvent,
-  ModelReducer,
-  MessageFactory,
-  PolicyResponse,
-  Projector,
   EventHandler,
-  CommandHandler
+  Message,
+  MessageFactory,
+  ModelReducer,
+  Payload,
+  Policy,
+  PolicyResponse,
+  Projector
 } from "./core";
 import { Log, LogFactory } from "./log";
+import { Store } from "./Store";
 
-export type LogEntry<Model> = {
-  event: CommittedEvent<string, any>;
+export type LogEntry<Model extends Payload> = {
+  event: CommittedEvent<string, Payload>;
   state: Model;
 };
 
@@ -40,7 +41,7 @@ export const handlersOf = <Messages>(
 };
 
 /**
- * Encapsulates underlying infrastructure behind router/bus/store abstractions
+ * Encapsulates underlying infrastructure behind router/broker/store abstractions
  * and implements generic command and event handlers
  */
 export abstract class AppBase {
@@ -50,9 +51,9 @@ export abstract class AppBase {
     { factory: (id: string) => CommandHandler<any, any, any>; path: string }
   > = {};
 
-  constructor(public readonly bus: Bus, public readonly store: Store) {}
+  constructor(public readonly broker: Broker, public readonly store: Store) {}
 
-  abstract routeAggregate<Model, Commands, Events>(
+  abstract routeAggregate<Model extends Payload, Commands, Events>(
     aggregate: (id: string) => Aggregate<Model, Commands, Events>,
     factory: MessageFactory<Commands>
   ): Promise<void>;
@@ -71,7 +72,7 @@ export abstract class AppBase {
 
   protected register(
     command: string,
-    factory: (id: string) => CommandHandler<any, any, any>,
+    factory: (id: string) => CommandHandler<Payload, unknown, unknown>,
     path: string
   ): void {
     this._command_handlers[command] = { factory, path };
@@ -79,15 +80,15 @@ export abstract class AppBase {
   }
 
   protected async subscribe(
-    event: CommittedEvent<string, any>,
-    factory: () => { name: () => string } & EventHandler<any, any>,
+    event: CommittedEvent<string, Payload>,
+    factory: () => { name: () => string } & EventHandler<unknown, unknown>,
     path: string
   ): Promise<void> {
-    await this.bus.subscribe(event, factory, path);
+    await this.broker.subscribe(event, factory, path);
     this.log.trace("red", `[POST ${event.name}]`, path);
   }
 
-  protected reducerPath<Model, Events>(
+  protected reducerPath<Model extends Payload, Events>(
     factory: (id: string) => ModelReducer<Model, Events>
   ): { name: string; path: string } {
     const name = factory("").name();
@@ -95,23 +96,23 @@ export abstract class AppBase {
     return { name, path };
   }
 
-  private _streamId<Model, Events>(
+  private _streamId<Model extends Payload, Events>(
     reducer: ModelReducer<Model, Events>
   ): string {
     return `${reducer.name()}:${reducer.id}`;
   }
 
-  private _apply<Model, Events>(
+  private _apply<Model extends Payload, Events>(
     reducer: ModelReducer<Model, Events>,
-    event: CommittedEvent<string, any>,
+    event: CommittedEvent<string, Payload>,
     state: Model
   ): Model {
     return (reducer as any)["apply".concat(event.name)](state, event);
   }
 
-  async load<Model, Events>(
+  async load<Model extends Payload, Events>(
     reducer: ModelReducer<Model, Events>,
-    callback?: (event: CommittedEvent<string, any>, state: Model) => void
+    callback?: (event: CommittedEvent<string, Payload>, state: Model) => void
   ): Promise<Model> {
     let state = reducer.init();
     let count = 0;
@@ -124,7 +125,7 @@ export abstract class AppBase {
     return state;
   }
 
-  async stream<Model, Events>(
+  async stream<Model extends Payload, Events>(
     reducer: ModelReducer<Model, Events>
   ): Promise<LogEntry<Model>[]> {
     const log: LogEntry<Model>[] = [];
@@ -134,11 +135,11 @@ export abstract class AppBase {
     return log;
   }
 
-  async handleCommand<Model, Commands, Events>(
+  async handleCommand<Model extends Payload, Commands, Events>(
     aggregate: Aggregate<Model, Commands, Events>,
-    command: Message<string & keyof Commands, any>,
+    command: Message<keyof Commands & string, Payload>,
     expectedVersion?: string
-  ): Promise<[Model, CommittedEvent<string & keyof Events, any>]> {
+  ): Promise<[Model, CommittedEvent<keyof Events & string, Payload>]> {
     this.log.trace(
       "blue",
       `\n>>> ${command.name} ${this._streamId(aggregate)}`,
@@ -148,9 +149,9 @@ export abstract class AppBase {
     let state = await this.load(aggregate);
     if (!state) throw Error(`Invalid aggregate ${aggregate.name}!`);
 
-    const event: Message<string & keyof Events, any> = await (aggregate as any)[
-      "on".concat(command.name)
-    ](state, command.data);
+    const event: Message<keyof Events & string, Payload> = await (
+      aggregate as any
+    )["on".concat(command.name)](state, command.data);
 
     const committed = await this.store.commit(
       this._streamId(aggregate),
@@ -165,14 +166,16 @@ export abstract class AppBase {
 
     state = this._apply(aggregate, committed, state);
     this.log.trace("gray", "   === state", state);
-    await this.bus.emit(committed);
 
-    return [state, committed as CommittedEvent<string & keyof Events, any>];
+    // TODO - signal broker to pull
+    await this.broker.emit(committed);
+
+    return [state, committed as CommittedEvent<keyof Events & string, Payload>];
   }
 
   async handleEvent<Commands, Events>(
     policy: Policy<Commands, Events>,
-    event: CommittedEvent<string & keyof Events, any>
+    event: CommittedEvent<keyof Events & string, Payload>
   ): Promise<PolicyResponse<Commands> | undefined> {
     this.log.trace("magenta", `\n>>> ${event.name} ${policy.name()}`, event);
 
@@ -189,7 +192,7 @@ export abstract class AppBase {
         `${path} @ ${expectedVersion}`
       );
       if (factory && path)
-        await this.bus.send(command, factory, path, id, expectedVersion);
+        await this.broker.send(command, factory, path, id, expectedVersion);
     }
 
     return response;
@@ -197,7 +200,7 @@ export abstract class AppBase {
 
   async handleProjection<Events>(
     projector: Projector<Events>,
-    event: CommittedEvent<string & keyof Events, any>
+    event: CommittedEvent<keyof Events & string, Payload>
   ): Promise<void> {
     this.log.trace("green", `\n>>> ${event.name} ${projector.name()}`, event);
     await (projector as any)["on".concat(event.name)](event);

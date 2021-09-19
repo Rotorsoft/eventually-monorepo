@@ -4,7 +4,8 @@ import {
   SYMBOLS,
   Digits,
   CalculatorModel,
-  Operators
+  Operators,
+  Keys
 } from "./Calculator.Model";
 import { CalculatorCommands } from "./Calculator.Commands";
 import { CalculatorEvents, CalculatorEventsFactory } from "./Calculator.Events";
@@ -80,14 +81,14 @@ export const Calculator = (
 
   // Command Handlers validate business rules and poduce events
   // eslint-disable-next-line
-  onPressKey: async (model, key) => {
-    if (key === SYMBOLS[0]) return CalculatorEventsFactory.DotPressed();
-    if (key === SYMBOLS[1]) return CalculatorEventsFactory.EqualsPressed();
-    if (DIGITS.includes(key as Digits))
-      return CalculatorEventsFactory.DigitPressed({ digit: key } as {
+  onPressKey: async (model, data: { key: Keys }) => {
+    if (data.key === SYMBOLS[0]) return CalculatorEventsFactory.DotPressed();
+    if (data.key === SYMBOLS[1]) return CalculatorEventsFactory.EqualsPressed();
+    if (DIGITS.includes(data.key as Digits))
+      return CalculatorEventsFactory.DigitPressed({ digit: data.key } as {
         digit: Digits;
       });
-    return CalculatorEventsFactory.OperatorPressed({ operator: key } as {
+    return CalculatorEventsFactory.OperatorPressed({ operator: data.key } as {
       operator: Operators;
     });
   },

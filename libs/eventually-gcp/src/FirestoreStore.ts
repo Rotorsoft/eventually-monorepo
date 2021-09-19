@@ -22,6 +22,7 @@ export const FirestoreStore = (): Store => {
           id,
           version: version.toString(),
           name: doc.id.substr(7),
+          timestamp: doc.createTime.toDate(),
           data
         });
       });
@@ -55,7 +56,13 @@ export const FirestoreStore = (): Store => {
           );
           transaction.set(newEventRef, { version, data });
 
-          return { id, version: version.toString(), name, data };
+          return {
+            id,
+            version: version.toString(),
+            timestamp: new Date(),
+            name,
+            data
+          };
         }
       );
     }

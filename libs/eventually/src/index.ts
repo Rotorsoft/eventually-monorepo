@@ -1,4 +1,6 @@
 export * from "./core";
-export { Config, config, extend } from "./config";
-export { App } from "./App";
-export { Test } from "./Test";
+export * from "./config";
+export * from "./Store";
+export * from "./Broker";
+export * from "./App";
+export * from "./Test";

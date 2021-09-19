@@ -1,7 +1,8 @@
-import { Store, CommittedEvent, Message } from "../core";
+import { CommittedEvent, Message, Payload } from "../core";
+import { Store } from "../Store";
 
 interface Data {
-  [key: string]: CommittedEvent<string, any>[];
+  [key: string]: CommittedEvent<string, Payload>[];
 }
 
 export const InMemoryStore = (): Store => {
@@ -10,7 +11,7 @@ export const InMemoryStore = (): Store => {
   return {
     load: async (
       id: string,
-      reducer: (event: CommittedEvent<string, any>) => void
+      reducer: (event: CommittedEvent<string, Payload>) => void
       // eslint-disable-next-line
     ): Promise<void> => {
       const events = data[id] || [];
@@ -19,10 +20,10 @@ export const InMemoryStore = (): Store => {
 
     commit: async (
       id: string,
-      event: Message<string, any>,
+      event: Message<string, Payload>,
       expectedVersion?: string
       // eslint-disable-next-line
-    ): Promise<CommittedEvent<string, any>> => {
+    ): Promise<CommittedEvent<string, Payload>> => {
       // Begin ACID transaction
       const stream = (data[id] = data[id] || []);
 
@@ -30,10 +31,11 @@ export const InMemoryStore = (): Store => {
         throw Error("Concurrency Error");
 
       // TODO Policies can commit other correlation ids
-      const committed = {
+      const committed: CommittedEvent<string, Payload> = {
         ...event,
         id,
-        version: stream.length.toString()
+        version: stream.length.toString(),
+        timestamp: new Date()
       };
 
       stream.push(committed);
