@@ -1,7 +1,7 @@
 {
   "name": "@rotorsoft/eventually-monorepo",
   "description": "Yarn2 pnp workspace baseline monorepo covering *eventually* and sample services",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "rotorsoft",
     "email": "rotorsoft@outlook.com"

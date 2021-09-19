@@ -927,7 +927,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^0.1.0"
+    "@rotorsoft/eventually": "workspace:^0.1.1"
     "@rotorsoft/eventually-pg": "workspace:^0.1.0"
     joi: ^17.4.2
     ts-node-dev: ^1.1.8
@@ -941,7 +941,7 @@ __metadata:
   dependencies:
     "@google-cloud/firestore": ^4.15.1
     "@google-cloud/pubsub": ^2.17.0
-    "@rotorsoft/eventually": "workspace:^0.1.0"
+    "@rotorsoft/eventually": "workspace:^0.1.1"
     "@types/node": ^16.9.2
     axios: ^0.21.4
     joi: ^17.4.2
@@ -973,7 +973,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^0.1.0"
+    "@rotorsoft/eventually": "workspace:^0.1.1"
     "@types/node": ^16.9.2
     "@types/pg": ^8
     joi: ^17.4.2
@@ -981,7 +981,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually@workspace:^0.1.0, @rotorsoft/eventually@workspace:libs/eventually":
+"@rotorsoft/eventually@workspace:^0.1.1, @rotorsoft/eventually@workspace:libs/eventually":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:
