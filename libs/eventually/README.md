@@ -23,7 +23,7 @@ Software engineering should be approached as a “group learning process”, a c
 
 Event Sourcing is a practical methodology used by many to model business processes. The nice thing about it is how easiliy models get tranferred to source code. The working patterns of any reactive system can be identified in the diagram below using the colors prescribed by Event Storming:
 
-![Logical Model](/assets/flow.png)
+![Logical Model](./assets/flow.png)
 
 ### Value Proposition
 

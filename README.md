@@ -18,7 +18,7 @@ A `calculator` sample service is provided as a template. We recommend using cons
   App.ts
 ```
 
-![Microservice Structure](/assets/microservice.png)
+![Microservice Structure](./assets/microservice.png)
 
 #### Setup
 
