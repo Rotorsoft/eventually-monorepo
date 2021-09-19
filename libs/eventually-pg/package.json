@@ -2,7 +2,10 @@
   "name": "@rotorsoft/eventually-pg",
   "version": "0.1.0",
   "description": "Eventually Framework Postgres Services",
-  "author": "rotorsoft",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

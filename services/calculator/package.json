@@ -2,7 +2,10 @@
   "name": "@rotorsoft/calculator",
   "version": "0.1.0",
   "description": "Calculator Service",
-  "author": "rotorsoft",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

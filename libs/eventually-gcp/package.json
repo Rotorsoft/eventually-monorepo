@@ -2,7 +2,10 @@
   "name": "@rotorsoft/eventually-gcp",
   "version": "0.1.0",
   "description": "Eventually Framework GCP Services",
-  "author": "rotorsoft",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
