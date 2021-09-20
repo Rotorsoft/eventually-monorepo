@@ -106,7 +106,7 @@ export abstract class AppBase {
     );
     this.log.trace(
       "gray",
-      `   ... committed ${committed.name} @ ${committed.version} - `,
+      `   ... committed ${committed.name} @ ${committed.aggregateVersion} - `,
       committed.data
     );
 

@@ -1,5 +1,5 @@
 import { Firestore, Transaction } from "@google-cloud/firestore";
-import { Store, CommittedEvent, Message } from "@rotorsoft/eventually";
+import { CommittedEvent, Message, Payload, Store } from "@rotorsoft/eventually";
 import { config } from "./config";
 
 const db = new Firestore({
@@ -14,15 +14,18 @@ export const FirestoreStore = (): Store => {
       id: string,
       reducer: (event: CommittedEvent<string, any>) => void
     ): Promise<void> => {
-      const eventsRef = db.collection(`streams/${id}/events`);
-      const eventsSnap = await eventsRef.orderBy("version", "asc").get();
-      eventsSnap.docs.map((doc) => {
+      const events = await db
+        .collection(`streams/${id}/events`)
+        .orderBy("version", "asc")
+        .get();
+      events.docs.map((doc) => {
         const { version, data } = doc.data();
         reducer({
-          id,
-          version: version.toString(),
+          eventId: 1, // TODO fix this
+          aggregateId: id,
+          aggregateVersion: version.toString(),
           name: doc.id.substr(7),
-          timestamp: doc.createTime.toDate(),
+          createdAt: doc.createTime.toDate(),
           data
         });
       });
@@ -37,34 +40,82 @@ export const FirestoreStore = (): Store => {
         async (
           transaction: Transaction
         ): Promise<CommittedEvent<string, any>> => {
-          const eventsRef = db.collection(`streams/${id}/events`);
-          const lastEventRef = eventsRef.orderBy("version", "desc").limit(1);
-          const lastEventSnap = await transaction.get(lastEventRef);
-          const lastEvent = lastEventSnap.docs[0]?.data() || {
+          const lastQuery = db
+            .collection(`streams/${id}/events`)
+            .orderBy("version", "desc")
+            .limit(1);
+          const lastSnap = await transaction.get(lastQuery);
+          const last = lastSnap.docs[0]?.data() || {
             version: -1
           };
 
-          if (expectedVersion && lastEvent.version != expectedVersion)
+          if (expectedVersion && last.version != expectedVersion)
             throw Error("Concurrency Error");
 
-          const version = (lastEvent.version as number) + 1;
+          const version = (last.version as number) + 1;
 
-          const newEventRef = db.doc(
+          const newRef = db.doc(
             `streams/${id}/events/${version
               .toString()
               .padStart(6, "0")}:${name}`
           );
-          transaction.set(newEventRef, { version, data });
+          transaction.set(newRef, { version, data });
 
           return {
-            id,
-            version: version.toString(),
-            timestamp: new Date(),
+            eventId: 1, // TODO fix this
+            aggregateId: id,
+            aggregateVersion: version.toString(),
+            createdAt: new Date(),
             name,
             data
           };
         }
       );
+    },
+
+    subscribe: async (event: string, from?: number): Promise<string> => {
+      const subscription = await db
+        .collection("subscriptions")
+        .add({ event, cursor: from || -1 });
+      return subscription.id;
+    },
+
+    // TODO test this
+    poll: async (
+      subscription: string,
+      limit = 1
+    ): Promise<CommittedEvent<string, Payload>[]> => {
+      const sub = await db.collection("subscriptions").doc(subscription).get();
+      if (!sub.exists) throw Error(`Subscription ${subscription} not found`);
+      const { event, cursor } = sub.data();
+
+      const events = await db
+        .collection("events")
+        .orderBy("id", "asc")
+        .where("name", "==", event)
+        .where("id", ">", cursor)
+        .limit(limit)
+        .get();
+      return events.docs.map((doc) => {
+        const { version, data } = doc.data();
+        return {
+          eventId: 1, // TODO fix this
+          aggregateId: doc.id,
+          aggregateVersion: version.toString(),
+          name: doc.id.substr(7),
+          createdAt: doc.createTime.toDate(),
+          data
+        };
+      });
+    },
+
+    // TODO test this
+    ack: async (subscription: string, id: number): Promise<boolean> => {
+      await db
+        .collection("subscriptions")
+        .doc(subscription)
+        .set({ cursor: id }, { merge: true });
+      return true;
     }
   };
 };

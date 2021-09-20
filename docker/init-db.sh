@@ -9,11 +9,11 @@ CREATE DATABASE postgres;
 
 CREATE TABLE IF NOT EXISTS public.events
 (
-	event_id bigserial PRIMARY KEY,
+	event_id serial PRIMARY KEY,
     event_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
     event_data json,
     aggregate_id character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    aggregate_version bigint NOT NULL,
+    aggregate_version int NOT NULL,
     created_at timestamp without time zone DEFAULT now()
 ) TABLESPACE pg_default;
 ALTER TABLE public.events OWNER to postgres;
@@ -27,7 +27,15 @@ CREATE INDEX topic_ix
     ON public.events USING btree
     (event_name COLLATE pg_catalog."default" ASC)
     TABLESPACE pg_default;
-	
+
+CREATE TABLE IF NOT EXISTS public.subscriptions
+(
+	id serial PRIMARY KEY,
+    event character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    cursor int NOT NULL DEFAULT -1,
+    created_at timestamp without time zone DEFAULT now()
+) TABLESPACE pg_default;
+ALTER TABLE public.subscriptions OWNER to postgres;    
 EOF
 
 exit 0

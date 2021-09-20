@@ -1,12 +1,11 @@
 import { CommittedEvent, Message, Payload } from "../core";
 import { Store } from "../Store";
 
-interface Data {
-  [key: string]: CommittedEvent<string, Payload>[];
-}
-
 export const InMemoryStore = (): Store => {
-  const data: Data = {};
+  const stream: CommittedEvent<string, Payload>[] = [];
+
+  type Subscription = { event: string; cursor: number };
+  const subscriptions: Subscription[] = [];
 
   return {
     load: async (
@@ -14,7 +13,7 @@ export const InMemoryStore = (): Store => {
       reducer: (event: CommittedEvent<string, Payload>) => void
       // eslint-disable-next-line
     ): Promise<void> => {
-      const events = data[id] || [];
+      const events = stream.filter((e) => e.aggregateId === id);
       events.map(reducer);
     },
 
@@ -24,24 +23,56 @@ export const InMemoryStore = (): Store => {
       expectedVersion?: string
       // eslint-disable-next-line
     ): Promise<CommittedEvent<string, Payload>> => {
-      // Begin ACID transaction
-      const stream = (data[id] = data[id] || []);
+      const events = stream.filter((e) => e.aggregateId === id);
 
-      if (expectedVersion && (stream.length - 1).toString() !== expectedVersion)
+      if (expectedVersion && (events.length - 1).toString() !== expectedVersion)
         throw Error("Concurrency Error");
 
-      // TODO Policies can commit other correlation ids
       const committed: CommittedEvent<string, Payload> = {
         ...event,
-        id,
-        version: stream.length.toString(),
-        timestamp: new Date()
+        eventId: stream.length,
+        aggregateId: id,
+        aggregateVersion: events.length.toString(),
+        createdAt: new Date()
       };
 
       stream.push(committed);
-      // End ACID transaction
 
       return committed;
+    },
+
+    subscribe: async (event: string, from?: number): Promise<string> => {
+      subscriptions.push({ event, cursor: from || -1 });
+      return Promise.resolve((subscriptions.length - 1).toString());
+    },
+
+    poll: async (
+      subscription: string,
+      limit?: number
+    ): Promise<CommittedEvent<string, Payload>[]> => {
+      const sub = subscriptions[Number.parseInt(subscription)];
+      if (sub) {
+        const events: CommittedEvent<string, Payload>[] = [];
+        while (events.length < limit) {
+          for (let i = sub.cursor; i < stream.length; i++) {
+            const e = stream[Number(i)];
+            if (e.name === sub.event) {
+              events.push();
+            }
+          }
+        }
+        return Promise.resolve(events);
+      }
+      return Promise.resolve([]);
+    },
+
+    ack: (subscription: string, id: number): Promise<boolean> => {
+      const sub = subscriptions[Number.parseInt(subscription)];
+      if (sub && id > sub.cursor) {
+        sub.cursor = id;
+        return Promise.resolve(true);
+      }
+      return Promise.resolve(false);
     }
   };
 };

@@ -34,7 +34,10 @@ export class ExpressApp extends AppBase {
         try {
           const result = await callback(factory(id));
           if (Array.isArray(result) && result.length)
-            res.setHeader("ETag", result[result.length - 1].event.version);
+            res.setHeader(
+              "ETag",
+              result[result.length - 1].event.aggregateVersion
+            );
           return res.status(200).send(result);
         } catch (error) {
           this.log.error(error);
@@ -76,7 +79,7 @@ export class ExpressApp extends AppBase {
                 value,
                 expectedVersion
               );
-              res.setHeader("ETag", committed.version);
+              res.setHeader("ETag", committed.aggregateVersion);
               return res.status(200).send([committed, state]);
             } catch (error) {
               this.log.error(error);

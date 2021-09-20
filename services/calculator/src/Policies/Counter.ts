@@ -34,8 +34,8 @@ export const Counter = (): Policy<CalculatorCommands, CounterEvents> => ({
 
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>
-  ) => policy(event.id, event.version),
+  ) => policy(event.aggregateId, event.aggregateVersion),
 
   onDotPressed: async (event: CommittedEvent<"DotPressed", undefined>) =>
-    policy(event.id, event.version)
+    policy(event.aggregateId, event.aggregateVersion)
 });

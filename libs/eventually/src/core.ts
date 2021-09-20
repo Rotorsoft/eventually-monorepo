@@ -25,12 +25,13 @@ export type MessageFactory<Messages> = {
 };
 
 /**
- * Events committed to a stream have id and version
+ * Events committed to a stream have extra persisted attributes
  */
 export type CommittedEvent<Name extends string, Type extends Payload> = {
-  readonly id: string;
-  readonly version: string;
-  readonly timestamp: Date;
+  readonly eventId: number;
+  readonly aggregateId: string;
+  readonly aggregateVersion: string;
+  readonly createdAt: Date;
 } & Omit<Message<Name, Type>, "schema">;
 
 /**
