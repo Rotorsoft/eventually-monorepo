@@ -1,13 +1,13 @@
 import { App, Test } from "@rotorsoft/eventually";
 import { Calculator } from "../Aggregates/Calculator";
 import { CalculatorCommandsFactory } from "../Aggregates/Calculator.Commands";
-import { CalculatorEventsFactory } from "../Aggregates/Calculator.Events";
-import { Counter } from "../Policies/Counter";
+//import { CalculatorEventsFactory } from "../Aggregates/Calculator.Events";
+//import { Counter } from "../Policies/Counter";
 
 describe("Counter", () => {
   const app = App();
-  void app.routeAggregate(Calculator, CalculatorCommandsFactory);
-  void app.routePolicy(Counter, CalculatorEventsFactory);
+  void app.use(Calculator, CalculatorCommandsFactory);
+  //void app.routePolicy(Counter, CalculatorEventsFactory);
 
   it("should return Reset on DigitPressed", async () => {
     const c = Calculator("test");

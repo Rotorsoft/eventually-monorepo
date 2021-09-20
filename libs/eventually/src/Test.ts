@@ -1,5 +1,5 @@
-import { Aggregate, Message, Payload, Policy, PolicyResponse } from "./core";
-import { App } from "./App";
+import { Aggregate, Message, Payload } from "./core";
+import { App } from "./index";
 
 const validate = (message: Message<string, Payload>): void => {
   const { schema, ...value } = message;
@@ -13,25 +13,8 @@ export const Test = {
     command: Message<keyof Commands & string, Payload>
   ): Promise<Model> => {
     validate(command);
-    const [, committed] = await App().handleCommand(aggregate, command);
+    const [, committed] = await App().handle(aggregate, command);
     validate(committed as unknown as Message<string, Payload>);
     return await App().load(aggregate);
-  },
-
-  event: <Commands, Events>(
-    policy: Policy<Commands, Events>,
-    event: Message<keyof Events & string, Payload>,
-    id: string,
-    version: string,
-    timestamp: Date = new Date()
-  ): Promise<PolicyResponse<Commands> | undefined> => {
-    const committed = {
-      id,
-      version,
-      timestamp,
-      ...event
-    };
-    validate(committed as unknown as Message<string, Payload>);
-    return App().handleEvent(policy, committed);
   }
 };

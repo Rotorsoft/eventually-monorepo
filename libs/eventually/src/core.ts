@@ -108,3 +108,23 @@ export type Projector<Events> = { name: () => string } & EventHandler<
   void,
   Events
 >;
+
+export const decamelize = (key: string): string =>
+  key
+    .replace(/([\p{Lowercase_Letter}\d])(\p{Uppercase_Letter})/gu, "$1-$2")
+    .replace(
+      /(\p{Uppercase_Letter}+)(\p{Uppercase_Letter}\p{Lowercase_Letter}+)/gu,
+      "$1-$2"
+    )
+    .toLowerCase();
+
+export const handlersOf = <Messages>(
+  factory: MessageFactory<Messages>
+  // eslint-disable-next-line
+): Function[] => {
+  // eslint-disable-next-line
+  return Object.values<Function>(factory).filter((f: Function) => {
+    const message = f();
+    return message.name && message.schema;
+  });
+};

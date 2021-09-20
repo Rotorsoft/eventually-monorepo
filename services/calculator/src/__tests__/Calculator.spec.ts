@@ -1,13 +1,10 @@
 import { App, Test } from "@rotorsoft/eventually";
 import { Calculator } from "../Aggregates/Calculator";
 import { CalculatorCommandsFactory } from "../Aggregates/Calculator.Commands";
-import { CalculatorEventsFactory } from "../Aggregates/Calculator.Events";
-import { Counter } from "../Policies/Counter";
 
 describe("calculator", () => {
   const app = App();
-  void app.routeAggregate(Calculator, CalculatorCommandsFactory);
-  void app.routePolicy(Counter, CalculatorEventsFactory);
+  app.use(Calculator, CalculatorCommandsFactory);
 
   it("should compute correctly", async () => {
     const c = Calculator("test");
