@@ -9,17 +9,25 @@ CREATE DATABASE postgres;
 
 CREATE TABLE IF NOT EXISTS public.events
 (
-    id character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    version bigint NOT NULL,
-    name character varying(100) COLLATE pg_catalog."default",
-    data json",
-    "timestamp" timestamp without time zone DEFAULT Now(),
-    CONSTRAINT events_pkey PRIMARY KEY (id, version)
-)
-TABLESPACE pg_default;
+	event_id bigserial PRIMARY KEY,
+    event_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    event_data json,
+    aggregate_id character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    aggregate_version bigint NOT NULL,
+    created_at timestamp without time zone DEFAULT now()
+) TABLESPACE pg_default;
+ALTER TABLE public.events OWNER to postgres;
 
-ALTER TABLE public.events
-    OWNER to postgres;
+CREATE UNIQUE INDEX aggregate_ix
+    ON public.events USING btree
+    (aggregate_id COLLATE pg_catalog."default" ASC, aggregate_version ASC)
+    TABLESPACE pg_default;
+	
+CREATE INDEX topic_ix
+    ON public.events USING btree
+    (event_name COLLATE pg_catalog."default" ASC)
+    TABLESPACE pg_default;
+	
 EOF
 
 exit 0

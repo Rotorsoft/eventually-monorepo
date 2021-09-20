@@ -4,22 +4,31 @@ import { config } from "./config";
 
 const pool = new Pool(config.pg);
 
+type Event = {
+  event_id: bigint;
+  event_name: string;
+  event_data: any;
+  aggregate_id: string;
+  aggregate_version: bigint;
+  created_at: Date;
+};
+
 export const PostgresStore = (): Store => ({
   load: async (
     id: string,
     reducer: (event: CommittedEvent<string, Payload>) => void
   ): Promise<void> => {
-    const result = await pool.query<CommittedEvent<string, Payload>>(
-      "SELECT version, timestamp, name, data FROM events WHERE id=$1 ORDER BY version",
+    const result = await pool.query<Event>(
+      "SELECT * FROM events WHERE aggregate_id=$1 ORDER BY aggregate_version",
       [id]
     );
-    result.rows.map(({ version, name, timestamp, data }) =>
+    result.rows.map((e) =>
       reducer({
         id,
-        version: version.toString(),
-        timestamp,
-        name,
-        data
+        version: e.aggregate_version.toString(),
+        timestamp: e.created_at,
+        name: e.event_name,
+        data: e.event_data
       })
     );
   },
@@ -32,23 +41,24 @@ export const PostgresStore = (): Store => ({
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      const last = await client.query<CommittedEvent<string, Payload>>(
-        "SELECT version FROM events WHERE id=$1 ORDER BY version DESC LIMIT 1",
+      const last = await client.query<Event>(
+        "SELECT aggregate_version FROM events WHERE aggregate_id=$1 ORDER BY aggregate_version DESC LIMIT 1",
         [id]
       );
-      let version = last.rowCount ? last.rows[0].version : "-1";
-      if (expectedVersion && version !== expectedVersion)
+      let version = last.rowCount ? last.rows[0].aggregate_version : -1;
+      if (expectedVersion && version.toString() !== expectedVersion)
         throw Error("Concurrency Error");
-      version = (Number.parseInt(version) + 1).toString();
-      const committed = await client.query<CommittedEvent<string, Payload>>(
-        "INSERT INTO events(id, version, name, data) VALUES($1, $2, $3, $4) RETURNING timestamp",
-        [id, version, name, data]
+      version++;
+      const committed = await client.query<Event>(
+        `INSERT INTO events(event_name, event_data, aggregate_id, aggregate_version)
+        VALUES($1, $2, $3, $4) RETURNING created_at`,
+        [name, data, id, version]
       );
       await client.query("COMMIT");
       return {
         id,
-        version,
-        timestamp: committed.rows[0].timestamp,
+        version: version.toString(),
+        timestamp: committed.rows[0].created_at,
         name,
         data
       };
