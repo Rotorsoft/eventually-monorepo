@@ -93,6 +93,10 @@ export type Aggregate<Model extends Payload, Commands, Events> = ModelReducer<
 > &
   CommandHandler<Model, Commands, Events>;
 
+export type AggregateFactory<Model extends Payload, Commands, Events> = (
+  id: string
+) => Aggregate<Model, Commands, Events>;
+
 /**
  * Policies are event handlers responding with optional targetted commands
  */
@@ -100,6 +104,8 @@ export type Policy<Commands, Events> = { name: () => string } & EventHandler<
   PolicyResponse<Commands> | undefined,
   Events
 >;
+
+export type PolicyFactory<Commands, Events> = () => Policy<Commands, Events>;
 
 /**
  * Projectors are event handlers without response, side effects
@@ -109,23 +115,3 @@ export type Projector<Events> = { name: () => string } & EventHandler<
   void,
   Events
 >;
-
-export const decamelize = (key: string): string =>
-  key
-    .replace(/([\p{Lowercase_Letter}\d])(\p{Uppercase_Letter})/gu, "$1-$2")
-    .replace(
-      /(\p{Uppercase_Letter}+)(\p{Uppercase_Letter}\p{Lowercase_Letter}+)/gu,
-      "$1-$2"
-    )
-    .toLowerCase();
-
-export const handlersOf = <Messages>(
-  factory: MessageFactory<Messages>
-  // eslint-disable-next-line
-): Function[] => {
-  // eslint-disable-next-line
-  return Object.values<Function>(factory).filter((f: Function) => {
-    const message = f();
-    return message.name && message.schema;
-  });
-};

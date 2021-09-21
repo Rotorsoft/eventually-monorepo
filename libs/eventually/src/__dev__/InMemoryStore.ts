@@ -1,4 +1,4 @@
-import { CommittedEvent, Message, Payload } from "../core";
+import { CommittedEvent, Message, Payload } from "../types";
 import { Store } from "../Store";
 
 export const InMemoryStore = (): Store => {
@@ -8,27 +8,27 @@ export const InMemoryStore = (): Store => {
   const subscriptions: Subscription[] = [];
 
   return {
-    load: async (
+    load: async <Events>(
       id: string,
-      reducer: (event: CommittedEvent<string, Payload>) => void
+      reducer: (event: CommittedEvent<keyof Events & string, Payload>) => void
       // eslint-disable-next-line
     ): Promise<void> => {
       const events = stream.filter((e) => e.aggregateId === id);
       events.map(reducer);
     },
 
-    commit: async (
+    commit: async <Events>(
       id: string,
-      event: Message<string, Payload>,
+      event: Message<keyof Events & string, Payload>,
       expectedVersion?: string
       // eslint-disable-next-line
-    ): Promise<CommittedEvent<string, Payload>> => {
+    ): Promise<CommittedEvent<keyof Events & string, Payload>> => {
       const events = stream.filter((e) => e.aggregateId === id);
 
       if (expectedVersion && (events.length - 1).toString() !== expectedVersion)
         throw Error("Concurrency Error");
 
-      const committed: CommittedEvent<string, Payload> = {
+      const committed: CommittedEvent<keyof Events & string, Payload> = {
         ...event,
         eventId: stream.length,
         aggregateId: id,

@@ -1,4 +1,4 @@
-import { CommittedEvent, Message, Payload } from "./core";
+import { CommittedEvent, Message, Payload } from "./types";
 
 /**
  * Stores persist event messages into streams correlated by aggregate id
@@ -10,9 +10,9 @@ export interface Store {
    * @param id aggregate id
    * @param reducer model reducer
    */
-  load: (
+  load: <Events>(
     id: string,
-    reducer: (event: CommittedEvent<string, Payload>) => void
+    reducer: (event: CommittedEvent<keyof Events & string, Payload>) => void
   ) => Promise<void>;
 
   /**
@@ -22,11 +22,11 @@ export interface Store {
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
    * @returns committed event
    */
-  commit: (
+  commit: <Events>(
     id: string,
-    event: Message<string, Payload>,
+    event: Message<keyof Events & string, Payload>,
     expectedVersion?: string
-  ) => Promise<CommittedEvent<string, Payload>>;
+  ) => Promise<CommittedEvent<keyof Events & string, Payload>>;
 
   /**
    * Subscribes to event

@@ -20,9 +20,9 @@ type Subscription = {
 };
 
 export const PostgresStore = (): Store => ({
-  load: async (
+  load: async <Events>(
     id: string,
-    reducer: (event: CommittedEvent<string, Payload>) => void
+    reducer: (event: CommittedEvent<keyof Events & string, Payload>) => void
   ): Promise<void> => {
     const events = await pool.query<Event>(
       "SELECT * FROM events WHERE aggregate_id=$1 ORDER BY aggregate_version",
@@ -34,17 +34,17 @@ export const PostgresStore = (): Store => ({
         aggregateId: e.aggregate_id,
         aggregateVersion: e.aggregate_version.toString(),
         createdAt: e.created_at,
-        name: e.event_name,
+        name: e.event_name as keyof Events & string,
         data: e.event_data
       })
     );
   },
 
-  commit: async (
+  commit: async <Events>(
     id: string,
-    { name, data }: Message<string, Payload>,
+    { name, data }: Message<keyof Events & string, Payload>,
     expectedVersion?: string
-  ): Promise<CommittedEvent<string, Payload>> => {
+  ): Promise<CommittedEvent<keyof Events & string, Payload>> => {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");

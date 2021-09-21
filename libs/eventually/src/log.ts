@@ -44,6 +44,6 @@ const prodLog: Log = {
 
 let log: Log;
 export const LogFactory = (): Log => {
-  if (!log) log = config.env === "development" ? devLog : prodLog;
+  if (!log) log = ["development"].includes(config.env) ? devLog : prodLog;
   return log;
 };
