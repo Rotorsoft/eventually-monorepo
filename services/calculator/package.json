@@ -17,8 +17,8 @@
     "start": "yarn run ts-node-dev --respawn ./src/App.ts"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^0.1.1",
-    "@rotorsoft/eventually-pg": "workspace:^0.1.0",
+    "@rotorsoft/eventually": "workspace:^1.0.0",
+    "@rotorsoft/eventually-pg": "workspace:^1.0.0",
     "joi": "^17.4.2"
   },
   "devDependencies": {

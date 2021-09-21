@@ -1,0 +1,4 @@
+undecided:
+  - "@rotorsoft/eventually-monorepo"
+  - "@rotorsoft/eventually"
+  - "@rotorsoft/calculator"
