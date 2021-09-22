@@ -795,7 +795,6 @@ __metadata:
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:
     "@types/express": ^4.17.13
-    "@types/joi": ^17.2.3
     chalk: ^4.1.2
     dotenv: ^10.0.0
     express: ^4.17.1
@@ -975,15 +974,6 @@ __metadata:
     jest-diff: ^27.0.0
     pretty-format: ^27.0.0
   checksum: 972aaae341b83eb608970c93295282f1f9edc056dc8123635456cbaced822702673118d60279c7b889300e7c9a0726c3674d701115915e2e1967db09542389c2
-  languageName: node
-  linkType: hard
-
-"@types/joi@npm:^17.2.3":
-  version: 17.2.3
-  resolution: "@types/joi@npm:17.2.3"
-  dependencies:
-    joi: "*"
-  checksum: f26d0132b4e16d667176a0dce52a013fce1557a9d7a7b68c67e1bdb1ca470a221e638f2ad4566ca8fcfad544ca0845f6e241b3e86cb387ffee07910bad1147bb
   languageName: node
   linkType: hard
 
@@ -3770,7 +3760,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"joi@npm:*, joi@npm:^17.4.2":
+"joi@npm:^17.4.2":
   version: 17.4.2
   resolution: "joi@npm:17.4.2"
   dependencies:

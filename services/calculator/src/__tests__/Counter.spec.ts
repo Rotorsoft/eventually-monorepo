@@ -18,7 +18,6 @@ describe("Counter", () => {
     await test_command(c, CalculatorCommandsFactory.PressKey({ key: "3" }));
 
     const model = await app.load(c);
-    console.log(model);
     expect(model).toEqual({ result: 0 });
   });
 });

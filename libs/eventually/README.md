@@ -62,23 +62,44 @@ We recommend using consistent project structures like the one below. Start by de
 
 ```typescript
 import { App } from "@rotorsoft/eventually";
+import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { CalculatorCommandsFactory } from "./Aggregates/Calculator.Commands";
 import { Calculator } from "./Aggregates/Calculator";
-import { Counter } from "./Policies/Counter";
 import { CalculatorEventsFactory } from "./Aggregates/Calculator.Events";
-import { CalculatorProjector } from "./Projectors/Calculator.Projector";
+import { Counter } from "./Policies/Counter";
 
-const app = App();
-
-const routes = async (): Promise<void> => {
-  await app.routeAggregate(Calculator, CalculatorCommandsFactory);
-  await app.routePolicy(Counter, CalculatorEventsFactory);
-  await app.routeProjector(CalculatorProjector, CalculatorEventsFactory);
-};
-
-void routes().then(() => app.listen());
+const app = App(PostgresStore());
+app.withAggregate(Calculator, CalculatorCommandsFactory);
+app.withPolicy(Counter, CalculatorEventsFactory);
+app.listen();
 ```
 
 #### Testing your code
 
-// TODO
+We group our unit tests inside the `__tests__` folder. We want tests only focusing on application logic, and we are planning to provide tooling to facilitate this. The `test_command` utility simulates commands flows in memory and covers messages payload validations automatically.
+
+```typescript
+import { App, test_command } from "@rotorsoft/eventually";
+import { Calculator } from "../Aggregates/Calculator";
+import { CalculatorCommandsFactory } from "../Aggregates/Calculator.Commands";
+import { CalculatorEventsFactory } from "../Aggregates/Calculator.Events";
+import { Counter } from "../Policies/Counter";
+
+describe("Counter", () => {
+  const app = App();
+  app.withAggregate(Calculator, CalculatorCommandsFactory);
+  app.withPolicy(Counter, CalculatorEventsFactory);
+
+  it("should return Reset on DigitPressed", async () => {
+    const c = Calculator("test");
+    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "1" }));
+    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "1" }));
+    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "2" }));
+    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "." }));
+    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "3" }));
+
+    const model = await app.load(c);
+    expect(model).toEqual({ result: 0 });
+  });
+});
+```

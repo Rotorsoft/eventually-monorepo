@@ -127,9 +127,9 @@ yarnPath: .yarn/releases/yarn-berry.cjs
 
 ###### Configuring the Monorepo
 
-- Follow structure of base `package.json`. Pay attention to repository and workspaces
+- Follow structure of base `package.json`. _Pay attention to "repository" and "workspaces"_
 - Internal packages follow standard format, but you can reference other monorepo packages using `workspace:...` prefix like this `"@rotorsoft/eventually": "workspace:^1.0.0"`
-- Follow structure of base `tsconfig.json`. Update references as you add more packages and dependencies between packages
+- Follow structure of base `tsconfig.json`. **Update references as you add/remove packages and dependencies**
 - Internal packages inherit from common `tsconfig.base.json`, adding their own `composite` settings like below:
 
 ```json
@@ -150,10 +150,30 @@ yarnPath: .yarn/releases/yarn-berry.cjs
 }
 ```
 
+###### Building and publishing
+
+```bash
+> cd [root]
+> yarn
+> yarn build
+> yarn test
+> yarn ./path/to/package [run script]
+> yarn ./path/to/package version [path|minor|major]
+> yarn ./path/to/package npm publish [--access public]
+```
+
 ### Configuring VS Code Icons
 
 You can customize your workbech by copying the custom [vsicons](https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons) and settings under `./vscode` to your local VSCode user directory. This will validate the folder structure and naming conventions we are proposing to follow when building new micro-services as shown below:
 
-### Testing
+### Local Testing
 
-Run `yarn ./services/calculator start` and you should see a running micro-service with blue command handlers and red event handlers ready to receive messages
+```bash
+# start a fresh postgres container
+> sh ./docker/restart.sh
+
+# start the calculator service
+> yarn ./services/calculator start
+```
+
+You should see a running micro-service with blue command handlers and red event handlers ready to receive messages. Start experimenting with HTTP requests under `./services/calculator/http`

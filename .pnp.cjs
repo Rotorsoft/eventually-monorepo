@@ -1237,7 +1237,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@types/express", "npm:4.17.13"],
-            ["@types/joi", "npm:17.2.3"],
             ["chalk", "npm:4.1.2"],
             ["dotenv", "npm:10.0.0"],
             ["express", "npm:4.17.1"],
@@ -1476,16 +1475,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/jest", "npm:27.0.1"],
             ["jest-diff", "npm:27.2.0"],
             ["pretty-format", "npm:27.2.0"]
-          ],
-          "linkType": "HARD",
-        }]
-      ]],
-      ["@types/joi", [
-        ["npm:17.2.3", {
-          "packageLocation": "./.yarn/cache/@types-joi-npm-17.2.3-81998661f1-f26d0132b4.zip/node_modules/@types/joi/",
-          "packageDependencies": [
-            ["@types/joi", "npm:17.2.3"],
-            ["joi", "npm:17.4.2"]
           ],
           "linkType": "HARD",
         }]
