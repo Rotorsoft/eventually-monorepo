@@ -783,8 +783,10 @@ __metadata:
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
     "@rotorsoft/eventually": "workspace:^1.0.0"
+    "@types/chance": ^1
     "@types/node": ^16.9.2
     "@types/pg": ^8
+    chance: ^1.1.8
     joi: ^17.4.2
     pg: ^8.7.1
   languageName: unknown
@@ -898,6 +900,13 @@ __metadata:
     "@types/connect": "*"
     "@types/node": "*"
   checksum: 2990656ea2de81f3529a3359a79a13b67feb4c627caf7a367fdc0017a178e567b0cc410546bdd219104ad7197c5ee5a90b70193f5253839ea43d9cdb2d2dacee
+  languageName: node
+  linkType: hard
+
+"@types/chance@npm:^1":
+  version: 1.1.3
+  resolution: "@types/chance@npm:1.1.3"
+  checksum: df2be43fab359e5fa734fb91aa1c4c15108310be0e4990d00203805a63f9b2182da74eaabc8859b742e150d970decf27a773fcc6cbf28fb5b372c9b1bd7e9b89
   languageName: node
   linkType: hard
 
@@ -1706,6 +1715,13 @@ __metadata:
     ansi-styles: ^4.1.0
     supports-color: ^7.1.0
   checksum: fe75c9d5c76a7a98d45495b91b2172fa3b7a09e0cc9370e5c8feb1c567b85c4288e2b3fded7cfdd7359ac28d6b3844feb8b82b8686842e93d23c827c417e83fc
+  languageName: node
+  linkType: hard
+
+"chance@npm:^1.1.8":
+  version: 1.1.8
+  resolution: "chance@npm:1.1.8"
+  checksum: e733f51e1094d7b0343a9e79f38599086442e6284fc2789cf9e072c71a0070874a1b340f9fffe4e66260899733f768cf113434be466ecb0016e3afcb60add3ee
   languageName: node
   linkType: hard
 

@@ -1,5 +1,5 @@
 import express, { NextFunction, Request, Response, Router } from "express";
-import { AggregateFactory, CommittedEvent } from "..";
+import { AggregateFactory, CommittedEvent, Store } from "..";
 import { AppBase, LogEntry } from "../AppBase";
 import { config } from "../config";
 import { MessageFactory, ModelReducer, Payload, PolicyFactory } from "../types";
@@ -11,6 +11,34 @@ type GetCallback = <Model extends Payload, Events>(
 
 export class ExpressApp extends AppBase {
   private _router: Router = Router();
+
+  constructor(store: Store) {
+    super(store);
+    this._router.get(
+      "/stream/:event?",
+      async (
+        req: Request<
+          { event?: string },
+          CommittedEvent<string, Payload>[],
+          any,
+          { after?: number; limit?: number }
+        >,
+        res: Response,
+        next: NextFunction
+      ) => {
+        const { event } = req.params;
+        const { after, limit } = req.query;
+        try {
+          const result = await this.store.read(event, after, limit);
+          return res.status(200).send(result);
+        } catch (error) {
+          this.log.error(error);
+          next(error);
+        }
+      }
+    );
+    this.log.trace("green", "[GET]", "/stream/[event]?after=-1&limit=1");
+  }
 
   private _get<Model extends Payload, Events>(
     factory: (id: string) => ModelReducer<Model, Events>,

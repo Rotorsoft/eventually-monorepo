@@ -29,29 +29,15 @@ export interface Store {
   ) => Promise<CommittedEvent<keyof Events & string, Payload>>;
 
   /**
-   * Subscribes to event
-   * @param event the event name
-   * @param from optional starting point
-   * @returns subscription id
-   */
-  subscribe: (event: string, from?: number) => Promise<string>;
-
-  /**
-   * Polls subscription for new events
-   * @param subscription the subscription id
-   * @param limit optional max number of events to return
+   * Loads events from stream
+   * @param name optional event name filter
+   * @param after optional starting point - defaults to -1
+   * @param limit optional max number of events to return - defaults to 1
    * @returns events array
    */
-  poll: (
-    subscription: string,
+  read: (
+    name?: string,
+    after?: number,
     limit?: number
   ) => Promise<CommittedEvent<string, Payload>[]>;
-
-  /**
-   * Acknowledges events up to id
-   * @param subscription the subscription id
-   * @param id last event id to acknowledge
-   * @returns true on success
-   */
-  ack: (subscription: string, id: number) => Promise<boolean>;
 }

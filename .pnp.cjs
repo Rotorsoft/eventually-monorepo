@@ -1273,8 +1273,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@types/chance", "npm:1.1.3"],
             ["@types/node", "npm:16.9.2"],
             ["@types/pg", "npm:8.6.1"],
+            ["chance", "npm:1.1.8"],
             ["joi", "npm:17.4.2"],
             ["pg", "virtual:0e6bf918d48a553b0f7e203f79dbd33d8b7b15d366e18d07c87dd174380f009c8b8285bbb5aa2628661cb43c0cfd1758a2c04877f3211ad8547e5e8a1cc59668#npm:8.7.1"]
           ],
@@ -1390,6 +1392,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/body-parser", "npm:1.19.1"],
             ["@types/connect", "npm:3.4.35"],
             ["@types/node", "npm:16.9.1"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@types/chance", [
+        ["npm:1.1.3", {
+          "packageLocation": "./.yarn/cache/@types-chance-npm-1.1.3-42a937aa7b-df2be43fab.zip/node_modules/@types/chance/",
+          "packageDependencies": [
+            ["@types/chance", "npm:1.1.3"]
           ],
           "linkType": "HARD",
         }]
@@ -2426,6 +2437,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["chalk", "npm:4.1.2"],
             ["ansi-styles", "npm:4.3.0"],
             ["supports-color", "npm:7.2.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["chance", [
+        ["npm:1.1.8", {
+          "packageLocation": "./.yarn/cache/chance-npm-1.1.8-47e2e1db1e-e733f51e10.zip/node_modules/chance/",
+          "packageDependencies": [
+            ["chance", "npm:1.1.8"]
           ],
           "linkType": "HARD",
         }]

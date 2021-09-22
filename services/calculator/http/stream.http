@@ -1,0 +1,9 @@
+GET http://localhost:3000/stream
+###
+GET http://localhost:3000/stream?after=10
+###
+GET http://localhost:3000/stream?after=10&limit=3 
+###
+GET http://localhost:3000/stream/DigitPressed?limit=2 
+###
+GET http://localhost:3000/stream/OperatorPressed?after=2&limit=5 

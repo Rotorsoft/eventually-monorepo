@@ -13,12 +13,6 @@ type Event = {
   created_at: Date;
 };
 
-type Subscription = {
-  id: string;
-  event: string;
-  cursor: number;
-};
-
 export const PostgresStore = (): Store => ({
   load: async <Events>(
     id: string,
@@ -79,28 +73,16 @@ export const PostgresStore = (): Store => ({
     }
   },
 
-  subscribe: async (event: string, from?: number): Promise<string> => {
-    const subscription = await pool.query<Subscription>(
-      `INSERT INTO subscriptions(event, cursor) VALUES($1, $2) RETURNING id`,
-      [event, from || -1]
-    );
-    return subscription.rows[0].id;
-  },
-
-  poll: async (
-    subscription: string,
+  read: async (
+    name?: string,
+    after = -1,
     limit = 1
   ): Promise<CommittedEvent<string, Payload>[]> => {
-    const sub = await pool.query<Subscription>(
-      `SELECT * FROM subscriptions WHERE id=$1`,
-      [subscription]
-    );
-    if (!sub.rowCount) throw Error(`Subscription ${subscription} not found`);
-    const { event, cursor } = sub.rows[0];
-
     const events = await pool.query<Event>(
-      "SELECT * FROM events WHERE event_name = $1 AND event_id > $2 ORDER BY event_id LIMIT $3",
-      [event, cursor, limit]
+      `SELECT * FROM events WHERE event_id > $1 ${
+        name ? "AND event_name = $3" : ""
+      } ORDER BY event_id LIMIT $2`,
+      name ? [after, limit, name] : [after, limit]
     );
 
     return events.rows.map((e) => ({
@@ -111,24 +93,5 @@ export const PostgresStore = (): Store => ({
       name: e.event_name,
       data: e.event_data
     }));
-  },
-
-  ack: async (subscription: string, id: number): Promise<boolean> => {
-    // TODO review concurrency
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-      const updated = await client.query<Subscription>(
-        `UPDATE subscriptions SET cursor = $2 WHERE id = $1 AND cursor < $2 RETURNING cursor`,
-        [subscription, id]
-      );
-      await client.query("COMMIT");
-      return updated.rowCount > 0;
-    } catch (e) {
-      await client.query("ROLLBACK");
-      throw e;
-    } finally {
-      client.release();
-    }
   }
 });

@@ -4,9 +4,6 @@ import { Store } from "../Store";
 export const InMemoryStore = (): Store => {
   const stream: CommittedEvent<string, Payload>[] = [];
 
-  type Subscription = { event: string; cursor: number };
-  const subscriptions: Subscription[] = [];
-
   return {
     load: async <Events>(
       id: string,
@@ -41,38 +38,19 @@ export const InMemoryStore = (): Store => {
       return committed;
     },
 
-    subscribe: async (event: string, from?: number): Promise<string> => {
-      subscriptions.push({ event, cursor: from || -1 });
-      return Promise.resolve((subscriptions.length - 1).toString());
-    },
-
-    poll: async (
-      subscription: string,
-      limit?: number
+    read: async (
+      name?: string,
+      after = -1,
+      limit = 1
     ): Promise<CommittedEvent<string, Payload>[]> => {
-      const sub = subscriptions[Number.parseInt(subscription)];
-      if (sub) {
-        const events: CommittedEvent<string, Payload>[] = [];
-        while (events.length < limit) {
-          for (let i = sub.cursor; i < stream.length; i++) {
-            const e = stream[Number(i)];
-            if (e.name === sub.event) {
-              events.push();
-            }
-          }
+      const events: CommittedEvent<string, Payload>[] = [];
+      while (events.length < limit) {
+        for (let i = after + 1; i < stream.length; i++) {
+          const e = stream[i];
+          if (!name || name === e.name) events.push(e);
         }
-        return Promise.resolve(events);
       }
-      return Promise.resolve([]);
-    },
-
-    ack: (subscription: string, id: number): Promise<boolean> => {
-      const sub = subscriptions[Number.parseInt(subscription)];
-      if (sub && id > sub.cursor) {
-        sub.cursor = id;
-        return Promise.resolve(true);
-      }
-      return Promise.resolve(false);
+      return Promise.resolve(events);
     }
   };
 };
