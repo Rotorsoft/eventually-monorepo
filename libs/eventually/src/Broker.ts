@@ -1,4 +1,4 @@
-import { CommittedEvent, Payload, Policy } from "./types";
+import { EvtOf, Evt, Payload, Policy } from "./types";
 
 /**
  * Brokers emit committed events to reliable pub/sub topics
@@ -11,21 +11,19 @@ export interface Broker {
    */
   subscribe<Commands, Events>(
     policy: Policy<Commands, Events>,
-    event: CommittedEvent<keyof Events & string, Payload>
+    event: EvtOf<Events>
   ): Promise<void>;
 
   /**
    * Emits event to topic
    * @param event committed event
    */
-  emit: <Events>(
-    event: CommittedEvent<keyof Events & string, Payload>
-  ) => Promise<void>;
+  emit: <Events>(event: EvtOf<Events>) => Promise<void>;
 
   /**
    * Decodes pushed messages
    * @param msg pushed message
    * @returns committed event in payload
    */
-  decode: (msg: Payload) => CommittedEvent<string, Payload>;
+  decode: (msg: Payload) => Evt;
 }

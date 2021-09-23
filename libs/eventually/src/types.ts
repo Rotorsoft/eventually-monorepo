@@ -16,6 +16,11 @@ export type Message<Name extends string, Type extends Payload> = {
 };
 
 /**
+ * Shortcut for messages
+ */
+export type MsgOf<T> = Message<keyof T & string, Payload>;
+
+/**
  * Typed message factories
  */
 export type MessageFactory<Messages> = {
@@ -32,7 +37,23 @@ export type CommittedEvent<Name extends string, Type extends Payload> = {
   readonly aggregateId: string;
   readonly aggregateVersion: string;
   readonly createdAt: Date;
-} & Omit<Message<Name, Type>, "schema">;
+  readonly name: Name;
+  readonly data?: Type;
+};
+
+/**
+ * Shortcuts for committed events
+ */
+export type EvtOf<Events> = CommittedEvent<keyof Events & string, Payload>;
+export type Evt = CommittedEvent<string, Payload>;
+
+/**
+ * Aggregate snapshot after event is applied
+ */
+export type Snapshot<Model extends Payload> = {
+  event: Evt;
+  state: Model;
+};
 
 /**
  * Typed command handlers validate model invariants
@@ -46,7 +67,7 @@ export type CommandHandler<Model extends Payload, Commands, Events> = {
   [Name in keyof Commands as `on${Capitalize<Name & string>}`]: (
     state: Readonly<Model>,
     data?: Commands[Name] & Payload
-  ) => Promise<Message<keyof Events & string, Payload>>;
+  ) => Promise<MsgOf<Events>>;
 };
 
 /**
@@ -66,7 +87,7 @@ export type EventHandler<Response, Events> = {
 export type PolicyResponse<Commands> = {
   id: string;
   expectedVersion?: string;
-  command: Message<keyof Commands & string, Payload>;
+  command: MsgOf<Commands>;
 };
 
 /**

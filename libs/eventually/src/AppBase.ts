@@ -4,21 +4,17 @@ import { Store } from "./Store";
 import {
   Aggregate,
   AggregateFactory,
-  CommittedEvent,
-  Message,
+  EvtOf,
   MessageFactory,
   ModelReducer,
+  MsgOf,
   Payload,
   Policy,
   PolicyFactory,
-  PolicyResponse
+  PolicyResponse,
+  Snapshot
 } from "./types";
 import { aggregateId, apply, commandPath } from "./utils";
-
-export type LogEntry<Model extends Payload> = {
-  event: CommittedEvent<string, Payload>;
-  state: Model;
-};
 
 /**
  * App abstraction implementing generic handlers
@@ -63,7 +59,7 @@ export abstract class AppBase {
    */
   protected register<Model extends Payload, Commands, Events>(
     factory: AggregateFactory<Model, Commands, Events>,
-    command: Message<string, Payload>
+    command: MsgOf<Commands>
   ): void {
     this._aggregates[command.name] = factory;
     this.log.trace(
@@ -82,18 +78,18 @@ export abstract class AppBase {
    */
   async command<Model extends Payload, Commands, Events>(
     aggregate: Aggregate<Model, Commands, Events>,
-    command: Message<keyof Commands & string, Payload>,
+    command: MsgOf<Commands>,
     expectedVersion?: string
-  ): Promise<[Model, CommittedEvent<keyof Events & string, Payload>]> {
+  ): Promise<[Model, EvtOf<Events>]> {
     const id = aggregateId(aggregate);
     this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
 
     let { state } = await this.load<Model, Events>(aggregate);
     if (!state) throw Error(`Invalid aggregate ${aggregate.name}!`);
 
-    const event: Message<keyof Events & string, Payload> = await (
-      aggregate as any
-    )["on".concat(command.name)](state, command.data);
+    const event: MsgOf<Events> = await (aggregate as any)[
+      "on".concat(command.name)
+    ](state, command.data);
 
     const committed = await this.store.commit<Events>(
       id,
@@ -124,7 +120,7 @@ export abstract class AppBase {
    */
   async event<Commands, Events>(
     policy: Policy<Commands, Events>,
-    event: CommittedEvent<keyof Events & string, Payload>
+    event: EvtOf<Events>
   ): Promise<PolicyResponse<Commands> | undefined> {
     this.log.trace(
       "magenta",
@@ -158,12 +154,9 @@ export abstract class AppBase {
    */
   async load<Model extends Payload, Events>(
     reducer: ModelReducer<Model, Events>,
-    callback?: (
-      event: CommittedEvent<keyof Events & string, Payload>,
-      state: Model
-    ) => void
-  ): Promise<LogEntry<Model>> {
-    const log: LogEntry<Model> = {
+    callback?: (event: EvtOf<Events>, state: Model) => void
+  ): Promise<Snapshot<Model>> {
+    const log: Snapshot<Model> = {
       event: undefined,
       state: reducer.init()
     };
@@ -185,8 +178,8 @@ export abstract class AppBase {
    */
   async stream<Model extends Payload, Events>(
     reducer: ModelReducer<Model, Events>
-  ): Promise<LogEntry<Model>[]> {
-    const log: LogEntry<Model>[] = [];
+  ): Promise<Snapshot<Model>[]> {
+    const log: Snapshot<Model>[] = [];
     await this.load(reducer, (event, state) =>
       log.push({ event, state: state })
     );

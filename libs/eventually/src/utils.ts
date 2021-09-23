@@ -1,7 +1,7 @@
 import {
   AggregateFactory,
-  CommittedEvent,
-  Message,
+  Evt,
+  MsgOf,
   MessageFactory,
   ModelReducer,
   Payload,
@@ -69,7 +69,7 @@ export const aggregateId = <Model extends Payload, Events>(
  */
 export const apply = <Model extends Payload, Events>(
   reducer: ModelReducer<Model, Events>,
-  event: CommittedEvent<string, Payload>,
+  event: Evt,
   state: Model
 ): Model => (reducer as any)["apply".concat(event.name)](state, event);
 
@@ -81,7 +81,7 @@ export const apply = <Model extends Payload, Events>(
  */
 export const commandPath = <Model extends Payload, Commands, Events>(
   factory: AggregateFactory<Model, Commands, Events>,
-  command: Message<string, Payload>
+  command: MsgOf<Commands>
 ): string =>
   "/".concat(decamelize(factory("").name()), "/:id/", decamelize(command.name));
 
@@ -93,5 +93,5 @@ export const commandPath = <Model extends Payload, Commands, Events>(
  */
 export const eventPath = <Commands, Events>(
   policy: Policy<Commands, Events>,
-  event: CommittedEvent<string, Payload>
+  event: Evt
 ): string => "/".concat(decamelize(policy.name()), "/", decamelize(event.name));

@@ -1,4 +1,4 @@
-import { CommittedEvent, Message, Payload } from "./types";
+import { EvtOf, Evt, MsgOf } from "./types";
 
 /**
  * Stores persist event messages into streams correlated by aggregate id
@@ -12,7 +12,7 @@ export interface Store {
    */
   load: <Events>(
     id: string,
-    reducer: (event: CommittedEvent<keyof Events & string, Payload>) => void
+    reducer: (event: EvtOf<Events>) => void
   ) => Promise<void>;
 
   /**
@@ -24,9 +24,9 @@ export interface Store {
    */
   commit: <Events>(
     id: string,
-    event: Message<keyof Events & string, Payload>,
+    event: MsgOf<Events>,
     expectedVersion?: string
-  ) => Promise<CommittedEvent<keyof Events & string, Payload>>;
+  ) => Promise<EvtOf<Events>>;
 
   /**
    * Loads events from stream
@@ -35,9 +35,5 @@ export interface Store {
    * @param limit optional max number of events to return - defaults to 1
    * @returns events array
    */
-  read: (
-    name?: string,
-    after?: number,
-    limit?: number
-  ) => Promise<CommittedEvent<string, Payload>[]>;
+  read: (name?: string, after?: number, limit?: number) => Promise<Evt[]>;
 }

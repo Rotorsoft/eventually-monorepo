@@ -15,7 +15,8 @@ describe("calculator", () => {
     await test_command(c, CalculatorCommandsFactory.PressKey({ key: "3" }));
     await test_command(c, CalculatorCommandsFactory.PressKey({ key: "=" }));
 
-    expect(await app.load(c)).toEqual({
+    const { state } = await app.load(c);
+    expect(state).toEqual({
       left: "3.3",
       operator: "+",
       result: 3.3

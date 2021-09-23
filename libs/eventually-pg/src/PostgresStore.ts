@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { Store, CommittedEvent, Message, Payload } from "@rotorsoft/eventually";
+import { Store, EvtOf, Evt, MsgOf, Payload } from "@rotorsoft/eventually";
 import { config } from "./config";
 
 const pool = new Pool(config.pg);
@@ -26,7 +26,7 @@ export class ConcurrencyError extends Error {
 export const PostgresStore = (): Store => ({
   load: async <Events>(
     id: string,
-    reducer: (event: CommittedEvent<keyof Events & string, Payload>) => void
+    reducer: (event: EvtOf<Events>) => void
   ): Promise<void> => {
     const events = await pool.query<Event>(
       "SELECT * FROM events WHERE aggregate_id=$1 ORDER BY aggregate_version",
@@ -46,9 +46,9 @@ export const PostgresStore = (): Store => ({
 
   commit: async <Events>(
     id: string,
-    { name, data }: Message<keyof Events & string, Payload>,
+    { name, data }: MsgOf<Events>,
     expectedVersion?: string
-  ): Promise<CommittedEvent<keyof Events & string, Payload>> => {
+  ): Promise<EvtOf<Events>> => {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -87,11 +87,7 @@ export const PostgresStore = (): Store => ({
     }
   },
 
-  read: async (
-    name?: string,
-    after = -1,
-    limit = 1
-  ): Promise<CommittedEvent<string, Payload>[]> => {
+  read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
     const events = await pool.query<Event>(
       `SELECT * FROM events WHERE event_id > $1 ${
         name ? "AND event_name = $3" : ""

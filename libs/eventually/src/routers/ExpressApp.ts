@@ -1,14 +1,20 @@
-import * as joi from "joi";
 import express, { NextFunction, Request, Response, Router } from "express";
-import { AggregateFactory, Broker, CommittedEvent, Store } from "..";
-import { AppBase, LogEntry } from "../AppBase";
+import * as joi from "joi";
+import { AggregateFactory, Broker, Evt, Store } from "..";
+import { AppBase } from "../AppBase";
 import { config } from "../config";
-import { MessageFactory, ModelReducer, Payload, PolicyFactory } from "../types";
+import {
+  MessageFactory,
+  ModelReducer,
+  Payload,
+  PolicyFactory,
+  Snapshot
+} from "../types";
 import { aggregatePath, commandPath, eventPath, handlersOf } from "../utils";
 
 type GetCallback = <Model extends Payload, Events>(
   reducer: ModelReducer<Model, Events>
-) => Promise<LogEntry<Model> | LogEntry<Model>[]>;
+) => Promise<Snapshot<Model> | Snapshot<Model>[]>;
 
 export class ExpressApp extends AppBase {
   private _router: Router = Router();
@@ -20,7 +26,7 @@ export class ExpressApp extends AppBase {
       async (
         req: Request<
           { event?: string },
-          CommittedEvent<string, Payload>[],
+          Evt[],
           any,
           { after?: number; limit?: number }
         >,

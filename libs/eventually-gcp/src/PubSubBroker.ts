@@ -2,7 +2,8 @@ import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   App,
   Broker,
-  CommittedEvent,
+  EvtOf,
+  Evt,
   eventPath,
   Payload,
   Policy
@@ -24,7 +25,7 @@ export const PubSubBroker = (): Broker => {
   return {
     subscribe: async <Commands, Events>(
       policy: Policy<Commands, Events>,
-      event: CommittedEvent<keyof Events & string, Payload>
+      event: EvtOf<Events>
     ): Promise<void> => {
       const pubsub = new PubSub({ projectId: config.gcp.project });
       const topic = new GcpTopic(pubsub, event.name);
@@ -42,20 +43,18 @@ export const PubSubBroker = (): Broker => {
       App().log.trace("red", `[POST ${event.name}]`, url);
     },
 
-    emit: async <Events>(
-      event: CommittedEvent<keyof Events & string, Payload>
-    ): Promise<void> => {
+    emit: async <Events>(event: EvtOf<Events>): Promise<void> => {
       const topic = topics[event.name];
       if (topic) await topic.publish(Buffer.from(JSON.stringify(event)));
     },
 
-    decode: (msg: Payload): CommittedEvent<string, Payload> => {
+    decode: (msg: Payload): Evt => {
       const { message, subscription } = msg as unknown as Message;
       if (message && subscription)
         return JSON.parse(
           Buffer.from(message.data, "base64").toString("utf-8")
-        ) as CommittedEvent<string, Payload>;
-      return msg as CommittedEvent<string, Payload>;
+        ) as Evt;
+      return msg as Evt;
     }
   };
 };
