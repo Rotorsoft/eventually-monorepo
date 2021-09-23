@@ -108,7 +108,14 @@ export abstract class AppBase {
       state
     );
 
-    await this.broker.emit<Events>(committed);
+    try {
+      await this.broker.emit<Events>(committed);
+    } catch (error) {
+      // TODO monitor broker failures
+      // log.error cannot raise!
+      this.log.error(error);
+    }
+
     return [state, committed];
   }
 
