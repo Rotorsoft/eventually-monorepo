@@ -1,3 +1,4 @@
+import * as joi from "joi";
 import {
   AggregateFactory,
   Evt,
@@ -93,5 +94,20 @@ export const commandPath = <Model extends Payload, Commands, Events>(
  */
 export const eventPath = <Commands, Events>(
   policy: Policy<Commands, Events>,
-  event: Evt
+  event: MsgOf<Events>
 ): string => "/".concat(decamelize(policy.name()), "/", decamelize(event.name));
+
+/**
+ * Concatenates committed event persisted schema for validation
+ * @param schema message schema
+ * @returns committed message schema
+ */
+export const committedSchema = (schema: joi.ObjectSchema): joi.ObjectSchema =>
+  schema.concat(
+    joi.object({
+      eventId: joi.number().integer().required(),
+      aggregateId: joi.string().required(),
+      aggregateVersion: joi.string().required(),
+      createdAt: joi.date().required()
+    })
+  );

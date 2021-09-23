@@ -1,8 +1,8 @@
-import * as joi from "joi";
 import { AppBase } from "./AppBase";
 import { config, Environments } from "./config";
 import { ExpressApp } from "./routers/ExpressApp";
 import { Aggregate, MsgOf, Payload, Snapshot } from "./types";
+import { committedSchema } from "./utils";
 import { InMemoryApp, InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export * from "./Broker";
@@ -30,16 +30,7 @@ const validate = <Commands>(
   committed = false
 ): void => {
   const { schema, ...value } = message;
-  const validator = committed
-    ? schema().concat(
-        joi.object({
-          eventId: joi.number().integer().required(),
-          aggregateId: joi.string().required(),
-          aggregateVersion: joi.string().required(),
-          createdAt: joi.date().required()
-        })
-      )
-    : schema();
+  const validator = committed ? committedSchema(schema()) : schema();
   const { error } = validator.validate(value);
   if (error) throw Error(error.toString());
 };

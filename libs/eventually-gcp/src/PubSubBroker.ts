@@ -2,9 +2,10 @@ import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   App,
   Broker,
-  EvtOf,
-  Evt,
   eventPath,
+  Evt,
+  EvtOf,
+  MsgOf,
   Payload,
   Policy
 } from "@rotorsoft/eventually";
@@ -25,7 +26,7 @@ export const PubSubBroker = (): Broker => {
   return {
     subscribe: async <Commands, Events>(
       policy: Policy<Commands, Events>,
-      event: EvtOf<Events>
+      event: MsgOf<Events>
     ): Promise<void> => {
       const pubsub = new PubSub({ projectId: config.gcp.project });
       const topic = new GcpTopic(pubsub, event.name);

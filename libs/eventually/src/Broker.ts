@@ -1,4 +1,4 @@
-import { EvtOf, Evt, Payload, Policy } from "./types";
+import { Evt, EvtOf, MsgOf, Payload, Policy } from "./types";
 
 /**
  * Brokers emit committed events to reliable pub/sub topics
@@ -11,7 +11,7 @@ export interface Broker {
    */
   subscribe<Commands, Events>(
     policy: Policy<Commands, Events>,
-    event: EvtOf<Events>
+    event: MsgOf<Events>
   ): Promise<void>;
 
   /**

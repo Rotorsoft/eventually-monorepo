@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response, Router } from "express";
-import * as joi from "joi";
-import { AggregateFactory, Broker, Evt, Store } from "..";
+import { AggregateFactory, Broker, Evt, MsgOf, Store } from "..";
 import { AppBase } from "../AppBase";
 import { config } from "../config";
 import {
@@ -10,7 +9,13 @@ import {
   PolicyFactory,
   Snapshot
 } from "../types";
-import { aggregatePath, commandPath, eventPath, handlersOf } from "../utils";
+import {
+  aggregatePath,
+  commandPath,
+  committedSchema,
+  eventPath,
+  handlersOf
+} from "../utils";
 
 type GetCallback = <Model extends Payload, Events>(
   reducer: ModelReducer<Model, Events>
@@ -88,7 +93,7 @@ export class ExpressApp extends AppBase {
     this._get(factory, this.load.bind(this));
     this._get(factory, this.stream.bind(this), "/stream");
     handlersOf(commands).map((f) => {
-      const command = f();
+      const command = f() as MsgOf<Commands>;
       this._router.post(
         commandPath(factory, command),
         async (
@@ -126,21 +131,14 @@ export class ExpressApp extends AppBase {
   ): void {
     const instance = factory();
     handlersOf(events).map((f) => {
-      const event = f();
+      const event = f() as MsgOf<Events>;
       if (Object.keys(instance).includes("on".concat(event.name))) {
         this._router.post(
           eventPath(instance, event),
           async (req: Request, res: Response, next: NextFunction) => {
             const message = this.broker.decode(req.body);
-            const schema = event.schema().concat(
-              joi.object({
-                eventId: joi.number().integer().required(),
-                aggregateId: joi.string().required(),
-                aggregateVersion: joi.string().required(),
-                createdAt: joi.date().required()
-              })
-            );
-            const { error, value } = schema.validate(message);
+            const validator = committedSchema(event.schema());
+            const { error, value } = validator.validate(message);
             if (error) res.status(400).send(error.toString());
             else {
               try {
