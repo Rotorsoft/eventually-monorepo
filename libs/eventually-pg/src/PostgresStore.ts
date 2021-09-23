@@ -13,6 +13,16 @@ type Event = {
   created_at: Date;
 };
 
+export class ConcurrencyError extends Error {
+  constructor(
+    public readonly lastVersion: number,
+    public readonly event: { name: string; data: Payload },
+    public readonly expectedVersion: string
+  ) {
+    super("Concurrency Error");
+  }
+}
+
 export const PostgresStore = (): Store => ({
   load: async <Events>(
     id: string,
@@ -48,7 +58,11 @@ export const PostgresStore = (): Store => ({
       );
       let version = last.rowCount ? last.rows[0].aggregate_version : -1;
       if (expectedVersion && version.toString() !== expectedVersion)
-        throw Error("Concurrency Error");
+        throw new ConcurrencyError(
+          last.rows[0].aggregate_version,
+          { name, data },
+          expectedVersion
+        );
       version++;
       const committed = await client.query<Event>(
         `INSERT INTO events(event_name, event_data, aggregate_id, aggregate_version)

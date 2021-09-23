@@ -1,19 +1,20 @@
+import * as joi from "joi";
 import express, { NextFunction, Request, Response, Router } from "express";
-import { AggregateFactory, CommittedEvent, Store } from "..";
+import { AggregateFactory, Broker, CommittedEvent, Store } from "..";
 import { AppBase, LogEntry } from "../AppBase";
 import { config } from "../config";
 import { MessageFactory, ModelReducer, Payload, PolicyFactory } from "../types";
-import { aggregatePath, decamelize, handlersOf } from "../utils";
+import { aggregatePath, commandPath, eventPath, handlersOf } from "../utils";
 
 type GetCallback = <Model extends Payload, Events>(
   reducer: ModelReducer<Model, Events>
-) => Promise<Model | LogEntry<Model>[]>;
+) => Promise<LogEntry<Model> | LogEntry<Model>[]>;
 
 export class ExpressApp extends AppBase {
   private _router: Router = Router();
 
-  constructor(store: Store) {
-    super(store);
+  constructor(store: Store, broker: Broker) {
+    super(store, broker);
     this._router.get(
       "/stream/:event?",
       async (
@@ -56,11 +57,14 @@ export class ExpressApp extends AppBase {
         const { id } = req.params;
         try {
           const result = await callback(factory(id));
-          if (Array.isArray(result) && result.length)
-            res.setHeader(
-              "ETag",
-              result[result.length - 1].event.aggregateVersion
-            );
+          let etag = "-1";
+          if (Array.isArray(result)) {
+            if (result.length)
+              etag = result[result.length - 1].event.aggregateVersion;
+          } else if (result.event) {
+            etag = result.event.aggregateVersion;
+          }
+          res.setHeader("ETag", etag);
           return res.status(200).send(result);
         } catch (error) {
           this.log.error(error);
@@ -79,13 +83,8 @@ export class ExpressApp extends AppBase {
     this._get(factory, this.stream.bind(this), "/stream");
     handlersOf(commands).map((f) => {
       const command = f();
-      const path = "/".concat(
-        decamelize(factory("").name()),
-        "/:id/",
-        decamelize(command.name)
-      );
       this._router.post(
-        path,
+        commandPath(factory, command),
         async (
           req: Request<{ id: string }>,
           res: Response,
@@ -111,7 +110,7 @@ export class ExpressApp extends AppBase {
           }
         }
       );
-      return this.register(command.name, factory, path);
+      return this.register(factory, command);
     });
   }
 
@@ -123,15 +122,19 @@ export class ExpressApp extends AppBase {
     handlersOf(events).map((f) => {
       const event = f();
       if (Object.keys(instance).includes("on".concat(event.name))) {
-        const path = "/".concat(
-          decamelize(instance.name()),
-          "/",
-          decamelize(event.name)
-        );
         this._router.post(
-          path,
+          eventPath(instance, event),
           async (req: Request, res: Response, next: NextFunction) => {
-            const { error, value } = event.schema().validate(req.body);
+            const message = this.broker.decode(req.body);
+            const schema = event.schema().concat(
+              joi.object({
+                eventId: joi.number().integer().required(),
+                aggregateId: joi.string().required(),
+                aggregateVersion: joi.string().required(),
+                createdAt: joi.date().required()
+              })
+            );
+            const { error, value } = schema.validate(message);
             if (error) res.status(400).send(error.toString());
             else {
               try {
@@ -144,7 +147,7 @@ export class ExpressApp extends AppBase {
             }
           }
         );
-        return this.subscribe(event, factory, path);
+        return this.broker.subscribe(instance, event);
       }
     });
   }
@@ -161,10 +164,5 @@ export class ExpressApp extends AppBase {
     app.listen(config.port, () => {
       this.log.info("Express app is listening", config);
     });
-  }
-
-  async emit(event: CommittedEvent<string, Payload>): Promise<void> {
-    // TODO schedule async emit jobs and handle failures
-    await super.emit(event);
   }
 }

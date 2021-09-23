@@ -1,23 +1,27 @@
 import * as joi from "joi";
-import { AppBase } from "./AppBase";
+import { AppBase, LogEntry } from "./AppBase";
 import { config, Environments } from "./config";
 import { ExpressApp } from "./routers/ExpressApp";
-import { Store } from "./Store";
 import { Aggregate, Message, Payload } from "./types";
-import { InMemoryApp, InMemoryStore } from "./__dev__";
+import { InMemoryApp, InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export * from "./types";
 export * from "./config";
 export * from "./Store";
+export * from "./Broker";
+export { commandPath, eventPath } from "./utils";
 
 let app: AppBase | undefined;
 
-export const App = (store: Store = InMemoryStore()): AppBase => {
+export const App = (
+  store = InMemoryStore(),
+  broker = InMemoryBroker()
+): AppBase => {
   if (!app)
     app =
       config.env === Environments.test
-        ? new InMemoryApp(InMemoryStore())
-        : new ExpressApp(store);
+        ? new InMemoryApp(InMemoryStore(), InMemoryBroker())
+        : new ExpressApp(store, broker);
   return app;
 };
 
@@ -43,7 +47,7 @@ const validate = (
 export const test_command = async <Model extends Payload, Commands, Events>(
   aggregate: Aggregate<Model, Commands, Events>,
   command: Message<keyof Commands & string, Payload>
-): Promise<Model> => {
+): Promise<LogEntry<Model>> => {
   validate(command);
   const [, committed] = await App().command(aggregate, command);
   validate(committed as unknown as Message<string, Payload>, true);

@@ -17,11 +17,8 @@ const policy = async (
   version?: string
 ): Promise<PolicyResponse<CalculatorCommands> | undefined> => {
   const id = streamId.substr("Calculator:".length);
-  const calculator = await App().load(Calculator(id));
-  if (
-    (calculator.left || "").length >= 5 ||
-    (calculator.right || "").length >= 5
-  )
+  const { state } = await App().load(Calculator(id));
+  if ((state.left || "").length >= 5 || (state.right || "").length >= 5)
     return {
       id,
       expectedVersion: version,

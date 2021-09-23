@@ -2,10 +2,12 @@ POST http://localhost:3000/counter/digit-pressed
 Content-Type: application/json
 
 {
-  "id": "calc2",
-  "version": 0,
+  "eventId": 1,
+  "aggregateId": "calc2",
+  "aggregateVersion": "0",
+  "createdAt": "2020-10-10",
   "name": "DigitPressed",
-  "data": "1"
+  "data": { "digit": "1" }
 }
 
 ###
@@ -14,10 +16,12 @@ POST http://localhost:3000/counter/digit-pressed
 Content-Type: application/json
 
 {
-  "id": "calc3",
-  "version": 1,
+  "eventId": 1,
+  "aggregateId": "calc3",
+  "aggregateVersion": "0",
+  "createdAt": "2020-10-10",
   "name": "DigitPressed",
-  "data": "2"
+  "data": { "digit": "3" }
 }
 
 ###
@@ -26,7 +30,9 @@ POST http://localhost:3000/counter/dot-pressed
 Content-Type: application/json
 
 {
-  "id": "calc2",
-  "version": 1,
+  "eventId": 1,
+  "aggregateId": "calc2",
+  "aggregateVersion": "0",
+  "createdAt": "2020-10-10",
   "name": "DotPressed"
 }

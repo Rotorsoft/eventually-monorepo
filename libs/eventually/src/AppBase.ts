@@ -1,3 +1,4 @@
+import { Broker } from "./Broker";
 import { Log, LogFactory } from "./log";
 import { Store } from "./Store";
 import {
@@ -12,7 +13,7 @@ import {
   PolicyFactory,
   PolicyResponse
 } from "./types";
-import { aggregateId, apply } from "./utils";
+import { aggregateId, apply, commandPath } from "./utils";
 
 export type LogEntry<Model extends Payload> = {
   event: CommittedEvent<string, Payload>;
@@ -27,11 +28,8 @@ export abstract class AppBase {
   private _aggregates: {
     [name: string]: AggregateFactory<Payload, unknown, unknown>;
   } = {};
-  protected _topics: {
-    [name: string]: Policy<unknown, unknown>[];
-  } = {};
 
-  constructor(public readonly store: Store) {}
+  constructor(public readonly store: Store, public readonly broker: Broker) {}
 
   /**
    * Builds aggregate handlers
@@ -60,46 +58,19 @@ export abstract class AppBase {
 
   /**
    * Registers aggregates invoked by policies
-   * @param command command name
    * @param factory aggregate factory
-   * @param path command path
+   * @param command command name
    */
   protected register<Model extends Payload, Commands, Events>(
-    command: string,
     factory: AggregateFactory<Model, Commands, Events>,
-    path: string
+    command: Message<string, Payload>
   ): void {
-    this._aggregates[command] = factory;
-    this.log.trace("blue", `[POST ${command}]`, path);
-  }
-
-  /**
-   * Subscribes event topic
-   * @param event the event to subscribe
-   * @param factory policy factory
-   * @param path event path
-   */
-  protected subscribe<Commands, Events>(
-    event: CommittedEvent<string, Payload>,
-    factory: PolicyFactory<Commands, Events>,
-    path: string
-  ): void {
-    (this._topics[event.name] = this._topics[event.name] || []).push(factory());
-    this.log.trace("red", `[POST ${event.name}]`, path);
-  }
-
-  /**
-   * Emits committed events to subscribed policies - handling failures
-   * @param event committed event
-   */
-  protected async emit(event: CommittedEvent<string, Payload>): Promise<void> {
-    const topic = this._topics[event.name];
-    if (topic) {
-      const subscriptions = topic.map((policy) =>
-        this.event<any, any>(policy, event)
-      );
-      await Promise.all(subscriptions);
-    }
+    this._aggregates[command.name] = factory;
+    this.log.trace(
+      "blue",
+      `[POST ${command.name}]`,
+      commandPath(factory, command)
+    );
   }
 
   /**
@@ -117,7 +88,7 @@ export abstract class AppBase {
     const id = aggregateId(aggregate);
     this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
 
-    let state = await this.load<Model, Events>(aggregate);
+    let { state } = await this.load<Model, Events>(aggregate);
     if (!state) throw Error(`Invalid aggregate ${aggregate.name}!`);
 
     const event: Message<keyof Events & string, Payload> = await (
@@ -141,7 +112,7 @@ export abstract class AppBase {
       state
     );
 
-    await this.emit(committed);
+    await this.broker.emit<Events>(committed);
     return [state, committed];
   }
 
@@ -191,16 +162,20 @@ export abstract class AppBase {
       event: CommittedEvent<keyof Events & string, Payload>,
       state: Model
     ) => void
-  ): Promise<Model> {
-    let state = reducer.init();
+  ): Promise<LogEntry<Model>> {
+    const log: LogEntry<Model> = {
+      event: undefined,
+      state: reducer.init()
+    };
     let count = 0;
     await this.store.load<Events>(aggregateId(reducer), (event) => {
-      state = apply(reducer, event, state);
+      log.event = event;
+      log.state = apply(reducer, event, log.state);
       count++;
-      if (callback) callback(event, state);
+      if (callback) callback(event, log.state);
     });
     this.log.trace("gray", `   ... loaded ${count} event(s)`);
-    return state;
+    return log;
   }
 
   /**

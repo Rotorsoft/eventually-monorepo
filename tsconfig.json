@@ -3,6 +3,7 @@
   "references": [
     { "path": "./libs/eventually" },
     { "path": "./libs/eventually-pg" },
+    { "path": "./libs/eventually-gcp" },
     { "path": "./services/calculator" }
   ],
   "files": [],

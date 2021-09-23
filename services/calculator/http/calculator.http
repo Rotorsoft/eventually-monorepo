@@ -36,9 +36,10 @@ POST http://localhost:3000/counter/digit-pressed
 Content-Type: application/json
 
 {
-  "id": "test",
-  "version": "0",
-  "timestamp": "2021-09-19T23:04:11.309Z",
+  "eventId": 1,
+  "aggregateId": "calc2",
+  "aggregateVersion": "0",
+  "createdAt": "2020-10-10",
   "name": "DigitPressed",
   "data": { "digit": "1" }
 }

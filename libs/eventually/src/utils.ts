@@ -1,4 +1,12 @@
-import { CommittedEvent, MessageFactory, ModelReducer, Payload } from "./types";
+import {
+  AggregateFactory,
+  CommittedEvent,
+  Message,
+  MessageFactory,
+  ModelReducer,
+  Payload,
+  Policy
+} from "./types";
 
 /**
  * Decamelizes string
@@ -64,3 +72,26 @@ export const apply = <Model extends Payload, Events>(
   event: CommittedEvent<string, Payload>,
   state: Model
 ): Model => (reducer as any)["apply".concat(event.name)](state, event);
+
+/**
+ * Normalizes command paths
+ * @param factory aggregate factory
+ * @param command command
+ * @returns normalized path
+ */
+export const commandPath = <Model extends Payload, Commands, Events>(
+  factory: AggregateFactory<Model, Commands, Events>,
+  command: Message<string, Payload>
+): string =>
+  "/".concat(decamelize(factory("").name()), "/:id/", decamelize(command.name));
+
+/**
+ * Normalizes event paths
+ * @param policy policy
+ * @param event event
+ * @returns normalized path
+ */
+export const eventPath = <Commands, Events>(
+  policy: Policy<Commands, Events>,
+  event: CommittedEvent<string, Payload>
+): string => "/".concat(decamelize(policy.name()), "/", decamelize(event.name));

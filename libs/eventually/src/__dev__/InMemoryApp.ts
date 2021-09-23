@@ -1,12 +1,11 @@
-import { AggregateFactory, PolicyFactory } from "..";
+import { AggregateFactory, Broker, PolicyFactory, Store } from "..";
 import { AppBase } from "../AppBase";
-import { Store } from "../Store";
 import { MessageFactory, Payload } from "../types";
-import { decamelize, handlersOf } from "../utils";
+import { handlersOf } from "../utils";
 
 export class InMemoryApp extends AppBase {
-  constructor(store: Store) {
-    super(store);
+  constructor(store: Store, broker: Broker) {
+    super(store, broker);
   }
 
   withAggregate<Model extends Payload, Commands, Events>(
@@ -15,12 +14,7 @@ export class InMemoryApp extends AppBase {
   ): void {
     handlersOf(commands).map((f) => {
       const command = f();
-      const path = "/".concat(
-        decamelize(factory("").name()),
-        "/",
-        decamelize(command.name)
-      );
-      this.register(command.name, factory, path);
+      this.register(factory, command);
     });
   }
 
@@ -31,14 +25,8 @@ export class InMemoryApp extends AppBase {
     const instance = factory();
     handlersOf(events).map((f) => {
       const event = f();
-      if (Object.keys(instance).includes("on".concat(event.name))) {
-        const path = "/".concat(
-          decamelize(instance.name()),
-          "/",
-          decamelize(event.name)
-        );
-        this.subscribe(event, factory, path);
-      }
+      if (Object.keys(instance).includes("on".concat(event.name)))
+        this.broker.subscribe(instance, event);
     });
   }
 
