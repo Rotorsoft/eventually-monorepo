@@ -18,6 +18,10 @@ A `calculator` sample service is provided as a template. We recommend using cons
   App.ts
 ```
 
+The pictures below show the event storming model of the calculator service and how we transfer this model into a standard project structure:
+
+![Calculator Model](./assets/calculator.png)
+
 ![Microservice Structure](./assets/microservice.png)
 
 #### Setup
