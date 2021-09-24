@@ -3,7 +3,7 @@ import { Config, config as target, extend } from "@rotorsoft/eventually";
 
 interface GcpConfig {
   gcp: {
-    project: string;
+    project?: string;
   };
 }
 
@@ -15,7 +15,7 @@ export const config: Config & GcpConfig = extend(
   },
   joi.object<GcpConfig>({
     gcp: joi.object({
-      project: joi.string().required()
+      project: joi.string().optional()
     })
   }),
   target

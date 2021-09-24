@@ -1,9 +1,12 @@
-GET http://localhost:3000/stream
+@host = http://localhost:3000
 ###
-GET http://localhost:3000/stream?after=10
+
+GET {{host}}/stream HTTP/1.1
 ###
-GET http://localhost:3000/stream?after=10&limit=3 
+GET {{host}}/stream?after=10
 ###
-GET http://localhost:3000/stream/DigitPressed?limit=2 
+GET {{host}}/stream?after=10&limit=3 
 ###
-GET http://localhost:3000/stream/OperatorPressed?after=2&limit=5 
+GET {{host}}/stream/DigitPressed?limit=2 
+###
+GET {{host}}/stream/OperatorPressed?after=2&limit=5 

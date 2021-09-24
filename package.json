@@ -20,7 +20,7 @@
     "services/*"
   ],
   "scripts": {
-    "clean": "sh ./clean.sh",
+    "clean": "sh ./scripts/clean.sh",
     "build": "yarn tsc --build",
     "test": "yarn jest",
     "test:watch": "yarn jest --watch",
@@ -28,7 +28,9 @@
     "lint-file:prettier": "yarn prettier --check",
     "lint": "yarn lint-file:eslint '**/src/**/*.ts'",
     "pretty": "yarn lint-file:prettier '**/src/*.{ts,js,json,css,md,yaml,yml}'",
-    "fix": "yarn lint --fix && yarn pretty --write --ignore-path ./.prettierignore"
+    "fix": "yarn lint --fix && yarn pretty --write --ignore-path ./.prettierignore",
+    "deploy:function": "sh ./scripts/deploy-function.sh",
+    "deploy:app": "sh ./scripts/deploy-app.sh"
   },
   "husky": {
     "hooks": {

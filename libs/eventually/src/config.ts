@@ -10,10 +10,17 @@ export enum Environments {
   production = "production"
 }
 
+export enum LogLevels {
+  error = "error",
+  info = "info",
+  trace = "trace"
+}
+
 export interface Config {
   env: Environments;
   host: string;
   port: number;
+  logLevel: LogLevels;
 }
 
 export const extend = <S extends Record<string, any>, T extends Config>(
@@ -26,13 +33,14 @@ export const extend = <S extends Record<string, any>, T extends Config>(
   return Object.assign(target || {}, value) as S & T;
 };
 
-const { NODE_ENV, HOST, PORT } = process.env;
+const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
 export const config: Config = extend(
   {
     env: (NODE_ENV as Environments) || Environments.development,
     host: HOST || "http://localhost",
-    port: Number.parseInt(PORT || "3000")
+    port: Number.parseInt(PORT || "3000"),
+    logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error
   },
   joi.object<Config>({
     env: joi
@@ -40,6 +48,10 @@ export const config: Config = extend(
       .required()
       .valid(...Object.keys(Environments)),
     host: joi.string().required().min(5),
-    port: joi.number().port().required()
+    port: joi.number().port().required(),
+    logLevel: joi
+      .string()
+      .required()
+      .valid(...Object.keys(LogLevels))
   })
 );

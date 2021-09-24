@@ -3,6 +3,7 @@ import { Store, EvtOf, Evt, MsgOf, Payload } from "@rotorsoft/eventually";
 import { config } from "./config";
 
 const pool = new Pool(config.pg);
+delete config.pg.password; // use it and forget it
 
 type Event = {
   event_id: number;

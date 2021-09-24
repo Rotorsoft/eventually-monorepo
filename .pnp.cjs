@@ -27,6 +27,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:libs/eventually"
       },
       {
+        "name": "@rotorsoft/eventually-express",
+        "reference": "workspace:libs/eventually-express"
+      },
+      {
         "name": "@rotorsoft/eventually-gcp",
         "reference": "workspace:libs/eventually-gcp"
       },
@@ -44,6 +48,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
     "fallbackExclusionList": [
       ["@rotorsoft/calculator", ["workspace:services/calculator"]],
       ["@rotorsoft/eventually", ["workspace:libs/eventually"]],
+      ["@rotorsoft/eventually-express", ["workspace:libs/eventually-express"]],
       ["@rotorsoft/eventually-gcp", ["workspace:libs/eventually-gcp"]],
       ["@rotorsoft/eventually-monorepo", ["workspace:."]],
       ["@rotorsoft/eventually-pg", ["workspace:libs/eventually-pg"]]
@@ -1424,6 +1429,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@rotorsoft/calculator", "workspace:services/calculator"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
             ["@rotorsoft/eventually-gcp", "workspace:libs/eventually-gcp"],
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
             ["joi", "npm:17.4.2"],
@@ -1438,9 +1444,23 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./libs/eventually/",
           "packageDependencies": [
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
-            ["@types/express", "npm:4.17.13"],
             ["chalk", "npm:4.1.2"],
             ["dotenv", "npm:10.0.0"],
+            ["joi", "npm:17.4.2"]
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
+      ["@rotorsoft/eventually-express", [
+        ["workspace:libs/eventually-express", {
+          "packageLocation": "./libs/eventually-express/",
+          "packageDependencies": [
+            ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
+            ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@types/cors", "npm:2.8.12"],
+            ["@types/express", "npm:4.17.13"],
+            ["@types/node", "npm:16.9.2"],
+            ["cors", "npm:2.8.5"],
             ["express", "npm:4.17.1"],
             ["joi", "npm:17.4.2"]
           ],
@@ -1626,6 +1646,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@types/connect", "npm:3.4.35"],
             ["@types/node", "npm:16.9.1"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@types/cors", [
+        ["npm:2.8.12", {
+          "packageLocation": "./.yarn/cache/@types-cors-npm-2.8.12-ff52e8e514-8c45f112c7.zip/node_modules/@types/cors/",
+          "packageDependencies": [
+            ["@types/cors", "npm:2.8.12"]
           ],
           "linkType": "HARD",
         }]
@@ -2991,6 +3020,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/core-util-is-npm-1.0.3-ca74b76c90-9de8597363.zip/node_modules/core-util-is/",
           "packageDependencies": [
             ["core-util-is", "npm:1.0.3"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["cors", [
+        ["npm:2.8.5", {
+          "packageLocation": "./.yarn/cache/cors-npm-2.8.5-c9935a2d12-ced838404c.zip/node_modules/cors/",
+          "packageDependencies": [
+            ["cors", "npm:2.8.5"],
+            ["object-assign", "npm:4.1.1"],
+            ["vary", "npm:1.1.2"]
           ],
           "linkType": "HARD",
         }]

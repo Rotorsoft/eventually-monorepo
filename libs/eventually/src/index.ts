@@ -1,27 +1,18 @@
 import { AppBase } from "./AppBase";
-import { config, Environments } from "./config";
-import { ExpressApp } from "./routers/ExpressApp";
 import { Aggregate, MsgOf, Payload, Snapshot } from "./types";
 import { committedSchema } from "./utils";
 import { InMemoryApp, InMemoryBroker, InMemoryStore } from "./__dev__";
 
+export * from "./AppBase";
 export * from "./Broker";
 export * from "./config";
 export * from "./Store";
 export * from "./types";
-export { commandPath, eventPath } from "./utils";
+export * from "./utils";
 
 let app: AppBase | undefined;
-
-export const App = (
-  store = InMemoryStore(),
-  broker = InMemoryBroker()
-): AppBase => {
-  if (!app)
-    app =
-      config.env === Environments.test
-        ? new InMemoryApp(InMemoryStore(), InMemoryBroker())
-        : new ExpressApp(store, broker);
+export const App = (base?: AppBase): AppBase => {
+  if (!app) app = base || new InMemoryApp(InMemoryStore(), InMemoryBroker());
   return app;
 };
 

@@ -48,9 +48,10 @@ export abstract class AppBase {
   ): void;
 
   /**
-   * Starts listening for messages
+   * Builds the internal app
+   * @returns the internal app, services can call app.listen(...)
    */
-  abstract listen(): void;
+  abstract build(): any;
 
   /**
    * Registers aggregates invoked by policies

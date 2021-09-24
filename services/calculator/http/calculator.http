@@ -1,9 +1,12 @@
-GET http://localhost:3000/calculator/calc1
-###
-GET http://localhost:3000/calculator/calc1/stream
+@host = http://localhost:3000
 ###
 
-POST http://localhost:3000/calculator/calc1/press-key
+GET {{host}}/calculator/calc1
+###
+GET {{host}}/calculator/calc1/stream
+###
+
+POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
 {
@@ -13,7 +16,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:3000/calculator/calc1/press-key
+POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
 {
@@ -23,7 +26,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:3000/calculator/calc1/press-key
+POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
 {
@@ -32,7 +35,7 @@ Content-Type: application/json
 }
 
 ### 
-POST http://localhost:3000/counter/digit-pressed
+POST {{host}}/counter/digit-pressed
 Content-Type: application/json
 
 {

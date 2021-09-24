@@ -1,6 +1,8 @@
 coverage
 dist
 *.env
+*.env.yml
+app.yaml
 .DS_Store
 data
 

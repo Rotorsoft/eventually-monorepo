@@ -26,11 +26,11 @@ export class InMemoryApp extends AppBase {
     handlersOf(events).map((f) => {
       const event = f();
       if (Object.keys(instance).includes("on".concat(event.name)))
-        this.broker.subscribe(instance, event);
+        void this.broker.subscribe(instance, event);
     });
   }
 
-  listen(): void {
-    this.log.info("InMemoryApp is listening...");
+  build(): void {
+    return;
   }
 }

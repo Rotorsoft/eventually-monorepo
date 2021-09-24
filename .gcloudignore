@@ -1,0 +1,5 @@
+.gcloudignore
+.tsbuildinfo
+**/*.d.ts
+**/*.d.ts.map
+**/*.js.map

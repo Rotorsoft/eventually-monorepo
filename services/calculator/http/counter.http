@@ -1,4 +1,7 @@
-POST http://localhost:3000/counter/digit-pressed
+@host = http://localhost:3000
+###
+
+POST {{host}}/counter/digit-pressed
 Content-Type: application/json
 
 {
@@ -12,7 +15,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:3000/counter/digit-pressed
+POST {{host}}/counter/digit-pressed
 Content-Type: application/json
 
 {
@@ -26,7 +29,7 @@ Content-Type: application/json
 
 ###
 
-POST http://localhost:3000/counter/dot-pressed
+POST {{host}}/counter/dot-pressed
 Content-Type: application/json
 
 {

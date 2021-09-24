@@ -28,7 +28,10 @@ export const PubSubBroker = (): Broker => {
       policy: Policy<Commands, Events>,
       event: MsgOf<Events>
     ): Promise<void> => {
-      const pubsub = new PubSub({ projectId: config.gcp.project });
+      const options = config.gcp.project
+        ? { projectId: config.gcp.project }
+        : {};
+      const pubsub = new PubSub(options);
       const topic = new GcpTopic(pubsub, event.name);
       let [exists] = await topic.exists();
       if (!exists) await topic.create();

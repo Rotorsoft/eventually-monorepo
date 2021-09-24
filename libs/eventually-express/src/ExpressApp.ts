@@ -1,21 +1,23 @@
-import express, { NextFunction, Request, Response, Router } from "express";
-import { AggregateFactory, Broker, Evt, MsgOf, Store } from "..";
-import { AppBase } from "../AppBase";
-import { config } from "../config";
 import {
-  MessageFactory,
-  ModelReducer,
-  Payload,
-  PolicyFactory,
-  Snapshot
-} from "../types";
-import {
+  AggregateFactory,
   aggregatePath,
+  AppBase,
+  Broker,
   commandPath,
   committedSchema,
   eventPath,
-  handlersOf
-} from "../utils";
+  Evt,
+  handlersOf,
+  MessageFactory,
+  ModelReducer,
+  MsgOf,
+  Payload,
+  PolicyFactory,
+  Snapshot,
+  Store
+} from "@rotorsoft/eventually";
+import cors from "cors";
+import express, { NextFunction, Request, Response, Router } from "express";
 
 type GetCallback = <Model extends Payload, Events>(
   reducer: ModelReducer<Model, Events>
@@ -156,17 +158,18 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  listen(): void {
+  build(): express.Express {
     const app = express();
+    app.set("trust proxy", true);
+    app.use(cors());
     app.use(express.json());
     app.use(this._router);
+
     // eslint-disable-next-line
     app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
       res.status(500).send(err.message);
     });
 
-    app.listen(config.port, () => {
-      this.log.info("Express app is listening", config);
-    });
+    return app;
   }
 }
