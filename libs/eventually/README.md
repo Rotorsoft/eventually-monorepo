@@ -41,37 +41,33 @@ This project is trying to answer the following questions:
 
 > The anatomy of a micro-service should reflect the business model
 
-We recommend using consistent project structures like the one below. Start by defining your models and validation schemas, then write your aggregates and policies. Follow TDD practices and the Test utility to acomplish 100% code coverage.
-
-```bash
-./src
-  /__mocks__
-  /__tests__
-  /Aggregates
-  /Policies
-  /Projectors (optional)
-  /Schemas
-  App.ts
-```
-
-##### Bootstraps the micro-service `App.ts`
+##### Bootstraps the micro-service `index.ts`
 
 - Command handlers are routed by convention `/aggregate-type/:id/command-name`
 
 - Event handlers follow a similar approach `/policy-or-projector-type/event-name`
 
 ```typescript
-import { App } from "@rotorsoft/eventually";
+import { App, config } from "@rotorsoft/eventually";
+import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
-import { CalculatorCommandsFactory } from "./Aggregates/Calculator.Commands";
-import { Calculator } from "./Aggregates/Calculator";
-import { CalculatorEventsFactory } from "./Aggregates/Calculator.Events";
-import { Counter } from "./Policies/Counter";
+import { PubSubBroker } from "@rotorsoft/eventually-gcp";
+import { commands } from "./calculator.commands";
+import { Calculator } from "./calculator.aggregate";
+import { events } from "./calculator.events";
+import { Counter } from "./counter.policy";
 
-const app = App(PostgresStore());
-app.withAggregate(Calculator, CalculatorCommandsFactory);
-app.withPolicy(Counter, CalculatorEventsFactory);
-app.listen();
+const app = App(new ExpressApp(PostgresStore(), PubSubBroker()));
+
+app.withAggregate(Calculator, commands);
+app.withPolicy(Counter, events);
+
+export const express = app.build();
+
+if (express && !config.host.endsWith("cloudfunctions.net/calculator"))
+  express.listen(config.port, () => {
+    app.log.info("Express app is listening", config);
+  });
 ```
 
 #### Testing your code
@@ -80,26 +76,26 @@ We group our unit tests inside the `__tests__` folder. We want tests only focusi
 
 ```typescript
 import { App, test_command } from "@rotorsoft/eventually";
-import { Calculator } from "../Aggregates/Calculator";
-import { CalculatorCommandsFactory } from "../Aggregates/Calculator.Commands";
-import { CalculatorEventsFactory } from "../Aggregates/Calculator.Events";
-import { Counter } from "../Policies/Counter";
+import { Calculator } from "../calculator.aggregate";
+import { commands } from "../calculator.commands";
+import { events } from "../calculator.events";
+import { Counter } from "../counter.policy";
 
 describe("Counter", () => {
   const app = App();
-  app.withAggregate(Calculator, CalculatorCommandsFactory);
-  app.withPolicy(Counter, CalculatorEventsFactory);
+  app.withAggregate(Calculator, commands);
+  app.withPolicy(Counter, events);
 
   it("should return Reset on DigitPressed", async () => {
     const c = Calculator("test");
-    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "1" }));
-    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "1" }));
-    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "2" }));
-    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "." }));
-    await test_command(c, CalculatorCommandsFactory.PressKey({ key: "3" }));
+    await test_command(c, commands.PressKey({ key: "1" }));
+    await test_command(c, commands.PressKey({ key: "1" }));
+    await test_command(c, commands.PressKey({ key: "2" }));
+    await test_command(c, commands.PressKey({ key: "." }));
+    await test_command(c, commands.PressKey({ key: "3" }));
 
-    const model = await app.load(c);
-    expect(model).toEqual({ result: 0 });
+    const { state } = await app.load(c);
+    expect(state).toEqual({ result: 0 });
   });
 });
 ```

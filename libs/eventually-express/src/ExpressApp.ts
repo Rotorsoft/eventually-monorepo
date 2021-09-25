@@ -19,9 +19,9 @@ import {
 import cors from "cors";
 import express, { NextFunction, Request, Response, Router } from "express";
 
-type GetCallback = <Model extends Payload, Events>(
-  reducer: ModelReducer<Model, Events>
-) => Promise<Snapshot<Model> | Snapshot<Model>[]>;
+type GetCallback = <M extends Payload, E>(
+  reducer: ModelReducer<M, E>
+) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
   private _router: Router = Router();
@@ -54,8 +54,8 @@ export class ExpressApp extends AppBase {
     this.log.trace("green", "[GET]", "/stream/[event]?after=-1&limit=1");
   }
 
-  private _get<Model extends Payload, Events>(
-    factory: (id: string) => ModelReducer<Model, Events>,
+  private _get<M extends Payload, E>(
+    factory: (id: string) => ModelReducer<M, E>,
     callback: GetCallback,
     suffix?: string
   ): void {
@@ -88,14 +88,14 @@ export class ExpressApp extends AppBase {
     this.log.trace("green", `[GET ${name}]`, path.concat(suffix || ""));
   }
 
-  withAggregate<Model extends Payload, Commands, Events>(
-    factory: AggregateFactory<Model, Commands, Events>,
-    commands: MessageFactory<Commands>
+  withAggregate<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
+    commands: MessageFactory<C>
   ): void {
     this._get(factory, this.load.bind(this));
     this._get(factory, this.stream.bind(this), "/stream");
     handlersOf(commands).map((f) => {
-      const command = f() as MsgOf<Commands>;
+      const command = f() as MsgOf<C>;
       this._router.post(
         commandPath(factory, command),
         async (
@@ -127,13 +127,13 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  withPolicy<Commands, Events>(
-    factory: PolicyFactory<Commands, Events>,
-    events: MessageFactory<Events>
+  withPolicy<C, E>(
+    factory: PolicyFactory<C, E>,
+    events: MessageFactory<E>
   ): void {
     const instance = factory();
     handlersOf(events).map((f) => {
-      const event = f() as MsgOf<Events>;
+      const event = f() as MsgOf<E>;
       if (Object.keys(instance).includes("on".concat(event.name))) {
         this._router.post(
           eventPath(instance, event),

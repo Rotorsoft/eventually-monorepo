@@ -24,9 +24,9 @@ export const PubSubBroker = (): Broker => {
   const topics: { [name: string]: GcpTopic } = {};
 
   return {
-    subscribe: async <Commands, Events>(
-      policy: Policy<Commands, Events>,
-      event: MsgOf<Events>
+    subscribe: async <C, E>(
+      policy: Policy<C, E>,
+      event: MsgOf<E>
     ): Promise<void> => {
       const options = config.gcp.project
         ? { projectId: config.gcp.project }
@@ -47,7 +47,7 @@ export const PubSubBroker = (): Broker => {
       App().log.trace("red", `[POST ${event.name}]`, url);
     },
 
-    emit: async <Events>(event: EvtOf<Events>): Promise<void> => {
+    emit: async <E>(event: EvtOf<E>): Promise<void> => {
       const topic = topics[event.name];
       if (topic) await topic.publish(Buffer.from(JSON.stringify(event)));
     },

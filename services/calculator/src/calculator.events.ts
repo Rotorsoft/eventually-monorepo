@@ -1,14 +1,8 @@
 import { MessageFactory } from "@rotorsoft/eventually";
-import {
-  ClearedSchema,
-  DigitPressedSchema,
-  DotPressedSchema,
-  EqualsPressedSchema,
-  OperatorPressedSchema
-} from "../Schemas/Calculator.Schemas";
-import { Digits, Operators } from "./Calculator.Model";
+import * as schemas from "./calculator.schemas";
+import { Digits, Operators } from "./calculator.models";
 
-export type CalculatorEvents = {
+export type Events = {
   DigitPressed: { digit: Digits };
   OperatorPressed: { operator: Operators };
   DotPressed: undefined;
@@ -17,31 +11,31 @@ export type CalculatorEvents = {
 };
 
 // Event handlers receive committed events with id and version - required
-export const CalculatorEventsFactory: MessageFactory<CalculatorEvents> = {
+export const events: MessageFactory<Events> = {
   DigitPressed: (data: { digit: Digits }) => ({
     name: "DigitPressed",
     data,
-    schema: () => DigitPressedSchema
+    schema: () => schemas.DigitPressed
   }),
 
   DotPressed: () => ({
     name: "DotPressed",
-    schema: () => DotPressedSchema
+    schema: () => schemas.DotPressed
   }),
 
   EqualsPressed: () => ({
     name: "EqualsPressed",
-    schema: () => EqualsPressedSchema
+    schema: () => schemas.EqualsPressed
   }),
 
   OperatorPressed: (data: { operator: Operators }) => ({
     name: "OperatorPressed",
     data,
-    schema: () => OperatorPressedSchema
+    schema: () => schemas.OperatorPressed
   }),
 
   Cleared: () => ({
     name: "Cleared",
-    schema: () => ClearedSchema
+    schema: () => schemas.Cleared
   })
 };

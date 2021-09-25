@@ -1,22 +1,22 @@
 import { MessageFactory } from "@rotorsoft/eventually";
-import { Keys } from "./Calculator.Model";
-import { PressKeySchema, ResetSchema } from "../Schemas/Calculator.Schemas";
+import { Keys } from "./calculator.models";
+import * as schemas from "./calculator.schemas";
 
-export type CalculatorCommands = {
+export type Commands = {
   PressKey: { key: Keys };
   Reset: undefined;
 };
 
 // Aggregate HTTP POST endpoints receiving commands from human actors and brokers (from policies)
-export const CalculatorCommandsFactory: MessageFactory<CalculatorCommands> = {
+export const commands: MessageFactory<Commands> = {
   PressKey: (data: { key: Keys }) => ({
     name: "PressKey",
     data,
-    schema: () => PressKeySchema
+    schema: () => schemas.PressKey
   }),
 
   Reset: () => ({
     name: "Reset",
-    schema: () => ResetSchema
+    schema: () => schemas.Reset
   })
 };

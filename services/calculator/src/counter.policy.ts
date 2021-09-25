@@ -4,29 +4,29 @@ import {
   Policy,
   PolicyResponse
 } from "@rotorsoft/eventually";
-import {
-  CalculatorCommands,
-  CalculatorCommandsFactory
-} from "../Aggregates/Calculator.Commands";
-import { CounterEvents } from "./Counter.Events";
-import { Digits } from "../Aggregates/Calculator.Model";
-import { Calculator } from "../Aggregates/Calculator";
+import { Commands, commands } from "./calculator.commands";
+import { Digits } from "./calculator.models";
+import { Calculator } from "./calculator.aggregate";
+import { Events } from "./calculator.events";
 
 const policy = async (
   streamId: string,
   version?: string
-): Promise<PolicyResponse<CalculatorCommands> | undefined> => {
+): Promise<PolicyResponse<Commands>> => {
   const id = streamId.substr("Calculator:".length);
   const { state } = await App().load(Calculator(id));
   if ((state.left || "").length >= 5 || (state.right || "").length >= 5)
     return {
       id,
       expectedVersion: version,
-      command: CalculatorCommandsFactory.Reset()
+      command: commands.Reset()
     };
 };
 
-export const Counter = (): Policy<CalculatorCommands, CounterEvents> => ({
+export const Counter = (): Policy<
+  Commands,
+  Pick<Events, "DigitPressed" | "DotPressed">
+> => ({
   name: () => "Counter",
 
   onDigitPressed: async (

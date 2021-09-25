@@ -44,8 +44,8 @@ export const handlersOf = <Messages>(
  * @param factory aggregate factory
  * @returns object with aggregate name and path
  */
-export const aggregatePath = <Model extends Payload, Events>(
-  factory: (id: string) => ModelReducer<Model, Events>
+export const aggregatePath = <M extends Payload, E>(
+  factory: (id: string) => ModelReducer<M, E>
 ): { name: string; path: string } => {
   const name = factory("").name();
   const path = "/".concat(decamelize(name), "/:id");
@@ -57,8 +57,8 @@ export const aggregatePath = <Model extends Payload, Events>(
  * @param aggregate
  * @returns normalized aggregate id
  */
-export const aggregateId = <Model extends Payload, Events>(
-  aggregate: ModelReducer<Model, Events>
+export const aggregateId = <M extends Payload, E>(
+  aggregate: ModelReducer<M, E>
 ): string => `${aggregate.name()}:${aggregate.id}`;
 
 /**
@@ -68,11 +68,11 @@ export const aggregateId = <Model extends Payload, Events>(
  * @param state current model state
  * @returns new model state
  */
-export const apply = <Model extends Payload, Events>(
-  reducer: ModelReducer<Model, Events>,
+export const apply = <M extends Payload, E>(
+  reducer: ModelReducer<M, E>,
   event: Evt,
-  state: Model
-): Model => (reducer as any)["apply".concat(event.name)](state, event);
+  state: M
+): M => (reducer as any)["apply".concat(event.name)](state, event);
 
 /**
  * Normalizes command paths
@@ -80,9 +80,9 @@ export const apply = <Model extends Payload, Events>(
  * @param command command
  * @returns normalized path
  */
-export const commandPath = <Model extends Payload, Commands, Events>(
-  factory: AggregateFactory<Model, Commands, Events>,
-  command: MsgOf<Commands>
+export const commandPath = <M extends Payload, C, E>(
+  factory: AggregateFactory<M, C, E>,
+  command: MsgOf<C>
 ): string =>
   "/".concat(decamelize(factory("").name()), "/:id/", decamelize(command.name));
 
@@ -92,9 +92,9 @@ export const commandPath = <Model extends Payload, Commands, Events>(
  * @param event event
  * @returns normalized path
  */
-export const eventPath = <Commands, Events>(
-  policy: Policy<Commands, Events>,
-  event: MsgOf<Events>
+export const eventPath = <C, E>(
+  policy: Policy<C, E>,
+  event: MsgOf<E>
 ): string => "/".concat(decamelize(policy.name()), "/", decamelize(event.name));
 
 /**

@@ -16,22 +16,19 @@ export const App = (base?: AppBase): AppBase => {
   return app;
 };
 
-const validate = <Commands>(
-  message: MsgOf<Commands>,
-  committed = false
-): void => {
+const validate = <C>(message: MsgOf<C>, committed = false): void => {
   const { schema, ...value } = message;
   const validator = committed ? committedSchema(schema()) : schema();
   const { error } = validator.validate(value);
   if (error) throw Error(error.toString());
 };
 
-export const test_command = async <Model extends Payload, Commands, Events>(
-  aggregate: Aggregate<Model, Commands, Events>,
-  command: MsgOf<Commands>
-): Promise<Snapshot<Model>> => {
+export const test_command = async <M extends Payload, C, E>(
+  aggregate: Aggregate<M, C, E>,
+  command: MsgOf<C>
+): Promise<Snapshot<M>> => {
   validate(command);
   const [, committed] = await App().command(aggregate, command);
-  validate(committed as unknown as MsgOf<Commands>, true);
+  validate(committed as unknown as MsgOf<C>, true);
   return await App().load(aggregate);
 };

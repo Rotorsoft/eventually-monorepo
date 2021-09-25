@@ -10,10 +10,7 @@ export interface Store {
    * @param id aggregate id
    * @param reducer model reducer
    */
-  load: <Events>(
-    id: string,
-    reducer: (event: EvtOf<Events>) => void
-  ) => Promise<void>;
+  load: <E>(id: string, reducer: (event: EvtOf<E>) => void) => Promise<void>;
 
   /**
    * Commits message into stream of aggregate id
@@ -22,11 +19,11 @@ export interface Store {
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
    * @returns committed event
    */
-  commit: <Events>(
+  commit: <E>(
     id: string,
-    event: MsgOf<Events>,
+    event: MsgOf<E>,
     expectedVersion?: string
-  ) => Promise<EvtOf<Events>>;
+  ) => Promise<EvtOf<E>>;
 
   /**
    * Loads events from stream

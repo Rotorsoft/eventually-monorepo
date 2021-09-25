@@ -1,7 +1,7 @@
 import * as joi from "joi";
-import { DIGITS, OPERATORS, SYMBOLS } from "../Aggregates/Calculator.Model";
+import { DIGITS, OPERATORS, SYMBOLS } from "./calculator.models";
 
-export const DigitPressedSchema = joi.object({
+export const DigitPressed = joi.object({
   name: joi.string().required().valid("DigitPressed"),
   data: joi.object({
     digit: joi
@@ -10,15 +10,15 @@ export const DigitPressedSchema = joi.object({
       .valid(...DIGITS)
   })
 });
-export const DotPressedSchema = joi.object({
+export const DotPressed = joi.object({
   name: joi.string().required().valid("DotPressed")
 });
 
-export const EqualsPressedSchema = joi.object({
+export const EqualsPressed = joi.object({
   name: joi.string().required().valid("EqualsPressed")
 });
 
-export const OperatorPressedSchema = joi.object({
+export const OperatorPressed = joi.object({
   name: joi.string().required().valid("OperatorPressed"),
   data: joi.object({
     operator: joi
@@ -28,11 +28,11 @@ export const OperatorPressedSchema = joi.object({
   })
 });
 
-export const ClearedSchema = joi.object({
+export const Cleared = joi.object({
   name: joi.string().required().valid("Cleared")
 });
 
-export const PressKeySchema = joi.object({
+export const PressKey = joi.object({
   name: joi.string().required().valid("PressKey"),
   data: joi.object({
     key: joi
@@ -44,6 +44,6 @@ export const PressKeySchema = joi.object({
   })
 });
 
-export const ResetSchema = joi.object({
+export const Reset = joi.object({
   name: joi.string().required().valid("Reset")
 });

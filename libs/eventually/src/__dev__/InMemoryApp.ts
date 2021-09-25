@@ -8,9 +8,9 @@ export class InMemoryApp extends AppBase {
     super(store, broker);
   }
 
-  withAggregate<Model extends Payload, Commands, Events>(
-    factory: AggregateFactory<Model, Commands, Events>,
-    commands: MessageFactory<Commands>
+  withAggregate<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
+    commands: MessageFactory<C>
   ): void {
     handlersOf(commands).map((f) => {
       const command = f();
@@ -18,9 +18,9 @@ export class InMemoryApp extends AppBase {
     });
   }
 
-  withPolicy<Commands, Events>(
-    factory: PolicyFactory<Commands, Events>,
-    events: MessageFactory<Events>
+  withPolicy<C, E>(
+    factory: PolicyFactory<C, E>,
+    events: MessageFactory<E>
   ): void {
     const instance = factory();
     handlersOf(events).map((f) => {

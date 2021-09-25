@@ -9,16 +9,13 @@ export interface Broker {
    * @param name topic name
    * @param event committed event
    */
-  subscribe<Commands, Events>(
-    policy: Policy<Commands, Events>,
-    event: MsgOf<Events>
-  ): Promise<void>;
+  subscribe<C, E>(policy: Policy<C, E>, event: MsgOf<E>): Promise<void>;
 
   /**
    * Emits event to topic
    * @param event committed event
    */
-  emit: <Events>(event: EvtOf<Events>) => Promise<void>;
+  emit: <E>(event: EvtOf<E>) => Promise<void>;
 
   /**
    * Decodes pushed messages

@@ -9,12 +9,12 @@ const a1 = chance.guid();
 const a2 = chance.guid();
 const a3 = chance.guid();
 
-type Events = {
+type E = {
   test1: { value: string };
   test2: { value: string };
 };
 
-const event = (name: keyof Events, data?: Payload): MsgOf<Events> => ({
+const event = (name: keyof E, data?: Payload): MsgOf<E> => ({
   name,
   schema: () => null,
   data

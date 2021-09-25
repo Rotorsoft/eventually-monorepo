@@ -6,9 +6,9 @@ import {
   CalculatorModel,
   Operators,
   Keys
-} from "./Calculator.Model";
-import { CalculatorCommands } from "./Calculator.Commands";
-import { CalculatorEvents, CalculatorEventsFactory } from "./Calculator.Events";
+} from "./calculator.models";
+import { Commands } from "./calculator.commands";
+import { Events, events } from "./calculator.events";
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 const Operations = {
@@ -31,7 +31,7 @@ const compute = (model: CalculatorModel): CalculatorModel => {
 
 export const Calculator = (
   id: string
-): Aggregate<CalculatorModel, CalculatorCommands, CalculatorEvents> => ({
+): Aggregate<CalculatorModel, Commands, Events> => ({
   id,
 
   name: () => "Calculator",
@@ -81,18 +81,18 @@ export const Calculator = (
 
   // Command Handlers validate business rules and poduce events
   // eslint-disable-next-line
-  onPressKey: async (model, data: { key: Keys }) => {
-    if (data.key === SYMBOLS[0]) return CalculatorEventsFactory.DotPressed();
-    if (data.key === SYMBOLS[1]) return CalculatorEventsFactory.EqualsPressed();
+  onPressKey: async (model: CalculatorModel, data: { key: Keys }) => {
+    if (data.key === SYMBOLS[0]) return events.DotPressed();
+    if (data.key === SYMBOLS[1]) return events.EqualsPressed();
     if (DIGITS.includes(data.key as Digits))
-      return CalculatorEventsFactory.DigitPressed({ digit: data.key } as {
+      return events.DigitPressed({ digit: data.key } as {
         digit: Digits;
       });
-    return CalculatorEventsFactory.OperatorPressed({ operator: data.key } as {
+    return events.OperatorPressed({ operator: data.key } as {
       operator: Operators;
     });
   },
 
   // eslint-disable-next-line
-  onReset: async () => CalculatorEventsFactory.Cleared()
+  onReset: async () => events.Cleared()
 });

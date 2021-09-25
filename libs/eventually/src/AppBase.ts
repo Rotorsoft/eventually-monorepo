@@ -32,9 +32,9 @@ export abstract class AppBase {
    * @param factory aggregate factory
    * @param commands associated command factory
    */
-  abstract withAggregate<Model extends Payload, Commands, Events>(
-    factory: AggregateFactory<Model, Commands, Events>,
-    commands: MessageFactory<Commands>
+  abstract withAggregate<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
+    commands: MessageFactory<C>
   ): void;
 
   /**
@@ -42,9 +42,9 @@ export abstract class AppBase {
    * @param factory policy factory
    * @param events associated event factory
    */
-  abstract withPolicy<Commands, Events>(
-    factory: PolicyFactory<Commands, Events>,
-    events: MessageFactory<Events>
+  abstract withPolicy<C, E>(
+    factory: PolicyFactory<C, E>,
+    events: MessageFactory<E>
   ): void;
 
   /**
@@ -58,9 +58,9 @@ export abstract class AppBase {
    * @param factory aggregate factory
    * @param command command name
    */
-  protected register<Model extends Payload, Commands, Events>(
-    factory: AggregateFactory<Model, Commands, Events>,
-    command: MsgOf<Commands>
+  protected register<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
+    command: MsgOf<C>
   ): void {
     this._aggregates[command.name] = factory;
     this.log.trace(
@@ -77,26 +77,23 @@ export abstract class AppBase {
    * @param expectedVersion optional aggregate expected version to allow optimistic concurrency
    * @returns tuple with mutated model and committed event
    */
-  async command<Model extends Payload, Commands, Events>(
-    aggregate: Aggregate<Model, Commands, Events>,
-    command: MsgOf<Commands>,
+  async command<M extends Payload, C, E>(
+    aggregate: Aggregate<M, C, E>,
+    command: MsgOf<C>,
     expectedVersion?: string
-  ): Promise<[Model, EvtOf<Events>]> {
+  ): Promise<[M, EvtOf<E>]> {
     const id = aggregateId(aggregate);
     this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
 
-    let { state } = await this.load<Model, Events>(aggregate);
+    let { state } = await this.load<M, E>(aggregate);
     if (!state) throw Error(`Invalid aggregate ${aggregate.name}!`);
 
-    const event: MsgOf<Events> = await (aggregate as any)[
-      "on".concat(command.name)
-    ](state, command.data);
-
-    const committed = await this.store.commit<Events>(
-      id,
-      event,
-      expectedVersion
+    const event: MsgOf<E> = await (aggregate as any)["on".concat(command.name)](
+      state,
+      command.data
     );
+
+    const committed = await this.store.commit<E>(id, event, expectedVersion);
     this.log.trace(
       "gray",
       `   ... committed ${committed.name} @ ${committed.aggregateVersion} - `,
@@ -110,7 +107,7 @@ export abstract class AppBase {
     );
 
     try {
-      await this.broker.emit<Events>(committed);
+      await this.broker.emit<E>(committed);
     } catch (error) {
       // TODO monitor broker failures
       // log.error cannot raise!
@@ -126,24 +123,24 @@ export abstract class AppBase {
    * @param event the event to handle
    * @returns policy response
    */
-  async event<Commands, Events>(
-    policy: Policy<Commands, Events>,
-    event: EvtOf<Events>
-  ): Promise<PolicyResponse<Commands> | undefined> {
+  async event<C, E>(
+    policy: Policy<C, E>,
+    event: EvtOf<E>
+  ): Promise<PolicyResponse<C> | undefined> {
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${policy.name()}`,
       event.data
     );
 
-    const response: PolicyResponse<Commands> | undefined = await (
-      policy as any
-    )["on".concat(event.name)](event);
+    const response: PolicyResponse<C> | undefined = await (policy as any)[
+      "on".concat(event.name)
+    ](event);
 
     if (response) {
       const { id, command, expectedVersion } = response;
       const factory = this._aggregates[command.name];
-      const aggregate = factory(id) as Aggregate<Payload, Commands, Events>;
+      const aggregate = factory(id) as Aggregate<Payload, C, E>;
       this.log.trace(
         "blue",
         `<<< ${command.name} ${aggregateId(aggregate)}`,
@@ -160,16 +157,16 @@ export abstract class AppBase {
    * @param callback optional reduction predicate
    * @returns loaded model
    */
-  async load<Model extends Payload, Events>(
-    reducer: ModelReducer<Model, Events>,
-    callback?: (event: EvtOf<Events>, state: Model) => void
-  ): Promise<Snapshot<Model>> {
-    const log: Snapshot<Model> = {
+  async load<M extends Payload, E>(
+    reducer: ModelReducer<M, E>,
+    callback?: (event: EvtOf<E>, state: M) => void
+  ): Promise<Snapshot<M>> {
+    const log: Snapshot<M> = {
       event: undefined,
       state: reducer.init()
     };
     let count = 0;
-    await this.store.load<Events>(aggregateId(reducer), (event) => {
+    await this.store.load<E>(aggregateId(reducer), (event) => {
       log.event = event;
       log.state = apply(reducer, event, log.state);
       count++;
@@ -184,10 +181,10 @@ export abstract class AppBase {
    * @param reducer model reducer
    * @returns stream log with events and state transitions
    */
-  async stream<Model extends Payload, Events>(
-    reducer: ModelReducer<Model, Events>
-  ): Promise<Snapshot<Model>[]> {
-    const log: Snapshot<Model>[] = [];
+  async stream<M extends Payload, E>(
+    reducer: ModelReducer<M, E>
+  ): Promise<Snapshot<M>[]> {
+    const log: Snapshot<M>[] = [];
     await this.load(reducer, (event, state) =>
       log.push({ event, state: state })
     );

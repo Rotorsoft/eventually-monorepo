@@ -9,16 +9,13 @@ export const InMemoryBroker = (): Broker => {
   } = {};
 
   return {
-    subscribe: <Commands, Events>(
-      policy: Policy<Commands, Events>,
-      event: MsgOf<Events>
-    ): Promise<void> => {
+    subscribe: <C, E>(policy: Policy<C, E>, event: MsgOf<E>): Promise<void> => {
       (_topics[event.name] = _topics[event.name] || []).push(policy);
       App().log.trace("red", `[POST ${event.name}]`, eventPath(policy, event));
       return Promise.resolve();
     },
 
-    emit: async <Events>(event: EvtOf<Events>): Promise<void> => {
+    emit: async <E>(event: EvtOf<E>): Promise<void> => {
       const topic = _topics[event.name];
       if (topic) {
         const promises = topic.map((policy) =>

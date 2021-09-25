@@ -9,89 +9,42 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "vsicons.presets.tsOfficial": true,
   "vsicons.associations.files": [
-    {
-      "icon": "json",
-      "extensions": [
-        "Schemas.ts",
-        "Schema.ts"
-      ]
-    },
+    { "icon": "json", "extensions": [".schemas.ts", ".schema.ts"] },
     {
       "icon": "Command",
-      "extensions": [
-        "Commands.ts",
-        "Command.ts"
-      ],
+      "extensions": [".commands.ts", ".command.ts"],
       "format": "svg"
     },
     {
       "icon": "Event",
-      "extensions": [
-        "Events.ts",
-        "Event.ts"
-      ],
+      "extensions": [".events.ts", ".event.ts"],
       "format": "svg"
     },
     {
       "icon": "Aggregate",
-      "extensions": [
-        "Aggregates.ts",
-        "Aggregate.ts"
-      ],
+      "extensions": [".aggregates.ts", ".aggregate.ts"],
       "format": "svg"
     },
     {
       "icon": "Policy",
-      "extensions": [
-        "Policies.ts",
-        "Policy.ts"
-      ],
+      "extensions": [".policies.ts", ".policy.ts"],
       "format": "svg"
     },
     {
       "icon": "Projector",
-      "extensions": [
-        "Projectors.ts",
-        "Projector.ts"
-      ],
+      "extensions": [".projectors.ts", ".projector.ts"],
       "format": "svg"
     },
     {
       "icon": "sql",
-      "extensions": [
-        "Models.ts",
-        "Model.ts"
-      ],
+      "extensions": [".models.ts", ".model.ts"],
       "format": "svg"
     }
   ],
   "vsicons.associations.folders": [
-    {
-      "icon": "Aggregate",
-      "extensions": [
-        "Aggregates"
-      ],
-      "format": "svg"
-    },
-    {
-      "icon": "Policy",
-      "extensions": [
-        "Policies"
-      ],
-      "format": "svg"
-    },
-    {
-      "icon": "Projector",
-      "extensions": [
-        "Projectors"
-      ],
-      "format": "svg"
-    },
-    {
-      "icon": "json",
-      "extensions": [
-        "Schemas"
-      ]
-    }
+    { "icon": "Aggregate", "extensions": ["aggregates"], "format": "svg" },
+    { "icon": "Policy", "extensions": ["policies"], "format": "svg" },
+    { "icon": "Projector", "extensions": ["projectors"], "format": "svg" },
+    { "icon": "json", "extensions": ["schemas"] }
   ]
 }

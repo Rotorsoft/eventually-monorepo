@@ -11,11 +11,14 @@ A `calculator` sample service is provided as a template. We recommend using cons
 ./src
   /__mocks__
   /__tests__
-  /Aggregates
-  /Policies
-  /Projectors (optional)
-  /Schemas
-  App.ts
+    service.spec.ts
+  service.aggregates.ts
+  service.commands.ts
+  service.events.ts
+  service.models.ts
+  service.policies.ts
+  service.schemas.ts
+  index.ts
 ```
 
 The pictures below show the event storming model of the calculator service and how we transfer this model into a standard project structure:
@@ -176,8 +179,10 @@ You can customize your workbech by copying the custom [vsicons](https://marketpl
 # start a fresh postgres container
 > sh ./docker/restart.sh
 
-# start the calculator service
-> yarn ./services/calculator start
+# start the calculator service in dev mode
+> yarn ./services/calculator start:dev
 ```
 
 You should see a running micro-service with blue command handlers and red event handlers ready to receive messages. Start experimenting with HTTP requests under `./services/calculator/http`
+
+![Console](./assets/console.png)

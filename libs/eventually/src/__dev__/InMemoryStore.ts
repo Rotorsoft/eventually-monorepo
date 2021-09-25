@@ -5,27 +5,27 @@ export const InMemoryStore = (): Store => {
   const stream: Evt[] = [];
 
   return {
-    load: async <Events>(
+    load: async <E>(
       id: string,
-      reducer: (event: EvtOf<Events>) => void
+      reducer: (event: EvtOf<E>) => void
       // eslint-disable-next-line
     ): Promise<void> => {
       const events = stream.filter((e) => e.aggregateId === id);
       events.map(reducer);
     },
 
-    commit: async <Events>(
+    commit: async <E>(
       id: string,
-      event: MsgOf<Events>,
+      event: MsgOf<E>,
       expectedVersion?: string
       // eslint-disable-next-line
-    ): Promise<EvtOf<Events>> => {
+    ): Promise<EvtOf<E>> => {
       const events = stream.filter((e) => e.aggregateId === id);
 
       if (expectedVersion && (events.length - 1).toString() !== expectedVersion)
         throw Error("Concurrency Error");
 
-      const committed: EvtOf<Events> = {
+      const committed: EvtOf<E> = {
         ...event,
         eventId: stream.length,
         aggregateId: id,

@@ -25,9 +25,9 @@ export class ConcurrencyError extends Error {
 }
 
 export const PostgresStore = (): Store => ({
-  load: async <Events>(
+  load: async <E>(
     id: string,
-    reducer: (event: EvtOf<Events>) => void
+    reducer: (event: EvtOf<E>) => void
   ): Promise<void> => {
     const events = await pool.query<Event>(
       "SELECT * FROM events WHERE aggregate_id=$1 ORDER BY aggregate_version",
@@ -39,17 +39,17 @@ export const PostgresStore = (): Store => ({
         aggregateId: e.aggregate_id,
         aggregateVersion: e.aggregate_version.toString(),
         createdAt: e.created_at,
-        name: e.event_name as keyof Events & string,
+        name: e.event_name as keyof E & string,
         data: e.event_data
       })
     );
   },
 
-  commit: async <Events>(
+  commit: async <E>(
     id: string,
-    { name, data }: MsgOf<Events>,
+    { name, data }: MsgOf<E>,
     expectedVersion?: string
-  ): Promise<EvtOf<Events>> => {
+  ): Promise<EvtOf<E>> => {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
