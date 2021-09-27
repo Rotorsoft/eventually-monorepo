@@ -1,7 +1,7 @@
 import { App, config } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
-//import { PubSubBroker } from "@rotorsoft/eventually-gcp";
+import { PubSubBroker } from "@rotorsoft/eventually-gcp";
 import { commands } from "./calculator.commands";
 import { Calculator } from "./calculator.aggregate";
 import { events } from "./calculator.events";
@@ -13,7 +13,7 @@ void app
   .withCommands(commands)
   .withAggregate(Calculator)
   .withPolicy(Counter)
-  .build({ store: PostgresStore() })
+  .build({ store: PostgresStore(), broker: PubSubBroker() })
   .then((express) => {
     if (
       express.listen &&

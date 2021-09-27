@@ -915,8 +915,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^1.1.0"
-    "@rotorsoft/eventually-express": "workspace:^1.1.0"
+    "@rotorsoft/eventually": "workspace:^1.1.1"
+    "@rotorsoft/eventually-express": "workspace:^1.1.1"
     "@rotorsoft/eventually-gcp": "workspace:^1.1.0"
     "@rotorsoft/eventually-pg": "workspace:^1.1.0"
     joi: ^17.4.2
@@ -925,11 +925,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-express@workspace:^1.1.0, @rotorsoft/eventually-express@workspace:libs/eventually-express":
+"@rotorsoft/eventually-express@workspace:^1.1.1, @rotorsoft/eventually-express@workspace:libs/eventually-express":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^1.1.0"
+    "@rotorsoft/eventually": "workspace:^1.1.1"
     "@types/cors": ^2.8.12
     "@types/express": ^4.17.13
     "@types/node": ^16.9.2
@@ -944,7 +944,7 @@ __metadata:
   resolution: "@rotorsoft/eventually-gcp@workspace:libs/eventually-gcp"
   dependencies:
     "@google-cloud/pubsub": ^2.17.0
-    "@rotorsoft/eventually": "workspace:^1.1.0"
+    "@rotorsoft/eventually": "workspace:^1.1.1"
     "@types/node": ^16.9.2
     joi: ^17.4.2
   languageName: unknown
@@ -974,7 +974,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^1.1.0"
+    "@rotorsoft/eventually": "workspace:^1.1.1"
     "@types/chance": ^1
     "@types/node": ^16.9.2
     "@types/pg": ^8
@@ -984,7 +984,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually@workspace:^1.1.0, @rotorsoft/eventually@workspace:libs/eventually":
+"@rotorsoft/eventually@workspace:^1.1.1, @rotorsoft/eventually@workspace:libs/eventually":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:

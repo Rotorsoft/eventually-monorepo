@@ -6,16 +6,14 @@ import {
   committedSchema,
   Errors,
   Evt,
+  InMemoryBroker,
+  InMemoryStore,
   MsgOf,
   Payload,
   Snapshot,
   Store,
   ValidationError
 } from "@rotorsoft/eventually";
-import {
-  InMemoryBroker,
-  InMemoryStore
-} from "@rotorsoft/eventually/src/__dev__";
 import cors from "cors";
 import express, { NextFunction, Request, Response, Router } from "express";
 

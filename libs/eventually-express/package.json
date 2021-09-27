@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-express",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Eventually Framework Express Services",
   "author": {
     "name": "rotorsoft",
@@ -19,7 +19,7 @@
   ],
   "scripts": {},
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^1.1.0",
+    "@rotorsoft/eventually": "workspace:^1.1.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "joi": "^17.4.2"

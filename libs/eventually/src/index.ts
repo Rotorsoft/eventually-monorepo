@@ -9,6 +9,7 @@ export * from "./config";
 export * from "./Store";
 export * from "./types";
 export * from "./utils";
+export * from "./__dev__";
 
 let app: AppBase | undefined;
 export const App = (base?: AppBase): AppBase => {
