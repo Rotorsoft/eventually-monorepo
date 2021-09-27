@@ -32,13 +32,14 @@ export type MessageFactory<Messages> = {
 /**
  * Events committed to a stream have extra persisted attributes
  */
-export type CommittedEvent<Name extends string, Type extends Payload> = {
+export type CommittedEvent<Name extends string, Type extends Payload> = Omit<
+  Message<Name, Type>,
+  "schema"
+> & {
   readonly eventId: number;
   readonly aggregateId: string;
   readonly aggregateVersion: string;
   readonly createdAt: Date;
-  readonly name: Name;
-  readonly data?: Type;
 };
 
 /**
@@ -96,7 +97,6 @@ export type PolicyResponse<C> = {
  */
 export type ModelReducer<M extends Payload, E> = {
   readonly id: string;
-  name: () => string;
   init: () => Readonly<M>;
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
@@ -118,10 +118,7 @@ export type AggregateFactory<M extends Payload, C, E> = (
 /**
  * Policies are event handlers responding with optional targetted commands
  */
-export type Policy<C, E> = { name: () => string } & EventHandler<
-  PolicyResponse<C> | undefined,
-  E
->;
+export type Policy<C, E> = EventHandler<PolicyResponse<C> | undefined, E>;
 
 export type PolicyFactory<C, E> = () => Policy<C, E>;
 
@@ -129,4 +126,11 @@ export type PolicyFactory<C, E> = () => Policy<C, E>;
  * Projectors are event handlers without response, side effects
  * are projected events to other persistent state
  */
-export type Projector<E> = { name: () => string } & EventHandler<void, E>;
+export type Projector<E> = EventHandler<void, E>;
+
+/**
+ * Generic listener
+ */
+export type Listener = {
+  listen?: (port: number, callback: () => void) => void;
+};

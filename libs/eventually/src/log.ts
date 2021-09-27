@@ -5,8 +5,8 @@ type Color = "red" | "green" | "magenta" | "blue" | "white" | "gray";
 
 export interface Log {
   trace(color: Color, message: string, ...params: any[]): void;
-  error(message: string, ...params: any[]): void;
-  info(message: string, ...params: any[]): void;
+  error(error: Error): void;
+  info(color: Color, message: string, ...params: any[]): void;
 }
 
 let log: Log;
@@ -26,12 +26,12 @@ export const LogFactory = (): Log => {
             ...params
           );
       },
-      error: (message: string, ...params: any[]): void => {
-        console.error(message, ...params);
+      error: (error: Error): void => {
+        console.error(error);
       },
-      info: (message: string, ...params: any[]): void => {
+      info: (color: Color, message: string, ...params: any[]): void => {
         if (config.logLevel !== LogLevels.error)
-          console.info(message, ...params);
+          console.info(chalk[color](message), ...params);
       }
     };
   return log;

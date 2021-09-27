@@ -51,22 +51,27 @@ This project is trying to answer the following questions:
 import { App, config } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
-import { PubSubBroker } from "@rotorsoft/eventually-gcp";
+//import { PubSubBroker } from "@rotorsoft/eventually-gcp";
 import { commands } from "./calculator.commands";
 import { Calculator } from "./calculator.aggregate";
 import { events } from "./calculator.events";
 import { Counter } from "./counter.policy";
 
-const app = App(new ExpressApp(PostgresStore(), PubSubBroker()));
-
-app.withAggregate(Calculator, commands);
-app.withPolicy(Counter, events);
-
-export const express = app.build();
-
-if (express && !config.host.endsWith("cloudfunctions.net/calculator"))
-  express.listen(config.port, () => {
-    app.log.info("Express app is listening", config);
+const app = App(new ExpressApp());
+void app
+  .withEvents(events)
+  .withCommands(commands)
+  .withAggregate(Calculator)
+  .withPolicy(Counter)
+  .build({ store: PostgresStore() })
+  .then((express) => {
+    if (
+      express.listen &&
+      !config.host.endsWith("cloudfunctions.net/calculator")
+    )
+      express.listen(config.port, () => {
+        app.log.info("white", "Express app is listening", config);
+      });
   });
 ```
 
@@ -82,19 +87,23 @@ import { events } from "../calculator.events";
 import { Counter } from "../counter.policy";
 
 describe("Counter", () => {
-  const app = App();
-  app.withAggregate(Calculator, commands);
-  app.withPolicy(Counter, events);
+  beforeAll(async () => {
+    await App()
+      .withEvents(events)
+      .withCommands(commands)
+      .withAggregate(Calculator)
+      .withPolicy(Counter)
+      .build();
+  });
 
   it("should return Reset on DigitPressed", async () => {
-    const c = Calculator("test");
-    await test_command(c, commands.PressKey({ key: "1" }));
-    await test_command(c, commands.PressKey({ key: "1" }));
-    await test_command(c, commands.PressKey({ key: "2" }));
-    await test_command(c, commands.PressKey({ key: "." }));
-    await test_command(c, commands.PressKey({ key: "3" }));
+    await test_command(Calculator, "test", commands.PressKey({ key: "1" }));
+    await test_command(Calculator, "test", commands.PressKey({ key: "1" }));
+    await test_command(Calculator, "test", commands.PressKey({ key: "2" }));
+    await test_command(Calculator, "test", commands.PressKey({ key: "." }));
+    await test_command(Calculator, "test", commands.PressKey({ key: "3" }));
 
-    const { state } = await app.load(c);
+    const { state } = await App().load(Calculator, "test");
     expect(state).toEqual({ result: 0 });
   });
 });

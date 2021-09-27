@@ -3,31 +3,31 @@ import {
   aggregatePath,
   AppBase,
   Broker,
-  commandPath,
   committedSchema,
-  eventPath,
+  Errors,
   Evt,
-  handlersOf,
-  MessageFactory,
-  ModelReducer,
   MsgOf,
   Payload,
-  PolicyFactory,
   Snapshot,
-  Store
+  Store,
+  ValidationError
 } from "@rotorsoft/eventually";
+import {
+  InMemoryBroker,
+  InMemoryStore
+} from "@rotorsoft/eventually/src/__dev__";
 import cors from "cors";
 import express, { NextFunction, Request, Response, Router } from "express";
 
-type GetCallback = <M extends Payload, E>(
-  reducer: ModelReducer<M, E>
+type GetCallback = <M extends Payload, C, E>(
+  factory: AggregateFactory<M, C, E>,
+  id: string
 ) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
   private _router: Router = Router();
 
-  constructor(store: Store, broker: Broker) {
-    super(store, broker);
+  private _buildStreamRoute(): void {
     this._router.get(
       "/stream/:event?",
       async (
@@ -40,22 +40,21 @@ export class ExpressApp extends AppBase {
         res: Response,
         next: NextFunction
       ) => {
-        const { event } = req.params;
-        const { after, limit } = req.query;
         try {
-          const result = await this.store.read(event, after, limit);
+          const { event } = req.params;
+          const { after, limit } = req.query;
+          const result = await this._store.read(event, after, limit);
           return res.status(200).send(result);
         } catch (error) {
-          this.log.error(error);
           next(error);
         }
       }
     );
-    this.log.trace("green", "[GET]", "/stream/[event]?after=-1&limit=1");
+    this.log.info("green", "[GET]", "/stream/[event]?after=-1&limit=1");
   }
 
-  private _get<M extends Payload, E>(
-    factory: (id: string) => ModelReducer<M, E>,
+  private _get<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
     callback: GetCallback,
     suffix?: string
   ): void {
@@ -67,9 +66,9 @@ export class ExpressApp extends AppBase {
         res: Response,
         next: NextFunction
       ) => {
-        const { id } = req.params;
         try {
-          const result = await callback(factory(id));
+          const { id } = req.params;
+          const result = await callback(factory, id);
           let etag = "-1";
           if (Array.isArray(result)) {
             if (result.length)
@@ -80,85 +79,92 @@ export class ExpressApp extends AppBase {
           res.setHeader("ETag", etag);
           return res.status(200).send(result);
         } catch (error) {
-          this.log.error(error);
           next(error);
         }
       }
     );
-    this.log.trace("green", `[GET ${name}]`, path.concat(suffix || ""));
+    this.log.info("green", `[GET ${name}]`, path.concat(suffix || ""));
   }
 
-  withAggregate<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
-    commands: MessageFactory<C>
-  ): void {
-    this._get(factory, this.load.bind(this));
-    this._get(factory, this.stream.bind(this), "/stream");
-    handlersOf(commands).map((f) => {
-      const command = f() as MsgOf<C>;
+  private _buildAggregates(): void {
+    const aggregates: Record<
+      string,
+      AggregateFactory<Payload, unknown, unknown>
+    > = {};
+    Object.values(this._command_handlers).map(({ factory, command, path }) => {
+      aggregates[factory.name] = factory;
       this._router.post(
-        commandPath(factory, command),
+        path,
         async (
           req: Request<{ id: string }>,
           res: Response,
           next: NextFunction
         ) => {
-          const { error, value } = command.schema().validate(req.body);
-          if (error) res.status(400).send(error.toString());
-          else {
+          try {
+            const { error, value } = command
+              .schema()
+              .validate(req.body, { abortEarly: false });
+            if (error) throw new ValidationError(error);
             const { id } = req.params;
             const expectedVersion = req.headers["if-match"];
-            try {
-              const [state, committed] = await this.command(
-                factory(id),
-                value,
-                expectedVersion
-              );
-              res.setHeader("ETag", committed.aggregateVersion);
-              return res.status(200).send([committed, state]);
-            } catch (error) {
-              this.log.error(error);
-              next(error);
-            }
+            const [state, committed] = await this.command(
+              factory,
+              id,
+              value,
+              expectedVersion
+            );
+            res.setHeader("ETag", committed.aggregateVersion);
+            return res.status(200).send([committed, state]);
+          } catch (error) {
+            next(error);
           }
         }
       );
-      return this.register(factory, command);
+    });
+
+    Object.values(aggregates).map((factory) => {
+      this._get(factory, this.load.bind(this));
+      this._get(factory, this.stream.bind(this), "/stream");
     });
   }
 
-  withPolicy<C, E>(
-    factory: PolicyFactory<C, E>,
-    events: MessageFactory<E>
-  ): void {
-    const instance = factory();
-    handlersOf(events).map((f) => {
-      const event = f() as MsgOf<E>;
-      if (Object.keys(instance).includes("on".concat(event.name))) {
-        this._router.post(
-          eventPath(instance, event),
-          async (req: Request, res: Response, next: NextFunction) => {
-            const message = this.broker.decode(req.body);
-            const validator = committedSchema(event.schema());
-            const { error, value } = validator.validate(message);
-            if (error) res.status(400).send(error.toString());
-            else {
-              try {
-                const response = await this.event(factory(), value);
-                return res.status(200).send(response);
-              } catch (error) {
-                this.log.error(error);
-                next(error);
-              }
-            }
+  private _buildPolicies(): void {
+    Object.values(this._event_handlers).map(({ factory, event, path }) => {
+      this._router.post(
+        path,
+        async (req: Request, res: Response, next: NextFunction) => {
+          try {
+            const message = this._broker.decode(req.body);
+            const validator = committedSchema(
+              (event as unknown as MsgOf<unknown>).schema()
+            );
+            const { error, value } = validator.validate(message, {
+              abortEarly: false
+            });
+            if (error) throw new ValidationError(error);
+            const response = await this.event(factory, value);
+            return res.status(200).send(response);
+          } catch (error) {
+            next(error);
           }
-        );
-        return this.broker.subscribe(instance, event);
-      }
+        }
+      );
+      return this._broker.subscribe(factory, event);
     });
   }
 
-  build(): express.Express {
+  async build(options?: {
+    store?: Store;
+    broker?: Broker;
+  }): Promise<express.Express> {
+    this._store = options?.store || InMemoryStore();
+    this._broker = options?.broker || InMemoryBroker(this);
+
+    await this.buildTopics();
+    this._buildAggregates();
+    this._buildPolicies();
+    this._buildStreamRoute();
+
     const app = express();
     app.set("trust proxy", true);
     app.use(cors());
@@ -167,7 +173,10 @@ export class ExpressApp extends AppBase {
 
     // eslint-disable-next-line
     app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-      res.status(500).send(err.message);
+      this.log.error(err);
+      if (err.message === Errors.ValidationError)
+        res.status(400).send((err as ValidationError).details);
+      else res.sendStatus(500);
     });
 
     return app;

@@ -2,11 +2,12 @@ import * as joi from "joi";
 import {
   AggregateFactory,
   Evt,
+  EvtOf,
   MsgOf,
   MessageFactory,
   ModelReducer,
   Payload,
-  Policy
+  PolicyFactory
 } from "./types";
 
 /**
@@ -44,22 +45,24 @@ export const handlersOf = <Messages>(
  * @param factory aggregate factory
  * @returns object with aggregate name and path
  */
-export const aggregatePath = <M extends Payload, E>(
-  factory: (id: string) => ModelReducer<M, E>
+export const aggregatePath = <M extends Payload, C, E>(
+  factory: AggregateFactory<M, C, E>
 ): { name: string; path: string } => {
-  const name = factory("").name();
+  const name = factory.name;
   const path = "/".concat(decamelize(name), "/:id");
   return { name, path };
 };
 
 /**
  * Normalizes aggregate id
- * @param aggregate
+ * @param factory aggregate factory
+ * @param id aggregate id
  * @returns normalized aggregate id
  */
-export const aggregateId = <M extends Payload, E>(
-  aggregate: ModelReducer<M, E>
-): string => `${aggregate.name()}:${aggregate.id}`;
+export const aggregateId = <M extends Payload, C, E>(
+  factory: AggregateFactory<M, C, E>,
+  id: string
+): string => `${factory.name}:${id}`;
 
 /**
  * Applies event to model
@@ -84,18 +87,18 @@ export const commandPath = <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,
   command: MsgOf<C>
 ): string =>
-  "/".concat(decamelize(factory("").name()), "/:id/", decamelize(command.name));
+  "/".concat(decamelize(factory.name), "/:id/", decamelize(command.name));
 
 /**
  * Normalizes event paths
- * @param policy policy
+ * @param factory policy factory
  * @param event event
  * @returns normalized path
  */
 export const eventPath = <C, E>(
-  policy: Policy<C, E>,
-  event: MsgOf<E>
-): string => "/".concat(decamelize(policy.name()), "/", decamelize(event.name));
+  factory: PolicyFactory<C, E>,
+  event: EvtOf<E>
+): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
 
 /**
  * Concatenates committed event persisted schema for validation
@@ -111,3 +114,31 @@ export const committedSchema = (schema: joi.ObjectSchema): joi.ObjectSchema =>
       createdAt: joi.date().required()
     })
   );
+
+export class TopicNotFound extends Error {
+  constructor(event: Evt) {
+    super(`Topic "${event.name}" not found`);
+  }
+}
+
+export enum Errors {
+  ValidationError = "Validation Error",
+  ConcurrencyError = "Concurrency Error"
+}
+export class ValidationError extends Error {
+  public readonly details;
+  constructor(errors: joi.ValidationError) {
+    super(Errors.ValidationError);
+    this.details = errors.details.flatMap((item) => item.message);
+  }
+}
+
+export class ConcurrencyError extends Error {
+  constructor(
+    public readonly lastVersion: number,
+    public readonly event: { name: string; data: Payload },
+    public readonly expectedVersion: string
+  ) {
+    super(Errors.ConcurrencyError);
+  }
+}

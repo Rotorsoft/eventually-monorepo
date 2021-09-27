@@ -14,7 +14,7 @@ const policy = async (
   version?: string
 ): Promise<PolicyResponse<Commands>> => {
   const id = streamId.substr("Calculator:".length);
-  const { state } = await App().load(Calculator(id));
+  const { state } = await App().load(Calculator, id);
   if ((state.left || "").length >= 5 || (state.right || "").length >= 5)
     return {
       id,
@@ -27,8 +27,6 @@ export const Counter = (): Policy<
   Commands,
   Pick<Events, "DigitPressed" | "DotPressed">
 > => ({
-  name: () => "Counter",
-
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>
   ) => policy(event.aggregateId, event.aggregateVersion),

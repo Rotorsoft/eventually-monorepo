@@ -2,73 +2,133 @@ import { Broker } from "./Broker";
 import { Log, LogFactory } from "./log";
 import { Store } from "./Store";
 import {
-  Aggregate,
   AggregateFactory,
+  Evt,
   EvtOf,
+  Listener,
   MessageFactory,
-  ModelReducer,
   MsgOf,
   Payload,
-  Policy,
   PolicyFactory,
   PolicyResponse,
   Snapshot
 } from "./types";
-import { aggregateId, apply, commandPath } from "./utils";
+import {
+  aggregateId,
+  apply,
+  commandPath,
+  eventPath,
+  handlersOf
+} from "./utils";
 
 /**
  * App abstraction implementing generic handlers
  */
 export abstract class AppBase {
   public readonly log: Log = LogFactory();
-  private _aggregates: {
-    [name: string]: AggregateFactory<Payload, unknown, unknown>;
+  protected _event_factory: MessageFactory<unknown> = {};
+  protected _command_factory: MessageFactory<unknown> = {};
+  protected _command_handlers: {
+    [name: string]: {
+      factory: AggregateFactory<Payload, unknown, unknown>;
+      command: MsgOf<unknown>;
+      path: string;
+    };
+  } = {};
+  protected _event_handlers: {
+    [path: string]: {
+      factory: PolicyFactory<unknown, unknown>;
+      event: Evt;
+      path: string;
+    };
   } = {};
 
-  constructor(public readonly store: Store, public readonly broker: Broker) {}
+  protected _store: Store;
+  protected _broker: Broker;
 
   /**
-   * Builds aggregate handlers
+   * Registers events
+   * @param events events factory
+   */
+  public withEvents<E>(events: MessageFactory<E>): this {
+    this._event_factory = events;
+    return this;
+  }
+
+  /**
+   * Registers commands
+   * @param commands commands factory
+   */
+  public withCommands<C>(commands: MessageFactory<C>): this {
+    this._command_factory = commands;
+    return this;
+  }
+
+  /**
+   * Registers aggregate handlers
    * @param factory aggregate factory
    * @param commands associated command factory
    */
-  abstract withAggregate<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
-    commands: MessageFactory<C>
-  ): void;
+  public withAggregate<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>
+  ): this {
+    const aggregate = factory("");
+    handlersOf(this._command_factory).map((f) => {
+      const command = f() as MsgOf<C>;
+      const path = commandPath(factory, command);
+      if (Object.keys(aggregate).includes("on".concat(command.name))) {
+        this._command_handlers[command.name] = {
+          factory,
+          command: command as MsgOf<unknown>,
+          path
+        };
+        this.log.info("blue", `[POST ${command.name}]`, path);
+      }
+    });
+    return this;
+  }
 
   /**
-   * Builds policy handlers
+   * Registers policy handlers
    * @param factory policy factory
    * @param events associated event factory
    */
-  abstract withPolicy<C, E>(
-    factory: PolicyFactory<C, E>,
-    events: MessageFactory<E>
-  ): void;
+  public withPolicy<C, E>(factory: PolicyFactory<C, E>): this {
+    const policy = factory();
+    handlersOf(this._event_factory).map((f) => {
+      const event = f() as EvtOf<unknown>;
+      if (Object.keys(policy).includes("on".concat(event.name))) {
+        const path = eventPath(factory, event);
+        this._event_handlers[path] = { factory, event, path };
+        this.log.info("magenta", `[POST ${event.name}]`, path);
+      }
+    });
+    return this;
+  }
 
   /**
-   * Builds the internal app
-   * @returns the internal app, services can call app.listen(...)
+   * Builds topics
+   * @returns Array of promises to build topics
    */
-  abstract build(): any;
-
-  /**
-   * Registers aggregates invoked by policies
-   * @param factory aggregate factory
-   * @param command command name
-   */
-  protected register<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
-    command: MsgOf<C>
-  ): void {
-    this._aggregates[command.name] = factory;
-    this.log.trace(
-      "blue",
-      `[POST ${command.name}]`,
-      commandPath(factory, command)
+  protected async buildTopics(): Promise<void> {
+    await Promise.all(
+      handlersOf(this._event_factory).map((f) =>
+        this._broker
+          .topic(f())
+          .then(() => this.log.info("red", `> ${f.name} <`))
+      )
     );
   }
+
+  /**
+   * Builds application
+   * @param options options for store and broker
+   * @returns internal application
+   */
+  abstract build(options?: {
+    store?: Store;
+    broker?: Broker;
+  }): Promise<Listener>;
 
   /**
    * Handles aggregate commands
@@ -78,22 +138,27 @@ export abstract class AppBase {
    * @returns tuple with mutated model and committed event
    */
   async command<M extends Payload, C, E>(
-    aggregate: Aggregate<M, C, E>,
+    factory: AggregateFactory<M, C, E>,
+    id: string,
     command: MsgOf<C>,
     expectedVersion?: string
   ): Promise<[M, EvtOf<E>]> {
-    const id = aggregateId(aggregate);
+    const aggregate = factory(id);
     this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
 
-    let { state } = await this.load<M, E>(aggregate);
-    if (!state) throw Error(`Invalid aggregate ${aggregate.name}!`);
+    let { state } = await this.load(factory, id);
+    if (!state) throw Error(`Invalid aggregate ${factory.name}!`);
 
     const event: MsgOf<E> = await (aggregate as any)["on".concat(command.name)](
       state,
       command.data
     );
 
-    const committed = await this.store.commit<E>(id, event, expectedVersion);
+    const committed = await this._store.commit<E>(
+      aggregateId(factory, id),
+      event,
+      expectedVersion
+    );
     this.log.trace(
       "gray",
       `   ... committed ${committed.name} @ ${committed.aggregateVersion} - `,
@@ -107,7 +172,7 @@ export abstract class AppBase {
     );
 
     try {
-      await this.broker.emit<E>(committed);
+      await this._broker.emit(committed);
     } catch (error) {
       // TODO monitor broker failures
       // log.error cannot raise!
@@ -123,52 +188,54 @@ export abstract class AppBase {
    * @param event the event to handle
    * @returns policy response
    */
-  async event<C, E>(
-    policy: Policy<C, E>,
-    event: EvtOf<E>
-  ): Promise<PolicyResponse<C> | undefined> {
+  async event(
+    factory: PolicyFactory<unknown, unknown>,
+    event: Evt
+  ): Promise<PolicyResponse<unknown> | undefined> {
     this.log.trace(
       "magenta",
-      `\n>>> ${event.name} ${policy.name()}`,
+      `\n>>> ${event.name} ${factory.name}`,
       event.data
     );
 
-    const response: PolicyResponse<C> | undefined = await (policy as any)[
-      "on".concat(event.name)
-    ](event);
+    const response: PolicyResponse<unknown> | undefined = await (
+      factory() as any
+    )["on".concat(event.name)](event);
 
     if (response) {
       const { id, command, expectedVersion } = response;
-      const factory = this._aggregates[command.name];
-      const aggregate = factory(id) as Aggregate<Payload, C, E>;
       this.log.trace(
         "blue",
-        `<<< ${command.name} ${aggregateId(aggregate)}`,
-        ` @ ${expectedVersion}`
+        `<<< ${command.name} ${id}`,
+        `@ ${expectedVersion}`
       );
-      await this.command(aggregate, command, expectedVersion);
+      const { factory } = this._command_handlers[command.name];
+      await this.command(factory, id, command, expectedVersion);
     }
     return response;
   }
 
   /**
    * Loads model from store - reduced to current state
-   * @param reducer model reducer
+   * @param factory aggregate factory
+   * @param id aggregate id
    * @param callback optional reduction predicate
    * @returns loaded model
    */
-  async load<M extends Payload, E>(
-    reducer: ModelReducer<M, E>,
+  async load<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
+    id: string,
     callback?: (event: EvtOf<E>, state: M) => void
   ): Promise<Snapshot<M>> {
+    const aggregate = factory(id);
     const log: Snapshot<M> = {
       event: undefined,
-      state: reducer.init()
+      state: aggregate.init()
     };
     let count = 0;
-    await this.store.load<E>(aggregateId(reducer), (event) => {
+    await this._store.load<E>(aggregateId(factory, id), (event) => {
       log.event = event;
-      log.state = apply(reducer, event, log.state);
+      log.state = apply(aggregate, event, log.state);
       count++;
       if (callback) callback(event, log.state);
     });
@@ -178,14 +245,16 @@ export abstract class AppBase {
 
   /**
    * Loads model stream from store
-   * @param reducer model reducer
+   * @param factory aggregate factory
+   * @param id aggregate id
    * @returns stream log with events and state transitions
    */
-  async stream<M extends Payload, E>(
-    reducer: ModelReducer<M, E>
+  async stream<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
+    id: string
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
-    await this.load(reducer, (event, state) =>
+    await this.load(factory, id, (event, state) =>
       log.push({ event, state: state })
     );
     return log;

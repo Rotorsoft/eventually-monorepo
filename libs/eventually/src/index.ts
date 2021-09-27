@@ -1,7 +1,7 @@
 import { AppBase } from "./AppBase";
-import { Aggregate, MsgOf, Payload, Snapshot } from "./types";
+import { AggregateFactory, MsgOf, Payload, Snapshot } from "./types";
 import { committedSchema } from "./utils";
-import { InMemoryApp, InMemoryBroker, InMemoryStore } from "./__dev__";
+import { InMemoryApp } from "./__dev__";
 
 export * from "./AppBase";
 export * from "./Broker";
@@ -12,23 +12,24 @@ export * from "./utils";
 
 let app: AppBase | undefined;
 export const App = (base?: AppBase): AppBase => {
-  if (!app) app = base || new InMemoryApp(InMemoryStore(), InMemoryBroker());
+  if (!app) app = base || new InMemoryApp();
   return app;
 };
 
 const validate = <C>(message: MsgOf<C>, committed = false): void => {
   const { schema, ...value } = message;
   const validator = committed ? committedSchema(schema()) : schema();
-  const { error } = validator.validate(value);
+  const { error } = validator.validate(value, { abortEarly: false });
   if (error) throw Error(error.toString());
 };
 
 export const test_command = async <M extends Payload, C, E>(
-  aggregate: Aggregate<M, C, E>,
+  factory: AggregateFactory<M, C, E>,
+  id: string,
   command: MsgOf<C>
 ): Promise<Snapshot<M>> => {
   validate(command);
-  const [, committed] = await App().command(aggregate, command);
+  const [, committed] = await App().command(factory, id, command);
   validate(committed as unknown as MsgOf<C>, true);
-  return await App().load(aggregate);
+  return await App().load(factory, id);
 };

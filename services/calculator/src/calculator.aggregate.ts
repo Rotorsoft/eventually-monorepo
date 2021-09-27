@@ -34,8 +34,6 @@ export const Calculator = (
 ): Aggregate<CalculatorModel, Commands, Events> => ({
   id,
 
-  name: () => "Calculator",
-
   // Model Reducer with event side effects
   init: (): CalculatorModel => ({
     result: 0

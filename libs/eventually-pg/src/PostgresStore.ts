@@ -1,5 +1,11 @@
 import { Pool } from "pg";
-import { Store, EvtOf, Evt, MsgOf, Payload } from "@rotorsoft/eventually";
+import {
+  Store,
+  EvtOf,
+  Evt,
+  MsgOf,
+  ConcurrencyError
+} from "@rotorsoft/eventually";
 import { config } from "./config";
 
 const pool = new Pool(config.pg);
@@ -13,16 +19,6 @@ type Event = {
   aggregate_version: number;
   created_at: Date;
 };
-
-export class ConcurrencyError extends Error {
-  constructor(
-    public readonly lastVersion: number,
-    public readonly event: { name: string; data: Payload },
-    public readonly expectedVersion: string
-  ) {
-    super("Concurrency Error");
-  }
-}
 
 export const PostgresStore = (): Store => ({
   load: async <E>(

@@ -1,13 +1,12 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
-  App,
   Broker,
   eventPath,
   Evt,
   EvtOf,
-  MsgOf,
   Payload,
-  Policy
+  PolicyFactory,
+  TopicNotFound
 } from "@rotorsoft/eventually";
 import { config } from "./config";
 
@@ -24,32 +23,38 @@ export const PubSubBroker = (): Broker => {
   const topics: { [name: string]: GcpTopic } = {};
 
   return {
-    subscribe: async <C, E>(
-      policy: Policy<C, E>,
-      event: MsgOf<E>
-    ): Promise<void> => {
+    topic: async <E>(event: EvtOf<E>): Promise<void> => {
       const options = config.gcp.project
         ? { projectId: config.gcp.project }
         : {};
+
       const pubsub = new PubSub(options);
       const topic = new GcpTopic(pubsub, event.name);
-      let [exists] = await topic.exists();
+      const [exists] = await topic.exists();
       if (!exists) await topic.create();
       topics[event.name] = topic;
+    },
 
-      const url = `${config.host}${eventPath(policy, event)}`;
-      const sub = topic.subscription(policy.name().concat(".", event.name));
-      [exists] = await sub.exists();
+    subscribe: async <C, E>(
+      factory: PolicyFactory<C, E>,
+      event: EvtOf<E>
+    ): Promise<void> => {
+      const topic = topics[event.name];
+      if (!topic) throw new TopicNotFound(event);
+
+      const url = `${config.host}${eventPath(factory, event)}`;
+      const sub = topic.subscription(factory.name.concat(".", event.name));
+      const [exists] = await sub.exists();
       if (!exists) await sub.create({ pushEndpoint: url });
       else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
         await sub.modifyPushConfig({ pushEndpoint: url });
-
-      App().log.trace("red", `[POST ${event.name}]`, url);
     },
 
     emit: async <E>(event: EvtOf<E>): Promise<void> => {
       const topic = topics[event.name];
-      if (topic) await topic.publish(Buffer.from(JSON.stringify(event)));
+      if (!topic) throw new TopicNotFound(event);
+
+      await topic.publish(Buffer.from(JSON.stringify(event)));
     },
 
     decode: (msg: Payload): Evt => {

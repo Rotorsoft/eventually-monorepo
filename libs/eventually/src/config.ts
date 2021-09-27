@@ -28,7 +28,7 @@ export const extend = <S extends Record<string, any>, T extends Config>(
   schema: joi.ObjectSchema<S>,
   target?: T
 ): S & T => {
-  const { error, value } = schema.validate(source);
+  const { error, value } = schema.validate(source, { abortEarly: false });
   if (error) throw Error(error.message);
   return Object.assign(target || {}, value) as S & T;
 };
