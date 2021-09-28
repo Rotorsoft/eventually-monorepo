@@ -1,5 +1,12 @@
-import { AppBase, Evt, EvtOf, Payload, PolicyFactory, TopicNotFound } from "..";
-import { Broker } from "../Broker";
+import {
+  AppBase,
+  Broker,
+  Evt,
+  EvtOf,
+  Payload,
+  PolicyFactory,
+  TopicNotFound
+} from "..";
 
 export const InMemoryBroker = (app: AppBase): Broker => {
   const _topics: {
@@ -27,7 +34,9 @@ export const InMemoryBroker = (app: AppBase): Broker => {
       const topic = _topics[event.name];
       if (!topic) throw new TopicNotFound(event);
 
-      const promises = topic.map((factory) => app.event(factory, event));
+      const promises = topic.map((factory) =>
+        app.event<unknown, E>(factory as PolicyFactory<unknown, E>, event)
+      );
       await Promise.all(promises);
     },
 

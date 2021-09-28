@@ -1,4 +1,4 @@
-import { App } from "@rotorsoft/eventually";
+import { App, config, InMemoryBroker } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { PubSubBroker } from "@rotorsoft/eventually-gcp";
@@ -15,6 +15,9 @@ export const express = app
   .withCommands(commands)
   .withAggregate(Calculator)
   .withPolicy(Counter)
-  .build({ store: PostgresStore(), broker: PubSubBroker() });
+  .build({
+    store: PostgresStore(),
+    broker: config.host === "localhost" ? InMemoryBroker(app) : PubSubBroker()
+  });
 
 void app.listen();

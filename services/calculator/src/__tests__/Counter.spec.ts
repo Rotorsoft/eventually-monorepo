@@ -1,26 +1,27 @@
-import { App, test_command } from "@rotorsoft/eventually";
+import { App } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
 import { Counter } from "../counter.policy";
 
 describe("Counter", () => {
+  const app = App()
+    .withAggregate(Calculator)
+    .withPolicy(Counter)
+    .withEvents(events)
+    .withCommands(commands);
+
   beforeAll(async () => {
-    App()
-      .withEvents(events)
-      .withCommands(commands)
-      .withAggregate(Calculator)
-      .withPolicy(Counter)
-      .build();
-    await App().listen();
+    app.build();
+    await app.listen();
   });
 
   it("should return Reset on DigitPressed", async () => {
-    await test_command(Calculator, "test", commands.PressKey({ key: "1" }));
-    await test_command(Calculator, "test", commands.PressKey({ key: "1" }));
-    await test_command(Calculator, "test", commands.PressKey({ key: "2" }));
-    await test_command(Calculator, "test", commands.PressKey({ key: "." }));
-    await test_command(Calculator, "test", commands.PressKey({ key: "3" }));
+    await app.command(Calculator, "test", commands.PressKey({ key: "1" }));
+    await app.command(Calculator, "test", commands.PressKey({ key: "1" }));
+    await app.command(Calculator, "test", commands.PressKey({ key: "2" }));
+    await app.command(Calculator, "test", commands.PressKey({ key: "." }));
+    await app.command(Calculator, "test", commands.PressKey({ key: "3" }));
 
     const { state } = await App().load(Calculator, "test");
     expect(state).toEqual({ result: 0 });

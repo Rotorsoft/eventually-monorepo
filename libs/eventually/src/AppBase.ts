@@ -26,8 +26,16 @@ import {
  */
 export abstract class AppBase {
   public readonly log: Log = LogFactory();
-  protected _event_factory: MessageFactory<unknown> = {};
-  protected _command_factory: MessageFactory<unknown> = {};
+
+  private _event_factory: MessageFactory<unknown> = {};
+  private _command_factory: MessageFactory<unknown> = {};
+  private _aggregate_factories: {
+    [name: string]: AggregateFactory<Payload, unknown, unknown>;
+  } = {};
+  private _policy_factories: {
+    [name: string]: PolicyFactory<unknown, unknown>;
+  } = {};
+
   protected _command_handlers: {
     [name: string]: {
       factory: AggregateFactory<Payload, unknown, unknown>;
@@ -47,67 +55,78 @@ export abstract class AppBase {
   protected _broker: Broker;
 
   /**
-   * Registers events
-   * @param events events factory
+   * Registers event factory
+   * @param factory event factory
    */
-  public withEvents<E>(events: MessageFactory<E>): this {
-    this._event_factory = events;
+  public withEvents<E>(factory: MessageFactory<E>): this {
+    this._event_factory = factory;
     return this;
   }
 
   /**
-   * Registers commands
-   * @param commands commands factory
+   * Registers command factory
+   * @param factory command factory
    */
-  public withCommands<C>(commands: MessageFactory<C>): this {
-    this._command_factory = commands;
+  public withCommands<C>(factory: MessageFactory<C>): this {
+    this._command_factory = factory;
     return this;
   }
 
   /**
-   * Registers aggregate handlers
+   * Registers aggregate factory
    * @param factory aggregate factory
-   * @param commands associated command factory
    */
   public withAggregate<M extends Payload, C, E>(
     factory: AggregateFactory<M, C, E>
   ): this {
-    const aggregate = factory("");
-    handlersOf(this._command_factory).map((f) => {
-      const command = f() as MsgOf<C>;
-      const path = commandPath(factory, command);
-      if (Object.keys(aggregate).includes("on".concat(command.name))) {
-        this._command_handlers[command.name] = {
-          factory,
-          command: command as MsgOf<unknown>,
-          path
-        };
-        this.log.info("blue", `[POST ${command.name}]`, path);
-      }
-    });
+    this._aggregate_factories[factory.name] = factory;
     return this;
   }
 
   /**
-   * Registers policy handlers
+   * Registers policy factory
    * @param factory policy factory
-   * @param events associated event factory
    */
   public withPolicy<C, E>(factory: PolicyFactory<C, E>): this {
-    const policy = factory();
-    handlersOf(this._event_factory).map((f) => {
-      const event = f() as EvtOf<unknown>;
-      if (Object.keys(policy).includes("on".concat(event.name))) {
-        const path = eventPath(factory, event);
-        this._event_handlers[path] = { factory, event, path };
-        this.log.info("magenta", `[POST ${event.name}]`, path);
-      }
-    });
+    this._policy_factories[factory.name] = factory;
     return this;
   }
 
   /**
-   * Creates topics and subscribes event handlers
+   * Builds message handlers
+   */
+  protected prebuild(): void {
+    Object.values(this._aggregate_factories).map((factory) => {
+      const aggregate = factory("");
+      handlersOf(this._command_factory).map((f) => {
+        const command = f() as MsgOf<unknown>;
+        const path = commandPath(factory, command);
+        if (Object.keys(aggregate).includes("on".concat(command.name))) {
+          this._command_handlers[command.name] = {
+            factory,
+            command,
+            path
+          };
+          this.log.info("blue", `[POST ${command.name}]`, path);
+        }
+      });
+    });
+
+    Object.values(this._policy_factories).map((factory) => {
+      const policy = factory();
+      handlersOf(this._event_factory).map((f) => {
+        const event = f() as EvtOf<unknown>;
+        if (Object.keys(policy).includes("on".concat(event.name))) {
+          const path = eventPath(factory, event);
+          this._event_handlers[path] = { factory, event, path };
+          this.log.info("magenta", `[POST ${event.name}]`, path);
+        }
+      });
+    });
+  }
+
+  /**
+   * Creates topics, and subscribes event handlers
    */
   protected async connect(): Promise<void> {
     await Promise.all(
@@ -117,6 +136,7 @@ export abstract class AppBase {
           .then(() => this.log.info("red", `> ${f.name} <`))
       )
     );
+
     await Promise.all(
       Object.values(this._event_handlers).map(({ factory, event }) =>
         this._broker.subscribe(factory, event)
@@ -148,7 +168,7 @@ export abstract class AppBase {
     id: string,
     command: MsgOf<C>,
     expectedVersion?: string
-  ): Promise<[M, EvtOf<E>]> {
+  ): Promise<Snapshot<M>> {
     const aggregate = factory(id);
     this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
 
@@ -180,12 +200,12 @@ export abstract class AppBase {
     try {
       await this._broker.emit(committed);
     } catch (error) {
-      // TODO monitor broker failures
+      // TODO: monitor broker failures
       // log.error cannot raise!
       this.log.error(error);
     }
 
-    return [state, committed];
+    return { state, event: committed };
   }
 
   /**
@@ -194,10 +214,10 @@ export abstract class AppBase {
    * @param event the event to handle
    * @returns policy response
    */
-  async event(
-    factory: PolicyFactory<unknown, unknown>,
-    event: Evt
-  ): Promise<PolicyResponse<unknown> | undefined> {
+  async event<C, E>(
+    factory: PolicyFactory<C, E>,
+    event: EvtOf<E>
+  ): Promise<PolicyResponse<C> | undefined> {
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${factory.name}`,

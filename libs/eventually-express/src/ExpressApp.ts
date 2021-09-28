@@ -107,14 +107,14 @@ export class ExpressApp extends AppBase {
             if (error) throw new ValidationError(error);
             const { id } = req.params;
             const expectedVersion = req.headers["if-match"];
-            const [state, committed] = await this.command(
+            const { state, event } = await this.command(
               factory,
               id,
               value,
               expectedVersion
             );
-            res.setHeader("ETag", committed.aggregateVersion);
-            return res.status(200).send([committed, state]);
+            res.setHeader("ETag", event.aggregateVersion);
+            return res.status(200).send({ state, event });
           } catch (error) {
             next(error);
           }
@@ -156,6 +156,7 @@ export class ExpressApp extends AppBase {
     this._store = options?.store || InMemoryStore();
     this._broker = options?.broker || InMemoryBroker(this);
 
+    this.prebuild();
     this._buildAggregates();
     this._buildPolicies();
     this._buildStreamRoute();
@@ -181,7 +182,7 @@ export class ExpressApp extends AppBase {
   async listen(): Promise<void> {
     await this.connect();
 
-    // TODO refactor this - don't listen if gcloud function
+    // TODO: refactor this - don't listen if gcloud function
     if (config.host.indexOf("cloudfunctions.net/") === -1)
       this._app.listen(config.port, () => {
         this.log.info("white", "Express app is listening", config);

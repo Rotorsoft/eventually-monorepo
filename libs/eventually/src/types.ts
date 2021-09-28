@@ -62,8 +62,8 @@ export type Snapshot<M extends Payload> = {
  * producing uncommitted events when rules hold.
  * State is officially mutated once these events are
  * committed to the stream.
- * **TODO** return array of events
  */
+// TODO: return array of events
 export type CommandHandler<M extends Payload, C, E> = {
   [Name in keyof C as `on${Capitalize<Name & string>}`]: (
     state: Readonly<M>,
