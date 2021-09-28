@@ -20,4 +20,4 @@ export const express = app
     broker: config.host === "localhost" ? InMemoryBroker(app) : PubSubBroker()
   });
 
-void app.listen();
+void app.listen(config.host.endsWith("cloudfunctions.net/calculator"));

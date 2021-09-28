@@ -15,15 +15,15 @@ export interface Store {
   /**
    * Commits message into stream of aggregate id
    * @param id aggregate id
-   * @param event event message
+   * @param events array of uncommitted events
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
-   * @returns committed event
+   * @returns array of committed events
    */
   commit: <E>(
     id: string,
-    event: MsgOf<E>,
+    events: MsgOf<E>[],
     expectedVersion?: string
-  ) => Promise<EvtOf<E>>;
+  ) => Promise<EvtOf<E>[]>;
 
   /**
    * Loads events from stream

@@ -43,9 +43,9 @@ export const PostgresStore = (): Store => ({
 
   commit: async <E>(
     id: string,
-    { name, data }: MsgOf<E>,
+    events: MsgOf<E>[],
     expectedVersion?: string
-  ): Promise<EvtOf<E>> => {
+  ): Promise<EvtOf<E>[]> => {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -57,25 +57,30 @@ export const PostgresStore = (): Store => ({
       if (expectedVersion && version.toString() !== expectedVersion)
         throw new ConcurrencyError(
           last.rows[0].aggregate_version,
-          { name, data },
+          events,
           expectedVersion
         );
-      version++;
-      const committed = await client.query<Event>(
-        `INSERT INTO events(event_name, event_data, aggregate_id, aggregate_version)
-        VALUES($1, $2, $3, $4) RETURNING event_id, created_at`,
-        [name, data, id, version]
+      const committed = await Promise.all(
+        events.map(async ({ name, data }) => {
+          version++;
+          const committed = await client.query<Event>(
+            `INSERT INTO events(event_name, event_data, aggregate_id, aggregate_version)
+          VALUES($1, $2, $3, $4) RETURNING event_id, created_at`,
+            [name, data, id, version]
+          );
+          const { event_id, created_at } = committed.rows[0];
+          return {
+            eventId: event_id,
+            aggregateId: id,
+            aggregateVersion: version.toString(),
+            createdAt: created_at,
+            name,
+            data
+          };
+        })
       );
       await client.query("COMMIT");
-      const { event_id, created_at } = committed.rows[0];
-      return {
-        eventId: event_id,
-        aggregateId: id,
-        aggregateVersion: version.toString(),
-        createdAt: created_at,
-        name,
-        data
-      };
+      return committed;
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;

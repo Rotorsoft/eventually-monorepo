@@ -63,12 +63,11 @@ export type Snapshot<M extends Payload> = {
  * State is officially mutated once these events are
  * committed to the stream.
  */
-// TODO: return array of events
 export type CommandHandler<M extends Payload, C, E> = {
   [Name in keyof C as `on${Capitalize<Name & string>}`]: (
     state: Readonly<M>,
     data?: C[Name] & Payload
-  ) => Promise<MsgOf<E>>;
+  ) => Promise<MsgOf<E>[]>;
 };
 
 /**

@@ -136,7 +136,7 @@ export class ValidationError extends Error {
 export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,
-    public readonly event: { name: string; data: Payload },
+    public readonly events: { name: string; data?: Payload }[],
     public readonly expectedVersion: string
   ) {
     super(Errors.ConcurrencyError);

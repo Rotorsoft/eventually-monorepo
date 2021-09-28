@@ -80,17 +80,13 @@ export const Calculator = (
   // Command Handlers validate business rules and poduce events
   // eslint-disable-next-line
   onPressKey: async (model: CalculatorModel, data: { key: Keys }) => {
-    if (data.key === SYMBOLS[0]) return events.DotPressed();
-    if (data.key === SYMBOLS[1]) return events.EqualsPressed();
-    if (DIGITS.includes(data.key as Digits))
-      return events.DigitPressed({ digit: data.key } as {
-        digit: Digits;
-      });
-    return events.OperatorPressed({ operator: data.key } as {
-      operator: Operators;
-    });
+    if (data.key === SYMBOLS[0]) return [events.DotPressed()];
+    if (data.key === SYMBOLS[1]) return [events.EqualsPressed()];
+    return DIGITS.includes(data.key as Digits)
+      ? [events.DigitPressed({ digit: data.key as Digits })]
+      : [events.OperatorPressed({ operator: data.key as Operators })];
   },
 
   // eslint-disable-next-line
-  onReset: async () => events.Cleared()
+  onReset: async () => [events.Cleared()]
 });

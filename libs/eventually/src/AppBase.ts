@@ -153,8 +153,9 @@ export abstract class AppBase {
 
   /**
    * Starts listening for requests
+   * @param silent flag silent app (gcloud functions manage the listening part)
    */
-  abstract listen(): Promise<void>;
+  abstract listen(silent?: boolean): Promise<void>;
 
   /**
    * Handles aggregate commands
@@ -168,44 +169,46 @@ export abstract class AppBase {
     id: string,
     command: MsgOf<C>,
     expectedVersion?: string
-  ): Promise<Snapshot<M>> {
+  ): Promise<Snapshot<M>[]> {
     const aggregate = factory(id);
     this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
 
     let { state } = await this.load(factory, id);
     if (!state) throw Error(`Invalid aggregate ${factory.name}!`);
 
-    const event: MsgOf<E> = await (aggregate as any)["on".concat(command.name)](
-      state,
-      command.data
-    );
+    const events: MsgOf<E>[] = await (aggregate as any)[
+      "on".concat(command.name)
+    ](state, command.data);
 
     const committed = await this._store.commit<E>(
       aggregateId(factory, id),
-      event,
+      events,
       expectedVersion
     );
-    this.log.trace(
-      "gray",
-      `   ... committed ${committed.name} @ ${committed.aggregateVersion} - `,
-      committed.data
-    );
-    state = apply(aggregate, committed, state);
-    this.log.trace(
-      "gray",
-      `   === ${command.name} state @ ${committed.aggregateVersion}`,
-      state
-    );
+    const snapshots = committed.map((event) => {
+      this.log.trace(
+        "gray",
+        `   ... committed ${event.name} @ ${event.aggregateVersion} - `,
+        event.data
+      );
+      state = apply(aggregate, event, state);
+      this.log.trace(
+        "gray",
+        `   === ${command.name} state @ ${event.aggregateVersion}`,
+        state
+      );
+      return { event, state };
+    });
 
     try {
-      await this._broker.emit(committed);
+      await Promise.all(committed.map((event) => this._broker.emit(event)));
     } catch (error) {
       // TODO: monitor broker failures
       // log.error cannot raise!
       this.log.error(error);
     }
 
-    return { state, event: committed };
+    return snapshots;
   }
 
   /**
