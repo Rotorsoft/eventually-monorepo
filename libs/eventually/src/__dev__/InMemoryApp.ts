@@ -1,20 +1,18 @@
 import { InMemoryBroker, InMemoryStore } from ".";
+import { config } from "..";
 import { AppBase } from "../AppBase";
 import { Listener } from "../types";
 
 export class InMemoryApp extends AppBase {
-  async build(): Promise<Listener> {
+  build(): Listener {
     this._store = InMemoryStore();
     this._broker = InMemoryBroker(this);
+    return {};
+  }
 
-    await this.buildTopics();
-
-    await Promise.all(
-      Object.values(this._event_handlers).map(({ factory, event }) => {
-        return this._broker.subscribe(factory, event);
-      })
-    );
-
-    return Promise.resolve({});
+  async listen(): Promise<void> {
+    await this.connect();
+    this.log.info("white", "InMemory app is listening...", config);
+    return Promise.resolve();
   }
 }

@@ -6,12 +6,13 @@ import { Counter } from "../counter.policy";
 
 describe("Counter", () => {
   beforeAll(async () => {
-    await App()
+    App()
       .withEvents(events)
       .withCommands(commands)
       .withAggregate(Calculator)
       .withPolicy(Counter)
       .build();
+    await App().listen();
   });
 
   it("should return Reset on DigitPressed", async () => {

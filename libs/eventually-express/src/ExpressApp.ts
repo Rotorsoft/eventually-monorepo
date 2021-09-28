@@ -4,6 +4,7 @@ import {
   AppBase,
   Broker,
   committedSchema,
+  config,
   Errors,
   Evt,
   InMemoryBroker,
@@ -23,7 +24,8 @@ type GetCallback = <M extends Payload, C, E>(
 ) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
-  private _router: Router = Router();
+  private _app = express();
+  private _router = Router();
 
   private _buildStreamRoute(): void {
     this._router.get(
@@ -51,7 +53,7 @@ export class ExpressApp extends AppBase {
     this.log.info("green", "[GET]", "/stream/[event]?after=-1&limit=1");
   }
 
-  private _get<M extends Payload, C, E>(
+  private _buildGetter<M extends Payload, C, E>(
     factory: AggregateFactory<M, C, E>,
     callback: GetCallback,
     suffix?: string
@@ -121,8 +123,8 @@ export class ExpressApp extends AppBase {
     });
 
     Object.values(aggregates).map((factory) => {
-      this._get(factory, this.load.bind(this));
-      this._get(factory, this.stream.bind(this), "/stream");
+      this._buildGetter(factory, this.load.bind(this));
+      this._buildGetter(factory, this.stream.bind(this), "/stream");
     });
   }
 
@@ -147,36 +149,43 @@ export class ExpressApp extends AppBase {
           }
         }
       );
-      return this._broker.subscribe(factory, event);
     });
   }
 
-  async build(options?: {
-    store?: Store;
-    broker?: Broker;
-  }): Promise<express.Express> {
+  build(options?: { store?: Store; broker?: Broker }): express.Express {
     this._store = options?.store || InMemoryStore();
     this._broker = options?.broker || InMemoryBroker(this);
 
-    await this.buildTopics();
     this._buildAggregates();
     this._buildPolicies();
     this._buildStreamRoute();
 
-    const app = express();
-    app.set("trust proxy", true);
-    app.use(cors());
-    app.use(express.json());
-    app.use(this._router);
+    this._app.set("trust proxy", true);
+    this._app.use(cors());
+    this._app.use(express.json());
+    this._app.use(this._router);
 
-    // eslint-disable-next-line
-    app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-      this.log.error(err);
-      if (err.message === Errors.ValidationError)
-        res.status(400).send((err as ValidationError).details);
-      else res.sendStatus(500);
-    });
+    this._app.use(
+      // eslint-disable-next-line
+      (err: Error, req: Request, res: Response, next: NextFunction) => {
+        this.log.error(err);
+        if (err.message === Errors.ValidationError)
+          res.status(400).send((err as ValidationError).details);
+        else res.sendStatus(500);
+      }
+    );
 
-    return app;
+    return this._app;
+  }
+
+  async listen(): Promise<void> {
+    await this.connect();
+
+    // TODO refactor this - don't listen if gcloud function
+    if (config.host.indexOf("cloudfunctions.net/") === -1)
+      this._app.listen(config.port, () => {
+        this.log.info("white", "Express app is listening", config);
+      });
+    else this.log.info("white", "Config", config);
   }
 }

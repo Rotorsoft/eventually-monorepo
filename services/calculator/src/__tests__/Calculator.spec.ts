@@ -5,11 +5,12 @@ import { events } from "../calculator.events";
 
 describe("calculator", () => {
   beforeAll(async () => {
-    await App()
+    App()
       .withEvents(events)
       .withCommands(commands)
       .withAggregate(Calculator)
       .build();
+    await App().listen();
   });
 
   it("should compute correctly", async () => {

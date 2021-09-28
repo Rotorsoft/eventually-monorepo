@@ -107,10 +107,9 @@ export abstract class AppBase {
   }
 
   /**
-   * Builds topics
-   * @returns Array of promises to build topics
+   * Creates topics and subscribes event handlers
    */
-  protected async buildTopics(): Promise<void> {
+  protected async connect(): Promise<void> {
     await Promise.all(
       handlersOf(this._event_factory).map((f) =>
         this._broker
@@ -118,17 +117,24 @@ export abstract class AppBase {
           .then(() => this.log.info("red", `> ${f.name} <`))
       )
     );
+    await Promise.all(
+      Object.values(this._event_handlers).map(({ factory, event }) =>
+        this._broker.subscribe(factory, event)
+      )
+    );
   }
 
   /**
    * Builds application
    * @param options options for store and broker
-   * @returns internal application
+   * @returns internal application (used by gcloud functions to expose express router)
    */
-  abstract build(options?: {
-    store?: Store;
-    broker?: Broker;
-  }): Promise<Listener>;
+  abstract build(options?: { store?: Store; broker?: Broker }): Listener;
+
+  /**
+   * Starts listening for requests
+   */
+  abstract listen(): Promise<void>;
 
   /**
    * Handles aggregate commands
