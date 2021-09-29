@@ -1,15 +1,17 @@
-## Eventually Monorepo
+# Eventually Monorepo
 
+![Build Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/ci.yml/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master)
 
-This is a Yarn2 based monorepo showing a simple recipe based on yarn workspaces and typescript project references.
+Reactive TypeScript Micro-Service Framework
 
-- `/libs` - frameworks and shared libraries
-- `/services` - micro services
+- Yarn 2 monorepo with workspaces and TS project references
+- `/libs` - with frameworks and shared libraries
+- `/services` - with micro services
 
-A `calculator` sample service is provided as a template. We recommend using a similar project structure for consistency.
+A `/services/calculator` sample service is provided as a template. We recommend using a similar project structure for consistency.
 
-Our recipe always starts from an Event Storming Model. First, write your models and validation schemas, then write your aggregates and policies.
+Our recipe starts from an Event Storming Model. First, aggregate models, messages, and validation schemas, then aggregates and policies.
 
 Follow TDD practices and aim for 100% code coverage.
 
@@ -33,11 +35,11 @@ The pictures below show the event storming model of the calculator service and h
 
 ![Microservice Structure](./assets/microservice.png)
 
-#### Setup
+## Setup
 
 Full installation and configuration details can be found [here](https://yarnpkg.com/getting-started)
 
-###### Installing Yarn
+### Installing Yarn
 
 ```bash
 > npm install -g yarn
@@ -45,7 +47,7 @@ Full installation and configuration details can be found [here](https://yarnpkg.
 > yarn set version berry
 ```
 
-###### Using Yarn
+### Using Yarn
 
 ```bash
 > yarn --version
@@ -81,7 +83,7 @@ Full installation and configuration details can be found [here](https://yarnpkg.
 > yarn install
 ```
 
-###### Updating `.gitignore`
+### Updating `.gitignore`
 
 ```bash
 # Yarn 2
@@ -94,14 +96,14 @@ Full installation and configuration details can be found [here](https://yarnpkg.
 !.yarn/versions
 ```
 
-###### Updating `.gitattributes`
+### Updating `.gitattributes`
 
 ```bash
 /.yarn/releases/** binary
 /.yarn/plugins/** binary
 ```
 
-###### Configuring TypeScript with VSCode Integration
+### Configuring TypeScript with VSCode Integration
 
 ```bash
 > yarn add --dev typescript
@@ -124,7 +126,7 @@ Full installation and configuration details can be found [here](https://yarnpkg.
 - Choose "Select TypeScript Version"
 - Pick "Use Workspace Version"
 
-###### Using PnP mode `.yarnrc.yml`
+### Using PnP mode `.yarnrc.yml`
 
 ```bash
 nodeLinker: pnp
@@ -138,7 +140,7 @@ plugins:
 yarnPath: .yarn/releases/yarn-berry.cjs
 ```
 
-###### Configuring the Monorepo
+### Configuring the Monorepo
 
 - Follow structure of base `package.json`. _Pay attention to "repository" and "workspaces"_
 - Internal packages follow standard format, but you can reference other monorepo packages using `workspace:...` prefix like this `"@rotorsoft/eventually": "workspace:^1.0.0"`
@@ -163,7 +165,7 @@ yarnPath: .yarn/releases/yarn-berry.cjs
 }
 ```
 
-###### Building and publishing
+### Building and publishing
 
 ```bash
 > cd [root]
@@ -175,11 +177,11 @@ yarnPath: .yarn/releases/yarn-berry.cjs
 > yarn ./path/to/package npm publish [--access public]
 ```
 
-### Configuring VS Code Icons
+## Configuring VS Code Icons
 
 You can customize your workbech by copying the custom [vsicons](https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons) and settings under `./vscode` to your local VSCode user directory. This will validate the folder structure and naming conventions we are proposing to follow when building new micro-services as shown below:
 
-### Local Testing
+## Local Testing
 
 ```bash
 # start a fresh postgres container

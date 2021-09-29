@@ -1,8 +1,10 @@
-## Eventually Framework
+# Eventually Framework
+
+[![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
 This project aims at the exploration of different ideas around building reactive web services. Based on well known methodologies, patterns, and tools - our guiding principle is **simplicity**.
 
-##### Methodologies-Patterns-Tools
+## Methodologies-Patterns-Tools
 
 - Domain Driven Design - DDD
 - Event Storming
@@ -15,7 +17,7 @@ This project aims at the exploration of different ideas around building reactive
 - ESLint, Prettier, Jest
 - ...More to come
 
-### Logical Model
+## Logical Model
 
 Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear models” as the drivers of implementations - source code should be seen as a side effect. The deeper we can track these models within the implementation the better.
 
@@ -25,7 +27,7 @@ Event Sourcing is a practical methodology used by many to model business process
 
 ![Logical Model](./assets/flow.png)
 
-### Value Proposition
+## Value Proposition
 
 This project is trying to answer the following questions:
 
@@ -37,11 +39,11 @@ This project is trying to answer the following questions:
 
 - **Practically Self-Testable** - Replaying event streams effectively tests/covers models and business rules - one generic unit test
 
-### Building your first Micro-Service
+## Building your first Micro-Service
 
 > The anatomy of a micro-service should reflect the business model
 
-##### Bootstraps the micro-service `index.ts`
+## Bootstraps the micro-service `index.ts`
 
 - Command handlers are routed by convention `/aggregate-type/:id/command-name`
 
@@ -51,6 +53,6 @@ This project is trying to answer the following questions:
 
 - Listen for requests
 
-#### Testing your code
+## Testing your code
 
 We group our unit tests inside the `__tests__` folder. We want tests only focusing on application logic, and we are planning to provide tooling to facilitate this. The `test_command` utility simulates commands flows in memory and covers messages payload validations automatically.
