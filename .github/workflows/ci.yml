@@ -37,13 +37,13 @@ jobs:
     - name: init db
       run: yarn run initdb
       env:
-        POSTGRES_HOST: postgres
+        POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
 
     - name: run unit tests
       run: yarn test --coverage
       env:
-          PG_HOST: postgres
+          PG_HOST: localhost
           PG_USER: postgres
           PG_PASSWORD: postgres
           PG_DATABASE: postgres
