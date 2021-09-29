@@ -10,6 +10,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5  
 
     steps:
     - uses: actions/checkout@v2
@@ -19,11 +31,23 @@ jobs:
       with:
         node-version: 14.x
 
+    - name: connect to postgres
+      run: ./docker/init-db.sh
+      env:
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_PORT: 5432
+
     - run: yarn install
     - run: yarn build
-      
-    - run: yarn test ./services --coverage
-      
+
+    - name: run unit tests
+      run: yarn test --coverage
+      env:
+          PG_HOST: localhost
+          PG_USER: postgres
+          PG_PASSWORD: postgres
+          PG_DATABASE: postgres
+
     - name: coveralls
       uses: coverallsapp/github-action@master
       with:
