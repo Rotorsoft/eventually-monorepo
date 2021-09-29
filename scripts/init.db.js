@@ -23,12 +23,12 @@ CREATE TABLE IF NOT EXISTS public.events
 ) TABLESPACE pg_default;
 ALTER TABLE public.events OWNER to postgres;
 
-CREATE UNIQUE INDEX aggregate_ix
+CREATE UNIQUE INDEX IF NOT EXISTS aggregate_ix
     ON public.events USING btree
     (aggregate_id COLLATE pg_catalog."default" ASC, aggregate_version ASC)
     TABLESPACE pg_default;
 	
-CREATE INDEX topic_ix
+CREATE INDEX IF NOT EXISTS topic_ix
     ON public.events USING btree
     (event_name COLLATE pg_catalog."default" ASC)
     TABLESPACE pg_default;`,
