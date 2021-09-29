@@ -129,6 +129,8 @@ export abstract class AppBase {
    * Creates topics, and subscribes event handlers
    */
   protected async connect(): Promise<void> {
+    if (this._store.init) await this._store.init();
+
     await Promise.all(
       handlersOf(this._event_factory).map((f) =>
         this._broker

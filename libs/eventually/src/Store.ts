@@ -6,6 +6,11 @@ import { EvtOf, Evt, MsgOf } from "./types";
  */
 export interface Store {
   /**
+   * Store initializer
+   */
+  init?: () => Promise<void>;
+
+  /**
    * Loads aggregate in memory by reading stream and reducing model
    * @param id aggregate id
    * @param reducer model reducer

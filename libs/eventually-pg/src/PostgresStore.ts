@@ -11,7 +11,7 @@ import { config } from "./config";
 const pool = new Pool(config.pg);
 delete config.pg.password; // use it and forget it
 
-void pool.query(`
+const create_script = `
 CREATE TABLE IF NOT EXISTS public.events
 (
 	event_id serial PRIMARY KEY,
@@ -31,7 +31,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS aggregate_ix
 CREATE INDEX IF NOT EXISTS topic_ix
     ON public.events USING btree
     (event_name COLLATE pg_catalog."default" ASC)
-    TABLESPACE pg_default;`);
+    TABLESPACE pg_default;`;
 
 type Event = {
   event_id: number;
@@ -43,6 +43,10 @@ type Event = {
 };
 
 export const PostgresStore = (): Store => ({
+  init: async (): Promise<void> => {
+    await pool.query(create_script);
+  },
+
   load: async <E>(
     id: string,
     reducer: (event: EvtOf<E>) => void
