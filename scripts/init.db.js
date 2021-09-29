@@ -36,3 +36,5 @@ CREATE INDEX IF NOT EXISTS topic_ix
     if (err) throw err;
   }
 );
+
+process.exit(0);
