@@ -1,5 +1,7 @@
 ## Eventually Monorepo
 
+[![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master)
+
 This is a Yarn2 based monorepo showing a simple recipe based on yarn workspaces and typescript project references.
 
 - `/libs` - frameworks and shared libraries
