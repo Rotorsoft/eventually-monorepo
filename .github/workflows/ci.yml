@@ -32,7 +32,7 @@ jobs:
         node-version: 14.x
 
     - name: connect to postgres
-      run: ./docker/init-db.sh
+      run: node ./scripts/init-db.js
       env:
         POSTGRES_PASSWORD: postgres
         POSTGRES_PORT: 5432
