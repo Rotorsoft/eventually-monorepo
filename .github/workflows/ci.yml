@@ -31,15 +31,15 @@ jobs:
       with:
         node-version: 14.x
 
+    - run: yarn install
+    - run: yarn build
+
     - name: connect to postgres
       run: node ./scripts/init-db.js
       env:
         POSTGRES_PASSWORD: postgres
         POSTGRES_PORT: 5432
-
-    - run: yarn install
-    - run: yarn build
-
+        
     - name: run unit tests
       run: yarn test --coverage
       env:
