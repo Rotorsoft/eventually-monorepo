@@ -22,6 +22,10 @@ const event = (name: keyof E, data?: Payload): MsgOf<E> => ({
 });
 
 describe("PostgresStore", () => {
+  beforeAll(async () => {
+    await db.init();
+  });
+
   it("should commit events", async () => {
     await db.commit(a1, [event("test1", { value: "1" })]);
     await db.commit(a1, [event("test1", { value: "2" })]);
