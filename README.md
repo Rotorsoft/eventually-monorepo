@@ -5,7 +5,11 @@ This is a Yarn2 based monorepo showing a simple recipe based on yarn workspaces 
 - `/libs` - frameworks and shared libraries
 - `/services` - micro services
 
-A `calculator` sample service is provided as a template. We recommend using consistent project structures like the one below. Start by defining your models and validation schemas, then write your aggregates and policies. Follow TDD practices and the Test utility to acomplish 100% code coverage.
+A `calculator` sample service is provided as a template. We recommend using a similar project structure for consistency.
+
+Our recipe always starts from an Event Storming Model. First, write your models and validation schemas, then write your aggregates and policies.
+
+Follow TDD practices and aim for 100% code coverage.
 
 ```bash
 ./src
