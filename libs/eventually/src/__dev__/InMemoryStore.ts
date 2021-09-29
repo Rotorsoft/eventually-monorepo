@@ -20,22 +20,24 @@ export const InMemoryStore = (): Store => {
       expectedVersion?: string
       // eslint-disable-next-line
     ): Promise<EvtOf<E>[]> => {
+      const aggregate = stream.filter((e) => e.aggregateId === id);
       if (
         expectedVersion &&
-        (stream.filter((e) => e.aggregateId === id).length - 1).toString() !==
-          expectedVersion
+        (aggregate.length - 1).toString() !== expectedVersion
       )
         throw Error("Concurrency Error");
 
+      let version = aggregate.length;
       return events.map((event) => {
         const committed: EvtOf<E> = {
           ...event,
           eventId: stream.length,
           aggregateId: id,
-          aggregateVersion: events.length.toString(),
+          aggregateVersion: version.toString(),
           createdAt: new Date()
         };
         stream.push(committed);
+        version++;
         return committed;
       });
     },

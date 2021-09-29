@@ -1,4 +1,4 @@
-import { App } from "@rotorsoft/eventually";
+import { App, Errors } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
@@ -22,11 +22,21 @@ describe("calculator", () => {
     await app.command(Calculator, "test", commands.PressKey({ key: "3" }));
     await app.command(Calculator, "test", commands.PressKey({ key: "=" }));
 
-    const { state } = await App().load(Calculator, "test");
+    const { state } = await app.load(Calculator, "test");
     expect(state).toEqual({
       left: "3.3",
       operator: "+",
       result: 3.3
     });
+
+    const stream = await app.stream(Calculator, "test");
+    expect(stream.length).toEqual(6);
+  });
+
+  it("should throw concurrency error", async () => {
+    await app.command(Calculator, "test", commands.PressKey({ key: "1" }));
+    await expect(
+      app.command(Calculator, "test", commands.PressKey({ key: "1" }), "-1")
+    ).rejects.toThrowError(Errors.ConcurrencyError);
   });
 });

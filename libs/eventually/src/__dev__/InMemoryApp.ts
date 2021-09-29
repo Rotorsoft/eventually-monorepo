@@ -37,10 +37,16 @@ export class InMemoryApp extends AppBase {
   async command<M extends Payload, C, E>(
     factory: AggregateFactory<M, C, E>,
     id: string,
-    command: MsgOf<C>
+    command: MsgOf<C>,
+    expectedVersion?: string
   ): Promise<Snapshot<M>[]> {
     validate(command);
-    const snapshots = await super.command(factory, id, command);
+    const snapshots = await super.command(
+      factory,
+      id,
+      command,
+      expectedVersion
+    );
     snapshots.map(({ event }) => validate(event as unknown as MsgOf<E>, true));
     return snapshots;
   }

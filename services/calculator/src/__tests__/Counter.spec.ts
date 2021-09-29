@@ -23,7 +23,7 @@ describe("Counter", () => {
     await app.command(Calculator, "test", commands.PressKey({ key: "." }));
     await app.command(Calculator, "test", commands.PressKey({ key: "3" }));
 
-    const { state } = await App().load(Calculator, "test");
+    const { state } = await app.load(Calculator, "test");
     expect(state).toEqual({ result: 0 });
   });
 });
