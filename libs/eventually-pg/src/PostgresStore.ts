@@ -11,6 +11,28 @@ import { config } from "./config";
 const pool = new Pool(config.pg);
 delete config.pg.password; // use it and forget it
 
+void pool.query(`
+CREATE TABLE IF NOT EXISTS public.events
+(
+	event_id serial PRIMARY KEY,
+    event_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    event_data json,
+    aggregate_id character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    aggregate_version int NOT NULL,
+    created_at timestamp without time zone DEFAULT now()
+) TABLESPACE pg_default;
+ALTER TABLE public.events OWNER to postgres;
+
+CREATE UNIQUE INDEX IF NOT EXISTS aggregate_ix
+    ON public.events USING btree
+    (aggregate_id COLLATE pg_catalog."default" ASC, aggregate_version ASC)
+    TABLESPACE pg_default;
+	
+CREATE INDEX IF NOT EXISTS topic_ix
+    ON public.events USING btree
+    (event_name COLLATE pg_catalog."default" ASC)
+    TABLESPACE pg_default;`);
+
 type Event = {
   event_id: number;
   event_name: string;

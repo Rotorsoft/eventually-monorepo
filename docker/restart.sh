@@ -18,7 +18,6 @@ docker run \
     -e POSTGRES_DB=postgres -e POSTGRES_USER=postgres -e POSTGRES_HOST_AUTH_METHOD=trust \
     -e PGDATA=/var/lib/postgresql/data/pgdata \
     -v $PWD/data:/var/lib/postgresql/data/pgdata \
-    -v $PWD/docker/init-db.sh:/docker-entrypoint-initdb.d/1-init-db.sh \
     postgres:12.3-alpine
 
 echo "Have a nice day!"

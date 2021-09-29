@@ -13,7 +13,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres
+        image: postgres:12.3-alpine
         env:
           POSTGRES_PASSWORD: postgres
         # health checks to wait until postgres has started
@@ -35,12 +35,6 @@ jobs:
 
     - run: yarn install
     - run: yarn build
-
-    - name: init db
-      run: yarn run initdb
-      env:
-        POSTGRES_HOST: localhost
-        POSTGRES_PORT: 5432
 
     - name: run unit tests
       run: yarn test --coverage
