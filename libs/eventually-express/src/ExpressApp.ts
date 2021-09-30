@@ -211,9 +211,7 @@ export class ExpressApp extends AppBase {
 
   close(): void {
     if (this._server) {
-      this._server.close((err) => {
-        this.log.error(err);
-      });
+      this._server.close();
     }
   }
 }
