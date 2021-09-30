@@ -44,11 +44,10 @@ export const InMemoryStore = (): Store => {
 
     read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
       const events: Evt[] = [];
-      while (events.length < limit) {
-        for (let i = after + 1; i < stream.length; i++) {
-          const e = stream[i];
-          if (!name || name === e.name) events.push(e);
-        }
+      let i = after + 1;
+      while (events.length < limit && i < stream.length) {
+        const e = stream[i++];
+        if (!name || name === e.name) events.push(e);
       }
       return Promise.resolve(events);
     }

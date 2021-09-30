@@ -11,13 +11,13 @@ import {
   PolicyResponse,
   Snapshot
 } from "../types";
-import { committedSchema } from "../utils";
+import { committedSchema, ValidationError } from "../utils";
 
 const validate = <T>(message: MsgOf<T>, committed = false): void => {
   const { schema, ...value } = message;
   const validator = committed ? committedSchema(schema()) : schema();
   const { error } = validator.validate(value, { abortEarly: false });
-  if (error) throw Error(error.toString());
+  if (error) throw new ValidationError(error);
 };
 
 export class InMemoryApp extends AppBase {
@@ -32,6 +32,10 @@ export class InMemoryApp extends AppBase {
     await this.connect();
     this.log.info("white", "InMemory app is listening...", config);
     return Promise.resolve();
+  }
+
+  close(): void {
+    return;
   }
 
   async command<M extends Payload, C, E>(

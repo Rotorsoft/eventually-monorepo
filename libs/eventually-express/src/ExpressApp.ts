@@ -16,7 +16,14 @@ import {
   ValidationError
 } from "@rotorsoft/eventually";
 import cors from "cors";
-import express, { NextFunction, Request, Response, Router } from "express";
+import express, {
+  NextFunction,
+  Request,
+  Response,
+  Router,
+  urlencoded
+} from "express";
+import { Server } from "http";
 
 type GetCallback = <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,
@@ -26,6 +33,7 @@ type GetCallback = <M extends Payload, C, E>(
 export class ExpressApp extends AppBase {
   private _app = express();
   private _router = Router();
+  private _server: Server;
 
   private _buildStreamRoute(): void {
     this._router.get(
@@ -43,7 +51,11 @@ export class ExpressApp extends AppBase {
         try {
           const { event } = req.params;
           const { after, limit } = req.query;
-          const result = await this._store.read(event, after, limit);
+          const result = await this._store.read(
+            event,
+            after && +after,
+            limit && +limit
+          );
           return res.status(200).send(result);
         } catch (error) {
           next(error);
@@ -166,6 +178,7 @@ export class ExpressApp extends AppBase {
 
     this._app.set("trust proxy", true);
     this._app.use(cors());
+    this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json());
     this._app.use(this._router);
 
@@ -173,8 +186,12 @@ export class ExpressApp extends AppBase {
       // eslint-disable-next-line
       (err: Error, req: Request, res: Response, next: NextFunction) => {
         this.log.error(err);
-        if (err.message === Errors.ValidationError)
-          res.status(400).send((err as ValidationError).details);
+        // eslint-disable-next-line
+        const { message, stack, ...other } = err;
+        if (message === Errors.ValidationError)
+          res.status(400).send({ message, ...other });
+        else if (message === Errors.ConcurrencyError)
+          res.status(409).send({ message, ...other });
         else res.sendStatus(500);
       }
     );
@@ -187,8 +204,16 @@ export class ExpressApp extends AppBase {
 
     if (silent) return this.log.info("white", "Config", config);
 
-    this._app.listen(config.port, () => {
+    this._server = this._app.listen(config.port, () => {
       this.log.info("white", "Express app is listening", config);
     });
+  }
+
+  close(): void {
+    if (this._server) {
+      this._server.close((err) => {
+        this.log.error(err);
+      });
+    }
   }
 }

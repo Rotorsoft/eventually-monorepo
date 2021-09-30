@@ -160,11 +160,16 @@ export abstract class AppBase {
   abstract listen(silent?: boolean): Promise<void>;
 
   /**
+   * Closes the listening app
+   */
+  abstract close(): void;
+
+  /**
    * Handles aggregate commands
    * @param aggregate the aggregate with command handlers
    * @param command the command to handle
    * @param expectedVersion optional aggregate expected version to allow optimistic concurrency
-   * @returns tuple with mutated model and committed event
+   * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
     factory: AggregateFactory<M, C, E>,
