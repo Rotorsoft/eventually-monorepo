@@ -26,8 +26,8 @@ describe("PostgresStore", () => {
     await db.init();
   });
 
-  afterAll(() => {
-    db.close();
+  afterAll(async () => {
+    await db.close();
   });
 
   it("should commit events", async () => {
