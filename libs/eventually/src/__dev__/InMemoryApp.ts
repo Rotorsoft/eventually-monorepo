@@ -34,8 +34,8 @@ export class InMemoryApp extends AppBase {
     return Promise.resolve();
   }
 
-  close(): void {
-    return;
+  async close(): Promise<void> {
+    await this._store.close();
   }
 
   async command<M extends Payload, C, E>(

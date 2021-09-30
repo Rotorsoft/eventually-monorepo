@@ -17,6 +17,10 @@ describe("in memory app", () => {
     await app.listen();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("calculator", () => {
     it("should compute correctly", async () => {
       await app.command(Calculator, "test", commands.PressKey({ key: "1" }));

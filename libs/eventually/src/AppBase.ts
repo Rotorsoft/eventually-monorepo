@@ -162,7 +162,7 @@ export abstract class AppBase {
   /**
    * Closes the listening app
    */
-  abstract close(): void;
+  abstract close(): Promise<void>;
 
   /**
    * Handles aggregate commands

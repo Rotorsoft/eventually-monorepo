@@ -209,9 +209,14 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  close(): void {
+  async close(): Promise<void> {
+    if (this._store) {
+      await this._store.close();
+      this._store = undefined;
+    }
     if (this._server) {
       this._server.close();
+      this._server = undefined;
     }
   }
 }
