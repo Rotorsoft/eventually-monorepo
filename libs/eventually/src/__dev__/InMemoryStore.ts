@@ -50,6 +50,10 @@ export const InMemoryStore = (): Store => {
         if (!name || name === e.name) events.push(e);
       }
       return Promise.resolve(events);
+    },
+
+    close: (): Promise<void> => {
+      return;
     }
   };
 };

@@ -11,6 +11,11 @@ export interface Store {
   init?: () => Promise<void>;
 
   /**
+   * Store closer
+   */
+  close: () => Promise<void>;
+
+  /**
    * Loads aggregate in memory by reading stream and reducing model
    * @param id aggregate id
    * @param reducer model reducer

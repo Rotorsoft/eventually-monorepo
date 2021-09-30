@@ -47,6 +47,10 @@ export const PostgresStore = (): Store => ({
     await pool.query(create_script);
   },
 
+  close: async (): Promise<void> => {
+    await pool.end();
+  },
+
   load: async <E>(
     id: string,
     reducer: (event: EvtOf<E>) => void

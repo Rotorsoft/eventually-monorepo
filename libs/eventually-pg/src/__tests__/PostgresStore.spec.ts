@@ -26,6 +26,10 @@ describe("PostgresStore", () => {
     await db.init();
   });
 
+  afterAll(() => {
+    db.close();
+  });
+
   it("should commit events", async () => {
     await db.commit(a1, [event("test1", { value: "1" })]);
     await db.commit(a1, [event("test1", { value: "2" })]);
