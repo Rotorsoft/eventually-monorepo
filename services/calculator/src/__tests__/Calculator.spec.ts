@@ -33,6 +33,25 @@ describe("calculator", () => {
     expect(stream.length).toEqual(6);
   });
 
+  it("should compute correctly 2", async () => {
+    await app.command(Calculator, "test2", commands.PressKey({ key: "+" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "1" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "-" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "2" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "*" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "3" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "/" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "3" }));
+    await app.command(Calculator, "test2", commands.PressKey({ key: "=" }));
+
+    const { state } = await app.load(Calculator, "test2");
+    expect(state).toEqual({
+      left: "-1",
+      operator: "/",
+      result: -1
+    });
+  });
+
   it("should throw concurrency error", async () => {
     await app.command(Calculator, "test", commands.PressKey({ key: "1" }));
     await expect(
