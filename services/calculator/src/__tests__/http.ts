@@ -15,6 +15,8 @@ import axios, { AxiosResponse } from "axios";
 
 const url = (path: string): string => `http://localhost:3000${path}`;
 
+export const get = (path: string): Promise<void> => axios.get(url(path));
+
 export const command = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,
   id: string,

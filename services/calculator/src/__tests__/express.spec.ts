@@ -1,11 +1,12 @@
-import { App, EvtOf } from "@rotorsoft/eventually";
+import { App, EvtOf, InMemoryStore } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Calculator } from "../calculator.aggregate";
 import { Counter } from "../counter.policy";
 import { commands } from "../calculator.commands";
 import { Events, events } from "../calculator.events";
-import { command, event, load, read, stream } from "./http";
+import { command, event, load, read, stream, get } from "./http";
 
+const store = InMemoryStore();
 const app = App(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
@@ -14,12 +15,12 @@ const app = App(new ExpressApp())
 
 describe("express app", () => {
   beforeAll(async () => {
-    app.build();
+    app.build({ store });
     await app.listen();
   });
 
-  afterAll(() => {
-    app.close();
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("Calculator", () => {
@@ -66,6 +67,16 @@ describe("express app", () => {
       expect(snapshots.length).toBe(9);
     });
 
+    it("should not load events", async () => {
+      const { event } = await load(Calculator, "impossible ");
+      expect(event).toBeUndefined();
+    });
+
+    it("should not load stream", async () => {
+      const snapshots = await stream(Calculator, "impossible ");
+      expect(snapshots.length).toBe(0);
+    });
+
     it("should throw concurrency error", async () => {
       await command(Calculator, "test", commands.PressKey({ key: "1" }));
       await expect(
@@ -80,6 +91,12 @@ describe("express app", () => {
           schema: () => undefined
         })
       ).rejects.toThrowError("Request failed with status code 400");
+    });
+
+    it("should throw 404 error", async () => {
+      await expect(get("/calculator")).rejects.toThrowError(
+        "Request failed with status code 404"
+      );
     });
   });
 
@@ -144,6 +161,11 @@ describe("express app", () => {
       const stream = await read({ after: 2, limit: 2 });
       expect(stream[0].eventId).toBe(3);
       expect(stream.length).toBe(2);
+    });
+
+    it("should return an empty stream", async () => {
+      const stream = await read({ name: "impossible " });
+      expect(stream.length).toBe(0);
     });
   });
 });
