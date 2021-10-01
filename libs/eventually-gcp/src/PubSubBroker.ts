@@ -45,7 +45,11 @@ export const PubSubBroker = (): Broker => {
       const url = `${config.host}${eventPath(factory, event)}`;
       const sub = topic.subscription(factory.name.concat(".", event.name));
       const [exists] = await sub.exists();
-      if (!exists) await sub.create({ pushEndpoint: url });
+      if (!exists)
+        await sub.create({
+          pushEndpoint: url,
+          enableMessageOrdering: true
+        });
       else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
         await sub.modifyPushConfig({ pushEndpoint: url });
     },
