@@ -8,7 +8,7 @@ export interface Store {
   /**
    * Store initializer
    */
-  init?: () => Promise<void>;
+  init: () => Promise<void>;
 
   /**
    * Store closer

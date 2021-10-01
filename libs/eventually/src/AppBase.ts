@@ -129,7 +129,7 @@ export abstract class AppBase {
    * Creates topics, and subscribes event handlers
    */
   protected async connect(): Promise<void> {
-    if (this._store.init) await this._store.init();
+    await this._store.init();
 
     await Promise.all(
       handlersOf(this._event_factory).map((f) =>
@@ -181,8 +181,6 @@ export abstract class AppBase {
     this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
 
     let { state } = await this.load(factory, id);
-    if (!state) throw Error(`Invalid aggregate ${factory.name}!`);
-
     const events: MsgOf<E>[] = await (aggregate as any)[
       "on".concat(command.name)
     ](state, command.data);

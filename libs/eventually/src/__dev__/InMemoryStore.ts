@@ -52,6 +52,10 @@ export const InMemoryStore = (): Store => {
       return Promise.resolve(events);
     },
 
+    init: (): Promise<void> => {
+      return;
+    },
+
     close: (): Promise<void> => {
       return;
     }

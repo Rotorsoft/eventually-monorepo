@@ -13,9 +13,11 @@ import {
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 
-const url = (path: string): string => `http://localhost:3000${path}`;
+const url = (path: string, port = 3000): string =>
+  `http://localhost:${port}${path}`;
 
-export const get = (path: string): Promise<void> => axios.get(url(path));
+export const get = (path: string, port = 3000): Promise<void> =>
+  axios.get(url(path, port));
 
 export const command = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,

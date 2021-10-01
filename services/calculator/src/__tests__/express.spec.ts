@@ -1,4 +1,4 @@
-import { App, EvtOf, InMemoryStore } from "@rotorsoft/eventually";
+import { App, EvtOf } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Calculator } from "../calculator.aggregate";
 import { Counter } from "../counter.policy";
@@ -6,7 +6,6 @@ import { commands } from "../calculator.commands";
 import { Events, events } from "../calculator.events";
 import { command, event, load, read, stream, get } from "./http";
 
-const store = InMemoryStore();
 const app = App(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
@@ -15,7 +14,7 @@ const app = App(new ExpressApp())
 
 describe("express app", () => {
   beforeAll(async () => {
-    app.build({ store });
+    app.build();
     await app.listen();
   });
 

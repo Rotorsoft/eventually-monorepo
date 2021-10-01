@@ -45,16 +45,21 @@ export class ExpressApp extends AppBase {
           any,
           { after?: number; limit?: number }
         >,
-        res: Response
+        res: Response,
+        next: NextFunction
       ) => {
-        const { event } = req.params;
-        const { after, limit } = req.query;
-        const result = await this._store.read(
-          event,
-          after && +after,
-          limit && +limit
-        );
-        return res.status(200).send(result);
+        try {
+          const { event } = req.params;
+          const { after, limit } = req.query;
+          const result = await this._store.read(
+            event,
+            after && +after,
+            limit && +limit
+          );
+          return res.status(200).send(result);
+        } catch (error) {
+          next(error);
+        }
       }
     );
     this.log.info("green", "[GET]", "/stream/[event]?after=-1&limit=1");
@@ -68,18 +73,26 @@ export class ExpressApp extends AppBase {
     const { name, path } = aggregatePath(factory);
     this._router.get(
       path.concat(suffix || ""),
-      async (req: Request<{ id: string }>, res: Response) => {
-        const { id } = req.params;
-        const result = await callback(factory, id);
-        let etag = "-1";
-        if (Array.isArray(result)) {
-          if (result.length)
-            etag = result[result.length - 1].event.aggregateVersion;
-        } else if (result.event) {
-          etag = result.event.aggregateVersion;
+      async (
+        req: Request<{ id: string }>,
+        res: Response,
+        next: NextFunction
+      ) => {
+        try {
+          const { id } = req.params;
+          const result = await callback(factory, id);
+          let etag = "-1";
+          if (Array.isArray(result)) {
+            if (result.length)
+              etag = result[result.length - 1].event.aggregateVersion;
+          } else if (result.event) {
+            etag = result.event.aggregateVersion;
+          }
+          res.setHeader("ETag", etag);
+          return res.status(200).send(result);
+        } catch (error) {
+          next(error);
         }
-        res.setHeader("ETag", etag);
-        return res.status(200).send(result);
       }
     );
     this.log.info("green", `[GET ${name}]`, path.concat(suffix || ""));
