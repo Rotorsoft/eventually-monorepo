@@ -10,5 +10,5 @@ find . -type f -name '*.tsbuildinfo' -delete
 # find . -type f -name '*.d.ts' -delete
 # find . -type f -name '*.d.ts.map' -delete
 # find . -type f -name '*.js.map' -delete
-# find ./libs/eventually -type f -name '*.js' -delete
-# find ./services/calculator -type f -name '*.js' -delete
+# find ./libs/* -type f -name '*.js' -delete
+# find ./services/* -type f -name '*.js' -delete
