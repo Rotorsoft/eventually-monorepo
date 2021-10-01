@@ -44,8 +44,8 @@ if [ $? -eq 0 ]; then
     echo ">>> comitting new version ..."
     published=$(npm view @rotorsoft/${lib} version) \
     && git add . \
-    && git commit -m "v${published}" \
-    && git tag "v${published}" \
+    && git commit -m "${target} v${published}" \
+    && git tag "${target} v${published}" \
     && git push origin master
     echo ">>> completed!"
 fi
