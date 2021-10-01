@@ -21,7 +21,7 @@
     "@rotorsoft/eventually": "workspace:^1.1.9",
     "@rotorsoft/eventually-express": "workspace:^1.1.6",
     "@rotorsoft/eventually-gcp": "workspace:^1.1.0",
-    "@rotorsoft/eventually-pg": "workspace:^1.1.3",
+    "@rotorsoft/eventually-pg": "workspace:^1.1.4",
     "joi": "^17.4.2"
   },
   "devDependencies": {
