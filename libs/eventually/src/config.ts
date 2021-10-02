@@ -35,23 +35,29 @@ export const extend = <S extends Record<string, any>, T extends Config>(
 
 const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
-export const config: Config = extend(
-  {
-    env: (NODE_ENV as Environments) || Environments.development,
-    host: HOST || "http://localhost",
-    port: Number.parseInt(PORT || "3000"),
-    logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error
-  },
-  joi.object<Config>({
-    env: joi
-      .string()
-      .required()
-      .valid(...Object.keys(Environments)),
-    host: joi.string().required().min(5),
-    port: joi.number().port().required(),
-    logLevel: joi
-      .string()
-      .required()
-      .valid(...Object.keys(LogLevels))
-  })
-);
+let _config: Config;
+export const config: () => Config = () => {
+  if (!_config) {
+    _config = extend(
+      {
+        env: (NODE_ENV as Environments) || Environments.development,
+        host: HOST || "http://localhost",
+        port: Number.parseInt(PORT || "3000"),
+        logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error
+      },
+      joi.object<Config>({
+        env: joi
+          .string()
+          .required()
+          .valid(...Object.keys(Environments)),
+        host: joi.string().required().min(5),
+        port: joi.number().port().required(),
+        logLevel: joi
+          .string()
+          .required()
+          .valid(...Object.keys(LogLevels))
+      })
+    );
+  }
+  return _config;
+};

@@ -18,5 +18,5 @@ export const config: Config & GcpConfig = extend(
       project: joi.string().optional()
     })
   }),
-  target
+  target()
 );

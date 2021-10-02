@@ -17,7 +17,7 @@ export const express = app
   .withPolicy(Counter)
   .build({
     store: PostgresStore(),
-    broker: config.host === "localhost" ? InMemoryBroker(app) : PubSubBroker()
+    broker: config().host === "localhost" ? InMemoryBroker(app) : PubSubBroker()
   });
 
-void app.listen(config.host.endsWith("cloudfunctions.net/calculator"));
+void app.listen(config().host.endsWith("cloudfunctions.net/calculator"));

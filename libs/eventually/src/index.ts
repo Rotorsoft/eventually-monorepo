@@ -7,6 +7,7 @@ export * from "./config";
 export * from "./Store";
 export * from "./types";
 export * from "./utils";
+export * from "./log";
 export * from "./__dev__";
 
 let app: AppBase | undefined;

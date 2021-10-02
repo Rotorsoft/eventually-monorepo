@@ -23,10 +23,11 @@ export const command = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,
   id: string,
   msg: MsgOf<C>,
-  expectedVersion?: string
+  expectedVersion?: string,
+  port = 3000
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.post<MsgOf<C>, AxiosResponse<Snapshot<M>[]>>(
-    url(commandPath(factory, msg).replace(":id", id)),
+    url(commandPath(factory, msg).replace(":id", id), port),
     msg,
     { headers: expectedVersion ? { "If-Match": expectedVersion } : {} }
   );

@@ -1,6 +1,6 @@
 import { Chance } from "chance";
 import { MsgOf, Payload, Evt } from "@rotorsoft/eventually";
-import { PostgresStore } from "../PostgresStore";
+import { PostgresStore } from "..";
 
 const db = PostgresStore();
 

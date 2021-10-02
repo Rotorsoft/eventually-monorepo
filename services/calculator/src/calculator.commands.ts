@@ -5,6 +5,7 @@ import * as schemas from "./calculator.schemas";
 export type Commands = {
   PressKey: { key: Keys };
   Reset: undefined;
+  Whatever: undefined;
 };
 
 // Aggregate HTTP POST endpoints receiving commands from human actors and brokers (from policies)
@@ -18,5 +19,10 @@ export const commands: MessageFactory<Commands> = {
   Reset: () => ({
     name: "Reset",
     schema: () => schemas.Reset
+  }),
+
+  Whatever: () => ({
+    name: "Whatever",
+    schema: () => schemas.Whatever
   })
 };

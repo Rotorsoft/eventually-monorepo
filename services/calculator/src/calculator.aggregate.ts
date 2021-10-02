@@ -31,7 +31,7 @@ const compute = (model: CalculatorModel): CalculatorModel => {
 
 export const Calculator = (
   id: string
-): Aggregate<CalculatorModel, Commands, Events> => ({
+): Aggregate<CalculatorModel, Omit<Commands, "Whatever">, Events> => ({
   id,
 
   // Model Reducer with event side effects

@@ -204,7 +204,7 @@ export class ExpressApp extends AppBase {
 
     if (silent) return this.log.info("white", "Config", config);
 
-    this._server = this._app.listen(config.port, () => {
+    this._server = this._app.listen(config().port, () => {
       this.log.info("white", "Express app is listening", config);
     });
   }

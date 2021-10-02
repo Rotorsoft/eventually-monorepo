@@ -53,3 +53,7 @@ export const PressKey = joi.object({
 export const Reset = joi.object({
   name: joi.string().required().valid("Reset")
 });
+
+export const Whatever = joi.object({
+  name: joi.string().required().valid("Whatever")
+});

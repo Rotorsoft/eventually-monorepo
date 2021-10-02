@@ -32,5 +32,5 @@ export const config: Config & PgConfig = extend(
       port: joi.number().port().required()
     })
   }),
-  target
+  target()
 );

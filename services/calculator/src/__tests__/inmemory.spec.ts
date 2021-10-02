@@ -1,4 +1,4 @@
-import { App, Errors } from "@rotorsoft/eventually";
+import { App, Errors, log } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
@@ -93,5 +93,13 @@ describe("in memory app", () => {
       const { state } = await app.load(Calculator, "test3");
       expect(state).toEqual({ result: 0 });
     });
+  });
+
+  it("should cover schema", () => {
+    expect(commands.Whatever().schema()).toBe(schemas.Whatever);
+  });
+
+  it("should cover initialized log", () => {
+    expect(log()).toBeDefined();
   });
 });

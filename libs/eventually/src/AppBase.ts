@@ -1,5 +1,5 @@
 import { Broker } from "./Broker";
-import { Log, LogFactory } from "./log";
+import { Log, log } from "./log";
 import { Store } from "./Store";
 import {
   AggregateFactory,
@@ -25,7 +25,7 @@ import {
  * App abstraction implementing generic handlers
  */
 export abstract class AppBase {
-  public readonly log: Log = LogFactory();
+  public readonly log: Log = log();
 
   private _event_factory: MessageFactory<unknown> = {};
   private _command_factory: MessageFactory<unknown> = {};
