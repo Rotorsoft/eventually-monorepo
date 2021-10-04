@@ -142,3 +142,16 @@ export class ConcurrencyError extends Error {
     super(Errors.ConcurrencyError);
   }
 }
+
+/**
+ * Wraps creation of singletons around factory functions
+ * @param target the factory function
+ * @returns the singleton function
+ */
+const instances: { [name: string]: unknown } = {};
+export const Singleton =
+  <T>(target: (...args: any[]) => T) =>
+  (...args: any[]): T => {
+    if (!instances[target.name]) instances[target.name] = target(...args);
+    return instances[target.name] as T;
+  };

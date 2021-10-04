@@ -44,10 +44,10 @@ export const Calculator = (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>
   ) => {
     if (model.operator) {
-      const right = (model.right || "").concat(event.data.digit || "");
+      const right = (model.right || "").concat(event.data.digit);
       return { ...model, right };
     }
-    const left = (model.left || "").concat(event.data.digit || "");
+    const left = (model.left || "").concat(event.data.digit);
     return { ...model, left };
   },
 
