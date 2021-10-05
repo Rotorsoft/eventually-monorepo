@@ -918,7 +918,7 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^2.0.0"
     "@rotorsoft/eventually-express": "workspace:^1.1.6"
     "@rotorsoft/eventually-gcp": "workspace:^1.1.2"
-    "@rotorsoft/eventually-pg": "workspace:^1.1.4"
+    "@rotorsoft/eventually-pg": "workspace:^2.0.0"
     axios: ^0.21.4
     joi: ^17.4.2
     ts-node-dev: ^1.1.8
@@ -971,7 +971,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-pg@workspace:^1.1.4, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+"@rotorsoft/eventually-pg@workspace:^2.0.0, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
