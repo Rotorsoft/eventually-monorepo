@@ -17,20 +17,23 @@ export interface Store {
 
   /**
    * Loads aggregate in memory by reading stream and reducing model
-   * @param id aggregate id
+   * @param stream stream name
    * @param reducer model reducer
    */
-  load: <E>(id: string, reducer: (event: EvtOf<E>) => void) => Promise<void>;
+  load: <E>(
+    stream: string,
+    reducer: (event: EvtOf<E>) => void
+  ) => Promise<void>;
 
   /**
    * Commits message into stream of aggregate id
-   * @param id aggregate id
+   * @param stream stream name
    * @param events array of uncommitted events
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
    * @returns array of committed events
    */
   commit: <E>(
-    id: string,
+    stream: string,
     events: MsgOf<E>[],
     expectedVersion?: string
   ) => Promise<EvtOf<E>[]>;

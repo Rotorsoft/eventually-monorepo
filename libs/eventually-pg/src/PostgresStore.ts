@@ -14,32 +14,32 @@ delete config.pg.password; // use it and forget it
 const create_script = `
 CREATE TABLE IF NOT EXISTS public.events
 (
-	event_id serial PRIMARY KEY,
-    event_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    event_data json,
-    aggregate_id character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    aggregate_version int NOT NULL,
-    created_at timestamp without time zone DEFAULT now()
+	id serial PRIMARY KEY,
+    name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    data json,
+    stream character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    version int NOT NULL,
+    created timestamp without time zone DEFAULT now()
 ) TABLESPACE pg_default;
 ALTER TABLE public.events OWNER to postgres;
 
-CREATE UNIQUE INDEX IF NOT EXISTS aggregate_ix
+CREATE UNIQUE INDEX IF NOT EXISTS stream_ix
     ON public.events USING btree
-    (aggregate_id COLLATE pg_catalog."default" ASC, aggregate_version ASC)
+    (stream COLLATE pg_catalog."default" ASC, version ASC)
     TABLESPACE pg_default;
 	
-CREATE INDEX IF NOT EXISTS topic_ix
+CREATE INDEX IF NOT EXISTS name_ix
     ON public.events USING btree
-    (event_name COLLATE pg_catalog."default" ASC)
+    (name COLLATE pg_catalog."default" ASC)
     TABLESPACE pg_default;`;
 
 type Event = {
-  event_id: number;
-  event_name: string;
-  event_data: any;
-  aggregate_id: string;
-  aggregate_version: number;
-  created_at: Date;
+  id: number;
+  name: string;
+  data: any;
+  stream: string;
+  version: number;
+  created: Date;
 };
 
 export const PostgresStore = (): Store => ({
@@ -52,27 +52,27 @@ export const PostgresStore = (): Store => ({
   },
 
   load: async <E>(
-    id: string,
+    stream: string,
     reducer: (event: EvtOf<E>) => void
   ): Promise<void> => {
     const events = await pool.query<Event>(
-      "SELECT * FROM events WHERE aggregate_id=$1 ORDER BY aggregate_version",
-      [id]
+      "SELECT * FROM events WHERE stream=$1 ORDER BY version",
+      [stream]
     );
     events.rows.map((e) =>
       reducer({
-        eventId: e.event_id,
-        aggregateId: e.aggregate_id,
-        aggregateVersion: e.aggregate_version.toString(),
-        createdAt: e.created_at,
-        name: e.event_name as keyof E & string,
-        data: e.event_data
+        id: e.id,
+        name: e.name as keyof E & string,
+        data: e.data,
+        stream: e.stream,
+        version: e.version.toString(),
+        created: e.created
       })
     );
   },
 
   commit: async <E>(
-    id: string,
+    stream: string,
     events: MsgOf<E>[],
     expectedVersion?: string
   ): Promise<EvtOf<E>[]> => {
@@ -80,32 +80,28 @@ export const PostgresStore = (): Store => ({
     try {
       await client.query("BEGIN");
       const last = await client.query<Event>(
-        "SELECT aggregate_version FROM events WHERE aggregate_id=$1 ORDER BY aggregate_version DESC LIMIT 1",
-        [id]
+        "SELECT version FROM events WHERE stream=$1 ORDER BY version DESC LIMIT 1",
+        [stream]
       );
-      let version = last.rowCount ? last.rows[0].aggregate_version : -1;
+      let version = last.rowCount ? last.rows[0].version : -1;
       if (expectedVersion && version.toString() !== expectedVersion)
-        throw new ConcurrencyError(
-          last.rows[0].aggregate_version,
-          events,
-          expectedVersion
-        );
+        throw new ConcurrencyError(version, events, expectedVersion);
       const committed = await Promise.all(
         events.map(async ({ name, data }) => {
           version++;
           const committed = await client.query<Event>(
-            `INSERT INTO events(event_name, event_data, aggregate_id, aggregate_version)
-          VALUES($1, $2, $3, $4) RETURNING event_id, created_at`,
-            [name, data, id, version]
+            `INSERT INTO events(name, data, stream, version)
+          VALUES($1, $2, $3, $4) RETURNING id, created`,
+            [name, data, stream, version]
           );
-          const { event_id, created_at } = committed.rows[0];
+          const { id, created } = committed.rows[0];
           return {
-            eventId: event_id,
-            aggregateId: id,
-            aggregateVersion: version.toString(),
-            createdAt: created_at,
+            id,
             name,
-            data
+            data,
+            stream,
+            version: version.toString(),
+            created
           };
         })
       );
@@ -121,19 +117,19 @@ export const PostgresStore = (): Store => ({
 
   read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
     const events = await pool.query<Event>(
-      `SELECT * FROM events WHERE event_id > $1 ${
-        name ? "AND event_name = $3" : ""
-      } ORDER BY event_id LIMIT $2`,
+      `SELECT * FROM events WHERE id > $1 ${
+        name ? "AND name = $3" : ""
+      } ORDER BY id LIMIT $2`,
       name ? [after, limit, name] : [after, limit]
     );
 
     return events.rows.map((e) => ({
-      eventId: e.event_id,
-      aggregateId: e.aggregate_id,
-      aggregateVersion: e.aggregate_version.toString(),
-      createdAt: e.created_at,
-      name: e.event_name,
-      data: e.event_data
+      id: e.id,
+      name: e.name,
+      data: e.data,
+      stream: e.stream,
+      version: e.version.toString(),
+      created: e.created
     }));
   }
 });

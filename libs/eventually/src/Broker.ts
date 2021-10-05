@@ -1,4 +1,4 @@
-import { Evt, Payload, Policy } from "./types";
+import { Evt, EvtOf, Payload, PolicyFactory } from "./types";
 
 /**
  * Brokers emit committed events to reliable pub/sub topics
@@ -8,20 +8,23 @@ export interface Broker {
    * Creates event topic
    * @param event committed event
    */
-  topic(event: Evt): Promise<void>;
+  topic<E>(event: EvtOf<E>): Promise<void>;
 
   /**
    * Subscribes policy to topic
-   * @param policy policy
+   * @param factory policy factory
    * @param event committed event
    */
-  subscribe(policy: Policy<unknown, unknown>, event: Evt): Promise<void>;
+  subscribe<C, E, M extends Payload>(
+    factory: PolicyFactory<C, E, M>,
+    event: EvtOf<E>
+  ): Promise<void>;
 
   /**
    * Emits event to topic
    * @param event committed event
    */
-  emit: (event: Evt) => Promise<void>;
+  emit: <E>(event: EvtOf<E>) => Promise<void>;
 
   /**
    * Decodes pushed messages

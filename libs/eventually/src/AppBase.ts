@@ -2,24 +2,18 @@ import { Broker } from "./Broker";
 import { Log, log } from "./log";
 import { Store } from "./Store";
 import {
+  Aggregate,
   AggregateFactory,
-  Evt,
   EvtOf,
-  Listener,
   MessageFactory,
+  ModelReducer,
   MsgOf,
   Payload,
   PolicyFactory,
   PolicyResponse,
   Snapshot
 } from "./types";
-import {
-  aggregateId,
-  apply,
-  commandPath,
-  eventPath,
-  handlersOf
-} from "./utils";
+import { commandPath, eventPath, handlersOf } from "./utils";
 
 /**
  * App abstraction implementing generic handlers
@@ -33,7 +27,7 @@ export abstract class AppBase {
     [name: string]: AggregateFactory<Payload, unknown, unknown>;
   } = {};
   private _policy_factories: {
-    [name: string]: PolicyFactory<unknown, unknown>;
+    [name: string]: PolicyFactory<unknown, unknown, Payload>;
   } = {};
 
   protected _command_handlers: {
@@ -45,14 +39,38 @@ export abstract class AppBase {
   } = {};
   protected _event_handlers: {
     [path: string]: {
-      factory: PolicyFactory<unknown, unknown>;
-      event: Evt;
+      factory: PolicyFactory<unknown, unknown, Payload>;
+      event: EvtOf<unknown>;
       path: string;
     };
   } = {};
 
   protected _store: Store;
   protected _broker: Broker;
+
+  /**
+   * Applies events to model
+   * @param reducer model reducer
+   * @param events events to apply
+   * @param state initial model state
+   * @returns snapshots
+   */
+  private _apply<M extends Payload, E>(
+    reducer: ModelReducer<M, E>,
+    events: EvtOf<E>[],
+    state: M
+  ): Snapshot<M>[] {
+    return events.map((event) => {
+      this.log.trace(
+        "gray",
+        `   ... committed ${event.name} @ ${event.version} - `,
+        event.data
+      );
+      state = (reducer as any)["apply".concat(event.name)](state, event);
+      this.log.trace("gray", `   === @ ${event.version}`, state);
+      return { event, state };
+    });
+  }
 
   /**
    * Registers event factory
@@ -87,15 +105,17 @@ export abstract class AppBase {
    * Registers policy factory
    * @param factory policy factory
    */
-  public withPolicy<C, E>(factory: PolicyFactory<C, E>): this {
+  public withPolicy<C, E, M extends Payload>(
+    factory: PolicyFactory<C, E, M>
+  ): this {
     this._policy_factories[factory.name] = factory;
     return this;
   }
 
   /**
-   * Builds message handlers
+   * Builds handlers, creates topics, and subscribes
    */
-  protected prebuild(): void {
+  protected async connect(): Promise<void> {
     Object.values(this._aggregate_factories).map((factory) => {
       const aggregate = factory("");
       handlersOf(this._command_factory).map((f) => {
@@ -113,7 +133,7 @@ export abstract class AppBase {
     });
 
     Object.values(this._policy_factories).map((factory) => {
-      const policy = factory();
+      const policy = factory(undefined);
       handlersOf(this._event_factory).map((f) => {
         const event = f() as EvtOf<unknown>;
         if (Object.keys(policy).includes("on".concat(event.name))) {
@@ -123,12 +143,7 @@ export abstract class AppBase {
         }
       });
     });
-  }
 
-  /**
-   * Creates topics, and subscribes event handlers
-   */
-  protected async connect(): Promise<void> {
     await this._store.init();
 
     await Promise.all(
@@ -147,17 +162,14 @@ export abstract class AppBase {
   }
 
   /**
-   * Builds application
-   * @param options options for store and broker
-   * @returns internal application (used by gcloud functions to expose express router)
+   * Builds application and starts listening for requests
+   * @param options options for store, broker, and silent flag (when gcloud functions manage the listening part)
    */
-  abstract build(options?: { store?: Store; broker?: Broker }): Listener;
-
-  /**
-   * Starts listening for requests
-   * @param silent flag silent app (gcloud functions manage the listening part)
-   */
-  abstract listen(silent?: boolean): Promise<void>;
+  abstract listen(options?: {
+    store?: Store;
+    broker?: Broker;
+    silent?: boolean;
+  }): Promise<any | undefined>;
 
   /**
    * Closes the listening app
@@ -172,38 +184,29 @@ export abstract class AppBase {
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
-    id: string,
+    aggregate: Aggregate<M, C, E>,
     command: MsgOf<C>,
     expectedVersion?: string
   ): Promise<Snapshot<M>[]> {
-    const aggregate = factory(id);
-    this.log.trace("blue", `\n>>> ${command.name} ${id}`, command.data);
+    this.log.trace(
+      "blue",
+      `\n>>> ${command.name} ${aggregate.stream()}`,
+      command.data
+    );
 
-    let { state } = await this.load(factory, id);
+    const { state } = await this.load(aggregate);
+
     const events: MsgOf<E>[] = await (aggregate as any)[
       "on".concat(command.name)
     ](state, command.data);
 
     const committed = await this._store.commit<E>(
-      aggregateId(factory, id),
+      aggregate.stream(),
       events,
       expectedVersion
     );
-    const snapshots = committed.map((event) => {
-      this.log.trace(
-        "gray",
-        `   ... committed ${event.name} @ ${event.aggregateVersion} - `,
-        event.data
-      );
-      state = apply(aggregate, event, state);
-      this.log.trace(
-        "gray",
-        `   === ${command.name} state @ ${event.aggregateVersion}`,
-        state
-      );
-      return { event, state };
-    });
+
+    const snapshots = this._apply(aggregate, committed, state);
 
     try {
       await Promise.all(committed.map((event) => this._broker.emit(event)));
@@ -218,23 +221,33 @@ export abstract class AppBase {
 
   /**
    * Handles policy events and optionally invokes command on target aggregate - side effect
-   * @param policy the policy with event handlers
-   * @param event the event to handle
+   * @param factory the policy factory
+   * @param event the triggering event
    * @returns policy response
    */
-  async event<C, E>(
-    factory: PolicyFactory<C, E>,
+  async event<C, E, M extends Payload>(
+    factory: PolicyFactory<C, E, M>,
     event: EvtOf<E>
   ): Promise<PolicyResponse<C> | undefined> {
+    const policy = factory(event);
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${factory.name}`,
       event.data
     );
 
-    const response: PolicyResponse<unknown> | undefined = await (
-      factory() as any
-    )["on".concat(event.name)](event);
+    const { state } = policy.reducer
+      ? await this.load(policy.reducer)
+      : { state: undefined };
+
+    const response: PolicyResponse<unknown> | undefined = await (policy as any)[
+      "on".concat(event.name)
+    ](event, state);
+
+    if (policy.reducer)
+      await this._store.commit<E>(policy.reducer.stream(), [
+        event as unknown as MsgOf<E>
+      ]);
 
     if (response) {
       const { id, command, expectedVersion } = response;
@@ -244,53 +257,47 @@ export abstract class AppBase {
         `@ ${expectedVersion}`
       );
       const { factory } = this._command_handlers[command.name];
-      await this.command(factory, id, command, expectedVersion);
+      await this.command(factory(id), command, expectedVersion);
     }
     return response;
   }
 
   /**
-   * Loads model from store - reduced to current state
-   * @param factory aggregate factory
-   * @param id aggregate id
+   * Loads current model state
+   * @param reducer model reducer
    * @param callback optional reduction predicate
-   * @returns loaded model
+   * @returns current model state
    */
-  async load<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
-    id: string,
-    callback?: (event: EvtOf<E>, state: M) => void
+  async load<M extends Payload, E>(
+    reducer: ModelReducer<M, E>,
+    callback?: (snapshot: Snapshot<M>) => void
   ): Promise<Snapshot<M>> {
-    const aggregate = factory(id);
-    const log: Snapshot<M> = {
-      event: undefined,
-      state: aggregate.init()
-    };
+    let event: EvtOf<E>;
+    let state = reducer.init();
     let count = 0;
-    await this._store.load<E>(aggregateId(factory, id), (event) => {
-      log.event = event;
-      log.state = apply(aggregate, event, log.state);
+    await this._store.load<E>(reducer.stream(), (e) => {
+      event = e;
+      state = (reducer as any)["apply".concat(e.name)](state, e);
       count++;
-      if (callback) callback(event, log.state);
+      if (callback) callback({ event, state });
     });
-    this.log.trace("gray", `   ... loaded ${count} event(s)`);
-    return log;
+    this.log.trace(
+      "gray",
+      `   ... ${reducer.stream()} loaded ${count} event(s)`
+    );
+    return { event, state };
   }
 
   /**
-   * Loads model stream from store
-   * @param factory aggregate factory
-   * @param id aggregate id
+   * Loads stream
+   * @param reducer model reducer
    * @returns stream log with events and state transitions
    */
-  async stream<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
-    id: string
+  async stream<M extends Payload, E>(
+    reducer: ModelReducer<M, E>
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
-    await this.load(factory, id, (event, state) =>
-      log.push({ event, state: state })
-    );
+    await this.load(reducer, (snapshot) => log.push(snapshot));
     return log;
   }
 }

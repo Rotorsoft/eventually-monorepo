@@ -35,8 +35,8 @@ export const PubSubBroker = (): Broker => {
       topics[event.name] = topic;
     },
 
-    subscribe: async <C, E>(
-      factory: PolicyFactory<C, E>,
+    subscribe: async <C, E, M extends Payload>(
+      factory: PolicyFactory<C, E, M>,
       event: EvtOf<E>
     ): Promise<void> => {
       const topic = topics[event.name];

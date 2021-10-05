@@ -10,7 +10,7 @@ import {
 
 export const InMemoryBroker = (app: AppBase): Broker => {
   const _topics: {
-    [name: string]: PolicyFactory<unknown, unknown>[];
+    [name: string]: PolicyFactory<unknown, unknown, Payload>[];
   } = {};
 
   return {
@@ -19,8 +19,8 @@ export const InMemoryBroker = (app: AppBase): Broker => {
       return Promise.resolve();
     },
 
-    subscribe: <C, E>(
-      factory: PolicyFactory<C, E>,
+    subscribe: <C, E, M extends Payload>(
+      factory: PolicyFactory<C, E, M>,
       event: EvtOf<E>
     ): Promise<void> => {
       const topic = _topics[event.name];
@@ -35,7 +35,7 @@ export const InMemoryBroker = (app: AppBase): Broker => {
       if (!topic) throw new TopicNotFound(event);
 
       const promises = topic.map((factory) =>
-        app.event<unknown, E>(factory as PolicyFactory<unknown, E>, event)
+        app.event(factory as PolicyFactory<unknown, E, Payload>, event)
       );
       await Promise.all(promises);
     },

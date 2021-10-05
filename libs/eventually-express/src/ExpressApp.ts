@@ -1,4 +1,5 @@
 import {
+  Aggregate,
   AggregateFactory,
   aggregatePath,
   AppBase,
@@ -26,8 +27,7 @@ import express, {
 import { Server } from "http";
 
 type GetCallback = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E>,
-  id: string
+  aggregate: Aggregate<M, C, E>
 ) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
@@ -80,13 +80,12 @@ export class ExpressApp extends AppBase {
       ) => {
         try {
           const { id } = req.params;
-          const result = await callback(factory, id);
+          const result = await callback(factory(id));
           let etag = "-1";
           if (Array.isArray(result)) {
-            if (result.length)
-              etag = result[result.length - 1].event.aggregateVersion;
+            if (result.length) etag = result[result.length - 1].event.version;
           } else if (result.event) {
-            etag = result.event.aggregateVersion;
+            etag = result.event.version;
           }
           res.setHeader("ETag", etag);
           return res.status(200).send(result);
@@ -120,14 +119,13 @@ export class ExpressApp extends AppBase {
             const { id } = req.params;
             const expectedVersion = req.headers["if-match"];
             const snapshots = await this.command(
-              factory,
-              id,
+              factory(id),
               value,
               expectedVersion
             );
             res.setHeader(
               "ETag",
-              snapshots[snapshots.length - 1].event.aggregateVersion
+              snapshots[snapshots.length - 1].event.version
             );
             return res.status(200).send(snapshots);
           } catch (error) {
@@ -167,11 +165,16 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  build(options?: { store?: Store; broker?: Broker }): express.Express {
+  async listen(options?: {
+    store?: Store;
+    broker?: Broker;
+    silent?: boolean;
+  }): Promise<any | undefined> {
     this._store = options?.store || InMemoryStore();
     this._broker = options?.broker || InMemoryBroker(this);
 
-    this.prebuild();
+    await this.connect();
+
     this._buildAggregates();
     this._buildPolicies();
     this._buildStreamRoute();
@@ -184,29 +187,25 @@ export class ExpressApp extends AppBase {
 
     this._app.use(
       // eslint-disable-next-line
-      (err: Error, req: Request, res: Response, next: NextFunction) => {
-        this.log.error(err);
+      (error: Error, req: Request, res: Response, next: NextFunction) => {
+        this.log.error(error);
         // eslint-disable-next-line
-        const { message, stack, ...other } = err;
+        const { message, stack, ...other } = error;
         if (message === Errors.ValidationError)
           res.status(400).send({ message, ...other });
         else if (message === Errors.ConcurrencyError)
           res.status(409).send({ message, ...other });
-        else res.sendStatus(500);
+        else res.status(500).send({ message });
       }
     );
 
+    if (options?.silent) this.log.info("white", "Config", config());
+    else
+      this._server = this._app.listen(config().port, () => {
+        this.log.info("white", "Express app is listening", config());
+      });
+
     return this._app;
-  }
-
-  async listen(silent = false): Promise<void> {
-    await this.connect();
-
-    if (silent) return this.log.info("white", "Config", config);
-
-    this._server = this._app.listen(config().port, () => {
-      this.log.info("white", "Express app is listening", config);
-    });
   }
 
   async close(): Promise<void> {

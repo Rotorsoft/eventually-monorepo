@@ -12,17 +12,17 @@ const app = App(new ExpressApp())
   .withAggregate(Calculator);
 const store = InMemoryStore();
 const broker = InMemoryBroker(app);
-const express = app.build({ store, broker });
-const server = express.listen(3001, () => {
-  return;
-});
+let server: Server;
 
 jest.spyOn(store, "read").mockRejectedValue("Error");
 jest.spyOn(store, "load").mockRejectedValue("Error");
 
 describe("express app", () => {
   beforeAll(async () => {
-    await app.listen(true);
+    const express = await app.listen({ store, broker, silent: true });
+    server = express.listen(3001, () => {
+      return;
+    });
   });
 
   afterAll(async () => {

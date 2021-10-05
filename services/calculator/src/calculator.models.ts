@@ -23,3 +23,7 @@ export type CalculatorModel = {
   readonly operator?: Operators;
   readonly result: number;
 };
+
+export type CounterState = {
+  readonly count: number;
+};

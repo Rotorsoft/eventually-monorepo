@@ -1,0 +1,5 @@
+undecided:
+  - "@rotorsoft/eventually-express"
+  - "@rotorsoft/eventually-gcp"
+  - "@rotorsoft/eventually-pg"
+  - "@rotorsoft/calculator"

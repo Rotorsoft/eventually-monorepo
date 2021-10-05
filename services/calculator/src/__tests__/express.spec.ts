@@ -1,7 +1,7 @@
 import { App, EvtOf } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Calculator } from "../calculator.aggregate";
-import { Counter } from "../counter.policy";
+import { Counter, StatelessCounter } from "../counter.policy";
 import { commands } from "../calculator.commands";
 import { Events, events } from "../calculator.events";
 import { command, event, load, read, stream, get } from "./http";
@@ -10,11 +10,11 @@ const app = App(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
   .withAggregate(Calculator)
-  .withPolicy(Counter);
+  .withPolicy(Counter)
+  .withPolicy(StatelessCounter);
 
 describe("express app", () => {
   beforeAll(async () => {
-    app.build();
     await app.listen();
   });
 
@@ -97,6 +97,12 @@ describe("express app", () => {
         "Request failed with status code 404"
       );
     });
+
+    it("should throw model invariant violation", async () => {
+      await expect(
+        command(Calculator, "test5", commands.PressKey({ key: "=" }))
+      ).rejects.toThrowError("Request failed with status code 500");
+    });
   });
 
   describe("Counter", () => {
@@ -112,7 +118,11 @@ describe("express app", () => {
     });
 
     it("should return no command", async () => {
-      const snapshots = await stream(Calculator, "test3");
+      const snapshots = await command(
+        Calculator,
+        "test3",
+        commands.PressKey({ key: "1" })
+      );
       const response = await event(
         Counter,
         snapshots[0].event as EvtOf<Pick<Events, "DigitPressed" | "DotPressed">>
@@ -123,10 +133,10 @@ describe("express app", () => {
     it("should throw validation error", async () => {
       await expect(
         event(Counter, {
-          eventId: 1,
-          aggregateId: "Calculator:test3",
-          aggregateVersion: "1",
-          createdAt: new Date(),
+          id: 1,
+          stream: "Calculator:test3",
+          version: "1",
+          created: new Date(),
           name: "DigitPressed"
         })
       ).rejects.toThrowError("Request failed with status code 400");
@@ -148,7 +158,7 @@ describe("express app", () => {
 
     it("should read stream with after", async () => {
       const stream = await read({ after: 3 });
-      expect(stream[0].eventId).toBe(4);
+      expect(stream[0].id).toBe(4);
     });
 
     it("should read stream with limit", async () => {
@@ -158,7 +168,7 @@ describe("express app", () => {
 
     it("should read stream with after and limit", async () => {
       const stream = await read({ after: 2, limit: 2 });
-      expect(stream[0].eventId).toBe(3);
+      expect(stream[0].id).toBe(3);
       expect(stream.length).toBe(2);
     });
 

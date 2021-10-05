@@ -12,15 +12,16 @@ const app = App()
 
 describe("in memory app", () => {
   beforeAll(async () => {
-    app.build();
     await app.listen();
   });
 
   describe("calculator", () => {
     it("should compute correctly", async () => {
-      await app.command(Calculator, "test", commands.PressKey({ key: "1" }));
+      const test = Calculator("test");
 
-      const { state } = await app.load(Calculator, "test");
+      await app.command(test, commands.PressKey({ key: "1" }));
+
+      const { state } = await app.load(test);
       expect(state).toEqual({
         left: "1",
         result: 0

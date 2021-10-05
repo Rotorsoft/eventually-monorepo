@@ -2,9 +2,8 @@ import { InMemoryBroker, InMemoryStore } from ".";
 import { AppBase } from "../AppBase";
 import { config } from "../config";
 import {
-  AggregateFactory,
+  Aggregate,
   EvtOf,
-  Listener,
   MsgOf,
   Payload,
   PolicyFactory,
@@ -21,17 +20,12 @@ const validate = <T>(message: MsgOf<T>, committed = false): void => {
 };
 
 export class InMemoryApp extends AppBase {
-  build(): Listener {
+  async listen(): Promise<any | undefined> {
     this._store = InMemoryStore();
     this._broker = InMemoryBroker(this);
-    this.prebuild();
-    return {};
-  }
-
-  async listen(): Promise<void> {
     await this.connect();
     this.log.info("white", "InMemory app is listening...", config);
-    return Promise.resolve();
+    return Promise.resolve(undefined);
   }
 
   async close(): Promise<void> {
@@ -39,24 +33,18 @@ export class InMemoryApp extends AppBase {
   }
 
   async command<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
-    id: string,
+    aggregate: Aggregate<M, C, E>,
     command: MsgOf<C>,
     expectedVersion?: string
   ): Promise<Snapshot<M>[]> {
     validate(command);
-    const snapshots = await super.command(
-      factory,
-      id,
-      command,
-      expectedVersion
-    );
+    const snapshots = await super.command(aggregate, command, expectedVersion);
     snapshots.map(({ event }) => validate(event as unknown as MsgOf<E>, true));
     return snapshots;
   }
 
-  async event<C, E>(
-    factory: PolicyFactory<C, E>,
+  async event<C, E, M extends Payload>(
+    factory: PolicyFactory<C, E, M>,
     event: EvtOf<E>
   ): Promise<PolicyResponse<C> | undefined> {
     validate(event as unknown as MsgOf<E>, true);

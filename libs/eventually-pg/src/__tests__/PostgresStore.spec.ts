@@ -40,7 +40,7 @@ describe("PostgresStore", () => {
     let first: number,
       count = 0;
     await db.load(a1, (e) => {
-      first = first || e.eventId;
+      first = first || e.id;
       count++;
     });
     expect(first).toBeGreaterThan(0);
@@ -68,7 +68,7 @@ describe("PostgresStore", () => {
   it("should throw concurrency error", async () => {
     const committed = await db.commit(a1, [event("test2", { value: "1" })]);
     await expect(
-      db.commit(a1, [event("test2")], committed[0].aggregateVersion + "1")
+      db.commit(a1, [event("test2")], committed[0].version + "1")
     ).rejects.toThrowError("Concurrency Error");
   });
 
@@ -79,7 +79,7 @@ describe("PostgresStore", () => {
 
   it("should read stream with after", async () => {
     const events = await db.read(undefined, 2, 2);
-    expect(events[0].eventId).toBe(3);
+    expect(events[0].id).toBe(3);
     expect(events.length).toBe(2);
   });
 

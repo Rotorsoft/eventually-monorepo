@@ -32,7 +32,7 @@ const compute = (model: CalculatorModel): CalculatorModel => {
 export const Calculator = (
   id: string
 ): Aggregate<CalculatorModel, Omit<Commands, "Whatever">, Events> => ({
-  id,
+  stream: () => `Calculator:${id}`,
 
   // Model Reducer with event side effects
   init: (): CalculatorModel => ({
@@ -77,16 +77,19 @@ export const Calculator = (
     result: 0
   }),
 
-  // Command Handlers validate business rules and poduce events
-  // eslint-disable-next-line
   onPressKey: async (model: CalculatorModel, data: { key: Keys }) => {
-    if (data.key === SYMBOLS[0]) return [events.DotPressed()];
-    if (data.key === SYMBOLS[1]) return [events.EqualsPressed()];
+    if (data.key === SYMBOLS[0]) {
+      return Promise.resolve([events.DotPressed()]);
+    }
+    if (data.key === SYMBOLS[1]) {
+      // let's say this is an invalid operation if there is no operator in the model
+      if (!model.operator) throw Error("Don't have an operator!");
+      return Promise.resolve([events.EqualsPressed()]);
+    }
     return DIGITS.includes(data.key as Digits)
       ? [events.DigitPressed({ digit: data.key as Digits })]
       : [events.OperatorPressed({ operator: data.key as Operators })];
   },
 
-  // eslint-disable-next-line
-  onReset: async () => [events.Cleared()]
+  onReset: async () => Promise.resolve([events.Cleared()])
 });

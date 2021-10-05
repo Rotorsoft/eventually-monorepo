@@ -12,21 +12,21 @@ const app = App(new ExpressApp())
   .withAggregate(Calculator);
 const store = InMemoryStore();
 const broker = InMemoryBroker(app);
-const express = app.build({ store, broker });
-const server = express.listen(3002, () => {
-  return;
-});
+let server: Server;
 
 jest.spyOn(broker, "emit").mockRejectedValue("emit error");
 const logerror = jest.spyOn(app.log, "error");
 
 describe("express app", () => {
   beforeAll(async () => {
-    await app.listen(true);
+    const express = await app.listen({ store, broker, silent: true });
+    server = express.listen(3002, () => {
+      return;
+    });
   });
 
   afterAll(async () => {
-    (server as unknown as Server).close();
+    server.close();
     await app.close();
   });
 

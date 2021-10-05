@@ -3,9 +3,8 @@ import {
   AggregateFactory,
   Evt,
   EvtOf,
-  MsgOf,
   MessageFactory,
-  ModelReducer,
+  MsgOf,
   Payload,
   PolicyFactory
 } from "./types";
@@ -54,30 +53,6 @@ export const aggregatePath = <M extends Payload, C, E>(
 };
 
 /**
- * Normalizes aggregate id
- * @param factory aggregate factory
- * @param id aggregate id
- * @returns normalized aggregate id
- */
-export const aggregateId = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E>,
-  id: string
-): string => `${factory.name}:${id}`;
-
-/**
- * Applies event to model
- * @param reducer model reducer
- * @param event event to apply
- * @param state current model state
- * @returns new model state
- */
-export const apply = <M extends Payload, E>(
-  reducer: ModelReducer<M, E>,
-  event: Evt,
-  state: M
-): M => (reducer as any)["apply".concat(event.name)](state, event);
-
-/**
  * Normalizes command paths
  * @param factory aggregate factory
  * @param command command
@@ -95,8 +70,8 @@ export const commandPath = <M extends Payload, C, E>(
  * @param event event
  * @returns normalized path
  */
-export const eventPath = <C, E>(
-  factory: PolicyFactory<C, E>,
+export const eventPath = <C, E, M extends Payload>(
+  factory: PolicyFactory<C, E, M>,
   event: EvtOf<E>
 ): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
 
@@ -108,10 +83,10 @@ export const eventPath = <C, E>(
 export const committedSchema = (schema: joi.ObjectSchema): joi.ObjectSchema =>
   schema.concat(
     joi.object({
-      eventId: joi.number().integer().required(),
-      aggregateId: joi.string().required(),
-      aggregateVersion: joi.string().required(),
-      createdAt: joi.date().required()
+      id: joi.number().integer().required(),
+      stream: joi.string().required(),
+      version: joi.string().required(),
+      created: joi.date().required()
     })
   );
 

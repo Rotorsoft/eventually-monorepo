@@ -36,10 +36,10 @@ export type CommittedEvent<Name extends string, Type extends Payload> = Omit<
   Message<Name, Type>,
   "schema"
 > & {
-  readonly eventId: number;
-  readonly aggregateId: string;
-  readonly aggregateVersion: string;
-  readonly createdAt: Date;
+  readonly id: number;
+  readonly stream: string;
+  readonly version: string;
+  readonly created: Date;
 };
 
 /**
@@ -74,9 +74,10 @@ export type CommandHandler<M extends Payload, C, E> = {
  * Typed generic event handlers that react to committed events by
  * executing logic and producing a type of response
  */
-export type EventHandler<Response, E> = {
+export type EventHandler<Response, E, M extends Payload> = {
   [Name in keyof E as `on${Capitalize<Name & string>}`]: (
-    event: CommittedEvent<Name & string, E[Name] & Payload>
+    event: CommittedEvent<Name & string, E[Name] & Payload>,
+    state?: Readonly<M>
   ) => Promise<Response>;
 };
 
@@ -95,7 +96,7 @@ export type PolicyResponse<C> = {
  * returning a new mutated state
  */
 export type ModelReducer<M extends Payload, E> = {
-  readonly id: string;
+  stream: () => string;
   init: () => Readonly<M>;
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
@@ -115,21 +116,23 @@ export type AggregateFactory<M extends Payload, C, E> = (
 ) => Aggregate<M, C, E>;
 
 /**
- * Policies are event handlers responding with optional targetted commands
+ * Policies are event handlers responding with optional targetted commands.
+ * An optional model reducer allows to expand the consistency boundaries of
+ * events arriving from multiple aggregates or external services into a
+ * dedicated state machine
  */
-export type Policy<C, E> = EventHandler<PolicyResponse<C> | undefined, E>;
+export type Policy<C, E, M extends Payload> = EventHandler<
+  PolicyResponse<C> | undefined,
+  E,
+  M
+> & { reducer?: ModelReducer<M, E> };
 
-export type PolicyFactory<C, E> = () => Policy<C, E>;
+export type PolicyFactory<C, E, M extends Payload> = (
+  event: EvtOf<E>
+) => Policy<C, E, M>;
 
 /**
  * Projectors are event handlers without response, side effects
  * are projected events to other persistent state
  */
-export type Projector<E> = EventHandler<void, E>;
-
-/**
- * Generic listener
- */
-export type Listener = {
-  listen?: (port: number, callback: () => void) => void;
-};
+export type Projector<E> = EventHandler<void, E, undefined>;

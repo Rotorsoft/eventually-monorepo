@@ -34,8 +34,8 @@ export const command = async <M extends Payload, C, E>(
   return data;
 };
 
-export const event = async <C, E>(
-  factory: PolicyFactory<C, E>,
+export const event = async <C, E, M extends Payload>(
+  factory: PolicyFactory<C, E, M>,
   event: EvtOf<E>
 ): Promise<PolicyResponse<C> | undefined> => {
   const { data } = await axios.post<
