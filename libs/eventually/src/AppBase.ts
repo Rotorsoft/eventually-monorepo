@@ -169,7 +169,7 @@ export abstract class AppBase {
     store?: Store;
     broker?: Broker;
     silent?: boolean;
-  }): Promise<any | undefined>;
+  }): unknown;
 
   /**
    * Closes the listening app

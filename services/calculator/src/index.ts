@@ -7,17 +7,15 @@ import { Calculator } from "./calculator.aggregate";
 import { events } from "./calculator.events";
 import { Counter } from "./counter.policy";
 
-const app = App(new ExpressApp());
-
-// export express to gcloud functions
-export const express = app
+const app = App(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
   .withAggregate(Calculator)
-  .withPolicy(Counter)
-  .listen({
-    store: PostgresStore(),
-    broker:
-      config().host === "localhost" ? InMemoryBroker(app) : PubSubBroker(),
-    silent: config().host.endsWith("cloudfunctions.net/calculator")
-  });
+  .withPolicy(Counter);
+
+// export express to gcloud functions
+export const express = app.listen({
+  store: PostgresStore(),
+  broker: config().host === "localhost" ? InMemoryBroker(app) : PubSubBroker(),
+  silent: config().host.endsWith("cloudfunctions.net/calculator")
+});
