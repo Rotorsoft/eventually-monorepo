@@ -20,7 +20,7 @@ jest.spyOn(store, "load").mockRejectedValue("Error");
 describe("express app", () => {
   beforeAll(async () => {
     const express = await app.listen({ store, broker, silent: true });
-    server = express.listen(3001, () => {
+    server = (express as any).listen(3001, () => {
       return;
     });
   });

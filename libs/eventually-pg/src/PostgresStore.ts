@@ -11,8 +11,8 @@ import { config } from "./config";
 const pool = new Pool(config.pg);
 delete config.pg.password; // use it and forget it
 
-const create_script = `
-CREATE TABLE IF NOT EXISTS public.events
+const create_script = (table: string): string => `
+CREATE TABLE IF NOT EXISTS public.${table}
 (
 	id serial PRIMARY KEY,
     name character varying(100) COLLATE pg_catalog."default" NOT NULL,
@@ -21,15 +21,15 @@ CREATE TABLE IF NOT EXISTS public.events
     version int NOT NULL,
     created timestamp without time zone DEFAULT now()
 ) TABLESPACE pg_default;
-ALTER TABLE public.events OWNER to postgres;
+ALTER TABLE public.${table} OWNER to postgres;
 
 CREATE UNIQUE INDEX IF NOT EXISTS stream_ix
-    ON public.events USING btree
+    ON public.${table} USING btree
     (stream COLLATE pg_catalog."default" ASC, version ASC)
     TABLESPACE pg_default;
 	
 CREATE INDEX IF NOT EXISTS name_ix
-    ON public.events USING btree
+    ON public.${table} USING btree
     (name COLLATE pg_catalog."default" ASC)
     TABLESPACE pg_default;`;
 
@@ -42,9 +42,9 @@ type Event = {
   created: Date;
 };
 
-export const PostgresStore = (): Store => ({
+export const PostgresStore = (table: string): Store => ({
   init: async (): Promise<void> => {
-    await pool.query(create_script);
+    await pool.query(create_script(table));
   },
 
   close: async (): Promise<void> => {
@@ -56,7 +56,7 @@ export const PostgresStore = (): Store => ({
     reducer: (event: EvtOf<E>) => void
   ): Promise<void> => {
     const events = await pool.query<Event>(
-      "SELECT * FROM events WHERE stream=$1 ORDER BY version",
+      `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version`,
       [stream]
     );
     events.rows.map((e) =>
@@ -80,7 +80,7 @@ export const PostgresStore = (): Store => ({
     try {
       await client.query("BEGIN");
       const last = await client.query<Event>(
-        "SELECT version FROM events WHERE stream=$1 ORDER BY version DESC LIMIT 1",
+        `SELECT version FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
         [stream]
       );
       let version = last.rowCount ? last.rows[0].version : -1;
@@ -90,7 +90,7 @@ export const PostgresStore = (): Store => ({
         events.map(async ({ name, data }) => {
           version++;
           const committed = await client.query<Event>(
-            `INSERT INTO events(name, data, stream, version)
+            `INSERT INTO ${table}(name, data, stream, version)
           VALUES($1, $2, $3, $4) RETURNING id, created`,
             [name, data, stream, version]
           );
@@ -117,7 +117,7 @@ export const PostgresStore = (): Store => ({
 
   read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
     const events = await pool.query<Event>(
-      `SELECT * FROM events WHERE id > $1 ${
+      `SELECT * FROM ${table} WHERE id > $1 ${
         name ? "AND name = $3" : ""
       } ORDER BY id LIMIT $2`,
       name ? [after, limit, name] : [after, limit]

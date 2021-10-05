@@ -15,7 +15,7 @@ const app = App(new ExpressApp())
 
 // export express to gcloud functions
 export const express = app.listen({
-  store: PostgresStore(),
+  store: PostgresStore("allevents"),
   broker: config().host === "localhost" ? InMemoryBroker(app) : PubSubBroker(),
   silent: config().host.endsWith("cloudfunctions.net/calculator")
 });

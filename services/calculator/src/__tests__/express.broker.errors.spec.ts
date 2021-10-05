@@ -20,7 +20,7 @@ const logerror = jest.spyOn(app.log, "error");
 describe("express app", () => {
   beforeAll(async () => {
     const express = await app.listen({ store, broker, silent: true });
-    server = express.listen(3002, () => {
+    server = (express as any).listen(3002, () => {
       return;
     });
   });

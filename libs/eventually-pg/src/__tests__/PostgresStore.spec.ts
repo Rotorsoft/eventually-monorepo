@@ -2,7 +2,7 @@ import { Chance } from "chance";
 import { MsgOf, Payload, Evt } from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
-const db = PostgresStore();
+const db = PostgresStore("test");
 
 const chance = new Chance();
 const a1 = chance.guid();
