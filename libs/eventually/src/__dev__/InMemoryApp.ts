@@ -20,13 +20,16 @@ const validate = <T>(message: MsgOf<T>, committed = false): void => {
 };
 
 export class InMemoryApp extends AppBase {
-  listen(): unknown {
+  build(): unknown {
     this._store = InMemoryStore();
     this._broker = InMemoryBroker(this);
-    void this.connect().then(() => {
-      this.log.info("white", "InMemory app is listening...", config);
-    });
+    this.prepare();
     return;
+  }
+
+  async listen(): Promise<void> {
+    await this.connect();
+    this.log.info("white", "InMemory app is listening...", config);
   }
 
   async close(): Promise<void> {

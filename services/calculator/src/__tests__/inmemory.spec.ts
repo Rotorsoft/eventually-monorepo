@@ -13,6 +13,7 @@ const app = App()
 
 describe("in memory app", () => {
   beforeAll(async () => {
+    app.build();
     await app.listen();
   });
 

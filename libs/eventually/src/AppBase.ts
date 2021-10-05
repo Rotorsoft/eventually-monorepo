@@ -113,9 +113,9 @@ export abstract class AppBase {
   }
 
   /**
-   * Builds handlers, creates topics, and subscribes
+   * Prepares handlers
    */
-  protected async connect(): Promise<void> {
+  protected prepare(): void {
     Object.values(this._aggregate_factories).map((factory) => {
       const aggregate = factory("");
       handlersOf(this._command_factory).map((f) => {
@@ -143,7 +143,12 @@ export abstract class AppBase {
         }
       });
     });
+  }
 
+  /**
+   * Connects the dots...creates event topics, subscribes event handlers
+   */
+  protected async connect(): Promise<void> {
     await this._store.init();
 
     await Promise.all(
@@ -162,14 +167,16 @@ export abstract class AppBase {
   }
 
   /**
-   * Builds application and starts listening for requests
-   * @param options options for store, broker, and silent flag (when gcloud functions manage the listening part)
+   * Builds application
+   * @param options options for store and broker
    */
-  abstract listen(options?: {
-    store?: Store;
-    broker?: Broker;
-    silent?: boolean;
-  }): unknown;
+  abstract build(options?: { store?: Store; broker?: Broker }): unknown;
+
+  /**
+   * Connects the dots and starts listening
+   * @param silent flag (when gcloud functions manage the listening part)
+   */
+  abstract listen(silent?: boolean): Promise<void>;
 
   /**
    * Closes the listening app

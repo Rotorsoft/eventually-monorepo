@@ -165,46 +165,44 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  listen(options?: {
-    store?: Store;
-    broker?: Broker;
-    silent?: boolean;
-  }): any | undefined {
+  build(options?: { store?: Store; broker?: Broker }): unknown {
     this._store = options?.store || InMemoryStore();
     this._broker = options?.broker || InMemoryBroker(this);
+
+    this.prepare();
+    this._buildAggregates();
+    this._buildPolicies();
+    this._buildStreamRoute();
 
     this._app.set("trust proxy", true);
     this._app.use(cors());
     this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json());
-
-    void this.connect().then(() => {
-      this._buildAggregates();
-      this._buildPolicies();
-      this._buildStreamRoute();
-      this._app.use(this._router);
-      this._app.use(
+    this._app.use(this._router);
+    this._app.use(
+      // eslint-disable-next-line
+      (error: Error, req: Request, res: Response, next: NextFunction) => {
+        this.log.error(error);
         // eslint-disable-next-line
-        (error: Error, req: Request, res: Response, next: NextFunction) => {
-          this.log.error(error);
-          // eslint-disable-next-line
-          const { message, stack, ...other } = error;
-          if (message === Errors.ValidationError)
-            res.status(400).send({ message, ...other });
-          else if (message === Errors.ConcurrencyError)
-            res.status(409).send({ message, ...other });
-          else res.status(500).send({ message });
-        }
-      );
-
-      if (options?.silent) this.log.info("white", "Config", config());
-      else
-        this._server = this._app.listen(config().port, () => {
-          this.log.info("white", "Express app is listening", config());
-        });
-    });
+        const { message, stack, ...other } = error;
+        if (message === Errors.ValidationError)
+          res.status(400).send({ message, ...other });
+        else if (message === Errors.ConcurrencyError)
+          res.status(409).send({ message, ...other });
+        else res.status(500).send({ message });
+      }
+    );
 
     return this._app;
+  }
+
+  async listen(silent = false): Promise<void> {
+    await this.connect();
+    if (silent) this.log.info("white", "Config", config());
+    else
+      this._server = this._app.listen(config().port, () => {
+        this.log.info("white", "Express app is listening", config());
+      });
   }
 
   async close(): Promise<void> {

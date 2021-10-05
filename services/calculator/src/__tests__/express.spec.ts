@@ -15,6 +15,7 @@ const app = App(new ExpressApp())
 
 describe("express app", () => {
   beforeAll(async () => {
+    app.build();
     await app.listen();
   });
 
