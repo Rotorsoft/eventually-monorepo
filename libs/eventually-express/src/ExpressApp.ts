@@ -8,6 +8,7 @@ import {
   config,
   Errors,
   Evt,
+  ExternalSystemFactory,
   InMemoryBroker,
   InMemoryStore,
   MsgOf,
@@ -102,38 +103,40 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._command_handlers).map(({ factory, command, path }) => {
-      aggregates[factory.name] = factory;
-      this._router.post(
-        path,
-        async (
-          req: Request<{ id: string }>,
-          res: Response,
-          next: NextFunction
-        ) => {
-          try {
-            const { error, value } = command
-              .schema()
-              .validate(req.body, { abortEarly: false });
-            if (error) throw new ValidationError(error);
-            const { id } = req.params;
-            const expectedVersion = req.headers["if-match"];
-            const snapshots = await this.command(
-              factory(id),
-              value,
-              expectedVersion
-            );
-            res.setHeader(
-              "ETag",
-              snapshots[snapshots.length - 1].event.version
-            );
-            return res.status(200).send(snapshots);
-          } catch (error) {
-            next(error);
+    Object.values(this._aggregate_handlers).map(
+      ({ factory, command, path }) => {
+        aggregates[factory.name] = factory;
+        this._router.post(
+          path,
+          async (
+            req: Request<{ id: string }>,
+            res: Response,
+            next: NextFunction
+          ) => {
+            try {
+              const { error, value } = command
+                .schema()
+                .validate(req.body, { abortEarly: false });
+              if (error) throw new ValidationError(error);
+              const { id } = req.params;
+              const expectedVersion = req.headers["if-match"];
+              const snapshots = await this.command(
+                factory(id),
+                value,
+                expectedVersion
+              );
+              res.setHeader(
+                "ETag",
+                snapshots[snapshots.length - 1].event.version
+              );
+              return res.status(200).send(snapshots);
+            } catch (error) {
+              next(error);
+            }
           }
-        }
-      );
-    });
+        );
+      }
+    );
 
     Object.values(aggregates).map((factory) => {
       this._buildGetter(factory, this.load.bind(this));
@@ -141,8 +144,39 @@ export class ExpressApp extends AppBase {
     });
   }
 
+  private _buildExternalSystems(): void {
+    const externalsystems: Record<
+      string,
+      ExternalSystemFactory<unknown, unknown>
+    > = {};
+    Object.values(this._externalsystem_handlers).map(
+      ({ factory, command, path }) => {
+        externalsystems[factory.name] = factory;
+        this._router.post(
+          path,
+          async (req: Request, res: Response, next: NextFunction) => {
+            try {
+              const { error, value } = command
+                .schema()
+                .validate(req.body, { abortEarly: false });
+              if (error) throw new ValidationError(error);
+              const snapshots = await this.command(factory(), value);
+              res.setHeader(
+                "ETag",
+                snapshots[snapshots.length - 1].event.version
+              );
+              return res.status(200).send(snapshots);
+            } catch (error) {
+              next(error);
+            }
+          }
+        );
+      }
+    );
+  }
+
   private _buildPolicies(): void {
-    Object.values(this._event_handlers).map(({ factory, event, path }) => {
+    Object.values(this._policy_handlers).map(({ factory, event, path }) => {
       this._router.post(
         path,
         async (req: Request, res: Response, next: NextFunction) => {
@@ -171,6 +205,7 @@ export class ExpressApp extends AppBase {
 
     this.prepare();
     this._buildAggregates();
+    this._buildExternalSystems();
     this._buildPolicies();
     this._buildStreamRoute();
 

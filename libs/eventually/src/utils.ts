@@ -3,6 +3,7 @@ import {
   AggregateFactory,
   Evt,
   EvtOf,
+  ExternalSystemFactory,
   MessageFactory,
   MsgOf,
   Payload,
@@ -53,24 +54,36 @@ export const aggregatePath = <M extends Payload, C, E>(
 };
 
 /**
- * Normalizes command paths
+ * Normalizes aggregate command paths
  * @param factory aggregate factory
  * @param command command
  * @returns normalized path
  */
-export const commandPath = <M extends Payload, C, E>(
+export const aggregateCommandPath = <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,
   command: MsgOf<C>
 ): string =>
   "/".concat(decamelize(factory.name), "/:id/", decamelize(command.name));
 
 /**
- * Normalizes event paths
+ * Normalizes external system command paths
+ * @param factory external system factory
+ * @param command command
+ * @returns normalized path
+ */
+export const externalSystemCommandPath = <C, E>(
+  factory: ExternalSystemFactory<C, E>,
+  command: MsgOf<C>
+): string =>
+  "/".concat(decamelize(factory.name), "/", decamelize(command.name));
+
+/**
+ * Normalizes policy event paths
  * @param factory policy factory
  * @param event event
  * @returns normalized path
  */
-export const eventPath = <C, E, M extends Payload>(
+export const policyEventPath = <C, E, M extends Payload>(
   factory: PolicyFactory<C, E, M>,
   event: EvtOf<E>
 ): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));

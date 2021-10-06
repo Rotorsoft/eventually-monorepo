@@ -911,6 +911,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rotorsoft/accounts@workspace:services/accounts":
+  version: 0.0.0-use.local
+  resolution: "@rotorsoft/accounts@workspace:services/accounts"
+  dependencies:
+    "@rotorsoft/eventually": "workspace:libs/eventually"
+    "@rotorsoft/eventually-express": "workspace:libs/eventually-express"
+    joi: ^17.4.2
+    ts-node-dev: ^1.1.8
+  languageName: unknown
+  linkType: soft
+
 "@rotorsoft/calculator@workspace:services/calculator":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator@workspace:services/calculator"

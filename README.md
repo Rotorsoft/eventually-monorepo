@@ -194,3 +194,154 @@ You can customize your workbech by copying the custom [vsicons](https://marketpl
 You should see a running micro-service with blue command handlers and red event handlers ready to receive messages. Start experimenting with HTTP requests under `./services/calculator/http`
 
 ![Console](./assets/console.png)
+
+## Creating a Service
+
+Let's create a new `Accounts Integration` service from scratch. We will always start from a domain model
+
+> Our recipe uses [Event Storming](https://www.eventstorming.com/)
+
+![Domain Model](./services/accounts/assets/model.png)
+
+### 1. Initialize the service
+
+```bash
+> yarn ./services/accounts init
+```
+
+Some manual tweaking of `package.json` is required to reference the appropriate repository, entry points, and start scripts
+
+```json
+{
+  "name": "@rotorsoft/accounts",
+  "version": "0.1.0",
+  "description": "Accounts Service",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "services/accounts"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "yarn run ts-node-dev --respawn ./src/index.ts",
+    "start": "node index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
+```
+
+Add the required node modules:
+
+```bash
+> yarn ./services/accounts add joi @rotorsoft/eventually @rotorsoft/eventually-express
+> yarn ./services/accounts add -D ts-node-dev
+```
+
+Add the `tsconfig.json` file with proper references
+
+```json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "composite": true
+  },
+  "references": [
+    { "path": "../../libs/eventually" },
+    { "path": "../../libs/eventually-express" }
+  ],
+  "include": ["src"],
+  "exclude": ["**/__mocks__/**", "**/__tests__/**"]
+}
+```
+
+Add the service entry point `./src/index.ts`
+
+```bash
+> mkdir ./services/accounts/src
+> touch ./services/accounts/src/index.ts
+```
+
+Write a basic `index.ts` bootstrapping to make sure everything is connected
+
+```typescript
+import { App } from "@rotorsoft/eventually";
+import { ExpressApp } from "@rotorsoft/eventually-express";
+
+App(new ExpressApp()).build();
+void App().listen();
+```
+
+And finally, run a smoke test
+
+```bash
+LOG_LEVEL="trace" yarn ./services/accounts start:dev
+```
+
+The default output should look like this
+
+```bash
+[INFO] 09:08:10 ts-node-dev ver. 1.1.8 (using ts-node ver. 9.1.1, typescript ver. 4.4.3)
+[GET] /stream/[event]?after=-1&limit=1
+Express app is listening {
+  env: 'development',
+  host: 'http://localhost',
+  port: 3000,
+  logLevel: 'trace'
+}
+```
+
+### 2. Transfer your messages/schemas
+
+> We use the word `Transfer` because we belive the language of the model should permeate all layers in a system, from implementation to infrastructure.
+
+We have to transfer the following events and commands from the model, with their appropriate validation schemas
+
+- Events
+  - AccountCreated
+  - Account1Created
+  - Account2Created
+  - Account3Created
+  - IntegrationCompleted
+- Commands
+  - CreateAccount1
+  - CreateAccount2
+  - CreateAccount3
+  - CompleteIntegration
+
+to be continued...
+
+### 3. Transfer your models, systems, and policies
+
+- Models
+  - WaitForAllState
+- External Systems
+  - ExternalSystem1
+  - ExternalSystem2
+  - ExternalSystem3
+  - ExternalSystem4
+- Policies
+  - IntegrateAccount1
+  - IntegrateAccount2
+  - IntegrateAccount3
+  - WaitForAllAndComplete
+
+We don't have aggregates in this model, but the `wait for all...` policy requires a consistent persisted state to decide when to complete the integration, so we will see a model reducer at this point.
+
+to be continued...
+
+### 4. Start writing some failing tests - TDD
+
+- TODO
+
+### 5. Start fixing those tests by implementing your logic
+
+- TODO

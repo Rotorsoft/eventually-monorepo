@@ -53,22 +53,56 @@ export type Evt = CommittedEvent<string, Payload>;
  */
 export type Snapshot<M extends Payload> = {
   event: Evt;
-  state: M;
+  state?: M;
 };
 
 /**
- * Typed command handlers validate model invariants
- * from current model state and incoming command,
- * producing uncommitted events when rules hold.
- * State is officially mutated once these events are
- * committed to the stream.
+ * Typed model reducers apply committed events to the current model,
+ * returning a new mutated state
  */
-export type CommandHandler<M extends Payload, C, E> = {
-  [Name in keyof C as `on${Capitalize<Name & string>}`]: (
+export type ModelReducer<M extends Payload, E> = {
+  stream: () => string;
+  init: () => Readonly<M>;
+} & {
+  [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
     state: Readonly<M>,
+    event: CommittedEvent<Name & string, E[Name] & Payload>
+  ) => Readonly<M>;
+};
+
+/**
+ * Aggregates define the consistency boundaries of a business model (entity graph)
+ * Commands are handled following these steps:
+ * - Reduces model from event stream
+ * - Validates model invariants for this command, throwing error when violations found
+ * - Commits new events as side effects (model mutation)
+ * - Emits newly committed events
+ */
+export type Aggregate<M extends Payload, C, E> = ModelReducer<M, E> & {
+  [Name in keyof C as `on${Capitalize<Name & string>}`]: (
+    data?: C[Name] & Payload,
+    state?: Readonly<M>
+  ) => Promise<MsgOf<E>[]>;
+};
+
+export type AggregateFactory<M extends Payload, C, E> = (
+  id: string
+) => Aggregate<M, C, E>;
+
+/**
+ * External Systems interface
+ * Commands are handled following these steps:
+ * - Execute integration logic
+ * - Commits new events as side effects
+ * - Emits newly committed events
+ */
+export type ExternalSystem<C, E> = { stream: () => string } & {
+  [Name in keyof C as `on${Capitalize<Name & string>}`]: (
     data?: C[Name] & Payload
   ) => Promise<MsgOf<E>[]>;
 };
+
+export type ExternalSystemFactory<C, E> = () => ExternalSystem<C, E>;
 
 /**
  * Typed generic event handlers that react to committed events by
@@ -90,30 +124,6 @@ export type PolicyResponse<C> = {
   expectedVersion?: string;
   command: MsgOf<C>;
 };
-
-/**
- * Typed model reducers apply committed events to the current model,
- * returning a new mutated state
- */
-export type ModelReducer<M extends Payload, E> = {
-  stream: () => string;
-  init: () => Readonly<M>;
-} & {
-  [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
-    state: Readonly<M>,
-    event: CommittedEvent<Name & string, E[Name] & Payload>
-  ) => Readonly<M>;
-};
-
-/**
- * Aggregates are command handlers and model reducers
- */
-export type Aggregate<M extends Payload, C, E> = ModelReducer<M, E> &
-  CommandHandler<M, C, E>;
-
-export type AggregateFactory<M extends Payload, C, E> = (
-  id: string
-) => Aggregate<M, C, E>;
 
 /**
  * Policies are event handlers responding with optional targetted commands.

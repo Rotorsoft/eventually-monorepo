@@ -77,13 +77,13 @@ export const Calculator = (
     result: 0
   }),
 
-  onPressKey: async (model: CalculatorModel, data: { key: Keys }) => {
+  onPressKey: async (data: { key: Keys }, state?: CalculatorModel) => {
     if (data.key === SYMBOLS[0]) {
       return Promise.resolve([events.DotPressed()]);
     }
     if (data.key === SYMBOLS[1]) {
       // let's say this is an invalid operation if there is no operator in the model
-      if (!model.operator) throw Error("Don't have an operator!");
+      if (!state.operator) throw Error("Don't have an operator!");
       return Promise.resolve([events.EqualsPressed()]);
     }
     return DIGITS.includes(data.key as Digits)

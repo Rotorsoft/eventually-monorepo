@@ -8,7 +8,8 @@ import {
   Payload,
   PolicyFactory,
   PolicyResponse,
-  Snapshot
+  Snapshot,
+  ExternalSystem
 } from "../types";
 import { committedSchema, ValidationError } from "../utils";
 
@@ -37,12 +38,12 @@ export class InMemoryApp extends AppBase {
   }
 
   async command<M extends Payload, C, E>(
-    aggregate: Aggregate<M, C, E>,
+    handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
     command: MsgOf<C>,
     expectedVersion?: string
   ): Promise<Snapshot<M>[]> {
     validate(command);
-    const snapshots = await super.command(aggregate, command, expectedVersion);
+    const snapshots = await super.command(handler, command, expectedVersion);
     snapshots.map(({ event }) => validate(event as unknown as MsgOf<E>, true));
     return snapshots;
   }

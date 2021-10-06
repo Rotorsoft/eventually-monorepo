@@ -1,3 +1,4 @@
+import { externalSystemCommandPath } from ".";
 import { Broker } from "./Broker";
 import { Log, log } from "./log";
 import { Store } from "./Store";
@@ -11,9 +12,11 @@ import {
   Payload,
   PolicyFactory,
   PolicyResponse,
-  Snapshot
+  Snapshot,
+  ExternalSystem,
+  ExternalSystemFactory
 } from "./types";
-import { commandPath, eventPath, handlersOf } from "./utils";
+import { aggregateCommandPath, policyEventPath, handlersOf } from "./utils";
 
 /**
  * App abstraction implementing generic handlers
@@ -26,18 +29,28 @@ export abstract class AppBase {
   private _aggregate_factories: {
     [name: string]: AggregateFactory<Payload, unknown, unknown>;
   } = {};
+  private _externalsystem_factories: {
+    [name: string]: ExternalSystemFactory<unknown, unknown>;
+  } = {};
   private _policy_factories: {
     [name: string]: PolicyFactory<unknown, unknown, Payload>;
   } = {};
 
-  protected _command_handlers: {
+  protected _aggregate_handlers: {
     [name: string]: {
       factory: AggregateFactory<Payload, unknown, unknown>;
       command: MsgOf<unknown>;
       path: string;
     };
   } = {};
-  protected _event_handlers: {
+  protected _externalsystem_handlers: {
+    [name: string]: {
+      factory: ExternalSystemFactory<unknown, unknown>;
+      command: MsgOf<unknown>;
+      path: string;
+    };
+  } = {};
+  protected _policy_handlers: {
     [path: string]: {
       factory: PolicyFactory<unknown, unknown, Payload>;
       event: EvtOf<unknown>;
@@ -102,6 +115,15 @@ export abstract class AppBase {
   }
 
   /**
+   * Registers external system factory
+   * @param factory external system factory
+   */
+  public withExternalSystem<C, E>(factory: ExternalSystemFactory<C, E>): this {
+    this._externalsystem_factories[factory.name] = factory;
+    return this;
+  }
+
+  /**
    * Registers policy factory
    * @param factory policy factory
    */
@@ -120,9 +142,25 @@ export abstract class AppBase {
       const aggregate = factory("");
       handlersOf(this._command_factory).map((f) => {
         const command = f() as MsgOf<unknown>;
-        const path = commandPath(factory, command);
+        const path = aggregateCommandPath(factory, command);
         if (Object.keys(aggregate).includes("on".concat(command.name))) {
-          this._command_handlers[command.name] = {
+          this._aggregate_handlers[command.name] = {
+            factory,
+            command,
+            path
+          };
+          this.log.info("blue", `[POST ${command.name}]`, path);
+        }
+      });
+    });
+
+    Object.values(this._externalsystem_factories).map((factory) => {
+      const externalsystem = factory();
+      handlersOf(this._command_factory).map((f) => {
+        const command = f() as MsgOf<unknown>;
+        const path = externalSystemCommandPath(factory, command);
+        if (Object.keys(externalsystem).includes("on".concat(command.name))) {
+          this._externalsystem_handlers[command.name] = {
             factory,
             command,
             path
@@ -137,8 +175,8 @@ export abstract class AppBase {
       handlersOf(this._event_factory).map((f) => {
         const event = f() as EvtOf<unknown>;
         if (Object.keys(policy).includes("on".concat(event.name))) {
-          const path = eventPath(factory, event);
-          this._event_handlers[path] = { factory, event, path };
+          const path = policyEventPath(factory, event);
+          this._policy_handlers[path] = { factory, event, path };
           this.log.info("magenta", `[POST ${event.name}]`, path);
         }
       });
@@ -160,7 +198,7 @@ export abstract class AppBase {
     );
 
     await Promise.all(
-      Object.values(this._event_handlers).map(({ factory, event }) =>
+      Object.values(this._policy_handlers).map(({ factory, event }) =>
         this._broker.subscribe(factory, event)
       )
     );
@@ -184,36 +222,39 @@ export abstract class AppBase {
   abstract close(): Promise<void>;
 
   /**
-   * Handles aggregate commands
-   * @param aggregate the aggregate with command handlers
+   * Handles commands
+   * @param handler the aggregate or system with command handlers
    * @param command the command to handle
    * @param expectedVersion optional aggregate expected version to allow optimistic concurrency
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    aggregate: Aggregate<M, C, E>,
+    handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
     command: MsgOf<C>,
     expectedVersion?: string
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
-      `\n>>> ${command.name} ${aggregate.stream()}`,
+      `\n>>> ${command.name} ${handler.stream()}`,
       command.data
     );
+    const aggregate = "init" in handler ? handler : undefined;
 
-    const { state } = await this.load(aggregate);
+    const { state } = aggregate ? await this.load(aggregate) : undefined;
 
-    const events: MsgOf<E>[] = await (aggregate as any)[
+    const events: MsgOf<E>[] = await (handler as any)[
       "on".concat(command.name)
-    ](state, command.data);
+    ](command.data, state);
 
     const committed = await this._store.commit<E>(
-      aggregate.stream(),
+      handler.stream(),
       events,
       expectedVersion
     );
 
-    const snapshots = this._apply(aggregate, committed, state);
+    const snapshots = aggregate
+      ? this._apply(aggregate, committed, state)
+      : committed.map((event) => ({ event }));
 
     try {
       await Promise.all(committed.map((event) => this._broker.emit(event)));
@@ -258,13 +299,19 @@ export abstract class AppBase {
 
     if (response) {
       const { id, command, expectedVersion } = response;
-      this.log.trace(
-        "blue",
-        `<<< ${command.name} ${id}`,
-        `@ ${expectedVersion}`
-      );
-      const { factory } = this._command_handlers[command.name];
-      await this.command(factory(id), command, expectedVersion);
+      if (id) {
+        this.log.trace(
+          "blue",
+          `<<< ${command.name} ${id}`,
+          `@ ${expectedVersion}`
+        );
+        const { factory } = this._aggregate_handlers[command.name];
+        await this.command(factory(id), command, expectedVersion);
+      } else {
+        this.log.trace("blue", `<<< ${command.name}`);
+        const { factory } = this._externalsystem_handlers[command.name];
+        await this.command(factory(), command);
+      }
     }
     return response;
   }

@@ -1,0 +1,28 @@
+{
+  "name": "@rotorsoft/accounts",
+  "version": "0.1.0",
+  "description": "Accounts Service",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "services/accounts"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "yarn run ts-node-dev --respawn ./src/index.ts",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@rotorsoft/eventually": "workspace:libs/eventually",
+    "@rotorsoft/eventually-express": "workspace:libs/eventually-express",
+    "joi": "^17.4.2"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^1.1.8"
+  }
+}

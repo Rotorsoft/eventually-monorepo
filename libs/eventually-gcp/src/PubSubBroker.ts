@@ -1,7 +1,7 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
-  eventPath,
+  policyEventPath,
   Evt,
   EvtOf,
   Payload,
@@ -42,7 +42,7 @@ export const PubSubBroker = (): Broker => {
       const topic = topics[event.name];
       if (!topic) throw new TopicNotFound(event);
 
-      const url = `${config.host}${eventPath(factory, event)}`;
+      const url = `${config.host}${policyEventPath(factory, event)}`;
       const sub = topic.subscription(factory.name.concat(".", event.name));
       const [exists] = await sub.exists();
       if (!exists)
