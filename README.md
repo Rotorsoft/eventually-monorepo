@@ -299,7 +299,7 @@ Express app is listening {
 }
 ```
 
-### 2. Transfer your messages/schemas
+### 2. Transfer your messages, models, and schemas
 
 > We use the word `Transfer` because we belive the language of the model should permeate all layers in a system, from implementation to infrastructure.
 
@@ -317,9 +317,18 @@ We have to transfer the following events and commands from the model, with their
   - CreateAccount3
   - CompleteIntegration
 
-to be continued...
+Start a project structure
 
-### 3. Transfer your models, systems, and policies
+![Project](./services/accounts/assets/project.png)
+
+where you can define your message factories and schemas
+
+- [accounts.models.ts](./services/accounts/src/accounts.models.ts)
+- [accounts.schemas.ts](./services/accounts/src/accounts.schemas.ts)
+- [accounts.events.ts](./services/accounts/src/accounts.events.ts)
+- [accounts.commands.ts](./services/accounts/src/accounts.commands.ts)
+
+### 3. Transfer your systems and policies
 
 - Models
   - WaitForAllState
@@ -336,12 +345,46 @@ to be continued...
 
 We don't have aggregates in this model, but the `wait for all...` policy requires a consistent persisted state to decide when to complete the integration, so we will see a model reducer at this point.
 
-to be continued...
+Here we define our policy and system factories
+
+- [accounts.policies.ts](./services/accounts/src/accounts.policies.ts)
+- [accounts.systems.ts](./services/accounts/src/accounts.systems.ts)
 
 ### 4. Start writing some failing tests - TDD
 
-- TODO
+Your logic is not fully implemented yet. Use TDD techniques to write unit tests first following these basic patterns:
 
-### 5. Start fixing those tests by implementing your logic
+- Test command handlers: GIVEN [events] WHEN [event] THEN [state]
+- Test event handlers: WHEN [event] THEN [commands]
 
-- TODO
+This should be enough to cover all you logic! Place your tests under `/src/__tests__`
+
+You can build your service incrementally while testing. The final index file will look like this
+
+```typescript
+import { App } from "@rotorsoft/eventually";
+import { ExpressApp } from "@rotorsoft/eventually-express";
+import * as commands from "./accounts.commands";
+import * as events from "./accounts.events";
+import * as policies from "./accounts.policies";
+import * as systems from "./accounts.systems";
+
+App(new ExpressApp())
+  .withCommands(commands.factory)
+  .withEvents(events.factory)
+  .withPolicy(policies.IntegrateAccount1)
+  .withPolicy(policies.IntegrateAccount2)
+  .withPolicy(policies.IntegrateAccount3)
+  .withPolicy(policies.WaitForAllAndComplete)
+  .withExternalSystem(systems.ExternalSystem1)
+  .withExternalSystem(systems.ExternalSystem2)
+  .withExternalSystem(systems.ExternalSystem3)
+  .withExternalSystem(systems.ExternalSystem4)
+  .build();
+
+void App().listen();
+```
+
+### 5. Start fixing those tests by implementing missing logic
+
+At this point you can finish your service implementation

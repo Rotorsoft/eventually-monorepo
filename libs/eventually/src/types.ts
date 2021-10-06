@@ -116,13 +116,14 @@ export type EventHandler<Response, E, M extends Payload> = {
 };
 
 /**
- * Policies respond with commands targetting aggregates.
- * The expected version of the targetted aggregate is optional.
+ * Policies can respond with commands,
+ * targetting external systems
+ * or aggregates when id and optional expectedVersion are included in response
  */
 export type PolicyResponse<C> = {
-  id: string;
-  expectedVersion?: string;
   command: MsgOf<C>;
+  id?: string;
+  expectedVersion?: string;
 };
 
 /**
@@ -131,13 +132,13 @@ export type PolicyResponse<C> = {
  * events arriving from multiple aggregates or external services into a
  * dedicated state machine
  */
-export type Policy<C, E, M extends Payload> = EventHandler<
+export type Policy<C, E, M extends Payload = undefined> = EventHandler<
   PolicyResponse<C> | undefined,
   E,
   M
 > & { reducer?: ModelReducer<M, E> };
 
-export type PolicyFactory<C, E, M extends Payload> = (
+export type PolicyFactory<C, E, M extends Payload = undefined> = (
   event: EvtOf<E>
 ) => Policy<C, E, M>;
 

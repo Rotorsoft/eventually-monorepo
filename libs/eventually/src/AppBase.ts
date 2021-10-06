@@ -14,7 +14,8 @@ import {
   PolicyResponse,
   Snapshot,
   ExternalSystem,
-  ExternalSystemFactory
+  ExternalSystemFactory,
+  Evt
 } from "./types";
 import { aggregateCommandPath, policyEventPath, handlersOf } from "./utils";
 
@@ -240,7 +241,9 @@ export abstract class AppBase {
     );
     const aggregate = "init" in handler ? handler : undefined;
 
-    const { state } = aggregate ? await this.load(aggregate) : undefined;
+    const { state } = aggregate
+      ? await this.load(aggregate)
+      : { state: undefined };
 
     const events: MsgOf<E>[] = await (handler as any)[
       "on".concat(command.name)
@@ -353,5 +356,12 @@ export abstract class AppBase {
     const log: Snapshot<M>[] = [];
     await this.load(reducer, (snapshot) => log.push(snapshot));
     return log;
+  }
+
+  /**
+   * Reads all stream
+   */
+  async read(name?: string, after = -1, limit = 1): Promise<Evt[]> {
+    return this._store.read(name, after, limit);
   }
 }

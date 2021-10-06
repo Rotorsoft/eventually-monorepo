@@ -4,8 +4,6 @@ import {
   aggregatePath,
   Evt,
   EvtOf,
-  externalSystemCommandPath,
-  ExternalSystemFactory,
   MsgOf,
   Payload,
   policyEventPath,
@@ -33,18 +31,6 @@ export const command = async <M extends Payload, C, E>(
     msg,
     { headers: expectedVersion ? { "If-Match": expectedVersion } : {} }
   );
-  return data;
-};
-
-export const system = async <C, E>(
-  factory: ExternalSystemFactory<C, E>,
-  msg: MsgOf<C>,
-  port = 3000
-): Promise<Snapshot<undefined>[]> => {
-  const { data } = await axios.post<
-    MsgOf<C>,
-    AxiosResponse<Snapshot<undefined>[]>
-  >(url(externalSystemCommandPath(factory, msg), port), msg);
   return data;
 };
 

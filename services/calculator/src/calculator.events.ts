@@ -10,7 +10,6 @@ export type Events = {
   Cleared: undefined;
 };
 
-// Event handlers receive committed events with id and version - required
 export const events: MessageFactory<Events> = {
   DigitPressed: (data: { digit: Digits }) => ({
     name: "DigitPressed",

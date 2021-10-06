@@ -20,9 +20,12 @@
   "dependencies": {
     "@rotorsoft/eventually": "workspace:libs/eventually",
     "@rotorsoft/eventually-express": "workspace:libs/eventually-express",
-    "joi": "^17.4.2"
+    "joi": "^17.4.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@types/uuid": "^8",
+    "axios": "^0.22.0",
     "ts-node-dev": "^1.1.8"
   }
 }
