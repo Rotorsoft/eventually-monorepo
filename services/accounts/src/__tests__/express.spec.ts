@@ -1,5 +1,6 @@
 import { App } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
+import { Server } from "http";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
@@ -16,12 +17,22 @@ App(new ExpressApp())
   .withExternalSystem(systems.ExternalSystem1)
   .withExternalSystem(systems.ExternalSystem2)
   .withExternalSystem(systems.ExternalSystem3)
-  .withExternalSystem(systems.ExternalSystem4)
-  .build();
+  .withExternalSystem(systems.ExternalSystem4);
+
+let server: Server;
 
 describe("express", () => {
   beforeAll(async () => {
-    await App().listen();
+    const express = App().build();
+    await App().listen(true);
+    server = (express as any).listen(3005, () => {
+      return;
+    });
+  });
+
+  afterAll(async () => {
+    (server as unknown as Server).close();
+    await App().close();
   });
 
   it("should complete command", async () => {

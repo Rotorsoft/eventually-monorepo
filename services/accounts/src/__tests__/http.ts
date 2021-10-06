@@ -6,7 +6,7 @@ import {
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 
-const url = (path: string): string => `http://localhost:3000${path}`;
+const url = (path: string): string => `http://localhost:3005${path}`;
 
 export const command = async <C, E>(
   factory: ExternalSystemFactory<C, E>,
