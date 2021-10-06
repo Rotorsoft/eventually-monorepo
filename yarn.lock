@@ -930,7 +930,7 @@ __metadata:
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
     "@rotorsoft/eventually": "workspace:^2.0.4"
-    "@rotorsoft/eventually-express": "workspace:^2.0.3"
+    "@rotorsoft/eventually-express": "workspace:^2.0.4"
     "@rotorsoft/eventually-gcp": "workspace:^2.0.2"
     "@rotorsoft/eventually-pg": "workspace:^2.0.2"
     axios: ^0.21.4
@@ -940,7 +940,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-express@workspace:^2.0.3, @rotorsoft/eventually-express@workspace:libs/eventually-express":
+"@rotorsoft/eventually-express@workspace:^2.0.4, @rotorsoft/eventually-express@workspace:libs/eventually-express":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
   dependencies:
