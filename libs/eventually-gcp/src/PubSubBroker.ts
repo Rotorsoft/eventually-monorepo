@@ -1,10 +1,11 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
-  policyEventPath,
   Evt,
   EvtOf,
+  log,
   Payload,
+  policyEventPath,
   PolicyFactory,
   TopicNotFound
 } from "@rotorsoft/eventually";
@@ -66,6 +67,7 @@ export const PubSubBroker = (): Broker => {
         });
         return `${messageId}@${event.id}`;
       } catch (error) {
+        log().error(error);
         topic.resumePublishing(orderingKey);
       }
     },
