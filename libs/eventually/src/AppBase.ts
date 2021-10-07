@@ -260,7 +260,13 @@ export abstract class AppBase {
       : committed.map((event) => ({ event }));
 
     try {
-      await Promise.all(committed.map((event) => this._broker.emit(event)));
+      // TODO: resolve delivery guarantees and recovery with pull option
+      // "at-least-once" delivery is not guaranteed here
+      // but we need to publish the committed events
+      const messageIds = await Promise.all(
+        committed.map((event) => this._broker.emit(event))
+      );
+      this.log.trace("red", ">>>>>>", messageIds.toString());
     } catch (error) {
       // TODO: monitor broker failures
       // log.error cannot raise!
@@ -295,12 +301,9 @@ export abstract class AppBase {
       "on".concat(event.name)
     ](event, state);
 
-    if (policy.reducer)
-      await this._store.commit<E>(policy.reducer.stream(), [
-        event as unknown as MsgOf<E>
-      ]);
-
     if (response) {
+      // ensure "at-least-once" delivery before comitting
+      // command handlers must be idempotent
       const { id, command, expectedVersion } = response;
       if (id) {
         this.log.trace(
@@ -316,6 +319,12 @@ export abstract class AppBase {
         await this.command(factory(), command);
       }
     }
+
+    if (policy.reducer)
+      await this._store.commit<E>(policy.reducer.stream(), [
+        event as unknown as MsgOf<E>
+      ]);
+
     return response;
   }
 

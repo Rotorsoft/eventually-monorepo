@@ -23,8 +23,9 @@ export interface Broker {
   /**
    * Emits event to topic
    * @param event committed event
+   * @returns the message id
    */
-  emit: <E>(event: EvtOf<E>) => Promise<void>;
+  emit: <E>(event: EvtOf<E>) => Promise<string>;
 
   /**
    * Decodes pushed messages

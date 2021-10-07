@@ -30,7 +30,7 @@ export const InMemoryBroker = (app: AppBase): Broker => {
       return Promise.resolve();
     },
 
-    emit: async <E>(event: EvtOf<E>): Promise<void> => {
+    emit: async <E>(event: EvtOf<E>): Promise<string> => {
       const topic = _topics[event.name];
       if (!topic) throw new TopicNotFound(event);
 
@@ -38,6 +38,8 @@ export const InMemoryBroker = (app: AppBase): Broker => {
         app.event(factory as PolicyFactory<unknown, E, Payload>, event)
       );
       await Promise.all(promises);
+
+      return event.id.toString();
     },
 
     decode: (msg: Payload): Evt => msg as Evt

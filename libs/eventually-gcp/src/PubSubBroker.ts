@@ -54,11 +54,20 @@ export const PubSubBroker = (): Broker => {
         await sub.modifyPushConfig({ pushEndpoint: url });
     },
 
-    emit: async <E>(event: EvtOf<E>): Promise<void> => {
+    emit: async <E>(event: EvtOf<E>): Promise<string> => {
       const topic = topics[event.name];
       if (!topic) throw new TopicNotFound(event);
 
-      await topic.publish(Buffer.from(JSON.stringify(event)));
+      const orderingKey = "id";
+      try {
+        const [messageId] = await topic.publishMessage({
+          data: Buffer.from(JSON.stringify(event)),
+          orderingKey
+        });
+        return `${messageId}@${event.id}`;
+      } catch (error) {
+        topic.resumePublishing(orderingKey);
+      }
     },
 
     decode: (msg: Payload): Evt => {
