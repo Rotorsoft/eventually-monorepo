@@ -10,8 +10,10 @@ export const InMemoryStore = (): Store => {
       reducer: (event: EvtOf<E>) => void
       // eslint-disable-next-line
     ): Promise<void> => {
+
+    getLastEvent: (stream:string) => {
       const events = _events.filter((e) => e.stream === stream);
-      events.map(reducer);
+      return Promise.resolve(events[events.length -1]);
     },
 
     commit: async <E>(

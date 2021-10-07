@@ -51,6 +51,14 @@ export const PostgresStore = (table: string): Store => ({
     await pool.end();
   },
 
+  getLastEvent: async (stream:string)=> {
+    return pool.query<Event>(
+      `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
+      [stream]
+    )
+      .then(x=> x.rows.length && formatEvent(x.rows[0]))
+  },
+
   load: async <E>(
     stream: string,
     reducer: (event: EvtOf<E>) => void

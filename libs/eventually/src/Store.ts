@@ -16,6 +16,12 @@ export interface Store {
   close: () => Promise<void>;
 
   /**
+   * Loads the last event for the stream. Used for loading snapshots
+   * @param stream stream name
+   */
+  getLastEvent: (stream:string)=> Promise<Evt>
+
+  /**
    * Loads aggregate in memory by reading stream and reducing model
    * @param stream stream name
    * @param reducer model reducer
