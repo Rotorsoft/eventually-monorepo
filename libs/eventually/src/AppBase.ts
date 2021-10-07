@@ -330,6 +330,26 @@ export abstract class AppBase {
     );
     return event?.data as {state: M, event:Evt};
   }
+
+  /**
+   * Saves the given payload as snapshot for the stream
+   * @param stream The stream to save the snapshot for
+   * @param snapshot Instance of Snappshot (event, state)
+   */
+  async saveSnapshot<M extends Payload>(stream:string, snapshot: Snapshot<M>):Promise<void>{
+    this.log.trace(
+      "white",
+      `<<< SNAPSHOT generated`,
+      `Stream: ${stream} Event: ${snapshot.event.id}`
+    );
+    await this._store.commit(
+      `${stream}-snapshot`, [{
+        name: 'Snapshot', 
+        data: snapshot,
+        schema: ()=> Joi.object<Message<"Snapshot", Snapshot<M>>>()
+      }]);
+  }
+
   /**
    * Loads current model state
    * @param reducer model reducer
