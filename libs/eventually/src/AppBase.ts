@@ -1,3 +1,8 @@
+import Joi from "joi";
+import { externalSystemCommandPath } from ".";
+import { Broker } from "./Broker";
+import { Log, log } from "./log";
+import { Store } from "./Store";
 import {
   Aggregate,
   AggregateFactory,
@@ -14,13 +19,8 @@ import {
   PolicyResponse,
   Snapshot
 } from "./types";
-import { Log, log } from "./log";
 import { aggregateCommandPath, handlersOf, policyEventPath, shouldStoreSnapshot } from "./utils";
 
-import { Broker } from "./Broker";
-import Joi from "joi";
-import { Store } from "./Store";
-import { externalSystemCommandPath } from ".";
 
 /**
  * App abstraction implementing generic handlers
@@ -244,7 +244,9 @@ export abstract class AppBase {
     );
     const aggregate = "init" in handler ? handler : undefined;
 
-    const { state } = aggregate ? await this.load(aggregate) : undefined;
+    const { state } = aggregate
+      ? await this.load(aggregate)
+      : { state: undefined };
 
     const events: MsgOf<E>[] = await (handler as any)[
       "on".concat(command.name)
@@ -404,5 +406,12 @@ export abstract class AppBase {
     const log: Snapshot<M>[] = [];
     await this.load(reducer, (snapshot) => log.push(snapshot), noSnapshots);
     return log;
+  }
+
+  /**
+   * Reads all stream
+   */
+  async read(name?: string, after = -1, limit = 1): Promise<Evt[]> {
+    return this._store.read(name, after, limit);
   }
 }

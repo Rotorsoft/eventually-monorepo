@@ -26,7 +26,7 @@
       "format": "svg"
     },
     {
-      "icon": "Policy",
+      "icon": "script",
       "extensions": [".policies.ts", ".policy.ts"],
       "format": "svg"
     },
@@ -38,6 +38,11 @@
     {
       "icon": "sql",
       "extensions": [".models.ts", ".model.ts"],
+      "format": "svg"
+    },
+    {
+      "icon": "ini",
+      "extensions": [".systems.ts", ".system.ts"],
       "format": "svg"
     }
   ],
