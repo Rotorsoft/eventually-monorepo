@@ -1,10 +1,11 @@
 import { App, EvtOf } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Calculator } from "../calculator.aggregate";
-import { Counter, StatelessCounter } from "../counter.policy";
 import { commands } from "../calculator.commands";
 import { Events, events } from "../calculator.events";
-import { command, event, load, read, stream, get } from "./http";
+import { Counter, StatelessCounter } from "../counter.policy";
+import { command, event, get, load, read, stream } from "./http";
+
 
 const app = App(new ExpressApp())
   .withEvents(events)
@@ -39,7 +40,7 @@ describe("express app", () => {
         result: 3.3
       });
 
-      const snapshots = await stream(Calculator, "test");
+      const snapshots = await stream(Calculator, "test", true);
       expect(snapshots.length).toEqual(6);
     });
 
@@ -63,8 +64,13 @@ describe("express app", () => {
     });
 
     it("should read aggregate stream", async () => {
-      const snapshots = await stream(Calculator, "test2");
+      const snapshots = await stream(Calculator, "test2", true);
       expect(snapshots.length).toBe(9);
+    });
+    
+    it("should read aggregate stream using snapshots", async () => {
+      const snapshots = await stream(Calculator, "test2");
+      expect(snapshots.length).toBe(1);
     });
 
     it("should not load events", async () => {

@@ -42,8 +42,14 @@ describe("in memory app", () => {
         operator: "+",
         result: 3.3
       });
-      const snapshots = await app.stream(test);
-      expect(snapshots.length).toEqual(6);
+      
+      // With no Snapshot loading
+      const snapshots1 = await app.stream(test, true);
+      expect(snapshots1.length).toEqual(6);
+      
+      // With Snapshot loading
+      const snapshots2 = await app.stream(test);
+      expect(snapshots2.length).toEqual(1);
     });
 
     it("should compute correctly 2", async () => {
@@ -94,8 +100,13 @@ describe("in memory app", () => {
     });
 
     it("should read aggregate stream", async () => {
-      const snapshots = await app.stream(Calculator("test2"));
+      const snapshots = await app.stream(Calculator("test2"), true);
       expect(snapshots.length).toBe(9);
+    });
+
+    it("should read aggregate stream using Snapshots", async () => {
+      const snapshots = await app.stream(Calculator("test2"));
+      expect(snapshots.length).toBe(1);
     });
 
     it("should throw concurrency error", async () => {
@@ -144,7 +155,8 @@ describe("in memory app", () => {
       expect(state).toEqual({ result: 0 });
 
       const stream = await app.stream(
-        Counter(event as EvtOf<CounterEvents>).reducer
+        Counter(event as EvtOf<CounterEvents>).reducer,
+        true
       );
       expect(stream.length).toBe(5);
     });
