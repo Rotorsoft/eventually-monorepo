@@ -1,4 +1,5 @@
-import { EvtOf, Evt, MsgOf } from "../types";
+import { Evt, EvtOf, MsgOf } from "../types";
+
 import { Store } from "../Store";
 
 export const InMemoryStore = (): Store => {
@@ -7,9 +8,17 @@ export const InMemoryStore = (): Store => {
   return {
     load: async <E>(
       stream: string,
-      reducer: (event: EvtOf<E>) => void
-      // eslint-disable-next-line
+      afterEvent: number | ((event: EvtOf<E>) => void),
+      reducer?: (event: EvtOf<E>) => void
     ): Promise<void> => {
+      if (typeof afterEvent === 'function'){
+        reducer = afterEvent;
+        afterEvent = -1;
+      }
+      const events = _events.slice(afterEvent+1).filter((e) => e.stream === stream);
+      events.map(reducer);
+      return Promise.resolve();
+    },
 
     getLastEvent: (stream:string) => {
       const events = _events.filter((e) => e.stream === stream);

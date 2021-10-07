@@ -1,4 +1,4 @@
-import { EvtOf, Evt, MsgOf } from "./types";
+import { Evt, EvtOf, MsgOf } from "./types";
 
 /**
  * Stores persist event messages into streams correlated by aggregate id
@@ -26,10 +26,8 @@ export interface Store {
    * @param stream stream name
    * @param reducer model reducer
    */
-  load: <E>(
-    stream: string,
-    reducer: (event: EvtOf<E>) => void
-  ) => Promise<void>;
+  load <E>( stream: string, reducer: (event: EvtOf<E>) => void ): Promise<void>;
+  load <E>( stream: string, afterEvent: number, reducer: (event: EvtOf<E>) => void ): Promise<void>;
 
   /**
    * Commits message into stream of aggregate id

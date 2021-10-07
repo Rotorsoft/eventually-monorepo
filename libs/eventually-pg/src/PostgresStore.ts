@@ -1,11 +1,12 @@
-import { Pool } from "pg";
 import {
-  Store,
-  EvtOf,
+  ConcurrencyError,
   Evt,
+  EvtOf,
   MsgOf,
-  ConcurrencyError
+  Store
 } from "@rotorsoft/eventually";
+
+import { Pool } from "pg";
 import { config } from "./config";
 
 const pool = new Pool(config.pg);
@@ -42,6 +43,15 @@ type Event = {
   created: Date;
 };
 
+const formatEvent = (e: Event): Evt => ({
+    id: e.id,
+    name: e.name,
+    data: e.data,
+    stream: e.stream,
+    version: e.version.toString(),
+    created: e.created
+  })
+
 export const PostgresStore = (table: string): Store => ({
   init: async (): Promise<void> => {
     await pool.query(create_script(table));
@@ -61,12 +71,20 @@ export const PostgresStore = (table: string): Store => ({
 
   load: async <E>(
     stream: string,
-    reducer: (event: EvtOf<E>) => void
+    afterEvent: number | ((event: EvtOf<E>) => void),
+    reducer?: (event: EvtOf<E>) => void
   ): Promise<void> => {
-    const events = await pool.query<Event>(
-      `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version`,
-      [stream]
-    );
+    let sql = '';
+    
+    if (typeof afterEvent === 'function'){
+      reducer = afterEvent;
+      sql = `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version`;
+    } else {
+      sql = `SELECT * FROM ${table} WHERE stream=$1 AND id > ${afterEvent || -1} ORDER BY version`;
+    }
+    
+    const events = await pool.query<Event>( sql, [stream] );
+    
     events.rows.map((e) =>
       reducer({
         id: e.id,
@@ -131,13 +149,6 @@ export const PostgresStore = (table: string): Store => ({
       name ? [after, limit, name] : [after, limit]
     );
 
-    return events.rows.map((e) => ({
-      id: e.id,
-      name: e.name,
-      data: e.data,
-      stream: e.stream,
-      version: e.version.toString(),
-      created: e.created
-    }));
+    return events.rows.map(formatEvent);
   }
 });
