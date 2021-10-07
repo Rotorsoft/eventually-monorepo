@@ -1,15 +1,8 @@
 import {
-  aggregateCommandPath,
-  AggregateFactory,
-  aggregatePath,
-  Evt,
-  EvtOf,
-  externalSystemCommandPath,
-  ExternalSystemFactory,
+  aggregateCommandPath, AggregateFactory, aggregatePath, Evt,
+  EvtOf, externalSystemCommandPath, ExternalSystemFactory,
   MsgOf,
-  Payload,
-  policyEventPath,
-  PolicyFactory,
+  Payload, policyEventPath, PolicyFactory,
   PolicyResponse,
   Snapshot
 } from "@rotorsoft/eventually";
@@ -71,10 +64,11 @@ export const load = async <M extends Payload, C, E>(
 
 export const stream = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,
-  id: string
+  id: string,
+  noSnapshots = false
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
-    url(aggregatePath(factory).path.replace(":id", id).concat("/stream"))
+    url(aggregatePath(factory).path.replace(":id", id).concat("/stream").concat(`${noSnapshots ? '?noSnapshots=1' : ''}`))
   );
   return data;
 };

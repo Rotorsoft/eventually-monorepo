@@ -1,12 +1,8 @@
 import {
   Aggregate,
-  AggregateFactory,
-  aggregatePath,
-  AppBase,
-  Broker,
-  committedSchema,
-  config,
-  Errors,
+  AggregateFactory, aggregatePath, AppBase,
+  Broker, committedSchema,
+  config, Errors,
   Evt,
   ExternalSystemFactory,
   InMemoryBroker,
@@ -27,8 +23,10 @@ import express, {
 } from "express";
 import { Server } from "http";
 
+
 type GetCallback = <M extends Payload, C, E>(
-  aggregate: Aggregate<M, C, E>
+  aggregate: Aggregate<M, C, E>,
+  noSnapshots?: boolean
 ) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
@@ -81,7 +79,8 @@ export class ExpressApp extends AppBase {
       ) => {
         try {
           const { id } = req.params;
-          const result = await callback(factory(id));
+          const noSnapshots = (req.query || {}).noSnapshots;
+          const result = await callback(factory(id), ['true','1'].includes(noSnapshots as string));
           let etag = "-1";
           if (Array.isArray(result)) {
             if (result.length) etag = result[result.length - 1].event.version;
