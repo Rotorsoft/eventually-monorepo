@@ -1,22 +1,26 @@
-import { externalSystemCommandPath } from ".";
-import { Broker } from "./Broker";
-import { Log, log } from "./log";
-import { Store } from "./Store";
 import {
   Aggregate,
   AggregateFactory,
+  Evt,
   EvtOf,
+  ExternalSystem,
+  ExternalSystemFactory,
+  Message,
   MessageFactory,
   ModelReducer,
   MsgOf,
   Payload,
   PolicyFactory,
   PolicyResponse,
-  Snapshot,
-  ExternalSystem,
-  ExternalSystemFactory
+  Snapshot
 } from "./types";
-import { aggregateCommandPath, policyEventPath, handlersOf } from "./utils";
+import { Log, log } from "./log";
+import { aggregateCommandPath, handlersOf, policyEventPath, shouldStoreSnapshot } from "./utils";
+
+import { Broker } from "./Broker";
+import Joi from "joi";
+import { Store } from "./Store";
+import { externalSystemCommandPath } from ".";
 
 /**
  * App abstraction implementing generic handlers
@@ -256,6 +260,9 @@ export abstract class AppBase {
       ? this._apply(aggregate, committed, state)
       : committed.map((event) => ({ event }));
 
+    shouldStoreSnapshot(committed[committed.length-1], aggregate?.snapshotEventsThreshold) 
+      && await this.saveSnapshot(handler.stream(), snapshots[snapshots.length-1] as Snapshot<M>)
+
     try {
       await Promise.all(committed.map((event) => this._broker.emit(event)));
     } catch (error) {
@@ -292,10 +299,13 @@ export abstract class AppBase {
       "on".concat(event.name)
     ](event, state);
 
-    if (policy.reducer)
-      await this._store.commit<E>(policy.reducer.stream(), [
+    if (policy.reducer){
+      const committed = await this._store.commit<E>(policy.reducer.stream(), [
         event as unknown as MsgOf<E>
       ]);
+      shouldStoreSnapshot(committed[committed.length-1], policy.reducer.snapshotEventsThreshold) 
+        && await this.saveSnapshot(policy.reducer.stream(), {event, state} as Snapshot<M>)
+    }
 
     if (response) {
       const { id, command, expectedVersion } = response;
@@ -358,17 +368,23 @@ export abstract class AppBase {
    */
   async load<M extends Payload, E>(
     reducer: ModelReducer<M, E>,
-    callback?: (snapshot: Snapshot<M>) => void
+    callback?: (snapshot: Snapshot<M>) => void,
+    noSnapshots = false
   ): Promise<Snapshot<M>> {
-    let event: EvtOf<E>;
-    let state = reducer.init();
+    const snapshot: Snapshot<M> = reducer.snapshotEventsThreshold && !noSnapshots && (await this.loadSnapshot(reducer.stream()));
+    let event = snapshot?.event;
+    let state = snapshot?.state || reducer.init();
     let count = 0;
-    await this._store.load<E>(reducer.stream(), (e) => {
+    await this._store.load<E>(reducer.stream(), snapshot?.event?.id, (e) => {
       event = e;
       state = (reducer as any)["apply".concat(e.name)](state, e);
       count++;
       if (callback) callback({ event, state });
     });
+    if (reducer.snapshotEventsThreshold && !noSnapshots && !count && event && state){
+      callback && callback({event,state});
+      count++;
+    }
     this.log.trace(
       "gray",
       `   ... ${reducer.stream()} loaded ${count} event(s)`
@@ -382,10 +398,11 @@ export abstract class AppBase {
    * @returns stream log with events and state transitions
    */
   async stream<M extends Payload, E>(
-    reducer: ModelReducer<M, E>
+    reducer: ModelReducer<M, E>,
+    noSnapshots = false
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
-    await this.load(reducer, (snapshot) => log.push(snapshot));
+    await this.load(reducer, (snapshot) => log.push(snapshot), noSnapshots);
     return log;
   }
 }
