@@ -79,7 +79,7 @@ export class ExpressApp extends AppBase {
       ) => {
         try {
           const { id } = req.params;
-          const noSnapshots = (req.query || {}).noSnapshots;
+          const noSnapshots = req.query.noSnapshots;
           const result = await callback(factory(id), ['true','1'].includes(noSnapshots as string));
           let etag = "-1";
           if (Array.isArray(result)) {
