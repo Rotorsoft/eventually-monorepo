@@ -317,6 +317,20 @@ export abstract class AppBase {
   }
 
   /**
+   * Loads the last snapshot for the given stream.
+   * @param stream The stream to load the snapshot for
+   * @returns Instance of Snappshot (event, state)
+   */
+  async loadSnapshot<M extends Payload>(stream:string): Promise<Snapshot<M>>{
+    const event = await this._store.getLastEvent(`${stream}-snapshot`);
+    event && this.log.trace(
+      "white",
+      `<<< SNAPSHOT Loaded`,
+      `Stream: ${stream}`
+    );
+    return event?.data as {state: M, event:Evt};
+  }
+  /**
    * Loads current model state
    * @param reducer model reducer
    * @param callback optional reduction predicate
