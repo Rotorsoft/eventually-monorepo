@@ -358,6 +358,7 @@ export abstract class AppBase {
       `${stream}-snapshot`, [{
         name: 'Snapshot', 
         data: snapshot,
+        /* istanbul ignore next */
         schema: ()=> Joi.object<Message<"Snapshot", Snapshot<M>>>()
       }]);
   }
