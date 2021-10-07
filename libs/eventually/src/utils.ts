@@ -1,4 +1,5 @@
 import * as joi from "joi";
+
 import {
   AggregateFactory,
   Evt,
@@ -143,3 +144,9 @@ export const Singleton =
     if (!instances[target.name]) instances[target.name] = target(...args);
     return instances[target.name] as T;
   };
+
+
+export const shouldStoreSnapshot = (lastCommittedEvent: {version:string}, snapshotEventsThreshold?:number):boolean => 
+  snapshotEventsThreshold && 
+  lastCommittedEvent.version !== '0' && 
+  Number(lastCommittedEvent.version) % snapshotEventsThreshold === 0
