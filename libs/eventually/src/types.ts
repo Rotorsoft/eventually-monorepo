@@ -38,7 +38,7 @@ export type CommittedEvent<Name extends string, Type extends Payload> = Omit<
 > & {
   readonly id: number;
   readonly stream: string;
-  readonly version: string;
+  readonly version: number;
   readonly created: Date;
 };
 

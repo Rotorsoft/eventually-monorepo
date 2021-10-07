@@ -54,7 +54,7 @@ export const PubSubBroker = (): Broker => {
         await sub.modifyPushConfig({ pushEndpoint: url });
     },
 
-    emit: async <E>(event: EvtOf<E>): Promise<string> => {
+    publish: async <E>(event: EvtOf<E>): Promise<string> => {
       const topic = topics[event.name];
       if (!topic) throw new TopicNotFound(event);
 

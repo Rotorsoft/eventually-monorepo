@@ -1,11 +1,12 @@
-import { Pool } from "pg";
 import {
-  Store,
+  Broker,
+  ConcurrencyError,
   EvtOf,
-  Evt,
+  log,
   MsgOf,
-  ConcurrencyError
+  Store
 } from "@rotorsoft/eventually";
+import { Pool } from "pg";
 import { config } from "./config";
 
 const pool = new Pool(config.pg);
@@ -51,85 +52,74 @@ export const PostgresStore = (table: string): Store => ({
     await pool.end();
   },
 
-  load: async <E>(
-    stream: string,
-    reducer: (event: EvtOf<E>) => void
+  read: async <E>(
+    callback: (event: EvtOf<E>) => void,
+    options?: { stream?: string; name?: string; after: number; limit: number }
   ): Promise<void> => {
-    const events = await pool.query<Event>(
-      `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version`,
-      [stream]
-    );
-    events.rows.map((e) =>
-      reducer({
-        id: e.id,
-        name: e.name as keyof E & string,
-        data: e.data,
-        stream: e.stream,
-        version: e.version.toString(),
-        created: e.created
-      })
+    const { stream, name, after = -1, limit } = options;
+
+    const values: any[] = [after];
+    let sql = `SELECT * FROM ${table} WHERE id>$1`;
+    if (stream) {
+      values.push(stream);
+      sql = sql.concat(` AND stream=$${values.length}`);
+    }
+    if (name) {
+      values.push(name);
+      sql = sql.concat(` AND name=$${values.length}`);
+    }
+    sql = sql.concat(" ORDER BY id");
+    if (limit) {
+      values.push(limit);
+      sql = sql.concat(` LIMIT $${values.length}`);
+    }
+
+    (await pool.query<Event>(sql, values)).rows.map((e) =>
+      callback(e as EvtOf<E>)
     );
   },
 
   commit: async <E>(
     stream: string,
     events: MsgOf<E>[],
-    expectedVersion?: string
+    expectedVersion?: string,
+    broker?: Broker
   ): Promise<EvtOf<E>[]> => {
     const client = await pool.connect();
+    let version = -1;
     try {
       await client.query("BEGIN");
       const last = await client.query<Event>(
         `SELECT version FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
         [stream]
       );
-      let version = last.rowCount ? last.rows[0].version : -1;
+      version = last.rowCount ? last.rows[0].version : -1;
       if (expectedVersion && version.toString() !== expectedVersion)
         throw new ConcurrencyError(version, events, expectedVersion);
+
       const committed = await Promise.all(
         events.map(async ({ name, data }) => {
           version++;
           const committed = await client.query<Event>(
             `INSERT INTO ${table}(name, data, stream, version)
-          VALUES($1, $2, $3, $4) RETURNING id, created`,
+          VALUES($1, $2, $3, $4) RETURNING *`,
             [name, data, stream, version]
           );
-          const { id, created } = committed.rows[0];
-          return {
-            id,
-            name,
-            data,
-            stream,
-            version: version.toString(),
-            created
-          };
+          return committed.rows[0] as EvtOf<E>;
         })
       );
+
+      // publish inside transaction to ensure "at-least-once" delivery
+      if (broker) await Promise.all(committed.map((e) => broker.publish(e)));
+
       await client.query("COMMIT");
       return committed;
     } catch (e) {
       await client.query("ROLLBACK");
-      throw e;
+      log().error(e);
+      throw new ConcurrencyError(version, events, expectedVersion);
     } finally {
       client.release();
     }
-  },
-
-  read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
-    const events = await pool.query<Event>(
-      `SELECT * FROM ${table} WHERE id > $1 ${
-        name ? "AND name = $3" : ""
-      } ORDER BY id LIMIT $2`,
-      name ? [after, limit, name] : [after, limit]
-    );
-
-    return events.rows.map((e) => ({
-      id: e.id,
-      name: e.name,
-      data: e.data,
-      stream: e.stream,
-      version: e.version.toString(),
-      created: e.created
-    }));
   }
 });

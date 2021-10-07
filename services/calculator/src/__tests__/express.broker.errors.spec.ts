@@ -14,7 +14,7 @@ const store = InMemoryStore();
 const broker = InMemoryBroker(app);
 let server: Server;
 
-jest.spyOn(broker, "emit").mockRejectedValue("emit error");
+jest.spyOn(broker, "publish").mockRejectedValue("publish error");
 const logerror = jest.spyOn(app.log, "error");
 
 describe("express app", () => {
@@ -33,14 +33,16 @@ describe("express app", () => {
 
   describe("errors", () => {
     it("should throw internal error on stream", async () => {
-      await command(
-        Calculator,
-        "test5",
-        commands.PressKey({ key: "1" }),
-        undefined,
-        3002
-      );
-      expect(logerror).toHaveBeenCalledWith("emit error");
+      await expect(
+        command(
+          Calculator,
+          "test5",
+          commands.PressKey({ key: "1" }),
+          undefined,
+          3002
+        )
+      ).rejects.toThrow("Request failed with status code 500");
+      expect(logerror).toHaveBeenCalledWith("publish error");
     });
   });
 });

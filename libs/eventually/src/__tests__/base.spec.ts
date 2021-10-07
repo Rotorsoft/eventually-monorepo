@@ -11,14 +11,14 @@ const factory = (): Policy<{ test: string }, { test: string }, Payload> => ({
 const event: EvtOf<{ test: string }> = {
   id: 0,
   stream: "",
-  version: "",
+  version: 0,
   created: new Date(),
   name: "test"
 };
 
 describe("InMemoryBroker", () => {
   it("should raise topic not found error on emit", async () => {
-    await expect(broker.emit(event)).rejects.toThrow();
+    await expect(broker.publish(event)).rejects.toThrow();
   });
 
   it("should raise topic not found error on subscribe", () => {

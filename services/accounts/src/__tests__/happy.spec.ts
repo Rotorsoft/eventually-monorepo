@@ -20,7 +20,7 @@ App()
 const trigger = (id: string): EvtOf<Pick<events.Events, "AccountCreated">> => {
   return {
     id: 1,
-    version: "1",
+    version: 1,
     stream: "main",
     created: new Date(),
     name: "AccountCreated",

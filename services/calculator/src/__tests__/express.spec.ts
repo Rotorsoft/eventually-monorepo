@@ -136,7 +136,7 @@ describe("express app", () => {
         event(Counter, {
           id: 1,
           stream: "Calculator:test3",
-          version: "1",
+          version: 1,
           created: new Date(),
           name: "DigitPressed"
         })

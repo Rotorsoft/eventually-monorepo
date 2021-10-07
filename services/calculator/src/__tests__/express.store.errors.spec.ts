@@ -15,7 +15,6 @@ const broker = InMemoryBroker(app);
 let server: Server;
 
 jest.spyOn(store, "read").mockRejectedValue("Error");
-jest.spyOn(store, "load").mockRejectedValue("Error");
 
 describe("express app", () => {
   beforeAll(async () => {

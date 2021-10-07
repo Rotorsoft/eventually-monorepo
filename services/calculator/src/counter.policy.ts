@@ -13,14 +13,18 @@ import { Events } from "./calculator.events";
 const policy = async (
   counter: CounterState,
   stream: string,
-  version?: string
+  version: number,
+  threshold: number
 ): Promise<PolicyResponse<Commands>> => {
   const id = stream.substr("Calculator:".length);
   const { state } = await App().load(Calculator(id));
-  if (state.left.length >= 5 || (state.right || "").length >= 5)
+  if (
+    (state.left.length || "") >= threshold ||
+    (state.right || "").length >= threshold
+  )
     return {
       id,
-      expectedVersion: version,
+      expectedVersion: version.toString(),
       command: commands.Reset()
     };
 };
@@ -33,12 +37,12 @@ export const Counter = (
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>,
     state?: CounterState
-  ) => policy(state, event.stream, event.version),
+  ) => policy(state, event.stream, event.version, 5),
 
   onDotPressed: async (
     event: CommittedEvent<"DotPressed", undefined>,
     state?: CounterState
-  ) => policy(state, event.stream, event.version),
+  ) => policy(state, event.stream, event.version, 5),
 
   reducer: {
     stream: () => `Counter:${event.stream}`,
@@ -60,10 +64,10 @@ export const StatelessCounter = (): Policy<
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>,
     state?: CounterState
-  ) => policy(state, event.stream, event.version),
+  ) => policy(state, event.stream, event.version, 100),
 
   onDotPressed: async (
     event: CommittedEvent<"DotPressed", undefined>,
     state?: CounterState
-  ) => policy(state, event.stream, event.version)
+  ) => policy(state, event.stream, event.version, 100)
 });

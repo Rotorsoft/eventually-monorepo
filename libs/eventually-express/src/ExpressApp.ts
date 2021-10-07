@@ -52,7 +52,7 @@ export class ExpressApp extends AppBase {
         try {
           const { event } = req.params;
           const { after, limit } = req.query;
-          const result = await this._store.read(
+          const result = await this.read(
             event,
             after && +after,
             limit && +limit
@@ -84,9 +84,10 @@ export class ExpressApp extends AppBase {
           const result = await callback(factory(id));
           let etag = "-1";
           if (Array.isArray(result)) {
-            if (result.length) etag = result[result.length - 1].event.version;
+            if (result.length)
+              etag = result[result.length - 1].event.version.toString();
           } else if (result.event) {
-            etag = result.event.version;
+            etag = result.event.version.toString();
           }
           res.setHeader("ETag", etag);
           return res.status(200).send(result);

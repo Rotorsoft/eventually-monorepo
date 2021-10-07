@@ -30,7 +30,7 @@ export const InMemoryBroker = (app: AppBase): Broker => {
       return Promise.resolve();
     },
 
-    emit: async <E>(event: EvtOf<E>): Promise<string> => {
+    publish: async <E>(event: EvtOf<E>): Promise<string> => {
       const topic = _topics[event.name];
       if (!topic) throw new TopicNotFound(event);
 

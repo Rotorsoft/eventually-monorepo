@@ -1,5 +1,5 @@
 import { Chance } from "chance";
-import { MsgOf, Payload, Evt } from "@rotorsoft/eventually";
+import { MsgOf, Payload, Evt, EvtOf } from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
 const db = PostgresStore("test");
@@ -39,10 +39,13 @@ describe("PostgresStore", () => {
 
     let first: number,
       count = 0;
-    await db.load(a1, (e) => {
-      first = first || e.id;
-      count++;
-    });
+    await db.read(
+      (e) => {
+        first = first || e.id;
+        count++;
+      },
+      { stream: a1 }
+    );
     expect(first).toBeGreaterThan(0);
     expect(count).toBe(3);
   });
@@ -55,9 +58,12 @@ describe("PostgresStore", () => {
     ]);
 
     const events: Evt[] = [];
-    await db.load(a1, (e) => {
-      events.push(e);
-    });
+    await db.read(
+      (e) => {
+        events.push(e);
+      },
+      { stream: a1 }
+    );
     const l = events.length;
     expect(l).toBeGreaterThan(2);
     expect(events[l - 1].data).toStrictEqual({ value: "3" });
@@ -68,30 +74,28 @@ describe("PostgresStore", () => {
   it("should throw concurrency error", async () => {
     const committed = await db.commit(a1, [event("test2", { value: "1" })]);
     await expect(
-      db.commit(a1, [event("test2")], committed[0].version + "1")
+      db.commit(a1, [event("test2")], (committed[0].version + 1).toString())
     ).rejects.toThrowError("Concurrency Error");
   });
 
-  it("should read stream", async () => {
-    const events = await db.read();
-    expect(events.length).toBe(1);
-  });
-
   it("should read stream with after", async () => {
-    const events = await db.read(undefined, 2, 2);
+    const events: EvtOf<E>[] = [];
+    await db.read((e) => events.push(e), { after: 2, limit: 2 });
     expect(events[0].id).toBe(3);
     expect(events.length).toBe(2);
   });
 
   it("should read stream by name", async () => {
-    const events = await db.read("test1", undefined, 5);
+    const events: EvtOf<E>[] = [];
+    await db.read((e) => events.push(e), { name: "test1", limit: 5 });
     expect(events[0].name).toBe("test1");
     expect(events.length).toBeGreaterThanOrEqual(3);
     events.map((evt) => expect(evt.name).toBe("test1"));
   });
 
   it("should read stream with limit", async () => {
-    const events = await db.read(undefined, undefined, 5);
+    const events: EvtOf<E>[] = [];
+    await db.read((e) => events.push(e), { limit: 5 });
     expect(events.length).toBe(5);
   });
 });

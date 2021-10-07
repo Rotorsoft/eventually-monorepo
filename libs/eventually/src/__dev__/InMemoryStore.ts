@@ -1,23 +1,45 @@
-import { EvtOf, Evt, MsgOf } from "../types";
-import { Store } from "../Store";
+import { Broker, Store } from "../interfaces";
+import { EvtOf, MsgOf } from "../types";
 
 export const InMemoryStore = (): Store => {
-  const _events: Evt[] = [];
+  const _events: any[] = [];
 
   return {
-    load: async <E>(
-      stream: string,
-      reducer: (event: EvtOf<E>) => void
-      // eslint-disable-next-line
+    init: (): Promise<void> => {
+      return;
+    },
+
+    close: (): Promise<void> => {
+      return;
+    },
+
+    read: <E>(
+      callback: (event: EvtOf<E>) => void,
+      options?: {
+        stream?: string;
+        name?: string;
+        after?: number;
+        limit?: number;
+      }
     ): Promise<void> => {
-      const events = _events.filter((e) => e.stream === stream);
-      events.map(reducer);
+      const { stream, name, after = -1, limit } = options;
+      let i = after + 1,
+        count = 0;
+      while (i < _events.length) {
+        const e = _events[i++];
+        if (stream && e.stream !== stream) continue;
+        if (name && e.name !== name) continue;
+        callback(e);
+        if (limit && ++count >= limit) break;
+      }
+      return Promise.resolve();
     },
 
     commit: async <E>(
       stream: string,
       events: MsgOf<E>[],
-      expectedVersion?: string
+      expectedVersion?: string,
+      broker?: Broker
       // eslint-disable-next-line
     ): Promise<EvtOf<E>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
@@ -28,36 +50,23 @@ export const InMemoryStore = (): Store => {
         throw Error("Concurrency Error");
 
       let version = aggregate.length;
-      return events.map((event) => {
+      const committed = events.map((event) => {
         const committed: EvtOf<E> = {
           ...event,
           id: _events.length,
           stream,
-          version: version.toString(),
+          version,
           created: new Date()
         };
         _events.push(committed);
         version++;
         return committed;
       });
-    },
 
-    read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
-      const events: Evt[] = [];
-      let i = after + 1;
-      while (events.length < limit && i < _events.length) {
-        const e = _events[i++];
-        if (!name || name === e.name) events.push(e);
-      }
-      return Promise.resolve(events);
-    },
+      // publish inside transaction to ensure "at-least-once" delivery
+      if (broker) await Promise.all(committed.map((e) => broker.publish(e)));
 
-    init: (): Promise<void> => {
-      return;
-    },
-
-    close: (): Promise<void> => {
-      return;
+      return committed;
     }
   };
 };

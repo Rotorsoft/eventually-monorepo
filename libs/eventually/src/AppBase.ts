@@ -1,23 +1,22 @@
 import { externalSystemCommandPath } from ".";
-import { Broker } from "./Broker";
+import { Broker, Store } from "./interfaces";
 import { Log, log } from "./log";
-import { Store } from "./Store";
 import {
   Aggregate,
   AggregateFactory,
+  Evt,
   EvtOf,
+  ExternalSystem,
+  ExternalSystemFactory,
   MessageFactory,
   ModelReducer,
   MsgOf,
   Payload,
   PolicyFactory,
   PolicyResponse,
-  Snapshot,
-  ExternalSystem,
-  ExternalSystemFactory,
-  Evt
+  Snapshot
 } from "./types";
-import { aggregateCommandPath, policyEventPath, handlersOf } from "./utils";
+import { aggregateCommandPath, handlersOf, policyEventPath } from "./utils";
 
 /**
  * App abstraction implementing generic handlers
@@ -252,26 +251,13 @@ export abstract class AppBase {
     const committed = await this._store.commit<E>(
       handler.stream(),
       events,
-      expectedVersion
+      expectedVersion,
+      this._broker
     );
 
     const snapshots = aggregate
       ? this._apply(aggregate, committed, state)
       : committed.map((event) => ({ event }));
-
-    try {
-      // TODO: resolve delivery guarantees and recovery with pull option
-      // "at-least-once" delivery is not guaranteed here
-      // but we need to publish the committed events
-      const messageIds = await Promise.all(
-        committed.map((event) => this._broker.emit(event))
-      );
-      this.log.trace("red", ">>>>>>", messageIds.toString());
-    } catch (error) {
-      // TODO: monitor broker failures
-      // log.error cannot raise!
-      this.log.error(error);
-    }
 
     return snapshots;
   }
@@ -341,12 +327,15 @@ export abstract class AppBase {
     let event: EvtOf<E>;
     let state = reducer.init();
     let count = 0;
-    await this._store.load<E>(reducer.stream(), (e) => {
-      event = e;
-      state = (reducer as any)["apply".concat(e.name)](state, e);
-      count++;
-      if (callback) callback({ event, state });
-    });
+    await this._store.read<E>(
+      (e) => {
+        event = e;
+        state = (reducer as any)["apply".concat(e.name)](state, e);
+        count++;
+        if (callback) callback({ event, state });
+      },
+      { stream: reducer.stream() }
+    );
     this.log.trace(
       "gray",
       `   ... ${reducer.stream()} loaded ${count} event(s)`
@@ -371,6 +360,8 @@ export abstract class AppBase {
    * Reads all stream
    */
   async read(name?: string, after = -1, limit = 1): Promise<Evt[]> {
-    return this._store.read(name, after, limit);
+    const events: Evt[] = [];
+    await this._store.read((e) => events.push(e), { name, after, limit });
+    return events;
   }
 }
