@@ -1,14 +1,15 @@
 import { Aggregate, CommittedEvent } from "@rotorsoft/eventually";
 import {
-  DIGITS,
-  SYMBOLS,
-  Digits,
   CalculatorModel,
+  DIGITS,
+  Digits,
+  Keys,
   Operators,
-  Keys
+  SYMBOLS
 } from "./calculator.models";
-import { Commands } from "./calculator.commands";
 import { Events, events } from "./calculator.events";
+
+import { Commands } from "./calculator.commands";
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 const Operations = {
@@ -33,7 +34,7 @@ export const Calculator = (
   id: string
 ): Aggregate<CalculatorModel, Omit<Commands, "Whatever">, Events> => ({
   stream: () => `Calculator:${id}`,
-
+  snapshotEventsThreshold: 2,
   // Model Reducer with event side effects
   init: (): CalculatorModel => ({
     result: 0

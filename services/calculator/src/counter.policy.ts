@@ -7,6 +7,7 @@ import {
 } from "@rotorsoft/eventually";
 import { Commands, commands } from "./calculator.commands";
 import { CounterState, Digits } from "./calculator.models";
+
 import { Calculator } from "./calculator.aggregate";
 import { Events } from "./calculator.events";
 
@@ -42,6 +43,7 @@ export const Counter = (
 
   reducer: {
     stream: () => `Counter:${event.stream}`,
+    snapshotEventsThreshold: 3,
     init: (): CounterState => ({ count: 0 }),
     applyDigitPressed: (model: CounterState) => {
       return { count: model.count + 1 };

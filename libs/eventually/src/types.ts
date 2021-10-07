@@ -63,6 +63,7 @@ export type Snapshot<M extends Payload> = {
 export type ModelReducer<M extends Payload, E> = {
   stream: () => string;
   init: () => Readonly<M>;
+  snapshotEventsThreshold?: number
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
     state: Readonly<M>,
