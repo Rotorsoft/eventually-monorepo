@@ -932,7 +932,7 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^2.0.5"
     "@rotorsoft/eventually-express": "workspace:^2.0.5"
     "@rotorsoft/eventually-gcp": "workspace:^2.0.2"
-    "@rotorsoft/eventually-pg": "workspace:^2.0.2"
+    "@rotorsoft/eventually-pg": "workspace:^2.0.3"
     "@rotorsoft/eventually-test": "workspace:libs/eventually-test"
     joi: ^17.4.2
     ts-node-dev: ^1.1.8
@@ -985,7 +985,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-pg@workspace:^2.0.2, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+"@rotorsoft/eventually-pg@workspace:^2.0.3, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
