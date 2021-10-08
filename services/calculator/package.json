@@ -18,7 +18,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^2.0.4",
+    "@rotorsoft/eventually": "workspace:^2.0.5",
     "@rotorsoft/eventually-express": "workspace:^2.0.4",
     "@rotorsoft/eventually-gcp": "workspace:^2.0.2",
     "@rotorsoft/eventually-pg": "workspace:^2.0.2",
