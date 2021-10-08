@@ -1444,6 +1444,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/uuid", "npm:8.3.1"],
             ["joi", "npm:17.4.2"],
             ["ts-node-dev", "virtual:f6da0aaee2891b94eb550f3895fb35ffea6568777566e3eb91a8c836dfc9cad0215e73d6b56de69246f6d0eec6903c698f87087da62b1abbd25567f4d749d72b#npm:1.1.8"],
+            ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"],
             ["uuid", "npm:8.3.2"]
           ],
           "linkType": "SOFT",
@@ -1460,7 +1461,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
             ["@rotorsoft/eventually-test", "workspace:libs/eventually-test"],
             ["joi", "npm:17.4.2"],
-            ["ts-node-dev", "virtual:d6a2488fefd43573ea45a1b3d62abd5508d1dbbedb05327e374951ecc7116132bc1dcf084a7f5bac2a7f896d26a2ca59b8bd2a53b7679ede4c2d94fafb5048b5#npm:1.1.8"],
+            ["ts-node-dev", "virtual:f6da0aaee2891b94eb550f3895fb35ffea6568777566e3eb91a8c836dfc9cad0215e73d6b56de69246f6d0eec6903c698f87087da62b1abbd25567f4d749d72b#npm:1.1.8"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
           ],
           "linkType": "SOFT",
@@ -7695,25 +7696,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["diff", "npm:4.0.2"],
             ["make-error", "npm:1.3.6"],
             ["source-map-support", "npm:0.5.20"],
-            ["typescript", null],
-            ["yn", "npm:3.1.1"]
-          ],
-          "packagePeers": [
-            "@types/typescript",
-            "typescript"
-          ],
-          "linkType": "HARD",
-        }],
-        ["virtual:f350f72a83ab90779a4326702172e0b9883b7860080600fe1e7a726fca650b2ed2ef53d5da75e6164b2d11ff8c68fea67585eff3f3032b998fbd188c14acfbd7#npm:9.1.1", {
-          "packageLocation": "./.yarn/__virtual__/ts-node-virtual-7711706ff8/0/cache/ts-node-npm-9.1.1-4ad31da228-356e2647b8.zip/node_modules/ts-node/",
-          "packageDependencies": [
-            ["ts-node", "virtual:f350f72a83ab90779a4326702172e0b9883b7860080600fe1e7a726fca650b2ed2ef53d5da75e6164b2d11ff8c68fea67585eff3f3032b998fbd188c14acfbd7#npm:9.1.1"],
-            ["@types/typescript", null],
-            ["arg", "npm:4.1.3"],
-            ["create-require", "npm:1.1.1"],
-            ["diff", "npm:4.0.2"],
-            ["make-error", "npm:1.3.6"],
-            ["source-map-support", "npm:0.5.20"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"],
             ["yn", "npm:3.1.1"]
           ],
@@ -7732,33 +7714,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:d6a2488fefd43573ea45a1b3d62abd5508d1dbbedb05327e374951ecc7116132bc1dcf084a7f5bac2a7f896d26a2ca59b8bd2a53b7679ede4c2d94fafb5048b5#npm:1.1.8", {
-          "packageLocation": "./.yarn/__virtual__/ts-node-dev-virtual-f350f72a83/0/cache/ts-node-dev-npm-1.1.8-a4a6e3dc64-768a580621.zip/node_modules/ts-node-dev/",
-          "packageDependencies": [
-            ["ts-node-dev", "virtual:d6a2488fefd43573ea45a1b3d62abd5508d1dbbedb05327e374951ecc7116132bc1dcf084a7f5bac2a7f896d26a2ca59b8bd2a53b7679ede4c2d94fafb5048b5#npm:1.1.8"],
-            ["@types/node-notifier", null],
-            ["@types/typescript", null],
-            ["chokidar", "npm:3.5.2"],
-            ["dynamic-dedupe", "npm:0.3.0"],
-            ["minimist", "npm:1.2.5"],
-            ["mkdirp", "npm:1.0.4"],
-            ["node-notifier", null],
-            ["resolve", "patch:resolve@npm%3A1.20.0#~builtin<compat/resolve>::version=1.20.0&hash=00b1ff"],
-            ["rimraf", "npm:2.7.1"],
-            ["source-map-support", "npm:0.5.20"],
-            ["tree-kill", "npm:1.2.2"],
-            ["ts-node", "virtual:f350f72a83ab90779a4326702172e0b9883b7860080600fe1e7a726fca650b2ed2ef53d5da75e6164b2d11ff8c68fea67585eff3f3032b998fbd188c14acfbd7#npm:9.1.1"],
-            ["tsconfig", "npm:7.0.0"],
-            ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
-          ],
-          "packagePeers": [
-            "@types/node-notifier",
-            "@types/typescript",
-            "node-notifier",
-            "typescript"
-          ],
-          "linkType": "HARD",
-        }],
         ["virtual:f6da0aaee2891b94eb550f3895fb35ffea6568777566e3eb91a8c836dfc9cad0215e73d6b56de69246f6d0eec6903c698f87087da62b1abbd25567f4d749d72b#npm:1.1.8", {
           "packageLocation": "./.yarn/__virtual__/ts-node-dev-virtual-cf3f426770/0/cache/ts-node-dev-npm-1.1.8-a4a6e3dc64-768a580621.zip/node_modules/ts-node-dev/",
           "packageDependencies": [
@@ -7776,7 +7731,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["tree-kill", "npm:1.2.2"],
             ["ts-node", "virtual:cf3f426770bfbfac9c95499176ebed761a7d10a381396d09ad6ec645cb5308a70d5b13c5edca03d88390c1480574a69c85a9aa77801864224f4f9a134e69294f#npm:9.1.1"],
             ["tsconfig", "npm:7.0.0"],
-            ["typescript", null]
+            ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
           ],
           "packagePeers": [
             "@types/node-notifier",
