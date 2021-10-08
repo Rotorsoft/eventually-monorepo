@@ -109,16 +109,3 @@ describe("PostgresStore", () => {
     expect(events.length).toBe(5);
   });
 });
-
-// TODO: implement this test with mocks
-// describe("Mocked", () => {
-//   afterEach(() => {
-//     jest.clearAllMocks();
-//   });
-
-//   it("should throw concurrecy error when committing", async () => {
-//     await expect(
-//       db.commit(a1, [event("test1", { value: "1" })])
-//     ).rejects.toThrowError(Errors.ConcurrencyError);
-//   });
-// });
