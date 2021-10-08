@@ -4,6 +4,7 @@ import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
 import * as schemas from "../calculator.schemas";
 import { Counter, CounterEvents } from "../counter.policy";
+import { sleep } from "./http";
 
 const app = App()
   .withAggregate(Calculator)
@@ -99,20 +100,20 @@ describe("in memory app", () => {
     });
 
     it("should throw concurrency error", async () => {
-      const test = Calculator("test");
+      const test4 = Calculator("test4");
 
       // GIVEN
-      await app.command(test, commands.PressKey({ key: "1" }));
+      await app.command(test4, commands.PressKey({ key: "1" }));
 
       // WHEN
-      await expect(app.command(test, commands.PressKey({ key: "1" }), "-1"))
+      await expect(app.command(test4, commands.PressKey({ key: "1" }), -1))
         // THEN
         .rejects.toThrowError(Errors.ConcurrencyError);
     });
 
     it("should throw validation error", async () => {
       await expect(
-        app.command(Calculator("test"), {
+        app.command(Calculator("test5"), {
           name: "PressKey",
           schema: () => schemas.PressKey
         })
@@ -121,26 +122,32 @@ describe("in memory app", () => {
 
     it("should throw model invariant violation", async () => {
       await expect(
-        app.command(Calculator("test5"), commands.PressKey({ key: "=" }))
+        app.command(Calculator("test6"), commands.PressKey({ key: "=" }))
       ).rejects.toThrowError("Don't have an operator");
     });
   });
 
   describe("Counter", () => {
     it("should return Reset on DigitPressed", async () => {
-      const test4 = Calculator("test4");
+      const test7 = Calculator("test7");
 
       // GIVEN
-      await app.command(test4, commands.PressKey({ key: "1" }));
-      await app.command(test4, commands.PressKey({ key: "1" }));
-      await app.command(test4, commands.PressKey({ key: "2" }));
-      await app.command(test4, commands.PressKey({ key: "." }));
+      await app.command(test7, commands.Reset());
+      await app.command(test7, commands.PressKey({ key: "1" }));
+      await sleep(10);
+      await app.command(test7, commands.PressKey({ key: "1" }));
+      await sleep(10);
+      await app.command(test7, commands.PressKey({ key: "2" }));
+      await sleep(10);
+      await app.command(test7, commands.PressKey({ key: "." }));
+      await sleep(10);
 
       // WHEN
-      await app.command(test4, commands.PressKey({ key: "3" }));
+      await app.command(test7, commands.PressKey({ key: "3" }));
+      await sleep(10);
 
       // THEN
-      const { event, state } = await app.load(test4);
+      const { event, state } = await app.load(test7);
       expect(state).toEqual({ result: 0 });
 
       const stream = await app.stream(

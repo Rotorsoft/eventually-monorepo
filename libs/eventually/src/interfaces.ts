@@ -1,23 +1,17 @@
-import { Evt, EvtOf, MsgOf, Payload, PolicyFactory } from "./types";
+import { EvtOf, MsgOf, Payload, PolicyFactory } from "./types";
 
 /**
- * Brokers emit committed events to reliable pub/sub topics
+ * Brokers publish committed events to pub/sub topics
  */
 export interface Broker {
-  /**
-   * Creates event topic
-   * @param event committed event
-   */
-  topic<E>(event: EvtOf<E>): Promise<void>;
-
   /**
    * Subscribes policy to topic
    * @param factory policy factory
    * @param event committed event
    */
-  subscribe<C, E, M extends Payload>(
-    factory: PolicyFactory<C, E, M>,
-    event: EvtOf<E>
+  subscribe(
+    factory: PolicyFactory<unknown, unknown, Payload>,
+    event: EvtOf<unknown>
   ): Promise<void>;
 
   /**
@@ -25,14 +19,14 @@ export interface Broker {
    * @param event committed event
    * @returns the message id
    */
-  publish: <E>(event: EvtOf<E>) => Promise<string>;
+  publish: (event: EvtOf<unknown>) => Promise<string>;
 
   /**
    * Decodes pushed messages
    * @param msg pushed message
    * @returns committed event in payload
    */
-  decode: (msg: Payload) => Evt;
+  decode: (msg: Payload) => EvtOf<unknown>;
 }
 
 /**
@@ -57,8 +51,8 @@ export interface Store {
    * @param after optional starting point - defaults to -1
    * @param limit optional limit of events to return
    */
-  read: <E>(
-    callback: (event: EvtOf<E>) => void,
+  read: (
+    callback: (event: EvtOf<unknown>) => void,
     options?: { stream?: string; name?: string; after?: number; limit?: number }
   ) => Promise<void>;
 
@@ -67,13 +61,13 @@ export interface Store {
    * @param stream stream name
    * @param events array of uncommitted events
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
-   * @param broker optional broker to publish committed events before closing the transaction
+   * @param broker optional broker to publish committed events before closing the transaction - "at-least-once" delivery
    * @returns array of committed events
    */
-  commit: <E>(
+  commit: (
     stream: string,
-    events: MsgOf<E>[],
-    expectedVersion?: string,
+    events: MsgOf<unknown>[],
+    expectedVersion?: number,
     broker?: Broker
-  ) => Promise<EvtOf<E>[]>;
+  ) => Promise<EvtOf<unknown>[]>;
 }

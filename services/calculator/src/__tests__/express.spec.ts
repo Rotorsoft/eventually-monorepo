@@ -4,7 +4,7 @@ import { Calculator } from "../calculator.aggregate";
 import { Counter, StatelessCounter } from "../counter.policy";
 import { commands } from "../calculator.commands";
 import { Events, events } from "../calculator.events";
-import { command, event, load, read, stream, get } from "./http";
+import { command, event, load, read, stream, get, sleep } from "./http";
 
 const app = App(new ExpressApp())
   .withEvents(events)
@@ -109,10 +109,15 @@ describe("express app", () => {
   describe("Counter", () => {
     it("should reset on last key pressed", async () => {
       await command(Calculator, "test3", commands.PressKey({ key: "1" }));
+      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "1" }));
+      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "2" }));
+      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "." }));
+      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "3" }));
+      await sleep(10);
 
       const { state } = await load(Calculator, "test3");
       expect(state).toEqual({ result: 0 });

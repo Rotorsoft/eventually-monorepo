@@ -19,12 +19,12 @@ const policy = async (
   const id = stream.substr("Calculator:".length);
   const { state } = await App().load(Calculator(id));
   if (
-    (state.left.length || "") >= threshold ||
+    (state.left || "").length >= threshold ||
     (state.right || "").length >= threshold
   )
     return {
       id,
-      expectedVersion: version.toString(),
+      expectedVersion: version,
       command: commands.Reset()
     };
 };

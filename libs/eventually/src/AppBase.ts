@@ -188,18 +188,11 @@ export abstract class AppBase {
    */
   protected async connect(): Promise<void> {
     await this._store.init();
-
-    await Promise.all(
-      handlersOf(this._event_factory).map((f) =>
-        this._broker
-          .topic(f())
-          .then(() => this.log.info("red", `> ${f.name} <`))
-      )
-    );
-
     await Promise.all(
       Object.values(this._policy_handlers).map(({ factory, event }) =>
-        this._broker.subscribe(factory, event)
+        this._broker
+          .subscribe(factory, event)
+          .then(() => this.log.info("red", `${factory.name} <<< ${event.name}`))
       )
     );
   }
@@ -231,7 +224,7 @@ export abstract class AppBase {
   async command<M extends Payload, C, E>(
     handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
     command: MsgOf<C>,
-    expectedVersion?: string
+    expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
@@ -244,11 +237,11 @@ export abstract class AppBase {
       ? await this.load(aggregate)
       : { state: undefined };
 
-    const events: MsgOf<E>[] = await (handler as any)[
+    const events: MsgOf<unknown>[] = await (handler as any)[
       "on".concat(command.name)
     ](command.data, state);
 
-    const committed = await this._store.commit<E>(
+    const committed = await this._store.commit(
       handler.stream(),
       events,
       expectedVersion,
@@ -307,8 +300,8 @@ export abstract class AppBase {
     }
 
     if (policy.reducer)
-      await this._store.commit<E>(policy.reducer.stream(), [
-        event as unknown as MsgOf<E>
+      await this._store.commit(policy.reducer.stream(), [
+        event as unknown as MsgOf<unknown>
       ]);
 
     return response;
@@ -327,7 +320,7 @@ export abstract class AppBase {
     let event: EvtOf<E>;
     let state = reducer.init();
     let count = 0;
-    await this._store.read<E>(
+    await this._store.read(
       (e) => {
         event = e;
         state = (reducer as any)["apply".concat(e.name)](state, e);

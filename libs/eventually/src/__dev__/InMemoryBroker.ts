@@ -1,12 +1,4 @@
-import {
-  AppBase,
-  Broker,
-  Evt,
-  EvtOf,
-  Payload,
-  PolicyFactory,
-  TopicNotFound
-} from "..";
+import { AppBase, Broker, EvtOf, Payload, PolicyFactory } from "..";
 
 export const InMemoryBroker = (app: AppBase): Broker => {
   const _topics: {
@@ -14,34 +6,24 @@ export const InMemoryBroker = (app: AppBase): Broker => {
   } = {};
 
   return {
-    topic: <E>(event: EvtOf<E>): Promise<void> => {
-      _topics[event.name] = _topics[event.name] || [];
-      return Promise.resolve();
-    },
-
-    subscribe: <C, E, M extends Payload>(
-      factory: PolicyFactory<C, E, M>,
-      event: EvtOf<E>
+    subscribe: (
+      factory: PolicyFactory<unknown, unknown, Payload>,
+      event: EvtOf<unknown>
     ): Promise<void> => {
-      const topic = _topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
+      const topic = (_topics[event.name] = _topics[event.name] || []);
       topic.push(factory);
       return Promise.resolve();
     },
 
-    publish: async <E>(event: EvtOf<E>): Promise<string> => {
+    publish: (event: EvtOf<unknown>): Promise<string> => {
       const topic = _topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
-      const promises = topic.map((factory) =>
-        app.event(factory as PolicyFactory<unknown, E, Payload>, event)
-      );
-      await Promise.all(promises);
-
-      return event.id.toString();
+      if (topic) {
+        // simulate async subscriptions with delay
+        topic.map((f) => setTimeout(() => app.event(f, event), 5));
+      }
+      return Promise.resolve(event.id.toString());
     },
 
-    decode: (msg: Payload): Evt => msg as Evt
+    decode: (msg: Payload): EvtOf<unknown> => msg as EvtOf<unknown>
   };
 };

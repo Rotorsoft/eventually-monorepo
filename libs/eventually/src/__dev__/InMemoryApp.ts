@@ -40,7 +40,7 @@ export class InMemoryApp extends AppBase {
   async command<M extends Payload, C, E>(
     handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
     command: MsgOf<C>,
-    expectedVersion?: string
+    expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
     validate(command);
     const snapshots = await super.command(handler, command, expectedVersion);

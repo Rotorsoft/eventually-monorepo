@@ -1,7 +1,6 @@
 import * as joi from "joi";
 import {
   AggregateFactory,
-  Evt,
   EvtOf,
   ExternalSystemFactory,
   MessageFactory,
@@ -103,16 +102,11 @@ export const committedSchema = (schema: joi.ObjectSchema): joi.ObjectSchema =>
     })
   );
 
-export class TopicNotFound extends Error {
-  constructor(event: Evt) {
-    super(`Topic "${event.name}" not found`);
-  }
-}
-
 export enum Errors {
   ValidationError = "Validation Error",
   ConcurrencyError = "Concurrency Error"
 }
+
 export class ValidationError extends Error {
   public readonly details;
   constructor(errors: joi.ValidationError) {
@@ -125,7 +119,7 @@ export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,
     public readonly events: { name: string; data?: Payload }[],
-    public readonly expectedVersion: string
+    public readonly expectedVersion: number
   ) {
     super(Errors.ConcurrencyError);
   }

@@ -124,7 +124,7 @@ export class ExpressApp extends AppBase {
               const snapshots = await this.command(
                 factory(id),
                 value,
-                expectedVersion
+                +expectedVersion
               );
               res.setHeader(
                 "ETag",

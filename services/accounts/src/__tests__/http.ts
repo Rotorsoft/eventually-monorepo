@@ -18,3 +18,6 @@ export const command = async <C, E>(
   >(url(externalSystemCommandPath(factory, msg)), msg);
   return data;
 };
+
+export const sleep = (millis: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, millis));

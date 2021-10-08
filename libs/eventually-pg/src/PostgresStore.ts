@@ -52,8 +52,8 @@ export const PostgresStore = (table: string): Store => ({
     await pool.end();
   },
 
-  read: async <E>(
-    callback: (event: EvtOf<E>) => void,
+  read: async (
+    callback: (event: EvtOf<unknown>) => void,
     options?: { stream?: string; name?: string; after: number; limit: number }
   ): Promise<void> => {
     const { stream, name, after = -1, limit } = options;
@@ -75,16 +75,16 @@ export const PostgresStore = (table: string): Store => ({
     }
 
     (await pool.query<Event>(sql, values)).rows.map((e) =>
-      callback(e as EvtOf<E>)
+      callback(e as EvtOf<unknown>)
     );
   },
 
-  commit: async <E>(
+  commit: async (
     stream: string,
-    events: MsgOf<E>[],
-    expectedVersion?: string,
+    events: MsgOf<unknown>[],
+    expectedVersion?: number,
     broker?: Broker
-  ): Promise<EvtOf<E>[]> => {
+  ): Promise<EvtOf<unknown>[]> => {
     const client = await pool.connect();
     let version = -1;
     try {
@@ -94,7 +94,7 @@ export const PostgresStore = (table: string): Store => ({
         [stream]
       );
       version = last.rowCount ? last.rows[0].version : -1;
-      if (expectedVersion && version.toString() !== expectedVersion)
+      if (expectedVersion && version !== expectedVersion)
         throw new ConcurrencyError(version, events, expectedVersion);
 
       const committed = await Promise.all(
@@ -105,19 +105,21 @@ export const PostgresStore = (table: string): Store => ({
           VALUES($1, $2, $3, $4) RETURNING *`,
             [name, data, stream, version]
           );
-          return committed.rows[0] as EvtOf<E>;
+          return committed.rows[0] as EvtOf<unknown>;
         })
       );
 
       // publish inside transaction to ensure "at-least-once" delivery
       if (broker) await Promise.all(committed.map((e) => broker.publish(e)));
 
-      await client.query("COMMIT");
+      await client.query("COMMIT").catch((error) => {
+        log().error(error);
+        throw new ConcurrencyError(version, events, expectedVersion);
+      });
       return committed;
-    } catch (e) {
+    } catch (error) {
       await client.query("ROLLBACK");
-      log().error(e);
-      throw new ConcurrencyError(version, events, expectedVersion);
+      throw error;
     } finally {
       client.release();
     }

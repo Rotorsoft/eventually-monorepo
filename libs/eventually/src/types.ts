@@ -123,7 +123,7 @@ export type EventHandler<Response, E, M extends Payload> = {
 export type PolicyResponse<C> = {
   command: MsgOf<C>;
   id?: string;
-  expectedVersion?: string;
+  expectedVersion?: number;
 };
 
 /**

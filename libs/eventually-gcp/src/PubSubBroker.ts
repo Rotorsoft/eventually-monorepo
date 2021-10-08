@@ -1,13 +1,11 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
-  Evt,
   EvtOf,
   log,
   Payload,
   policyEventPath,
-  PolicyFactory,
-  TopicNotFound
+  PolicyFactory
 } from "@rotorsoft/eventually";
 import { config } from "./config";
 
@@ -20,31 +18,33 @@ type Message = {
   subscription: string;
 };
 
+const pubsub = new PubSub(
+  config.gcp.project ? { projectId: config.gcp.project } : {}
+);
+const orderingKey = "id";
+const topics: { [name: string]: GcpTopic } = {};
+
+const topic = async (event: EvtOf<unknown>): Promise<GcpTopic> => {
+  let topic = topics[event.name];
+  if (!topic) {
+    topic = new GcpTopic(pubsub, event.name);
+    const [exists] = await topic.exists();
+    if (!exists) await topic.create();
+    topics[event.name] = topic;
+  }
+  return topic;
+};
+
 export const PubSubBroker = (): Broker => {
-  const topics: { [name: string]: GcpTopic } = {};
-
   return {
-    topic: async <E>(event: EvtOf<E>): Promise<void> => {
-      const options = config.gcp.project
-        ? { projectId: config.gcp.project }
-        : {};
-
-      const pubsub = new PubSub(options);
-      const topic = new GcpTopic(pubsub, event.name);
-      const [exists] = await topic.exists();
-      if (!exists) await topic.create();
-      topics[event.name] = topic;
-    },
-
-    subscribe: async <C, E, M extends Payload>(
-      factory: PolicyFactory<C, E, M>,
-      event: EvtOf<E>
+    subscribe: async (
+      factory: PolicyFactory<unknown, unknown, Payload>,
+      event: EvtOf<unknown>
     ): Promise<void> => {
-      const topic = topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
       const url = `${config.host}${policyEventPath(factory, event)}`;
-      const sub = topic.subscription(factory.name.concat(".", event.name));
+      const sub = (await topic(event)).subscription(
+        factory.name.concat(".", event.name)
+      );
       const [exists] = await sub.exists();
       if (!exists)
         await sub.create({
@@ -55,30 +55,28 @@ export const PubSubBroker = (): Broker => {
         await sub.modifyPushConfig({ pushEndpoint: url });
     },
 
-    publish: async <E>(event: EvtOf<E>): Promise<string> => {
-      const topic = topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
-      const orderingKey = "id";
+    publish: async (event: EvtOf<unknown>): Promise<string> => {
+      let t: GcpTopic;
       try {
-        const [messageId] = await topic.publishMessage({
+        t = await topic(event);
+        const [messageId] = await t.publishMessage({
           data: Buffer.from(JSON.stringify(event)),
           orderingKey
         });
         return `${messageId}@${event.id}`;
       } catch (error) {
         log().error(error);
-        topic.resumePublishing(orderingKey);
+        if (t) t.resumePublishing(orderingKey);
       }
     },
 
-    decode: (msg: Payload): Evt => {
+    decode: (msg: Payload): EvtOf<unknown> => {
       const { message, subscription } = msg as unknown as Message;
       if (message && subscription)
         return JSON.parse(
           Buffer.from(message.data, "base64").toString("utf-8")
-        ) as Evt;
-      return msg as Evt;
+        ) as EvtOf<unknown>;
+      return msg as EvtOf<unknown>;
     }
   };
 };

@@ -3,6 +3,7 @@ import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
+import { sleep } from "./http";
 
 App()
   .withCommands(commands.factory)
@@ -39,9 +40,11 @@ describe("happy path", () => {
 
     // given
     await App().event(policies.IntegrateAccount1, t);
+    await sleep(100);
 
     // when
     await App().event(policies.IntegrateAccount2, t);
+    await sleep(100);
 
     // then
     const [seed] = await App().read("Account1Created");
@@ -64,9 +67,11 @@ describe("happy path", () => {
 
     // given
     await App().event(policies.IntegrateAccount2, t);
+    await sleep(100);
 
     // when
     await App().event(policies.IntegrateAccount1, t);
+    await sleep(100);
 
     // then
     const [seed] = (await App().read("Account1Created", -1, 100)).filter(

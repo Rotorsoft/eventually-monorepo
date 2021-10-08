@@ -1,5 +1,12 @@
 import { Chance } from "chance";
-import { MsgOf, Payload, Evt, EvtOf } from "@rotorsoft/eventually";
+import {
+  MsgOf,
+  Payload,
+  Evt,
+  EvtOf,
+  InMemoryBroker,
+  App
+} from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
 const db = PostgresStore("test");
@@ -15,15 +22,31 @@ type E = {
   test3: { value: string };
 };
 
-const event = (name: keyof E, data?: Payload): MsgOf<E> => ({
-  name,
-  schema: () => null,
-  data
-});
+const event = (name: keyof E, data?: Payload): MsgOf<unknown> =>
+  ({
+    name,
+    data,
+    schema: () => null
+  } as MsgOf<unknown>);
 
 describe("PostgresStore", () => {
   beforeAll(async () => {
     await db.init();
+    await db.commit(a1, [event("test1", { value: "1" })]);
+    await db.commit(a1, [event("test1", { value: "2" })]);
+    await db.commit(a2, [event("test2", { value: "3" })]);
+    await db.commit(a3, [event("test1", { value: "4" })]);
+    await db.commit(a1, [event("test2", { value: "5" })]);
+    await db.commit(
+      a1,
+      [
+        event("test3", { value: "1" }),
+        event("test3", { value: "2" }),
+        event("test3", { value: "3" })
+      ],
+      undefined,
+      InMemoryBroker(App())
+    );
   });
 
   afterAll(async () => {
@@ -31,12 +54,6 @@ describe("PostgresStore", () => {
   });
 
   it("should commit events", async () => {
-    await db.commit(a1, [event("test1", { value: "1" })]);
-    await db.commit(a1, [event("test1", { value: "2" })]);
-    await db.commit(a2, [event("test2", { value: "3" })]);
-    await db.commit(a3, [event("test1", { value: "4" })]);
-    await db.commit(a1, [event("test2", { value: "5" })]);
-
     let first: number,
       count = 0;
     await db.read(
@@ -47,16 +64,10 @@ describe("PostgresStore", () => {
       { stream: a1 }
     );
     expect(first).toBeGreaterThan(0);
-    expect(count).toBe(3);
+    expect(count).toBe(6);
   });
 
   it("should commit events array", async () => {
-    await db.commit(a1, [
-      event("test3", { value: "1" }),
-      event("test3", { value: "2" }),
-      event("test3", { value: "3" })
-    ]);
-
     const events: Evt[] = [];
     await db.read(
       (e) => {
@@ -72,10 +83,9 @@ describe("PostgresStore", () => {
   });
 
   it("should throw concurrency error", async () => {
-    const committed = await db.commit(a1, [event("test2", { value: "1" })]);
-    await expect(
-      db.commit(a1, [event("test2")], (committed[0].version + 1).toString())
-    ).rejects.toThrowError("Concurrency Error");
+    await expect(db.commit(a1, [event("test2")], 1)).rejects.toThrowError(
+      "Concurrency Error"
+    );
   });
 
   it("should read stream with after", async () => {
@@ -99,3 +109,16 @@ describe("PostgresStore", () => {
     expect(events.length).toBe(5);
   });
 });
+
+// TODO: implement this test with mocks
+// describe("Mocked", () => {
+//   afterEach(() => {
+//     jest.clearAllMocks();
+//   });
+
+//   it("should throw concurrecy error when committing", async () => {
+//     await expect(
+//       db.commit(a1, [event("test1", { value: "1" })])
+//     ).rejects.toThrowError(Errors.ConcurrencyError);
+//   });
+// });
