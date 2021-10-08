@@ -1,10 +1,10 @@
 import { App, Errors, EvtOf, log } from "@rotorsoft/eventually";
+import { sleep } from "@rotorsoft/eventually-test";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
 import * as schemas from "../calculator.schemas";
 import { Counter, CounterEvents } from "../counter.policy";
-import { sleep } from "./http";
 
 const app = App()
   .withAggregate(Calculator)

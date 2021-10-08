@@ -1,11 +1,11 @@
 import { App } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
+import { command, system } from "@rotorsoft/eventually-test";
 import { Server } from "http";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
-import { command } from "./http";
 
 App(new ExpressApp())
   .withCommands(commands.factory)
@@ -20,12 +20,13 @@ App(new ExpressApp())
   .withExternalSystem(systems.ExternalSystem4);
 
 let server: Server;
+const port = 3005;
 
 describe("express", () => {
   beforeAll(async () => {
     const express = App().build();
     await App().listen(true);
-    server = (express as any).listen(3005, () => {
+    server = (express as any).listen(port, () => {
       return;
     });
   });
@@ -37,9 +38,10 @@ describe("express", () => {
 
   it("should complete command", async () => {
     // when
-    const [result] = await command(
+    const [result] = await system(
       systems.ExternalSystem1,
-      commands.factory.CreateAccount1({ id: "test" })
+      commands.factory.CreateAccount1({ id: "test" }),
+      port
     );
 
     // then
@@ -49,10 +51,14 @@ describe("express", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      command(systems.ExternalSystem1, {
-        name: "CreateAccount1",
-        schema: () => undefined
-      })
+      system(
+        systems.ExternalSystem1,
+        {
+          name: "CreateAccount1",
+          schema: () => undefined
+        },
+        port
+      )
     ).rejects.toThrowError("Request failed with status code 400");
   });
 });

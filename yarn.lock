@@ -917,8 +917,8 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:libs/eventually"
     "@rotorsoft/eventually-express": "workspace:libs/eventually-express"
+    "@rotorsoft/eventually-test": "workspace:libs/eventually-test"
     "@types/uuid": ^8
-    axios: ^0.22.0
     joi: ^17.4.2
     ts-node-dev: ^1.1.8
     uuid: ^8.3.2
@@ -933,7 +933,7 @@ __metadata:
     "@rotorsoft/eventually-express": "workspace:^2.0.4"
     "@rotorsoft/eventually-gcp": "workspace:^2.0.2"
     "@rotorsoft/eventually-pg": "workspace:^2.0.2"
-    axios: ^0.21.4
+    "@rotorsoft/eventually-test": "workspace:libs/eventually-test"
     joi: ^17.4.2
     ts-node-dev: ^1.1.8
     typescript: ^4.4.3
@@ -996,6 +996,18 @@ __metadata:
     chance: ^1.1.8
     joi: ^17.4.2
     pg: ^8.7.1
+  languageName: unknown
+  linkType: soft
+
+"@rotorsoft/eventually-test@workspace:libs/eventually-test":
+  version: 0.0.0-use.local
+  resolution: "@rotorsoft/eventually-test@workspace:libs/eventually-test"
+  dependencies:
+    "@rotorsoft/eventually": "workspace:^2.0.4"
+    "@types/chance": ^1
+    "@types/node": ^16.9.2
+    axios: ^0.22.0
+    chance: ^1.1.8
   languageName: unknown
   linkType: soft
 
@@ -1709,15 +1721,6 @@ __metadata:
   version: 0.4.0
   resolution: "asynckit@npm:0.4.0"
   checksum: 7b78c451df768adba04e2d02e63e2d0bf3b07adcd6e42b4cf665cb7ce899bedd344c69a1dcbce355b5f972d597b25aaa1c1742b52cffd9caccb22f348114f6be
-  languageName: node
-  linkType: hard
-
-"axios@npm:^0.21.4":
-  version: 0.21.4
-  resolution: "axios@npm:0.21.4"
-  dependencies:
-    follow-redirects: ^1.14.0
-  checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
   languageName: node
   linkType: hard
 
@@ -3014,7 +3017,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.0, follow-redirects@npm:^1.14.4":
+"follow-redirects@npm:^1.14.4":
   version: 1.14.4
   resolution: "follow-redirects@npm:1.14.4"
   peerDependenciesMeta:

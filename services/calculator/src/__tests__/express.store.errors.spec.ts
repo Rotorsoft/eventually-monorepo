@@ -1,10 +1,10 @@
 import { App, InMemoryBroker, InMemoryStore } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
+import { get } from "@rotorsoft/eventually-test";
 import { Server } from "http";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
-import { get } from "./http";
 
 const app = App(new ExpressApp())
   .withEvents(events)

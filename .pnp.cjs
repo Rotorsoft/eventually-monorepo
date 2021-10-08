@@ -39,6 +39,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:libs/eventually-pg"
       },
       {
+        "name": "@rotorsoft/eventually-test",
+        "reference": "workspace:libs/eventually-test"
+      },
+      {
         "name": "@rotorsoft/accounts",
         "reference": "workspace:services/accounts"
       },
@@ -56,7 +60,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@rotorsoft/eventually-express", ["workspace:libs/eventually-express"]],
       ["@rotorsoft/eventually-gcp", ["workspace:libs/eventually-gcp"]],
       ["@rotorsoft/eventually-monorepo", ["workspace:."]],
-      ["@rotorsoft/eventually-pg", ["workspace:libs/eventually-pg"]]
+      ["@rotorsoft/eventually-pg", ["workspace:libs/eventually-pg"]],
+      ["@rotorsoft/eventually-test", ["workspace:libs/eventually-test"]]
     ],
     "fallbackPool": [
     ],
@@ -1435,8 +1440,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/accounts", "workspace:services/accounts"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
+            ["@rotorsoft/eventually-test", "workspace:libs/eventually-test"],
             ["@types/uuid", "npm:8.3.1"],
-            ["axios", "npm:0.22.0"],
             ["joi", "npm:17.4.2"],
             ["ts-node-dev", "virtual:f6da0aaee2891b94eb550f3895fb35ffea6568777566e3eb91a8c836dfc9cad0215e73d6b56de69246f6d0eec6903c698f87087da62b1abbd25567f4d749d72b#npm:1.1.8"],
             ["uuid", "npm:8.3.2"]
@@ -1453,7 +1458,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
             ["@rotorsoft/eventually-gcp", "workspace:libs/eventually-gcp"],
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
-            ["axios", "npm:0.21.4"],
+            ["@rotorsoft/eventually-test", "workspace:libs/eventually-test"],
             ["joi", "npm:17.4.2"],
             ["ts-node-dev", "virtual:d6a2488fefd43573ea45a1b3d62abd5508d1dbbedb05327e374951ecc7116132bc1dcf084a7f5bac2a7f896d26a2ca59b8bd2a53b7679ede4c2d94fafb5048b5#npm:1.1.8"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
@@ -1536,6 +1541,20 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["chance", "npm:1.1.8"],
             ["joi", "npm:17.4.2"],
             ["pg", "virtual:0e6bf918d48a553b0f7e203f79dbd33d8b7b15d366e18d07c87dd174380f009c8b8285bbb5aa2628661cb43c0cfd1758a2c04877f3211ad8547e5e8a1cc59668#npm:8.7.1"]
+          ],
+          "linkType": "SOFT",
+        }]
+      ]],
+      ["@rotorsoft/eventually-test", [
+        ["workspace:libs/eventually-test", {
+          "packageLocation": "./libs/eventually-test/",
+          "packageDependencies": [
+            ["@rotorsoft/eventually-test", "workspace:libs/eventually-test"],
+            ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@types/chance", "npm:1.1.3"],
+            ["@types/node", "npm:16.9.2"],
+            ["axios", "npm:0.22.0"],
+            ["chance", "npm:1.1.8"]
           ],
           "linkType": "SOFT",
         }]
@@ -2414,14 +2433,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["axios", [
-        ["npm:0.21.4", {
-          "packageLocation": "./.yarn/cache/axios-npm-0.21.4-e278873748-44245f24ac.zip/node_modules/axios/",
-          "packageDependencies": [
-            ["axios", "npm:0.21.4"],
-            ["follow-redirects", "virtual:ed558f7b05c3a636c1ad2d97f901dd0c42b922ef0ba05d49aa3260595e3d01913b69c7d48043293c92c362499c1263e2fbc09546eb72d357a16e9997e9137304#npm:1.14.4"]
-          ],
-          "linkType": "HARD",
-        }],
         ["npm:0.22.0", {
           "packageLocation": "./.yarn/cache/axios-npm-0.22.0-ed558f7b05-83dc4d02e1.zip/node_modules/axios/",
           "packageDependencies": [

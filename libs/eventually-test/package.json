@@ -1,0 +1,30 @@
+{
+  "name": "@rotorsoft/eventually-test",
+  "version": "1.0.0",
+  "description": "Eventually Framework Testing Services",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "libs/eventually-test"
+  },
+  "main": "dist/index",
+  "types": "dist/index",
+  "files": [
+    "dist"
+  ],
+  "scripts": {},
+  "dependencies": {
+    "@rotorsoft/eventually": "workspace:^2.0.4",
+    "axios": "^0.22.0"
+  },
+  "devDependencies": {
+    "@types/chance": "^1",
+    "@types/node": "^16.9.2",
+    "chance": "^1.1.8"
+  }
+}

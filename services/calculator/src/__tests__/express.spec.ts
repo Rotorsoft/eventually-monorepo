@@ -1,10 +1,18 @@
 import { App, EvtOf } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
+import {
+  command,
+  event,
+  get,
+  load,
+  read,
+  sleep,
+  stream
+} from "@rotorsoft/eventually-test";
 import { Calculator } from "../calculator.aggregate";
-import { Counter, StatelessCounter } from "../counter.policy";
 import { commands } from "../calculator.commands";
 import { Events, events } from "../calculator.events";
-import { command, event, load, read, stream, get, sleep } from "./http";
+import { Counter, StatelessCounter } from "../counter.policy";
 
 const app = App(new ExpressApp())
   .withEvents(events)
@@ -80,7 +88,7 @@ describe("express app", () => {
     it("should throw concurrency error", async () => {
       await command(Calculator, "test", commands.PressKey({ key: "1" }));
       await expect(
-        command(Calculator, "test", commands.PressKey({ key: "1" }), "-1")
+        command(Calculator, "test", commands.PressKey({ key: "1" }), -1)
       ).rejects.toThrowError("Request failed with status code 409");
     });
 

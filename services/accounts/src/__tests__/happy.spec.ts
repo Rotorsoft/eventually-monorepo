@@ -1,9 +1,9 @@
 import { App, EvtOf } from "@rotorsoft/eventually";
+import { sleep } from "@rotorsoft/eventually-test";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
-import { sleep } from "./http";
 
 App()
   .withCommands(commands.factory)

@@ -4,6 +4,8 @@ import {
   aggregatePath,
   Evt,
   EvtOf,
+  externalSystemCommandPath,
+  ExternalSystemFactory,
   MsgOf,
   Payload,
   policyEventPath,
@@ -23,14 +25,28 @@ export const command = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>,
   id: string,
   msg: MsgOf<C>,
-  expectedVersion?: string,
+  expectedVersion?: number,
   port = 3000
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.post<MsgOf<C>, AxiosResponse<Snapshot<M>[]>>(
     url(aggregateCommandPath(factory, msg).replace(":id", id), port),
     msg,
-    { headers: expectedVersion ? { "If-Match": expectedVersion } : {} }
+    {
+      headers: expectedVersion ? { "If-Match": expectedVersion.toString() } : {}
+    }
   );
+  return data;
+};
+
+export const system = async <C, E>(
+  factory: ExternalSystemFactory<C, E>,
+  msg: MsgOf<C>,
+  port: number
+): Promise<Snapshot<undefined>[]> => {
+  const { data } = await axios.post<
+    MsgOf<C>,
+    AxiosResponse<Snapshot<undefined>[]>
+  >(url(externalSystemCommandPath(factory, msg), port), msg);
   return data;
 };
 
@@ -39,7 +55,7 @@ export const event = async <C, E, M extends Payload>(
   event: EvtOf<E>
 ): Promise<PolicyResponse<C> | undefined> => {
   const { data } = await axios.post<
-    MsgOf<C>,
+    EvtOf<E>,
     AxiosResponse<PolicyResponse<C> | undefined>
   >(url(policyEventPath(factory, event)), event);
   return data;
