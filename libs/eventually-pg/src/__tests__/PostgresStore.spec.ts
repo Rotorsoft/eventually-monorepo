@@ -5,7 +5,7 @@ import {
   Evt,
   EvtOf,
   InMemoryBroker,
-  App
+  app
 } from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
@@ -45,7 +45,7 @@ describe("PostgresStore", () => {
         event("test3", { value: "3" })
       ],
       undefined,
-      InMemoryBroker(App())
+      InMemoryBroker(app())
     );
   });
 

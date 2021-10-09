@@ -9,8 +9,6 @@ import {
   Errors,
   Evt,
   ExternalSystemFactory,
-  InMemoryBroker,
-  InMemoryStore,
   MsgOf,
   Payload,
   Snapshot,
@@ -104,7 +102,7 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._aggregate_handlers).map(
+    Object.values(this._handlers.aggregates).map(
       ({ factory, command, path }) => {
         aggregates[factory.name] = factory;
         this._router.post(
@@ -150,34 +148,32 @@ export class ExpressApp extends AppBase {
       string,
       ExternalSystemFactory<unknown, unknown>
     > = {};
-    Object.values(this._externalsystem_handlers).map(
-      ({ factory, command, path }) => {
-        externalsystems[factory.name] = factory;
-        this._router.post(
-          path,
-          async (req: Request, res: Response, next: NextFunction) => {
-            try {
-              const { error, value } = command
-                .schema()
-                .validate(req.body, { abortEarly: false });
-              if (error) throw new ValidationError(error);
-              const snapshots = await this.command(factory(), value);
-              res.setHeader(
-                "ETag",
-                snapshots[snapshots.length - 1].event.version
-              );
-              return res.status(200).send(snapshots);
-            } catch (error) {
-              next(error);
-            }
+    Object.values(this._handlers.systems).map(({ factory, command, path }) => {
+      externalsystems[factory.name] = factory;
+      this._router.post(
+        path,
+        async (req: Request, res: Response, next: NextFunction) => {
+          try {
+            const { error, value } = command
+              .schema()
+              .validate(req.body, { abortEarly: false });
+            if (error) throw new ValidationError(error);
+            const snapshots = await this.command(factory(), value);
+            res.setHeader(
+              "ETag",
+              snapshots[snapshots.length - 1].event.version
+            );
+            return res.status(200).send(snapshots);
+          } catch (error) {
+            next(error);
           }
-        );
-      }
-    );
+        }
+      );
+    });
   }
 
   private _buildPolicies(): void {
-    Object.values(this._policy_handlers).map(({ factory, event, path }) => {
+    Object.values(this._handlers.policies).map(({ factory, event, path }) => {
       this._router.post(
         path,
         async (req: Request, res: Response, next: NextFunction) => {
@@ -200,11 +196,9 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  build(options?: { store?: Store; broker?: Broker }): unknown {
-    this._store = options?.store || InMemoryStore();
-    this._broker = options?.broker || InMemoryBroker(this);
+  build(options?: { store?: Store; broker?: Broker }): express.Express {
+    super.build(options);
 
-    this.prepare();
     this._buildAggregates();
     this._buildExternalSystems();
     this._buildPolicies();
@@ -232,8 +226,12 @@ export class ExpressApp extends AppBase {
     return this._app;
   }
 
+  /**
+   * Starts listening
+   * @param silent flag to skip express listening when using cloud functions
+   */
   async listen(silent = false): Promise<void> {
-    await this.connect();
+    await super.listen();
     if (silent) this.log.info("white", "Config", config());
     else
       this._server = this._app.listen(config().port, () => {
@@ -242,13 +240,10 @@ export class ExpressApp extends AppBase {
   }
 
   async close(): Promise<void> {
-    if (this._store) {
-      await this._store.close();
-      this._store = undefined;
-    }
+    await super.close();
     if (this._server) {
       this._server.close();
-      this._server = undefined;
+      delete this._server;
     }
   }
 }

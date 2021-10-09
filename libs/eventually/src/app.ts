@@ -1,14 +1,12 @@
-import { externalSystemCommandPath } from ".";
+import { InMemoryBroker, InMemoryStore } from "./__dev__";
+import { Builder, Handlers } from "./builder";
 import { Broker, Store } from "./interfaces";
-import { Log, log } from "./log";
+import { log } from "./log";
 import {
   Aggregate,
-  AggregateFactory,
   Evt,
   EvtOf,
   ExternalSystem,
-  ExternalSystemFactory,
-  MessageFactory,
   ModelReducer,
   MsgOf,
   Payload,
@@ -16,48 +14,13 @@ import {
   PolicyResponse,
   Snapshot
 } from "./types";
-import { aggregateCommandPath, handlersOf, policyEventPath } from "./utils";
 
 /**
  * App abstraction implementing generic handlers
  */
-export abstract class AppBase {
-  public readonly log: Log = log();
-
-  private _event_factory: MessageFactory<unknown> = {};
-  private _command_factory: MessageFactory<unknown> = {};
-  private _aggregate_factories: {
-    [name: string]: AggregateFactory<Payload, unknown, unknown>;
-  } = {};
-  private _externalsystem_factories: {
-    [name: string]: ExternalSystemFactory<unknown, unknown>;
-  } = {};
-  private _policy_factories: {
-    [name: string]: PolicyFactory<unknown, unknown, Payload>;
-  } = {};
-
-  protected _aggregate_handlers: {
-    [name: string]: {
-      factory: AggregateFactory<Payload, unknown, unknown>;
-      command: MsgOf<unknown>;
-      path: string;
-    };
-  } = {};
-  protected _externalsystem_handlers: {
-    [name: string]: {
-      factory: ExternalSystemFactory<unknown, unknown>;
-      command: MsgOf<unknown>;
-      path: string;
-    };
-  } = {};
-  protected _policy_handlers: {
-    [path: string]: {
-      factory: PolicyFactory<unknown, unknown, Payload>;
-      event: EvtOf<unknown>;
-      path: string;
-    };
-  } = {};
-
+export abstract class AppBase extends Builder {
+  public readonly log = log();
+  protected _handlers: Handlers;
   protected _store: Store;
   protected _broker: Broker;
 
@@ -86,110 +49,24 @@ export abstract class AppBase {
   }
 
   /**
-   * Registers event factory
-   * @param factory event factory
+   * Builds application
+   * @param options options for store and broker
    */
-  public withEvents<E>(factory: MessageFactory<E>): this {
-    this._event_factory = factory;
-    return this;
+  build(options?: { store?: Store; broker?: Broker }): unknown | undefined {
+    this._handlers = super.handlers();
+    this._store = options?.store || InMemoryStore();
+    this._broker = options?.broker || InMemoryBroker(this);
+    return;
   }
 
   /**
-   * Registers command factory
-   * @param factory command factory
+   * Initializes application store and subscribes policy handlers to event topics
+   * Concrete implementations provide the listening framework
    */
-  public withCommands<C>(factory: MessageFactory<C>): this {
-    this._command_factory = factory;
-    return this;
-  }
-
-  /**
-   * Registers aggregate factory
-   * @param factory aggregate factory
-   */
-  public withAggregate<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>
-  ): this {
-    this._aggregate_factories[factory.name] = factory;
-    return this;
-  }
-
-  /**
-   * Registers external system factory
-   * @param factory external system factory
-   */
-  public withExternalSystem<C, E>(factory: ExternalSystemFactory<C, E>): this {
-    this._externalsystem_factories[factory.name] = factory;
-    return this;
-  }
-
-  /**
-   * Registers policy factory
-   * @param factory policy factory
-   */
-  public withPolicy<C, E, M extends Payload>(
-    factory: PolicyFactory<C, E, M>
-  ): this {
-    this._policy_factories[factory.name] = factory;
-    return this;
-  }
-
-  /**
-   * Prepares handlers
-   */
-  protected prepare(): void {
-    Object.values(this._aggregate_factories).map((factory) => {
-      const aggregate = factory("");
-      handlersOf(this._command_factory).map((f) => {
-        const command = f() as MsgOf<unknown>;
-        const path = aggregateCommandPath(factory, command);
-        if (Object.keys(aggregate).includes("on".concat(command.name))) {
-          this._aggregate_handlers[command.name] = {
-            factory,
-            command,
-            path
-          };
-          this.log.info("blue", `[POST ${command.name}]`, path);
-        }
-      });
-    });
-
-    Object.values(this._externalsystem_factories).map((factory) => {
-      const externalsystem = factory();
-      handlersOf(this._command_factory).map((f) => {
-        const command = f() as MsgOf<unknown>;
-        const path = externalSystemCommandPath(factory, command);
-        if (Object.keys(externalsystem).includes("on".concat(command.name))) {
-          this._externalsystem_handlers[command.name] = {
-            factory,
-            command,
-            path
-          };
-          this.log.info("blue", `[POST ${command.name}]`, path);
-        }
-      });
-    });
-
-    Object.values(this._policy_factories).map((factory) => {
-      const policy = factory(undefined);
-      handlersOf(this._event_factory).map((f) => {
-        const event = f() as EvtOf<unknown>;
-        if (Object.keys(policy).includes("on".concat(event.name))) {
-          const path = policyEventPath(factory, event);
-          this._policy_handlers[path] = { factory, event, path };
-          this.log.info("magenta", `[POST ${event.name}]`, path);
-        }
-      });
-    });
-  }
-
-  /**
-   * Connects the dots...creates event topics, subscribes event handlers
-   */
-  protected async connect(): Promise<void> {
+  async listen(): Promise<void> {
     await this._store.init();
     await Promise.all(
-      Object.values(this._policy_handlers).map(({ factory, event }) =>
+      Object.values(this._handlers.policies).map(({ factory, event }) =>
         this._broker
           .subscribe(factory, event)
           .then(() => this.log.info("red", `${factory.name} <<< ${event.name}`))
@@ -198,21 +75,16 @@ export abstract class AppBase {
   }
 
   /**
-   * Builds application
-   * @param options options for store and broker
-   */
-  abstract build(options?: { store?: Store; broker?: Broker }): unknown;
-
-  /**
-   * Connects the dots and starts listening
-   * @param silent flag (when gcloud functions manage the listening part)
-   */
-  abstract listen(silent?: boolean): Promise<void>;
-
-  /**
    * Closes the listening app
    */
-  abstract close(): Promise<void>;
+  async close(): Promise<void> {
+    if (this._store) {
+      await this._store.close();
+      delete this._store;
+      delete this._broker;
+      delete this._handlers;
+    }
+  }
 
   /**
    * Handles commands
@@ -290,11 +162,11 @@ export abstract class AppBase {
           `<<< ${command.name} ${id}`,
           `@ ${expectedVersion}`
         );
-        const { factory } = this._aggregate_handlers[command.name];
+        const { factory } = this._handlers.aggregates[command.name];
         await this.command(factory(id), command, expectedVersion);
       } else {
         this.log.trace("blue", `<<< ${command.name}`);
-        const { factory } = this._externalsystem_handlers[command.name];
+        const { factory } = this._handlers.systems[command.name];
         await this.command(factory(), command);
       }
     }

@@ -1,4 +1,4 @@
-import { App, EvtOf } from "@rotorsoft/eventually";
+import { app, EvtOf } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import {
   command,
@@ -14,21 +14,21 @@ import { commands } from "../calculator.commands";
 import { Events, events } from "../calculator.events";
 import { Counter, StatelessCounter } from "../counter.policy";
 
-const app = App(new ExpressApp())
+app(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
-  .withAggregate(Calculator)
-  .withPolicy(Counter)
-  .withPolicy(StatelessCounter);
+  .withAggregates(Calculator)
+  .withPolicies(Counter, StatelessCounter)
+  .build();
 
 describe("express app", () => {
   beforeAll(async () => {
-    app.build();
-    await app.listen();
+    await app().listen();
   });
 
   afterAll(async () => {
-    await app.close();
+    await app().close();
+    await app().close();
   });
 
   describe("Calculator", () => {

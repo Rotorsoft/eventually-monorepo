@@ -1,5 +1,5 @@
 import {
-  App,
+  app,
   CommittedEvent,
   EvtOf,
   Policy,
@@ -17,7 +17,7 @@ const policy = async (
   threshold: number
 ): Promise<PolicyResponse<Commands>> => {
   const id = stream.substr("Calculator:".length);
-  const { state } = await App().load(Calculator(id));
+  const { state } = await app().load(Calculator(id));
   if (
     (state.left || "").length >= threshold ||
     (state.right || "").length >= threshold

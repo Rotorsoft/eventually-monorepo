@@ -3,7 +3,6 @@ import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 
 const query = (sql: string): Promise<QueryResult<Evt>> => {
-  console.log(sql);
   if (sql === "COMMIT") {
     return Promise.reject("commit error");
   }

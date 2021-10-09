@@ -1,5 +1,4 @@
-import { InMemoryBroker, InMemoryStore } from ".";
-import { AppBase } from "../AppBase";
+import { AppBase } from "../app";
 import { config } from "../config";
 import {
   Aggregate,
@@ -21,20 +20,9 @@ const validate = <T>(message: MsgOf<T>, committed = false): void => {
 };
 
 export class InMemoryApp extends AppBase {
-  build(): unknown {
-    this._store = InMemoryStore();
-    this._broker = InMemoryBroker(this);
-    this.prepare();
-    return;
-  }
-
   async listen(): Promise<void> {
-    await this.connect();
+    await super.listen();
     this.log.info("white", "InMemory app is listening...", config);
-  }
-
-  async close(): Promise<void> {
-    await this._store.close();
   }
 
   async command<M extends Payload, C, E>(

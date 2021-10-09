@@ -132,8 +132,8 @@ export class ConcurrencyError extends Error {
  */
 const instances: { [name: string]: unknown } = {};
 export const Singleton =
-  <T>(target: (...args: any[]) => T) =>
-  (...args: any[]): T => {
-    if (!instances[target.name]) instances[target.name] = target(...args);
+  <T, U>(target: (arg?: U) => T) =>
+  (arg?: U): T => {
+    if (!instances[target.name]) instances[target.name] = target(arg);
     return instances[target.name] as T;
   };

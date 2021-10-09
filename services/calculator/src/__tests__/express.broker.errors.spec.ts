@@ -1,4 +1,4 @@
-import { App, InMemoryBroker, InMemoryStore } from "@rotorsoft/eventually";
+import { app, InMemoryBroker, InMemoryStore } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { command } from "@rotorsoft/eventually-test";
 import { Server } from "http";
@@ -6,29 +6,29 @@ import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
 
-const app = App(new ExpressApp())
+app(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
-  .withAggregate(Calculator);
+  .withAggregates(Calculator);
 const store = InMemoryStore();
-const broker = InMemoryBroker(app);
+const broker = InMemoryBroker(app());
 let server: Server;
 
 jest.spyOn(broker, "publish").mockRejectedValue("publish error");
-const logerror = jest.spyOn(app.log, "error");
+const logerror = jest.spyOn(app().log, "error");
 
 describe("express app", () => {
   beforeAll(async () => {
-    const express = app.build({ store, broker });
-    await app.listen(true);
-    server = (express as any).listen(3002, () => {
+    const express = (app() as ExpressApp).build({ store, broker });
+    await (app() as ExpressApp).listen(true);
+    server = express.listen(3002, () => {
       return;
     });
   });
 
   afterAll(async () => {
     server.close();
-    await app.close();
+    await app().close();
   });
 
   describe("errors", () => {

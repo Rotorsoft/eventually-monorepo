@@ -1,21 +1,25 @@
-import { App, EvtOf } from "@rotorsoft/eventually";
+import { app, EvtOf } from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
 
-App()
+app()
   .withCommands(commands.factory)
   .withEvents(events.factory)
-  .withPolicy(policies.IntegrateAccount1)
-  .withPolicy(policies.IntegrateAccount2)
-  .withPolicy(policies.IntegrateAccount3)
-  .withPolicy(policies.WaitForAllAndComplete)
-  .withExternalSystem(systems.ExternalSystem1)
-  .withExternalSystem(systems.ExternalSystem2)
-  .withExternalSystem(systems.ExternalSystem3)
-  .withExternalSystem(systems.ExternalSystem4)
+  .withPolicies(
+    policies.IntegrateAccount1,
+    policies.IntegrateAccount2,
+    policies.IntegrateAccount3,
+    policies.WaitForAllAndComplete
+  )
+  .withSystems(
+    systems.ExternalSystem1,
+    systems.ExternalSystem2,
+    systems.ExternalSystem3,
+    systems.ExternalSystem4
+  )
   .build();
 
 const trigger = (id: string): EvtOf<Pick<events.Events, "AccountCreated">> => {
@@ -32,23 +36,23 @@ const trigger = (id: string): EvtOf<Pick<events.Events, "AccountCreated">> => {
 
 describe("happy path", () => {
   beforeAll(async () => {
-    await App().listen();
+    await app().listen();
   });
 
   it("should complete integration 1-2", async () => {
     const t = trigger("account12");
 
     // given
-    await App().event(policies.IntegrateAccount1, t);
+    await app().event(policies.IntegrateAccount1, t);
     await sleep(100);
 
     // when
-    await App().event(policies.IntegrateAccount2, t);
+    await app().event(policies.IntegrateAccount2, t);
     await sleep(100);
 
     // then
-    const [seed] = await App().read("Account1Created");
-    const snapshots = await App().stream(
+    const [seed] = await app().read("Account1Created");
+    const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>
       ).reducer
@@ -66,18 +70,18 @@ describe("happy path", () => {
     const t = trigger("account21");
 
     // given
-    await App().event(policies.IntegrateAccount2, t);
+    await app().event(policies.IntegrateAccount2, t);
     await sleep(100);
 
     // when
-    await App().event(policies.IntegrateAccount1, t);
+    await app().event(policies.IntegrateAccount1, t);
     await sleep(100);
 
     // then
-    const [seed] = (await App().read("Account1Created", -1, 100)).filter(
+    const [seed] = (await app().read("Account1Created", -1, 100)).filter(
       (e) => e.data.id === t.data.id
     );
-    const snapshots = await App().stream(
+    const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>
       ).reducer
