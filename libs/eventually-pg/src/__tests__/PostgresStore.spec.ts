@@ -1,12 +1,5 @@
 import { Chance } from "chance";
-import {
-  MsgOf,
-  Payload,
-  Evt,
-  EvtOf,
-  InMemoryBroker,
-  app
-} from "@rotorsoft/eventually";
+import { MsgOf, Payload, Evt, EvtOf } from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
 const db = PostgresStore("test");
@@ -45,7 +38,7 @@ describe("PostgresStore", () => {
         event("test3", { value: "3" })
       ],
       undefined,
-      InMemoryBroker(app())
+      true
     );
   });
 

@@ -1,5 +1,4 @@
 import { app, EvtOf } from "@rotorsoft/eventually";
-import { sleep } from "@rotorsoft/eventually-test";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
@@ -44,11 +43,9 @@ describe("happy path", () => {
 
     // given
     await app().event(policies.IntegrateAccount1, t);
-    await sleep(100);
 
     // when
     await app().event(policies.IntegrateAccount2, t);
-    await sleep(100);
 
     // then
     const [seed] = await app().read("Account1Created");
@@ -71,11 +68,9 @@ describe("happy path", () => {
 
     // given
     await app().event(policies.IntegrateAccount2, t);
-    await sleep(100);
 
     // when
     await app().event(policies.IntegrateAccount1, t);
-    await sleep(100);
 
     // then
     const [seed] = (await app().read("Account1Created", -1, 100)).filter(

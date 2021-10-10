@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { config, LogLevels } from "./config";
-import { Singleton } from "./utils";
+import { singleton } from "./singleton";
 
 type Color = "red" | "green" | "magenta" | "blue" | "white" | "gray";
 
@@ -10,7 +10,7 @@ export interface Log {
   info(color: Color, message: string, ...params: any[]): void;
 }
 
-export const log = Singleton(function log() {
+export const log = singleton(function log() {
   return {
     trace: (
       color: Color,

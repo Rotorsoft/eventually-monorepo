@@ -1,5 +1,5 @@
 import { AppBase } from "./app";
-import { Singleton } from "./utils";
+import { singleton } from "./singleton";
 import { InMemoryApp } from "./__dev__";
 
 export * from "./app";
@@ -10,6 +10,6 @@ export * from "./types";
 export * from "./utils";
 export * from "./__dev__";
 
-export const app = Singleton(function app(app?: AppBase) {
+export const app = singleton(function app(app?: AppBase) {
   return app || new InMemoryApp();
 });

@@ -1,5 +1,4 @@
 import { app, Errors, EvtOf, log } from "@rotorsoft/eventually";
-import { sleep } from "@rotorsoft/eventually-test";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
@@ -134,17 +133,12 @@ describe("in memory app", () => {
       // GIVEN
       await app().command(test7, commands.Reset());
       await app().command(test7, commands.PressKey({ key: "1" }));
-      await sleep(10);
       await app().command(test7, commands.PressKey({ key: "1" }));
-      await sleep(10);
       await app().command(test7, commands.PressKey({ key: "2" }));
-      await sleep(10);
       await app().command(test7, commands.PressKey({ key: "." }));
-      await sleep(10);
 
       // WHEN
       await app().command(test7, commands.PressKey({ key: "3" }));
-      await sleep(10);
 
       // THEN
       const { event, state } = await app().load(test7);

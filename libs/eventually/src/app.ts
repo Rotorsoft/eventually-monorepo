@@ -1,7 +1,7 @@
-import { InMemoryBroker, InMemoryStore } from "./__dev__";
 import { Builder, Handlers } from "./builder";
 import { Broker, Store } from "./interfaces";
 import { log } from "./log";
+import { singleton } from "./singleton";
 import {
   Aggregate,
   Evt,
@@ -14,6 +14,15 @@ import {
   PolicyResponse,
   Snapshot
 } from "./types";
+import { InMemoryBroker, InMemoryStore } from "./__dev__";
+
+export const store = singleton(function store(store?: Store) {
+  return store || InMemoryStore();
+});
+
+export const broker = singleton(function broker(broker?: Broker) {
+  return broker || InMemoryBroker();
+});
 
 /**
  * App abstraction implementing generic handlers
@@ -21,8 +30,9 @@ import {
 export abstract class AppBase extends Builder {
   public readonly log = log();
   protected _handlers: Handlers;
-  protected _store: Store;
-  protected _broker: Broker;
+  private _topics: {
+    [name: string]: PolicyFactory<unknown, unknown, Payload>[];
+  } = {};
 
   /**
    * Applies events to model
@@ -52,10 +62,8 @@ export abstract class AppBase extends Builder {
    * Builds application
    * @param options options for store and broker
    */
-  build(options?: { store?: Store; broker?: Broker }): unknown | undefined {
+  build(): unknown | undefined {
     this._handlers = super.handlers();
-    this._store = options?.store || InMemoryStore();
-    this._broker = options?.broker || InMemoryBroker(this);
     return;
   }
 
@@ -64,13 +72,20 @@ export abstract class AppBase extends Builder {
    * Concrete implementations provide the listening framework
    */
   async listen(): Promise<void> {
-    await this._store.init();
+    await store().init();
     await Promise.all(
-      Object.values(this._handlers.policies).map(({ factory, event }) =>
-        this._broker
+      Object.values(this._handlers.policies).map(({ factory, event }) => {
+        // build local topics
+        const topic = (this._topics[event.name] =
+          this._topics[event.name] || []);
+        topic.push(factory);
+        // subscribe remote topics
+        return broker()
           .subscribe(factory, event)
-          .then(() => this.log.info("red", `${factory.name} <<< ${event.name}`))
-      )
+          .then(() =>
+            this.log.info("red", `${factory.name} <<< ${event.name}`)
+          );
+      })
     );
   }
 
@@ -78,12 +93,7 @@ export abstract class AppBase extends Builder {
    * Closes the listening app
    */
   async close(): Promise<void> {
-    if (this._store) {
-      await this._store.close();
-      delete this._store;
-      delete this._broker;
-      delete this._handlers;
-    }
+    await store().close();
   }
 
   /**
@@ -113,11 +123,19 @@ export abstract class AppBase extends Builder {
       "on".concat(command.name)
     ](command.data, state);
 
-    const committed = await this._store.commit(
+    const committed = await store().commit(
       handler.stream(),
       events,
       expectedVersion,
-      this._broker
+      true
+    );
+
+    // publish to local topics after commit
+    await Promise.all(
+      committed.map((e) => {
+        const topic = this._topics[e.name];
+        if (topic) return Promise.all(topic.map((f) => this.event(f, e)));
+      })
     );
 
     const snapshots = aggregate
@@ -172,7 +190,7 @@ export abstract class AppBase extends Builder {
     }
 
     if (policy.reducer)
-      await this._store.commit(policy.reducer.stream(), [
+      await store().commit(policy.reducer.stream(), [
         event as unknown as MsgOf<unknown>
       ]);
 
@@ -192,7 +210,7 @@ export abstract class AppBase extends Builder {
     let event: EvtOf<E>;
     let state = reducer.init();
     let count = 0;
-    await this._store.read(
+    await store().read(
       (e) => {
         event = e;
         state = (reducer as any)["apply".concat(e.name)](state, e);
@@ -226,7 +244,7 @@ export abstract class AppBase extends Builder {
    */
   async read(name?: string, after = -1, limit = 1): Promise<Evt[]> {
     const events: Evt[] = [];
-    await this._store.read((e) => events.push(e), { name, after, limit });
+    await store().read((e) => events.push(e), { name, after, limit });
     return events;
   }
 }

@@ -61,13 +61,13 @@ export interface Store {
    * @param stream stream name
    * @param events array of uncommitted events
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
-   * @param broker optional broker to publish committed events before closing the transaction - "at-least-once" delivery
+   * @param publish flag to publish committed events before closing the transaction - "at-least-once" delivery
    * @returns array of committed events
    */
   commit: (
     stream: string,
     events: MsgOf<unknown>[],
     expectedVersion?: number,
-    broker?: Broker
+    publish?: boolean
   ) => Promise<EvtOf<unknown>[]>;
 }

@@ -3,7 +3,7 @@ import {
   AggregateFactory,
   aggregatePath,
   AppBase,
-  Broker,
+  broker,
   committedSchema,
   config,
   Errors,
@@ -12,7 +12,6 @@ import {
   MsgOf,
   Payload,
   Snapshot,
-  Store,
   ValidationError
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -178,7 +177,7 @@ export class ExpressApp extends AppBase {
         path,
         async (req: Request, res: Response, next: NextFunction) => {
           try {
-            const message = this._broker.decode(req.body);
+            const message = broker().decode(req.body);
             const validator = committedSchema(
               (event as unknown as MsgOf<unknown>).schema()
             );
@@ -196,8 +195,8 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  build(options?: { store?: Store; broker?: Broker }): express.Express {
-    super.build(options);
+  build(): express.Express {
+    super.build();
 
     this._buildAggregates();
     this._buildExternalSystems();

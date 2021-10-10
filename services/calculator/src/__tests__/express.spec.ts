@@ -6,7 +6,6 @@ import {
   get,
   load,
   read,
-  sleep,
   stream
 } from "@rotorsoft/eventually-test";
 import { Calculator } from "../calculator.aggregate";
@@ -117,15 +116,10 @@ describe("express app", () => {
   describe("Counter", () => {
     it("should reset on last key pressed", async () => {
       await command(Calculator, "test3", commands.PressKey({ key: "1" }));
-      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "1" }));
-      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "2" }));
-      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "." }));
-      await sleep(10);
       await command(Calculator, "test3", commands.PressKey({ key: "3" }));
-      await sleep(10);
 
       const { state } = await load(Calculator, "test3");
       expect(state).toEqual({ result: 0 });

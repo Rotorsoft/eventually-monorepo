@@ -1,5 +1,5 @@
 import {
-  Broker,
+  broker,
   ConcurrencyError,
   EvtOf,
   log,
@@ -83,7 +83,7 @@ export const PostgresStore = (table: string): Store => ({
     stream: string,
     events: MsgOf<unknown>[],
     expectedVersion?: number,
-    broker?: Broker
+    publish = false
   ): Promise<EvtOf<unknown>[]> => {
     const client = await pool.connect();
     let version = -1;
@@ -110,7 +110,7 @@ export const PostgresStore = (table: string): Store => ({
       );
 
       // publish inside transaction to ensure "at-least-once" delivery
-      if (broker) await Promise.all(committed.map((e) => broker.publish(e)));
+      if (publish) await Promise.all(committed.map((e) => broker().publish(e)));
 
       await client.query("COMMIT").catch((error) => {
         log().error(error);

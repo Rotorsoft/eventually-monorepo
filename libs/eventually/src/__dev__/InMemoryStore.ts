@@ -1,4 +1,4 @@
-import { Broker, Store } from "../interfaces";
+import { Store } from "../interfaces";
 import { EvtOf, MsgOf } from "../types";
 
 export const InMemoryStore = (): Store => {
@@ -40,8 +40,7 @@ export const InMemoryStore = (): Store => {
     commit: async (
       stream: string,
       events: MsgOf<unknown>[],
-      expectedVersion?: number,
-      broker?: Broker
+      expectedVersion?: number
       // eslint-disable-next-line
     ): Promise<EvtOf<unknown>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
@@ -61,9 +60,6 @@ export const InMemoryStore = (): Store => {
         version++;
         return committed;
       });
-
-      // publish inside transaction to ensure "at-least-once" delivery
-      if (broker) await Promise.all(committed.map((e) => broker.publish(e)));
 
       return committed;
     }
