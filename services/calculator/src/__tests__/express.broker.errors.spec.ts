@@ -14,7 +14,7 @@ jest.spyOn(_broker, "publish").mockRejectedValue("publish error");
 const _app = app(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
-  .withAggregates(Calculator) as ExpressApp;
+  .withCommandHandlers(Calculator) as ExpressApp;
 let server: Server;
 
 const logerror = jest.spyOn(_app.log, "error");
@@ -39,8 +39,8 @@ describe("express app", () => {
       await expect(
         command(
           Calculator,
-          "test5",
           commands.PressKey({ key: "1" }),
+          "test5",
           undefined,
           3002
         )

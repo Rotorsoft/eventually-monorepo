@@ -4,14 +4,16 @@ import { log } from "./log";
 import { singleton } from "./singleton";
 import {
   Aggregate,
+  CommandResponse,
   Evt,
   EvtOf,
   ExternalSystem,
-  ModelReducer,
+  Msg,
   MsgOf,
   Payload,
   PolicyFactory,
-  PolicyResponse,
+  ProcessManagerFactory,
+  Reducible,
   Snapshot
 } from "./types";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
@@ -31,7 +33,10 @@ export abstract class AppBase extends Builder {
   public readonly log = log();
   protected _handlers: Handlers;
   private _topics: {
-    [name: string]: PolicyFactory<unknown, unknown, Payload>[];
+    [name: string]: (
+      | PolicyFactory<unknown, unknown>
+      | ProcessManagerFactory<Payload, unknown, unknown>
+    )[];
   } = {};
 
   /**
@@ -41,9 +46,9 @@ export abstract class AppBase extends Builder {
    * @param state initial model state
    * @returns snapshots
    */
-  private _apply<M extends Payload, E>(
-    reducer: ModelReducer<M, E>,
-    events: EvtOf<E>[],
+  private _apply<M extends Payload>(
+    reducer: Reducible<M, unknown>,
+    events: Evt[],
     state: M
   ): Snapshot<M>[] {
     return events.map((event) => {
@@ -64,6 +69,11 @@ export abstract class AppBase extends Builder {
    */
   build(): unknown | undefined {
     this._handlers = super.handlers();
+    // cache local topics
+    Object.values(this._handlers.eventHandlers).map(({ factory, event }) => {
+      const topic = (this._topics[event.name] = this._topics[event.name] || []);
+      topic.push(factory);
+    });
     return;
   }
 
@@ -74,11 +84,7 @@ export abstract class AppBase extends Builder {
   async listen(): Promise<void> {
     await store().init();
     await Promise.all(
-      Object.values(this._handlers.policies).map(({ factory, event }) => {
-        // build local topics
-        const topic = (this._topics[event.name] =
-          this._topics[event.name] || []);
-        topic.push(factory);
+      Object.values(this._handlers.eventHandlers).map(({ factory, event }) => {
         // subscribe remote topics
         return broker()
           .subscribe(factory, event)
@@ -113,15 +119,16 @@ export abstract class AppBase extends Builder {
       `\n>>> ${command.name} ${handler.stream()}`,
       command.data
     );
-    const aggregate = "init" in handler ? handler : undefined;
+    const reducible = "init" in handler ? handler : undefined;
 
-    const { state } = aggregate
-      ? await this.load(aggregate)
+    const { state } = reducible
+      ? await this.load(reducible)
       : { state: undefined };
 
-    const events: MsgOf<unknown>[] = await (handler as any)[
-      "on".concat(command.name)
-    ](command.data, state);
+    const events: Msg[] = await (handler as any)["on".concat(command.name)](
+      command.data,
+      state
+    );
 
     const committed = await store().commit(
       handler.stream(),
@@ -138,8 +145,8 @@ export abstract class AppBase extends Builder {
       })
     );
 
-    const snapshots = aggregate
-      ? this._apply(aggregate, committed, state)
+    const snapshots = reducible
+      ? this._apply(reducible, committed, state)
       : committed.map((event) => ({ event }));
 
     return snapshots;
@@ -147,52 +154,45 @@ export abstract class AppBase extends Builder {
 
   /**
    * Handles policy events and optionally invokes command on target aggregate - side effect
-   * @param factory the policy factory
+   * @param factory the event handler factory
    * @param event the triggering event
-   * @returns policy response
+   * @returns command response
    */
   async event<C, E, M extends Payload>(
-    factory: PolicyFactory<C, E, M>,
+    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: EvtOf<E>
-  ): Promise<PolicyResponse<C> | undefined> {
-    const policy = factory(event);
+  ): Promise<CommandResponse<C> | undefined> {
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${factory.name}`,
       event.data
     );
+    const handler = factory(event);
+    const reducible = "init" in handler ? handler : undefined;
 
-    const { state } = policy.reducer
-      ? await this.load(policy.reducer)
+    const { state } = reducible
+      ? await this.load(reducible)
       : { state: undefined };
 
-    const response: PolicyResponse<unknown> | undefined = await (policy as any)[
-      "on".concat(event.name)
-    ](event, state);
+    const response: CommandResponse<unknown> | undefined = await (
+      handler as any
+    )["on".concat(event.name)](event, state);
 
     if (response) {
-      // ensure "at-least-once" delivery before comitting
-      // command handlers must be idempotent
+      // - ensure "at-least-once" delivery before comitting
+      // - command handlers must be idempotent
       const { id, command, expectedVersion } = response;
-      if (id) {
-        this.log.trace(
-          "blue",
-          `<<< ${command.name} ${id}`,
-          `@ ${expectedVersion}`
-        );
-        const { factory } = this._handlers.aggregates[command.name];
-        await this.command(factory(id), command, expectedVersion);
-      } else {
-        this.log.trace("blue", `<<< ${command.name}`);
-        const { factory } = this._handlers.systems[command.name];
-        await this.command(factory(), command);
-      }
+      const { factory } = this._handlers.commandHandlers[command.name];
+      this.log.trace(
+        "blue",
+        `<<< ${command.name} ${factory.name} ${id || ""}`,
+        expectedVersion ? ` @${expectedVersion}` : ""
+      );
+      await this.command(factory(id), command, expectedVersion);
     }
 
-    if (policy.reducer)
-      await store().commit(policy.reducer.stream(), [
-        event as unknown as MsgOf<unknown>
-      ]);
+    if (reducible)
+      await store().commit(reducible.stream(), [event as unknown as Msg]);
 
     return response;
   }
@@ -203,11 +203,11 @@ export abstract class AppBase extends Builder {
    * @param callback optional reduction predicate
    * @returns current model state
    */
-  async load<M extends Payload, E>(
-    reducer: ModelReducer<M, E>,
+  async load<M extends Payload>(
+    reducer: Reducible<M, unknown>,
     callback?: (snapshot: Snapshot<M>) => void
   ): Promise<Snapshot<M>> {
-    let event: EvtOf<E>;
+    let event: Evt;
     let state = reducer.init();
     let count = 0;
     await store().read(
@@ -232,7 +232,7 @@ export abstract class AppBase extends Builder {
    * @returns stream log with events and state transitions
    */
   async stream<M extends Payload, E>(
-    reducer: ModelReducer<M, E>
+    reducer: Reducible<M, E>
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
     await this.load(reducer, (snapshot) => log.push(snapshot));

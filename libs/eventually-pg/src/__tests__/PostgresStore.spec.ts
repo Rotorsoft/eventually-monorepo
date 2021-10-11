@@ -1,5 +1,5 @@
 import { Chance } from "chance";
-import { MsgOf, Payload, Evt, EvtOf } from "@rotorsoft/eventually";
+import { Msg, Payload, Evt, EvtOf } from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
 const db = PostgresStore("test");
@@ -15,15 +15,16 @@ type E = {
   test3: { value: string };
 };
 
-const event = (name: keyof E, data?: Payload): MsgOf<unknown> =>
+const event = (name: keyof E, data?: Payload): Msg =>
   ({
     name,
     data,
     schema: () => null
-  } as MsgOf<unknown>);
+  } as Msg);
 
 describe("PostgresStore", () => {
   beforeAll(async () => {
+    await db.init();
     await db.init();
     await db.commit(a1, [event("test1", { value: "1" })]);
     await db.commit(a1, [event("test1", { value: "2" })]);

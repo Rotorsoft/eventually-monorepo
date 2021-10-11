@@ -1,4 +1,9 @@
-import { CommittedEvent, EvtOf, Policy } from "@rotorsoft/eventually";
+import {
+  CommittedEvent,
+  EvtOf,
+  Policy,
+  ProcessManager
+} from "@rotorsoft/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as models from "./accounts.models";
@@ -47,11 +52,16 @@ export const IntegrateAccount3 = (): Policy<
 
 export const WaitForAllAndComplete = (
   event: EvtOf<Pick<events.Events, "Account1Created" | "Account3Created">>
-): Policy<
+): ProcessManager<
+  models.WaitForAllState,
   Pick<commands.Commands, "CompleteIntegration">,
-  Pick<events.Events, "Account1Created" | "Account3Created">,
-  models.WaitForAllState
+  Pick<events.Events, "Account1Created" | "Account3Created">
 > => ({
+  stream: () =>
+    `WaitForAllAndComplete:${(event.data as models.ExternalAccount).id}`,
+
+  init: () => ({ id: (event.data as models.ExternalAccount).id }),
+
   onAccount1Created: (
     event: CommittedEvent<"Account1Created", models.ExternalAccount>,
     data: models.WaitForAllState
@@ -74,17 +84,13 @@ export const WaitForAllAndComplete = (
       });
   },
 
-  reducer: {
-    stream: () =>
-      `WaitForAllAndComplete:${(event.data as models.ExternalAccount).id}`,
-    init: () => ({ id: (event.data as models.ExternalAccount).id }),
-    applyAccount1Created: (state, event) => ({
-      ...state,
-      account1: event.data.externalId
-    }),
-    applyAccount3Created: (state, event) => ({
-      ...state,
-      account3: event.data.externalId
-    })
-  }
+  applyAccount1Created: (state, event) => ({
+    ...state,
+    account1: event.data.externalId
+  }),
+
+  applyAccount3Created: (state, event) => ({
+    ...state,
+    account3: event.data.externalId
+  })
 });

@@ -1,4 +1,4 @@
-import { Broker, EvtOf, Payload } from "..";
+import { Broker, Evt, Payload } from "..";
 
 export const InMemoryBroker = (): Broker => {
   return {
@@ -6,10 +6,10 @@ export const InMemoryBroker = (): Broker => {
       return Promise.resolve();
     },
 
-    publish: (event: EvtOf<unknown>): Promise<string> => {
+    publish: (event: Evt): Promise<string> => {
       return Promise.resolve(event.id.toString());
     },
 
-    decode: (msg: Payload): EvtOf<unknown> => msg as EvtOf<unknown>
+    decode: (msg: Payload): Evt => msg as Evt
   };
 };

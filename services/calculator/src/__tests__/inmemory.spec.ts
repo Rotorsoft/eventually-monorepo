@@ -6,8 +6,8 @@ import * as schemas from "../calculator.schemas";
 import { Counter, CounterEvents } from "../counter.policy";
 
 app()
-  .withAggregates(Calculator)
-  .withPolicies(Counter)
+  .withCommandHandlers(Calculator)
+  .withEventHandlers(Counter)
   .withEvents(events)
   .withCommands(commands)
   .build();
@@ -144,10 +144,21 @@ describe("in memory app", () => {
       const { event, state } = await app().load(test7);
       expect(state).toEqual({ result: 0 });
 
-      const stream = await app().stream(
-        Counter(event as EvtOf<CounterEvents>).reducer
-      );
+      const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
       expect(stream.length).toBe(5);
+    });
+
+    it("should cover empty calculator", async () => {
+      const test8 = Calculator("test8");
+      await app().event(Counter, {
+        id: 0,
+        stream: test8.stream(),
+        version: 0,
+        created: new Date(),
+        ...events.DigitPressed({ digit: "0" })
+      });
+      const { state } = await app().load(test8);
+      expect(state).toEqual({ result: 0 });
     });
   });
 

@@ -1,11 +1,12 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
-  EvtOf,
+  eventHandlerPath,
+  Evt,
   log,
   Payload,
-  policyEventPath,
-  PolicyFactory
+  PolicyFactory,
+  ProcessManagerFactory
 } from "@rotorsoft/eventually";
 import { config } from "./config";
 
@@ -24,7 +25,7 @@ const pubsub = new PubSub(
 const orderingKey = "id";
 const topics: { [name: string]: GcpTopic } = {};
 
-const topic = async (event: EvtOf<unknown>): Promise<GcpTopic> => {
+const topic = async (event: Evt): Promise<GcpTopic> => {
   let topic = topics[event.name];
   if (!topic) {
     topic = new GcpTopic(pubsub, event.name);
@@ -38,10 +39,12 @@ const topic = async (event: EvtOf<unknown>): Promise<GcpTopic> => {
 export const PubSubBroker = (): Broker => {
   return {
     subscribe: async (
-      factory: PolicyFactory<unknown, unknown, Payload>,
-      event: EvtOf<unknown>
+      factory:
+        | PolicyFactory<unknown, unknown>
+        | ProcessManagerFactory<Payload, unknown, unknown>,
+      event: Evt
     ): Promise<void> => {
-      const url = `${config.host}${policyEventPath(factory, event)}`;
+      const url = `${config.host}${eventHandlerPath(factory, event)}`;
       const sub = (await topic(event)).subscription(
         factory.name.concat(".", event.name)
       );
@@ -55,7 +58,7 @@ export const PubSubBroker = (): Broker => {
         await sub.modifyPushConfig({ pushEndpoint: url });
     },
 
-    publish: async (event: EvtOf<unknown>): Promise<string> => {
+    publish: async (event: Evt): Promise<string> => {
       let t: GcpTopic;
       try {
         t = await topic(event);
@@ -70,13 +73,13 @@ export const PubSubBroker = (): Broker => {
       }
     },
 
-    decode: (msg: Payload): EvtOf<unknown> => {
+    decode: (msg: Payload): Evt => {
       const { message, subscription } = msg as unknown as Message;
       if (message && subscription)
         return JSON.parse(
           Buffer.from(message.data, "base64").toString("utf-8")
-        ) as EvtOf<unknown>;
-      return msg as EvtOf<unknown>;
+        ) as Evt;
+      return msg as Evt;
     }
   };
 };

@@ -1,6 +1,6 @@
 import { app } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
-import { system } from "@rotorsoft/eventually-test";
+import { command } from "@rotorsoft/eventually-test";
 import { Server } from "http";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -10,13 +10,13 @@ import * as systems from "../accounts.systems";
 app(new ExpressApp())
   .withCommands(commands.factory)
   .withEvents(events.factory)
-  .withPolicies(
+  .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,
     policies.IntegrateAccount3,
     policies.WaitForAllAndComplete
   )
-  .withSystems(
+  .withCommandHandlers(
     systems.ExternalSystem1,
     systems.ExternalSystem2,
     systems.ExternalSystem3,
@@ -42,9 +42,11 @@ describe("express", () => {
 
   it("should complete command", async () => {
     // when
-    const [result] = await system(
+    const [result] = await command(
       systems.ExternalSystem1,
       commands.factory.CreateAccount1({ id: "test" }),
+      undefined,
+      undefined,
       port
     );
 
@@ -55,12 +57,14 @@ describe("express", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      system(
+      command(
         systems.ExternalSystem1,
         {
           name: "CreateAccount1",
           schema: () => undefined
         },
+        undefined,
+        undefined,
         port
       )
     ).rejects.toThrowError("Request failed with status code 400");

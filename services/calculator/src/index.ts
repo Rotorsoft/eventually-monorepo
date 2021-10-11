@@ -20,8 +20,8 @@ const expressApp = app(new ExpressApp()) as ExpressApp;
 expressApp
   .withEvents(events)
   .withCommands(commands)
-  .withAggregates(Calculator)
-  .withPolicies(Counter)
+  .withCommandHandlers(Calculator)
+  .withEventHandlers(Counter)
   .build();
 
 void expressApp.listen(config().host.endsWith("cloudfunctions.net/calculator"));

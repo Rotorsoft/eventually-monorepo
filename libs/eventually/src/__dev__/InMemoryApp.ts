@@ -2,13 +2,14 @@ import { AppBase } from "../app";
 import { config } from "../config";
 import {
   Aggregate,
+  CommandResponse,
   EvtOf,
+  ExternalSystem,
   MsgOf,
   Payload,
   PolicyFactory,
-  PolicyResponse,
-  Snapshot,
-  ExternalSystem
+  ProcessManagerFactory,
+  Snapshot
 } from "../types";
 import { committedSchema, ValidationError } from "../utils";
 
@@ -37,9 +38,9 @@ export class InMemoryApp extends AppBase {
   }
 
   async event<C, E, M extends Payload>(
-    factory: PolicyFactory<C, E, M>,
+    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: EvtOf<E>
-  ): Promise<PolicyResponse<C> | undefined> {
+  ): Promise<CommandResponse<C> | undefined> {
     validate(event as unknown as MsgOf<E>, true);
     return super.event(factory, event);
   }

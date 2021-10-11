@@ -8,8 +8,7 @@ import {
   config,
   Errors,
   Evt,
-  ExternalSystemFactory,
-  MsgOf,
+  Msg,
   Payload,
   Snapshot,
   ValidationError
@@ -96,14 +95,19 @@ export class ExpressApp extends AppBase {
     this.log.info("green", `[GET ${name}]`, path.concat(suffix || ""));
   }
 
-  private _buildAggregates(): void {
+  private _buildCommandHandlers(): void {
     const aggregates: Record<
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.aggregates).map(
-      ({ factory, command, path }) => {
-        aggregates[factory.name] = factory;
+    Object.values(this._handlers.commandHandlers).map(
+      ({ type, factory, command, path }) => {
+        if (type === "aggregate")
+          aggregates[factory.name] = factory as AggregateFactory<
+            Payload,
+            unknown,
+            unknown
+          >;
         this._router.post(
           path,
           async (
@@ -116,12 +120,10 @@ export class ExpressApp extends AppBase {
                 .schema()
                 .validate(req.body, { abortEarly: false });
               if (error) throw new ValidationError(error);
-              const { id } = req.params;
-              const expectedVersion = req.headers["if-match"];
               const snapshots = await this.command(
-                factory(id),
+                factory(req.params.id),
                 value,
-                +expectedVersion
+                type === "aggregate" ? +req.headers["if-match"] : undefined
               );
               res.setHeader(
                 "ETag",
@@ -142,65 +144,37 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  private _buildExternalSystems(): void {
-    const externalsystems: Record<
-      string,
-      ExternalSystemFactory<unknown, unknown>
-    > = {};
-    Object.values(this._handlers.systems).map(({ factory, command, path }) => {
-      externalsystems[factory.name] = factory;
-      this._router.post(
-        path,
-        async (req: Request, res: Response, next: NextFunction) => {
-          try {
-            const { error, value } = command
-              .schema()
-              .validate(req.body, { abortEarly: false });
-            if (error) throw new ValidationError(error);
-            const snapshots = await this.command(factory(), value);
-            res.setHeader(
-              "ETag",
-              snapshots[snapshots.length - 1].event.version
-            );
-            return res.status(200).send(snapshots);
-          } catch (error) {
-            next(error);
+  private _buildEventHandlers(): void {
+    Object.values(this._handlers.eventHandlers).map(
+      ({ factory, event, path }) => {
+        this._router.post(
+          path,
+          async (req: Request, res: Response, next: NextFunction) => {
+            try {
+              const message = broker().decode(req.body);
+              const validator = committedSchema(
+                (event as unknown as Msg).schema()
+              );
+              const { error, value } = validator.validate(message, {
+                abortEarly: false
+              });
+              if (error) throw new ValidationError(error);
+              const response = await this.event(factory, value);
+              return res.status(200).send(response);
+            } catch (error) {
+              next(error);
+            }
           }
-        }
-      );
-    });
-  }
-
-  private _buildPolicies(): void {
-    Object.values(this._handlers.policies).map(({ factory, event, path }) => {
-      this._router.post(
-        path,
-        async (req: Request, res: Response, next: NextFunction) => {
-          try {
-            const message = broker().decode(req.body);
-            const validator = committedSchema(
-              (event as unknown as MsgOf<unknown>).schema()
-            );
-            const { error, value } = validator.validate(message, {
-              abortEarly: false
-            });
-            if (error) throw new ValidationError(error);
-            const response = await this.event(factory, value);
-            return res.status(200).send(response);
-          } catch (error) {
-            next(error);
-          }
-        }
-      );
-    });
+        );
+      }
+    );
   }
 
   build(): express.Express {
     super.build();
 
-    this._buildAggregates();
-    this._buildExternalSystems();
-    this._buildPolicies();
+    this._buildCommandHandlers();
+    this._buildEventHandlers();
     this._buildStreamRoute();
 
     this._app.set("trust proxy", true);

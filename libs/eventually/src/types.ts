@@ -16,9 +16,10 @@ export type Message<Name extends string, Type extends Payload> = {
 };
 
 /**
- * Shortcut for messages
+ * Shortcuts for messages
  */
 export type MsgOf<T> = Message<keyof T & string, Payload>;
+export type Msg = MsgOf<unknown>;
 
 /**
  * Typed message factories
@@ -46,7 +47,7 @@ export type CommittedEvent<Name extends string, Type extends Payload> = Omit<
  * Shortcuts for committed events
  */
 export type EvtOf<E> = CommittedEvent<keyof E & string, Payload>;
-export type Evt = CommittedEvent<string, Payload>;
+export type Evt = EvtOf<unknown>;
 
 /**
  * Aggregate snapshot after event is applied
@@ -57,11 +58,14 @@ export type Snapshot<M extends Payload> = {
 };
 
 /**
- * Typed model reducers apply committed events to the current model,
- * returning a new mutated state
+ * Artifacts that commit events to a stream
  */
-export type ModelReducer<M extends Payload, E> = {
-  stream: () => string;
+export type Streamable = { stream: () => string };
+
+/**
+ * Artifacts that reduce models from event streams
+ */
+export type Reducible<M extends Payload, E> = Streamable & {
   init: () => Readonly<M>;
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
@@ -71,79 +75,61 @@ export type ModelReducer<M extends Payload, E> = {
 };
 
 /**
- * Aggregates define the consistency boundaries of a business model (entity graph)
- * Commands are handled following these steps:
- * - Reduces model from event stream
- * - Validates model invariants for this command, throwing error when violations found
- * - Commits new events as side effects (model mutation)
- * - Emits newly committed events
+ * Aggregates handle commands and produce events
+ * - Define the consistency boundaries of a business model (entity graph)
+ * - Have reducible state
  */
-export type Aggregate<M extends Payload, C, E> = ModelReducer<M, E> & {
+export type Aggregate<M extends Payload, C, E> = Reducible<M, E> & {
   [Name in keyof C as `on${Capitalize<Name & string>}`]: (
     data?: C[Name] & Payload,
     state?: Readonly<M>
   ) => Promise<MsgOf<E>[]>;
 };
-
 export type AggregateFactory<M extends Payload, C, E> = (
   id: string
 ) => Aggregate<M, C, E>;
 
 /**
- * External Systems interface
- * Commands are handled following these steps:
- * - Execute integration logic
- * - Commits new events as side effects
- * - Emits newly committed events
+ * External Systems handle commands and produce events
+ * - Have their own stream
  */
-export type ExternalSystem<C, E> = { stream: () => string } & {
+export type ExternalSystem<C, E> = Streamable & {
   [Name in keyof C as `on${Capitalize<Name & string>}`]: (
     data?: C[Name] & Payload
   ) => Promise<MsgOf<E>[]>;
 };
-
 export type ExternalSystemFactory<C, E> = () => ExternalSystem<C, E>;
 
 /**
- * Typed generic event handlers that react to committed events by
- * executing logic and producing a type of response
+ * Event handlers can respond with commands targetting command handlers (aggregates or systems)
+ * - Response is routed to aggregates when aggregate id and optional expectedVersion are included
  */
-export type EventHandler<Response, E, M extends Payload> = {
-  [Name in keyof E as `on${Capitalize<Name & string>}`]: (
-    event: CommittedEvent<Name & string, E[Name] & Payload>,
-    state?: Readonly<M>
-  ) => Promise<Response>;
-};
-
-/**
- * Policies can respond with commands,
- * targetting external systems
- * or aggregates when id and optional expectedVersion are included in response
- */
-export type PolicyResponse<C> = {
+export type CommandResponse<C> = {
   command: MsgOf<C>;
   id?: string;
   expectedVersion?: number;
 };
 
 /**
- * Policies are event handlers responding with optional targetted commands.
- * An optional model reducer allows to expand the consistency boundaries of
- * events arriving from multiple aggregates or external services into a
- * dedicated state machine
+ * Policies handle events and optionally produce commands
  */
-export type Policy<C, E, M extends Payload = undefined> = EventHandler<
-  PolicyResponse<C> | undefined,
-  E,
-  M
-> & { reducer?: ModelReducer<M, E> };
-
-export type PolicyFactory<C, E, M extends Payload = undefined> = (
-  event: EvtOf<E>
-) => Policy<C, E, M>;
+export type Policy<C, E> = {
+  [Name in keyof E as `on${Capitalize<Name & string>}`]: (
+    event: CommittedEvent<Name & string, E[Name] & Payload>
+  ) => Promise<CommandResponse<C> | undefined>;
+};
+export type PolicyFactory<C, E> = () => Policy<C, E>;
 
 /**
- * Projectors are event handlers without response, side effects
- * are projected events to other persistent state
+ * Process Managers handle events and optionally produce commands
+ * - Have reducible state, allowing to expand the consistency boundaries of multiple events into a local state machine
  */
-export type Projector<E> = EventHandler<void, E, undefined>;
+export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> & {
+  [Name in keyof E as `on${Capitalize<Name & string>}`]: (
+    event: CommittedEvent<Name & string, E[Name] & Payload>,
+    state: Readonly<M>
+  ) => Promise<CommandResponse<C> | undefined>;
+};
+export type ProcessManagerFactory<M extends Payload, C, E> = (
+  event: EvtOf<E>
+) => ProcessManager<M, C, E>;

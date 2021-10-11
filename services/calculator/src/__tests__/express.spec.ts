@@ -16,8 +16,8 @@ import { Counter, StatelessCounter } from "../counter.policy";
 app(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
-  .withAggregates(Calculator)
-  .withPolicies(Counter, StatelessCounter)
+  .withCommandHandlers(Calculator)
+  .withEventHandlers(Counter, StatelessCounter)
   .build();
 
 describe("express app", () => {
@@ -32,12 +32,12 @@ describe("express app", () => {
 
   describe("Calculator", () => {
     it("should compute correctly", async () => {
-      await command(Calculator, "test", commands.PressKey({ key: "1" }));
-      await command(Calculator, "test", commands.PressKey({ key: "+" }));
-      await command(Calculator, "test", commands.PressKey({ key: "2" }));
-      await command(Calculator, "test", commands.PressKey({ key: "." }));
-      await command(Calculator, "test", commands.PressKey({ key: "3" }));
-      await command(Calculator, "test", commands.PressKey({ key: "=" }));
+      await command(Calculator, commands.PressKey({ key: "1" }), "test");
+      await command(Calculator, commands.PressKey({ key: "+" }), "test");
+      await command(Calculator, commands.PressKey({ key: "2" }), "test");
+      await command(Calculator, commands.PressKey({ key: "." }), "test");
+      await command(Calculator, commands.PressKey({ key: "3" }), "test");
+      await command(Calculator, commands.PressKey({ key: "=" }), "test");
 
       const { state } = await load(Calculator, "test");
       expect(state).toEqual({
@@ -51,15 +51,15 @@ describe("express app", () => {
     });
 
     it("should compute correctly 2", async () => {
-      await command(Calculator, "test2", commands.PressKey({ key: "+" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "1" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "-" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "2" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "*" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "3" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "/" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "3" }));
-      await command(Calculator, "test2", commands.PressKey({ key: "=" }));
+      await command(Calculator, commands.PressKey({ key: "+" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "1" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "-" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "2" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "*" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "3" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "/" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "3" }), "test2");
+      await command(Calculator, commands.PressKey({ key: "=" }), "test2");
 
       const { state } = await load(Calculator, "test2");
       expect(state).toEqual({
@@ -85,18 +85,22 @@ describe("express app", () => {
     });
 
     it("should throw concurrency error", async () => {
-      await command(Calculator, "test", commands.PressKey({ key: "1" }));
+      await command(Calculator, commands.PressKey({ key: "1" }), "test");
       await expect(
-        command(Calculator, "test", commands.PressKey({ key: "1" }), -1)
+        command(Calculator, commands.PressKey({ key: "1" }), "test", -1)
       ).rejects.toThrowError("Request failed with status code 409");
     });
 
     it("should throw validation error", async () => {
       await expect(
-        command(Calculator, "test", {
-          name: "PressKey",
-          schema: () => undefined
-        })
+        command(
+          Calculator,
+          {
+            name: "PressKey",
+            schema: () => undefined
+          },
+          "test"
+        )
       ).rejects.toThrowError("Request failed with status code 400");
     });
 
@@ -108,18 +112,18 @@ describe("express app", () => {
 
     it("should throw model invariant violation", async () => {
       await expect(
-        command(Calculator, "test5", commands.PressKey({ key: "=" }))
+        command(Calculator, commands.PressKey({ key: "=" }), "test5")
       ).rejects.toThrowError("Request failed with status code 500");
     });
   });
 
   describe("Counter", () => {
     it("should reset on last key pressed", async () => {
-      await command(Calculator, "test3", commands.PressKey({ key: "1" }));
-      await command(Calculator, "test3", commands.PressKey({ key: "1" }));
-      await command(Calculator, "test3", commands.PressKey({ key: "2" }));
-      await command(Calculator, "test3", commands.PressKey({ key: "." }));
-      await command(Calculator, "test3", commands.PressKey({ key: "3" }));
+      await command(Calculator, commands.PressKey({ key: "1" }), "test3");
+      await command(Calculator, commands.PressKey({ key: "1" }), "test3");
+      await command(Calculator, commands.PressKey({ key: "2" }), "test3");
+      await command(Calculator, commands.PressKey({ key: "." }), "test3");
+      await command(Calculator, commands.PressKey({ key: "3" }), "test3");
 
       const { state } = await load(Calculator, "test3");
       expect(state).toEqual({ result: 0 });
@@ -128,8 +132,8 @@ describe("express app", () => {
     it("should return no command", async () => {
       const snapshots = await command(
         Calculator,
-        "test3",
-        commands.PressKey({ key: "1" })
+        commands.PressKey({ key: "1" }),
+        "test3"
       );
       const response = await event(
         Counter,

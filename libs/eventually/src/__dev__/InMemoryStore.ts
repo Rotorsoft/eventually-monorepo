@@ -1,5 +1,5 @@
 import { Store } from "../interfaces";
-import { EvtOf, MsgOf } from "../types";
+import { Evt, Msg } from "../types";
 
 export const InMemoryStore = (): Store => {
   const _events: any[] = [];
@@ -16,7 +16,7 @@ export const InMemoryStore = (): Store => {
     },
 
     read: (
-      callback: (event: EvtOf<unknown>) => void,
+      callback: (event: Evt) => void,
       options?: {
         stream?: string;
         name?: string;
@@ -39,17 +39,17 @@ export const InMemoryStore = (): Store => {
 
     commit: async (
       stream: string,
-      events: MsgOf<unknown>[],
+      events: Msg[],
       expectedVersion?: number
       // eslint-disable-next-line
-    ): Promise<EvtOf<unknown>[]> => {
+    ): Promise<Evt[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
         throw Error("Concurrency Error");
 
       let version = aggregate.length;
       const committed = events.map((event) => {
-        const committed: EvtOf<unknown> = {
+        const committed: Evt = {
           ...event,
           id: _events.length,
           stream,

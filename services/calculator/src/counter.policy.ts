@@ -3,7 +3,8 @@ import {
   CommittedEvent,
   EvtOf,
   Policy,
-  PolicyResponse
+  CommandResponse,
+  ProcessManager
 } from "@rotorsoft/eventually";
 import { Commands, commands } from "./calculator.commands";
 import { CounterState, Digits } from "./calculator.models";
@@ -15,7 +16,7 @@ const policy = async (
   stream: string,
   version: number,
   threshold: number
-): Promise<PolicyResponse<Commands>> => {
+): Promise<CommandResponse<Commands>> => {
   const id = stream.substr("Calculator:".length);
   const { state } = await app().load(Calculator(id));
   if (
@@ -33,7 +34,10 @@ export type CounterEvents = Pick<Events, "DigitPressed" | "DotPressed">;
 
 export const Counter = (
   event: EvtOf<CounterEvents>
-): Policy<Commands, CounterEvents, CounterState> => ({
+): ProcessManager<CounterState, Commands, CounterEvents> => ({
+  stream: () => `Counter:${event.stream}`,
+  init: (): CounterState => ({ count: 0 }),
+
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>,
     state?: CounterState
@@ -44,22 +48,17 @@ export const Counter = (
     state?: CounterState
   ) => policy(state, event.stream, event.version, 5),
 
-  reducer: {
-    stream: () => `Counter:${event.stream}`,
-    init: (): CounterState => ({ count: 0 }),
-    applyDigitPressed: (model: CounterState) => {
-      return { count: model.count + 1 };
-    },
-    applyDotPressed: (model: CounterState) => {
-      return { count: model.count + 1 };
-    }
+  applyDigitPressed: (model: CounterState) => {
+    return { count: model.count + 1 };
+  },
+  applyDotPressed: (model: CounterState) => {
+    return { count: model.count + 1 };
   }
 });
 
 export const StatelessCounter = (): Policy<
   Commands,
-  Pick<Events, "DigitPressed" | "DotPressed">,
-  CounterState
+  Pick<Events, "DigitPressed" | "DotPressed">
 > => ({
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>,

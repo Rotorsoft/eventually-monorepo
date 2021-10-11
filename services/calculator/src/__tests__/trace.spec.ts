@@ -6,7 +6,7 @@ import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
 
 app()
-  .withAggregates(Calculator)
+  .withCommandHandlers(Calculator)
   .withEvents(events)
   .withCommands(commands)
   .build();

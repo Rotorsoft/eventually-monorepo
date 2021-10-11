@@ -7,13 +7,13 @@ import * as systems from "../accounts.systems";
 app()
   .withCommands(commands.factory)
   .withEvents(events.factory)
-  .withPolicies(
+  .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,
     policies.IntegrateAccount3,
     policies.WaitForAllAndComplete
   )
-  .withSystems(
+  .withCommandHandlers(
     systems.ExternalSystem1,
     systems.ExternalSystem2,
     systems.ExternalSystem3,
@@ -52,7 +52,7 @@ describe("happy path", () => {
     const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>
-      ).reducer
+      )
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);
@@ -79,7 +79,7 @@ describe("happy path", () => {
     const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>
-      ).reducer
+      )
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);

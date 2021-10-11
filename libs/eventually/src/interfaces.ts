@@ -1,17 +1,20 @@
-import { EvtOf, MsgOf, Payload, PolicyFactory } from "./types";
+import { ProcessManagerFactory } from ".";
+import { Evt, Msg, Payload, PolicyFactory } from "./types";
 
 /**
  * Brokers publish committed events to pub/sub topics
  */
 export interface Broker {
   /**
-   * Subscribes policy to topic
-   * @param factory policy factory
+   * Subscribes event handler to topic
+   * @param factory event handler factory
    * @param event committed event
    */
   subscribe(
-    factory: PolicyFactory<unknown, unknown, Payload>,
-    event: EvtOf<unknown>
+    factory:
+      | PolicyFactory<unknown, unknown>
+      | ProcessManagerFactory<Payload, unknown, unknown>,
+    event: Evt
   ): Promise<void>;
 
   /**
@@ -19,14 +22,14 @@ export interface Broker {
    * @param event committed event
    * @returns the message id
    */
-  publish: (event: EvtOf<unknown>) => Promise<string>;
+  publish: (event: Evt) => Promise<string>;
 
   /**
    * Decodes pushed messages
    * @param msg pushed message
    * @returns committed event in payload
    */
-  decode: (msg: Payload) => EvtOf<unknown>;
+  decode: (msg: Payload) => Evt;
 }
 
 /**
@@ -52,7 +55,7 @@ export interface Store {
    * @param limit optional limit of events to return
    */
   read: (
-    callback: (event: EvtOf<unknown>) => void,
+    callback: (event: Evt) => void,
     options?: { stream?: string; name?: string; after?: number; limit?: number }
   ) => Promise<void>;
 
@@ -66,8 +69,8 @@ export interface Store {
    */
   commit: (
     stream: string,
-    events: MsgOf<unknown>[],
+    events: Msg[],
     expectedVersion?: number,
     publish?: boolean
-  ) => Promise<EvtOf<unknown>[]>;
+  ) => Promise<Evt[]>;
 }

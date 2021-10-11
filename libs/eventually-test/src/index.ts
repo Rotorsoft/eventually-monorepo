@@ -1,17 +1,17 @@
 import {
-  aggregateCommandPath,
   AggregateFactory,
   aggregatePath,
   Evt,
   EvtOf,
-  externalSystemCommandPath,
   ExternalSystemFactory,
   MsgOf,
   Payload,
-  policyEventPath,
   PolicyFactory,
-  PolicyResponse,
-  Snapshot
+  CommandResponse,
+  Snapshot,
+  commandHandlerPath,
+  ProcessManagerFactory,
+  eventHandlerPath
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 
@@ -22,14 +22,14 @@ export const get = (path: string, port = 3000): Promise<void> =>
   axios.get(url(path, port));
 
 export const command = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E>,
-  id: string,
+  factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
   msg: MsgOf<C>,
+  id?: string,
   expectedVersion?: number,
   port = 3000
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.post<MsgOf<C>, AxiosResponse<Snapshot<M>[]>>(
-    url(aggregateCommandPath(factory, msg).replace(":id", id), port),
+    url(commandHandlerPath(factory, msg).replace(":id", id), port),
     msg,
     {
       headers: expectedVersion ? { "If-Match": expectedVersion.toString() } : {}
@@ -38,26 +38,14 @@ export const command = async <M extends Payload, C, E>(
   return data;
 };
 
-export const system = async <C, E>(
-  factory: ExternalSystemFactory<C, E>,
-  msg: MsgOf<C>,
-  port: number
-): Promise<Snapshot<undefined>[]> => {
-  const { data } = await axios.post<
-    MsgOf<C>,
-    AxiosResponse<Snapshot<undefined>[]>
-  >(url(externalSystemCommandPath(factory, msg), port), msg);
-  return data;
-};
-
-export const event = async <C, E, M extends Payload>(
-  factory: PolicyFactory<C, E, M>,
+export const event = async <M extends Payload, C, E>(
+  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
   event: EvtOf<E>
-): Promise<PolicyResponse<C> | undefined> => {
+): Promise<CommandResponse<C> | undefined> => {
   const { data } = await axios.post<
     EvtOf<E>,
-    AxiosResponse<PolicyResponse<C> | undefined>
-  >(url(policyEventPath(factory, event)), event);
+    AxiosResponse<CommandResponse<C> | undefined>
+  >(url(eventHandlerPath(factory, event)), event);
   return data;
 };
 

@@ -6,7 +6,8 @@ import {
   MessageFactory,
   MsgOf,
   Payload,
-  PolicyFactory
+  PolicyFactory,
+  ProcessManagerFactory
 } from "./types";
 
 /**
@@ -53,37 +54,29 @@ export const aggregatePath = <M extends Payload, C, E>(
 };
 
 /**
- * Normalizes aggregate command paths
- * @param factory aggregate factory
+ * Normalizes command handler paths
+ * @param factory command handler factory
  * @param command command
  * @returns normalized path
  */
-export const aggregateCommandPath = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E>,
+export const commandHandlerPath = <M extends Payload, C, E>(
+  factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
   command: MsgOf<C>
 ): string =>
-  "/".concat(decamelize(factory.name), "/:id/", decamelize(command.name));
+  "/".concat(
+    decamelize(factory.name),
+    "init" in factory(undefined) ? "/:id/" : "",
+    decamelize(command.name)
+  );
 
 /**
- * Normalizes external system command paths
- * @param factory external system factory
- * @param command command
- * @returns normalized path
- */
-export const externalSystemCommandPath = <C, E>(
-  factory: ExternalSystemFactory<C, E>,
-  command: MsgOf<C>
-): string =>
-  "/".concat(decamelize(factory.name), "/", decamelize(command.name));
-
-/**
- * Normalizes policy event paths
- * @param factory policy factory
+ * Normalizes event handler paths
+ * @param factory event handler factory
  * @param event event
  * @returns normalized path
  */
-export const policyEventPath = <C, E, M extends Payload>(
-  factory: PolicyFactory<C, E, M>,
+export const eventHandlerPath = <M extends Payload, C, E>(
+  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
   event: EvtOf<E>
 ): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
 

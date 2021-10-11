@@ -1,51 +1,51 @@
 import {
-  aggregateCommandPath,
   AggregateFactory,
-  EvtOf,
-  externalSystemCommandPath,
+  commandHandlerPath,
+  eventHandlerPath,
+  Evt,
   ExternalSystemFactory,
   handlersOf,
   log,
   MessageFactory,
-  MsgOf,
+  Msg,
   Payload,
-  policyEventPath,
-  PolicyFactory
+  PolicyFactory,
+  ProcessManagerFactory
 } from ".";
 
 export type Factories = {
-  events: MessageFactory<unknown>;
   commands: MessageFactory<unknown>;
-  aggregates: {
-    [name: string]: AggregateFactory<Payload, unknown, unknown>;
+  commandHandlerFactories: {
+    [name: string]:
+      | AggregateFactory<Payload, unknown, unknown>
+      | ExternalSystemFactory<unknown, unknown>;
   };
-  systems: {
-    [name: string]: ExternalSystemFactory<unknown, unknown>;
-  };
-  policies: {
-    [name: string]: PolicyFactory<unknown, unknown, Payload>;
+  events: MessageFactory<unknown>;
+  eventHandlerFactories: {
+    [name: string]:
+      | PolicyFactory<unknown, unknown>
+      | ProcessManagerFactory<Payload, unknown, unknown>;
   };
 };
 
 export type Handlers = {
-  aggregates: {
+  commandHandlers: {
     [name: string]: {
-      factory: AggregateFactory<Payload, unknown, unknown>;
-      command: MsgOf<unknown>;
+      type: "aggregate" | "external-system";
+      factory:
+        | AggregateFactory<Payload, unknown, unknown>
+        | ExternalSystemFactory<unknown, unknown>;
+      command: Msg;
       path: string;
     };
   };
-  systems: {
-    [name: string]: {
-      factory: ExternalSystemFactory<unknown, unknown>;
-      command: MsgOf<unknown>;
-      path: string;
-    };
-  };
-  policies: {
+  eventHandlers: {
     [path: string]: {
-      factory: PolicyFactory<unknown, unknown, Payload>;
-      event: EvtOf<unknown>;
+      type: "policy" | "process-manager";
+      factory:
+        | PolicyFactory<unknown, unknown>
+        | ProcessManagerFactory<Payload, unknown, unknown>;
+      event: Evt;
       path: string;
     };
   };
@@ -53,11 +53,10 @@ export type Handlers = {
 
 export class Builder {
   private _factories: Factories = {
-    events: {},
     commands: {},
-    aggregates: {},
-    systems: {},
-    policies: {}
+    commandHandlerFactories: {},
+    events: {},
+    eventHandlerFactories: {}
   };
 
   /**
@@ -79,31 +78,30 @@ export class Builder {
   }
 
   /**
-   * Registers aggregate factories
-   * @param factories aggregate factories
+   * Registers command handler factories
+   * @param factories command handler factories
    */
-  withAggregates(
-    ...factories: AggregateFactory<Payload, unknown, unknown>[]
+  withCommandHandlers(
+    ...factories: (
+      | AggregateFactory<Payload, unknown, unknown>
+      | ExternalSystemFactory<unknown, unknown>
+    )[]
   ): this {
-    factories.map((f) => (this._factories.aggregates[f.name] = f));
+    factories.map((f) => (this._factories.commandHandlerFactories[f.name] = f));
     return this;
   }
 
   /**
-   * Registers external system factories
-   * @param factories external system factories
+   * Registers event handler factories
+   * @param factories event handler factories
    */
-  withSystems(...factories: ExternalSystemFactory<unknown, unknown>[]): this {
-    factories.map((f) => (this._factories.systems[f.name] = f));
-    return this;
-  }
-
-  /**
-   * Registers policy factories
-   * @param factories policy factories
-   */
-  withPolicies(...factories: PolicyFactory<unknown, unknown, Payload>[]): this {
-    factories.map((f) => (this._factories.policies[f.name] = f));
+  withEventHandlers(
+    ...factories: (
+      | PolicyFactory<unknown, unknown>
+      | ProcessManagerFactory<Payload, unknown, unknown>
+    )[]
+  ): this {
+    factories.map((f) => (this._factories.eventHandlerFactories[f.name] = f));
     return this;
   }
 
@@ -112,19 +110,19 @@ export class Builder {
    */
   protected handlers(): Handlers {
     const handlers: Handlers = {
-      aggregates: {},
-      systems: {},
-      policies: {}
+      commandHandlers: {},
+      eventHandlers: {}
     };
 
-    Object.values(this._factories.aggregates).map((factory) => {
-      const aggregate = factory("");
-      handlersOf(this._factories.commands).map((f) => {
-        const command = f() as MsgOf<unknown>;
-        const path = aggregateCommandPath(factory, command);
-        if (Object.keys(aggregate).includes("on".concat(command.name))) {
-          handlers.aggregates[command.name] = {
-            factory,
+    Object.values(this._factories.commandHandlerFactories).map((chf) => {
+      const handler = chf(undefined);
+      handlersOf(this._factories.commands).map((cf) => {
+        const command = cf() as Msg;
+        const path = commandHandlerPath(chf, command);
+        if (Object.keys(handler).includes("on".concat(command.name))) {
+          handlers.commandHandlers[command.name] = {
+            type: "init" in handler ? "aggregate" : "external-system",
+            factory: chf,
             command,
             path
           };
@@ -133,29 +131,18 @@ export class Builder {
       });
     });
 
-    Object.values(this._factories.systems).map((factory) => {
-      const externalsystem = factory();
-      handlersOf(this._factories.commands).map((f) => {
-        const command = f() as MsgOf<unknown>;
-        const path = externalSystemCommandPath(factory, command);
-        if (Object.keys(externalsystem).includes("on".concat(command.name))) {
-          handlers.systems[command.name] = {
-            factory,
-            command,
+    Object.values(this._factories.eventHandlerFactories).map((ehf) => {
+      const handler = ehf(undefined);
+      handlersOf(this._factories.events).map((ef) => {
+        const event = ef() as Evt;
+        if (Object.keys(handler).includes("on".concat(event.name))) {
+          const path = eventHandlerPath(ehf, event);
+          handlers.eventHandlers[path] = {
+            type: "init" in handler ? "process-manager" : "policy",
+            factory: ehf,
+            event,
             path
           };
-          log().info("blue", `[POST ${command.name}]`, path);
-        }
-      });
-    });
-
-    Object.values(this._factories.policies).map((factory) => {
-      const policy = factory(undefined);
-      handlersOf(this._factories.events).map((f) => {
-        const event = f() as EvtOf<unknown>;
-        if (Object.keys(policy).includes("on".concat(event.name))) {
-          const path = policyEventPath(factory, event);
-          handlers.policies[path] = { factory, event, path };
           log().info("magenta", `[POST ${event.name}]`, path);
         }
       });

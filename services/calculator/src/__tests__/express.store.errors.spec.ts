@@ -9,7 +9,7 @@ import { events } from "../calculator.events";
 app(new ExpressApp())
   .withEvents(events)
   .withCommands(commands)
-  .withAggregates(Calculator);
+  .withCommandHandlers(Calculator);
 let server: Server;
 
 jest.spyOn(store(), "read").mockRejectedValue("Error");
