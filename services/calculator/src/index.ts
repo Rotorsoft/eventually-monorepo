@@ -1,10 +1,4 @@
-import {
-  app,
-  broker,
-  config,
-  InMemoryBroker,
-  store
-} from "@rotorsoft/eventually";
+import { app, broker, config, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { PubSubBroker } from "@rotorsoft/eventually-gcp";
@@ -14,7 +8,7 @@ import { events } from "./calculator.events";
 import { Counter } from "./counter.policy";
 
 store(PostgresStore("calculator"));
-broker(config().host === "localhost" ? InMemoryBroker() : PubSubBroker());
+broker(config().host !== "localhost" ? PubSubBroker() : undefined);
 
 const expressApp = app(new ExpressApp()) as ExpressApp;
 expressApp
