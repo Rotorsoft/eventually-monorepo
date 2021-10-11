@@ -15,7 +15,9 @@ expressApp
   .withEvents(events)
   .withCommands(commands)
   .withCommandHandlers(Calculator)
-  .withEventHandlers(Counter)
-  .build();
+  .withEventHandlers(Counter);
+
+// make express available to gcloud functions as entry point to app
+export const express = expressApp.build();
 
 void expressApp.listen(config().host.endsWith("cloudfunctions.net/calculator"));

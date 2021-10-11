@@ -19,7 +19,7 @@
   ],
   "scripts": {},
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^2.0.6",
+    "@rotorsoft/eventually": "workspace:^2.0.7",
     "joi": "^17.4.2",
     "pg": "^8.7.1"
   },
