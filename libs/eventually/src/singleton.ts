@@ -5,8 +5,8 @@
  */
 const instances: { [name: string]: unknown } = {};
 export const singleton =
-  <T, U>(target: (arg?: U) => T) =>
-  (arg?: U): T => {
+  <T>(target: (arg?: T) => T) =>
+  (arg?: T): T => {
     if (!instances[target.name]) instances[target.name] = target(arg);
     return instances[target.name] as T;
   };

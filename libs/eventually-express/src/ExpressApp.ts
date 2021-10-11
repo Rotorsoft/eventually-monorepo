@@ -67,9 +67,9 @@ export class ExpressApp extends AppBase {
     callback: GetCallback,
     suffix?: string
   ): void {
-    const { name, path } = aggregatePath(factory);
+    const path = aggregatePath(factory).concat(suffix || "");
     this._router.get(
-      path.concat(suffix || ""),
+      path,
       async (
         req: Request<{ id: string }>,
         res: Response,
@@ -92,7 +92,7 @@ export class ExpressApp extends AppBase {
         }
       }
     );
-    this.log.info("green", `[GET ${name}]`, path.concat(suffix || ""));
+    this.log.info("green", `[GET ${factory.name}]`, path);
   }
 
   private _buildCommandHandlers(): void {

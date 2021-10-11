@@ -54,7 +54,7 @@ export const load = async <M extends Payload, C, E>(
   id: string
 ): Promise<Snapshot<M>> => {
   const { data } = await axios.get<any, AxiosResponse<Snapshot<M>>>(
-    url(aggregatePath(factory).path.replace(":id", id))
+    url(aggregatePath(factory).replace(":id", id))
   );
   return data;
 };
@@ -64,7 +64,7 @@ export const stream = async <M extends Payload, C, E>(
   id: string
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
-    url(aggregatePath(factory).path.replace(":id", id).concat("/stream"))
+    url(aggregatePath(factory).replace(":id", id).concat("/stream"))
   );
   return data;
 };

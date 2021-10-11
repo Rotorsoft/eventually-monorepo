@@ -41,17 +41,13 @@ export const handlersOf = <Messages>(
 };
 
 /**
- * Normalizes aggregate path
+ * Normalizes aggregate paths
  * @param factory aggregate factory
- * @returns object with aggregate name and path
+ * @returns the aggregate path
  */
 export const aggregatePath = <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E>
-): { name: string; path: string } => {
-  const name = factory.name;
-  const path = "/".concat(decamelize(name), "/:id");
-  return { name, path };
-};
+): string => "/".concat(decamelize(factory.name), "/:id");
 
 /**
  * Normalizes command handler paths
