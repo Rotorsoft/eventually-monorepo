@@ -1,7 +1,5 @@
 import {
-  Aggregate,
   AggregateFactory,
-  aggregatePath,
   AllQuery,
   AppBase,
   broker,
@@ -11,6 +9,9 @@ import {
   Evt,
   Msg,
   Payload,
+  ProcessManagerFactory,
+  Reducible,
+  reduciblePath,
   Snapshot,
   ValidationError
 } from "@rotorsoft/eventually";
@@ -24,8 +25,8 @@ import express, {
 } from "express";
 import { Server } from "http";
 
-type GetCallback = <M extends Payload, C, E>(
-  aggregate: Aggregate<M, C, E>
+type GetCallback = <M extends Payload, E>(
+  reducible: Reducible<M, E>
 ) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
@@ -42,7 +43,7 @@ export class ExpressApp extends AppBase {
         next: NextFunction
       ) => {
         try {
-          const { stream, name, after, limit } = req.query;
+          const { stream, name, after = -1, limit = 1 } = req.query;
           const result = await this.read({
             stream,
             name,
@@ -63,9 +64,10 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildGetter<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E>,
+    factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
     callback: GetCallback,
-    path: string
+    path: string,
+    overrideId = false
   ): void {
     this._router.get(
       path,
@@ -76,7 +78,11 @@ export class ExpressApp extends AppBase {
       ) => {
         try {
           const { id } = req.params;
-          const result = await callback(factory(id));
+          const result = await callback(
+            overrideId
+              ? { ...factory(undefined), stream: () => id }
+              : (factory as AggregateFactory<M, C, E>)(id)
+          );
           let etag = "-1";
           if (Array.isArray(result)) {
             if (result.length)
@@ -141,19 +147,31 @@ export class ExpressApp extends AppBase {
     Object.values(aggregates).map((factory) => {
       this.log.info("green", factory.name);
 
-      const getpath = aggregatePath(factory);
+      const getpath = reduciblePath(factory);
       this._buildGetter(factory, this.load.bind(this), getpath);
       this.log.info("green", "  ", `GET ${getpath}`);
 
-      const streampath = aggregatePath(factory).concat("/stream");
+      const streampath = reduciblePath(factory).concat("/stream");
       this._buildGetter(factory, this.stream.bind(this), streampath);
       this.log.info("green", "  ", `GET ${streampath}`);
     });
   }
 
   private _buildEventHandlers(): void {
+    const managers: Record<
+      string,
+      ProcessManagerFactory<Payload, unknown, unknown>
+    > = {};
     Object.values(this._handlers.eventHandlers)
-      .filter(({ event }) => event.scope() === "public")
+      .filter(({ type, factory, event }) => {
+        if (type === "process-manager")
+          managers[factory.name] = factory as ProcessManagerFactory<
+            Payload,
+            unknown,
+            unknown
+          >;
+        return event.scope() === "public";
+      })
       .map(({ factory, event, path }) => {
         this._router.post(
           path,
@@ -175,6 +193,18 @@ export class ExpressApp extends AppBase {
           }
         );
       });
+
+    Object.values(managers).map((factory) => {
+      this.log.info("green", factory.name);
+
+      const getpath = reduciblePath(factory);
+      this._buildGetter(factory, this.load.bind(this), getpath, true);
+      this.log.info("green", "  ", `GET ${getpath}`);
+
+      const streampath = reduciblePath(factory).concat("/stream");
+      this._buildGetter(factory, this.stream.bind(this), streampath, true);
+      this.log.info("green", "  ", `GET ${streampath}`);
+    });
   }
 
   build(): express.Express {

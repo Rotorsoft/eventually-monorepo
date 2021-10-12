@@ -32,7 +32,7 @@ const compute = (model: CalculatorModel): CalculatorModel => {
 export const Calculator = (
   id: string
 ): Aggregate<CalculatorModel, Omit<Commands, "Whatever">, Events> => ({
-  stream: () => `Calculator:${id}`,
+  stream: () => `Calculator${id}`,
 
   // Model Reducer with event side effects
   init: (): CalculatorModel => ({

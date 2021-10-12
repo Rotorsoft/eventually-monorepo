@@ -40,12 +40,12 @@ export const handlersOf = <Messages>(
 };
 
 /**
- * Normalizes aggregate paths
- * @param factory aggregate factory
- * @returns the aggregate path
+ * Normalizes reducible paths
+ * @param factory reducible factory
+ * @returns the reducible path
  */
-export const aggregatePath = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E>
+export const reduciblePath = <M extends Payload, C, E>(
+  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>
 ): string => "/".concat(decamelize(factory.name), "/:id");
 
 /**

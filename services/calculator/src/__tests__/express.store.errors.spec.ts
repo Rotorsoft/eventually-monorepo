@@ -24,7 +24,7 @@ describe("express app", () => {
   });
 
   afterAll(async () => {
-    (server as unknown as Server).close();
+    server.close();
     await app().close();
   });
 

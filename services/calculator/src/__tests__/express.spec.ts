@@ -52,8 +52,8 @@ describe("express app", () => {
         result: 3.3
       });
 
-      const snapshots = await stream(Calculator, id);
-      expect(snapshots.length).toEqual(6);
+      const calc_snapshots = await stream(Calculator, id);
+      expect(calc_snapshots.length).toEqual(6);
     });
 
     it("should compute correctly 2", async () => {

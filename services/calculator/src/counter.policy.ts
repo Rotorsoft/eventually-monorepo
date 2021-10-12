@@ -19,12 +19,12 @@ const policy = async (
   if (counter) {
     if (counter.count >= threshold - 1)
       return {
-        id: event.stream.substr("Calculator:".length),
+        id: event.stream.substr("Calculator".length),
         expectedVersion: event.version,
         command: commands.Reset()
       };
   } else {
-    const id = event.stream.substr("Calculator:".length);
+    const id = event.stream.substr("Calculator".length);
     const { state } = await app().load(Calculator(id));
     if (
       (state.left || "").length >= threshold ||
@@ -42,7 +42,7 @@ export type CounterEvents = Pick<Events, "DigitPressed" | "DotPressed">;
 export const Counter = (
   event: EvtOf<Events>
 ): ProcessManager<CounterState, Commands, Events> => ({
-  stream: () => `Counter:${event.stream}`,
+  stream: () => `Counter${event.stream}`,
   init: (): CounterState => ({ count: 0 }),
 
   onDigitPressed: async (

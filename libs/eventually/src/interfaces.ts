@@ -47,7 +47,7 @@ export interface Store {
   close: () => Promise<void>;
 
   /**
-   * Loads events from store
+   * Reads events from store
    * @param callback callback predicate
    * @param query optional query values
    */
