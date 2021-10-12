@@ -29,6 +29,7 @@ const trigger = (id: string): EvtOf<Pick<events.Events, "AccountCreated">> => {
     created: new Date(),
     name: "AccountCreated",
     data: { id },
+    scope: () => "public",
     schema: events.factory.AccountCreated().schema
   } as EvtOf<Pick<events.Events, "AccountCreated">>;
 };
@@ -48,7 +49,7 @@ describe("happy path", () => {
     await app().event(policies.IntegrateAccount2, t);
 
     // then
-    const [seed] = await app().read("Account1Created");
+    const [seed] = await app().read({ name: "Account1Created" });
     const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>
@@ -73,9 +74,9 @@ describe("happy path", () => {
     await app().event(policies.IntegrateAccount1, t);
 
     // then
-    const [seed] = (await app().read("Account1Created", -1, 100)).filter(
-      (e) => e.data.id === t.data.id
-    );
+    const [seed] = (
+      await app().read({ name: "Account1Created", after: -1, limit: 100 })
+    ).filter((e) => e.data.id === t.data.id);
     const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>

@@ -44,18 +44,20 @@ export const PubSubBroker = (): Broker => {
         | ProcessManagerFactory<Payload, unknown, unknown>,
       event: Evt
     ): Promise<void> => {
-      const url = `${config.host}${eventHandlerPath(factory, event)}`;
-      const sub = (await topic(event)).subscription(
-        factory.name.concat(".", event.name)
-      );
-      const [exists] = await sub.exists();
-      if (!exists)
-        await sub.create({
-          pushEndpoint: url,
-          enableMessageOrdering: true
-        });
-      else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
-        await sub.modifyPushConfig({ pushEndpoint: url });
+      if (event.scope() === "public") {
+        const url = `${config.host}${eventHandlerPath(factory, event)}`;
+        const sub = (await topic(event)).subscription(
+          factory.name.concat(".", event.name)
+        );
+        const [exists] = await sub.exists();
+        if (!exists)
+          await sub.create({
+            pushEndpoint: url,
+            enableMessageOrdering: true
+          });
+        else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
+          await sub.modifyPushConfig({ pushEndpoint: url });
+      }
     },
 
     publish: async (event: Evt): Promise<string> => {
@@ -66,7 +68,7 @@ export const PubSubBroker = (): Broker => {
           data: Buffer.from(JSON.stringify(event)),
           orderingKey
         });
-        return `${messageId}@${event.id}`;
+        return `${messageId}@${event.name}`;
       } catch (error) {
         log().error(error);
         if (t) t.resumePublishing(orderingKey);

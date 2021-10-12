@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { Environments } from ".";
 import { config, LogLevels } from "./config";
 import { singleton } from "./singleton";
 
@@ -15,22 +16,31 @@ export const log = singleton(function log() {
     trace: (
       color: Color,
       message: string,
-      trace?: any,
+      details?: any,
       ...params: any[]
     ): void => {
       if (config().logLevel === LogLevels.trace)
         console.log(
           chalk[color](message),
-          chalk.gray(JSON.stringify(trace || {})),
+          chalk.gray(JSON.stringify(details || {})),
           ...params
         );
     },
     error: (error: Error): void => {
-      console.error(error);
+      if (config().env !== Environments.test) console.error(error);
     },
-    info: (color: Color, message: string, ...params: any[]): void => {
+    info: (
+      color: Color,
+      message: string,
+      details?: string,
+      ...params: any[]
+    ): void => {
       if (config().logLevel !== LogLevels.error)
-        console.info(chalk[color](message), ...params);
+        console.info(
+          chalk[color](message),
+          chalk.gray(details || ""),
+          ...params
+        );
     }
   };
 });

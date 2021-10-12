@@ -15,7 +15,9 @@ const query = (sql: string): Promise<QueryResult<EvtOf<any>>> => {
         data: {},
         stream: "stream",
         version: 1,
-        created: new Date()
+        created: new Date(),
+        scope: () => "public",
+        schema: () => undefined
       }
     ],
     command: undefined,

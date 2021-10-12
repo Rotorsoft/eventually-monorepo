@@ -14,7 +14,8 @@ import {
 import { committedSchema, ValidationError } from "../utils";
 
 const validate = <T>(message: MsgOf<T>, committed = false): void => {
-  const { schema, ...value } = message;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { scope, schema, ...value } = message;
   const validator = committed ? committedSchema(schema()) : schema();
   const { error } = validator.validate(value, { abortEarly: false });
   if (error) throw new ValidationError(error);
@@ -23,7 +24,7 @@ const validate = <T>(message: MsgOf<T>, committed = false): void => {
 export class InMemoryApp extends AppBase {
   async listen(): Promise<void> {
     await super.listen();
-    this.log.info("white", "InMemory app is listening...", config);
+    this.log.info("white", "InMemory app is listening...", undefined, config);
   }
 
   async command<M extends Payload, C, E>(
@@ -40,7 +41,7 @@ export class InMemoryApp extends AppBase {
   async event<C, E, M extends Payload>(
     factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: EvtOf<E>
-  ): Promise<CommandResponse<C> | undefined> {
+  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
     validate(event as unknown as MsgOf<E>, true);
     return super.event(factory, event);
   }

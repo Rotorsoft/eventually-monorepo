@@ -39,7 +39,7 @@ describe("PostgresStore", () => {
         event("test3", { value: "3" })
       ],
       undefined,
-      true
+      () => Promise.resolve()
     );
   });
 

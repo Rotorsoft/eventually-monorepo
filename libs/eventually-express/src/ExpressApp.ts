@@ -2,6 +2,7 @@ import {
   Aggregate,
   AggregateFactory,
   aggregatePath,
+  AllQuery,
   AppBase,
   broker,
   committedSchema,
@@ -32,42 +33,40 @@ export class ExpressApp extends AppBase {
   private _router = Router();
   private _server: Server;
 
-  private _buildStreamRoute(): void {
+  private _buildAllStreamRoute(): void {
     this._router.get(
-      "/stream/:event?",
+      "/all",
       async (
-        req: Request<
-          { event?: string },
-          Evt[],
-          any,
-          { after?: number; limit?: number }
-        >,
+        req: Request<any, Evt[], any, AllQuery>,
         res: Response,
         next: NextFunction
       ) => {
         try {
-          const { event } = req.params;
-          const { after, limit } = req.query;
-          const result = await this.read(
-            event,
-            after && +after,
-            limit && +limit
-          );
+          const { stream, name, after, limit } = req.query;
+          const result = await this.read({
+            stream,
+            name,
+            after: after && +after,
+            limit: limit && +limit
+          });
           return res.status(200).send(result);
         } catch (error) {
           next(error);
         }
       }
     );
-    this.log.info("green", "[GET]", "/stream/[event]?after=-1&limit=1");
+    this.log.info(
+      "green",
+      "All-Stream",
+      "GET /all?[stream=...]&[name=...]&[after=-1]&[limit=1]"
+    );
   }
 
   private _buildGetter<M extends Payload, C, E>(
     factory: AggregateFactory<M, C, E>,
     callback: GetCallback,
-    suffix?: string
+    path: string
   ): void {
-    const path = aggregatePath(factory).concat(suffix || "");
     this._router.get(
       path,
       async (
@@ -92,7 +91,6 @@ export class ExpressApp extends AppBase {
         }
       }
     );
-    this.log.info("green", `[GET ${factory.name}]`, path);
   }
 
   private _buildCommandHandlers(): void {
@@ -100,14 +98,17 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.commandHandlers).map(
-      ({ type, factory, command, path }) => {
+    Object.values(this._handlers.commandHandlers)
+      .filter(({ type, factory, command }) => {
         if (type === "aggregate")
           aggregates[factory.name] = factory as AggregateFactory<
             Payload,
             unknown,
             unknown
           >;
+        return command.scope() === "public";
+      })
+      .map(({ type, factory, command, path }) => {
         this._router.post(
           path,
           async (
@@ -135,18 +136,25 @@ export class ExpressApp extends AppBase {
             }
           }
         );
-      }
-    );
+      });
 
     Object.values(aggregates).map((factory) => {
-      this._buildGetter(factory, this.load.bind(this));
-      this._buildGetter(factory, this.stream.bind(this), "/stream");
+      this.log.info("green", factory.name);
+
+      const getpath = aggregatePath(factory);
+      this._buildGetter(factory, this.load.bind(this), getpath);
+      this.log.info("green", "  ", `GET ${getpath}`);
+
+      const streampath = aggregatePath(factory).concat("/stream");
+      this._buildGetter(factory, this.stream.bind(this), streampath);
+      this.log.info("green", "  ", `GET ${streampath}`);
     });
   }
 
   private _buildEventHandlers(): void {
-    Object.values(this._handlers.eventHandlers).map(
-      ({ factory, event, path }) => {
+    Object.values(this._handlers.eventHandlers)
+      .filter(({ event }) => event.scope() === "public")
+      .map(({ factory, event, path }) => {
         this._router.post(
           path,
           async (req: Request, res: Response, next: NextFunction) => {
@@ -166,8 +174,7 @@ export class ExpressApp extends AppBase {
             }
           }
         );
-      }
-    );
+      });
   }
 
   build(): express.Express {
@@ -175,7 +182,7 @@ export class ExpressApp extends AppBase {
 
     this._buildCommandHandlers();
     this._buildEventHandlers();
-    this._buildStreamRoute();
+    this._buildAllStreamRoute();
 
     this._app.set("trust proxy", true);
     this._app.use(cors());
@@ -205,10 +212,10 @@ export class ExpressApp extends AppBase {
    */
   async listen(silent = false): Promise<void> {
     await super.listen();
-    if (silent) this.log.info("white", "Config", config());
+    if (silent) this.log.info("white", "Config", undefined, config());
     else
       this._server = this._app.listen(config().port, () => {
-        this.log.info("white", "Express app is listening", config());
+        this.log.info("white", "Express app is listening", undefined, config());
       });
   }
 

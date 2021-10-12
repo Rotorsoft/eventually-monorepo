@@ -11,7 +11,9 @@ import {
   Snapshot,
   commandHandlerPath,
   ProcessManagerFactory,
-  eventHandlerPath
+  eventHandlerPath,
+  AllQuery,
+  Msg
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 
@@ -40,12 +42,13 @@ export const command = async <M extends Payload, C, E>(
 
 export const event = async <M extends Payload, C, E>(
   factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-  event: EvtOf<E>
+  event: EvtOf<E>,
+  port = 3000
 ): Promise<CommandResponse<C> | undefined> => {
   const { data } = await axios.post<
     EvtOf<E>,
     AxiosResponse<CommandResponse<C> | undefined>
-  >(url(eventHandlerPath(factory, event)), event);
+  >(url(eventHandlerPath(factory, event as unknown as Msg), port), event);
   return data;
 };
 
@@ -69,18 +72,12 @@ export const stream = async <M extends Payload, C, E>(
   return data;
 };
 
-export const read = async (options?: {
-  name?: string;
-  after?: number;
-  limit?: number;
-}): Promise<Evt[]> => {
-  const { name, after, limit } = options || {};
-  const { data } = await axios.get<any, AxiosResponse<Evt[]>>(
-    url("/stream".concat(name ? `/${name}` : "")),
-    {
-      params: { after, limit }
-    }
-  );
+export const read = async (
+  query: AllQuery = { after: -1, limit: 1 }
+): Promise<Evt[]> => {
+  const { data } = await axios.get<any, AxiosResponse<Evt[]>>(url("/all"), {
+    params: query
+  });
   return data;
 };
 

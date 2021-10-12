@@ -1,7 +1,6 @@
 import * as joi from "joi";
 import {
   AggregateFactory,
-  EvtOf,
   ExternalSystemFactory,
   MessageFactory,
   MsgOf,
@@ -73,7 +72,7 @@ export const commandHandlerPath = <M extends Payload, C, E>(
  */
 export const eventHandlerPath = <M extends Payload, C, E>(
   factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-  event: EvtOf<E>
+  event: MsgOf<E>
 ): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
 
 /**

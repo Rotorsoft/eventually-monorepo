@@ -1,5 +1,5 @@
 import {
-  broker,
+  AllQuery,
   ConcurrencyError,
   Evt,
   log,
@@ -57,9 +57,9 @@ export const PostgresStore = (table: string): Store => {
 
     read: async (
       callback: (event: Evt) => void,
-      options?: { stream?: string; name?: string; after: number; limit: number }
+      query?: AllQuery
     ): Promise<void> => {
-      const { stream, name, after = -1, limit } = options;
+      const { stream, name, after = -1, limit } = query;
 
       const values: any[] = [after];
       let sql = `SELECT * FROM ${table} WHERE id>$1`;
@@ -86,7 +86,7 @@ export const PostgresStore = (table: string): Store => {
       stream: string,
       events: Msg[],
       expectedVersion?: number,
-      publish = false
+      callback?: (events: Evt[]) => Promise<void>
     ): Promise<Evt[]> => {
       const client = await pool.connect();
       let version = -1;
@@ -112,9 +112,7 @@ export const PostgresStore = (table: string): Store => {
           })
         );
 
-        // publish inside transaction to ensure "at-least-once" delivery
-        if (publish)
-          await Promise.all(committed.map((e) => broker().publish(e)));
+        if (callback) await callback(committed);
 
         await client.query("COMMIT").catch((error) => {
           log().error(error);

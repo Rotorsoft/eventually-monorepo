@@ -1,5 +1,5 @@
 import { Store } from "../interfaces";
-import { Evt, Msg } from "../types";
+import { AllQuery, Evt, Msg } from "../types";
 
 export const InMemoryStore = (): Store => {
   const _events: any[] = [];
@@ -15,16 +15,8 @@ export const InMemoryStore = (): Store => {
       return;
     },
 
-    read: (
-      callback: (event: Evt) => void,
-      options?: {
-        stream?: string;
-        name?: string;
-        after?: number;
-        limit?: number;
-      }
-    ): Promise<void> => {
-      const { stream, name, after = -1, limit } = options;
+    read: (callback: (event: Evt) => void, query?: AllQuery): Promise<void> => {
+      const { stream, name, after = -1, limit } = query;
       let i = after + 1,
         count = 0;
       while (i < _events.length) {
@@ -40,8 +32,8 @@ export const InMemoryStore = (): Store => {
     commit: async (
       stream: string,
       events: Msg[],
-      expectedVersion?: number
-      // eslint-disable-next-line
+      expectedVersion?: number,
+      callback?: (events: Evt[]) => Promise<void>
     ): Promise<Evt[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
@@ -60,6 +52,8 @@ export const InMemoryStore = (): Store => {
         version++;
         return committed;
       });
+
+      if (callback) await callback(committed);
 
       return committed;
     }

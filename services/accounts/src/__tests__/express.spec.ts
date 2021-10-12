@@ -59,14 +59,16 @@ describe("express", () => {
     await expect(
       command(
         systems.ExternalSystem1,
-        {
-          name: "CreateAccount1",
-          schema: () => undefined
-        },
+        commands.factory.CreateAccount1(),
         undefined,
         undefined,
         port
       )
     ).rejects.toThrowError("Request failed with status code 400");
+  });
+
+  it("should cover IntegrationCompleted", () => {
+    const event = events.factory.IntegrationCompleted();
+    expect(event.scope()).toBe("public");
   });
 });

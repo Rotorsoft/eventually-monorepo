@@ -1,7 +1,7 @@
 import { app, broker, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
-import { command, sleep } from "@rotorsoft/eventually-test";
+import { command } from "@rotorsoft/eventually-test";
 import { Server } from "http";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
@@ -35,7 +35,6 @@ describe("express app", () => {
 
   describe("errors", () => {
     it("should throw internal error on stream", async () => {
-      await sleep(1);
       await expect(
         command(
           Calculator,

@@ -1,9 +1,10 @@
-import { Builder, Handlers } from "./builder";
+import { Builder } from "./builder";
 import { Broker, Store } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
 import {
   Aggregate,
+  AllQuery,
   CommandResponse,
   Evt,
   EvtOf,
@@ -31,13 +32,25 @@ export const broker = singleton(function broker(broker?: Broker) {
  */
 export abstract class AppBase extends Builder {
   public readonly log = log();
-  protected _handlers: Handlers;
-  private _topics: {
-    [name: string]: (
-      | PolicyFactory<unknown, unknown>
-      | ProcessManagerFactory<Payload, unknown, unknown>
-    )[];
-  } = {};
+
+  /**
+   * Publishes committed events inside commit transaction to ensure "at-least-once" delivery
+   * - Private events are executed synchronously (in-process)
+   * - Public events are delegated to the broker to be published
+   * @param events the events about to commit
+   */
+  private async _publish(events: Evt[]): Promise<void> {
+    // private subscriptions are invoked synchronously (in-process)
+    await Promise.all(
+      events.map((e) => {
+        const private_sub = this._private_subscriptions[e.name];
+        if (private_sub)
+          return Promise.all(private_sub.map((f) => this.event(f, e)));
+      })
+    );
+    // public subscriptions are delegated to the broker
+    await Promise.all(events.map((e) => broker().publish(e)));
+  }
 
   /**
    * Applies events to model
@@ -64,34 +77,21 @@ export abstract class AppBase extends Builder {
   }
 
   /**
-   * Builds application
-   * @param options options for store and broker
-   */
-  build(): unknown | undefined {
-    this._handlers = super.handlers();
-    // cache local topics
-    Object.values(this._handlers.eventHandlers).map(({ factory, event }) => {
-      const topic = (this._topics[event.name] = this._topics[event.name] || []);
-      topic.push(factory);
-    });
-    return;
-  }
-
-  /**
-   * Initializes application store and subscribes policy handlers to event topics
+   * Initializes application store and subscribes policy handlers to public event topics
    * Concrete implementations provide the listening framework
    */
   async listen(): Promise<void> {
     await store().init();
     await Promise.all(
-      Object.values(this._handlers.eventHandlers).map(({ factory, event }) => {
-        // subscribe remote topics
-        return broker()
-          .subscribe(factory, event)
-          .then(() =>
-            this.log.info("red", `${factory.name} <<< ${event.name}`)
-          );
-      })
+      Object.values(this._handlers.eventHandlers)
+        .filter(({ event }) => event.scope() === "public")
+        .map(({ factory, event }) => {
+          return broker()
+            .subscribe(factory, event)
+            .then(() =>
+              this.log.info("red", `${factory.name} <<< ${event.name}`)
+            );
+        })
     );
   }
 
@@ -134,15 +134,7 @@ export abstract class AppBase extends Builder {
       handler.stream(),
       events,
       expectedVersion,
-      true
-    );
-
-    // publish to local topics after commit
-    await Promise.all(
-      committed.map((e) => {
-        const topic = this._topics[e.name];
-        if (topic) return Promise.all(topic.map((f) => this.event(f, e)));
-      })
+      this._publish.bind(this)
     );
 
     const snapshots = reducible
@@ -156,12 +148,12 @@ export abstract class AppBase extends Builder {
    * Handles policy events and optionally invokes command on target aggregate - side effect
    * @param factory the event handler factory
    * @param event the triggering event
-   * @returns command response
+   * @returns command response and optional state
    */
   async event<C, E, M extends Payload>(
     factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: EvtOf<E>
-  ): Promise<CommandResponse<C> | undefined> {
+  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${factory.name}`,
@@ -179,8 +171,7 @@ export abstract class AppBase extends Builder {
     )["on".concat(event.name)](event, state);
 
     if (response) {
-      // - ensure "at-least-once" delivery before comitting
-      // - command handlers must be idempotent
+      // handle commands synchronously
       const { id, command, expectedVersion } = response;
       const { factory } = this._handlers.commandHandlers[command.name];
       this.log.trace(
@@ -191,10 +182,14 @@ export abstract class AppBase extends Builder {
       await this.command(factory(id), command, expectedVersion);
     }
 
-    if (reducible)
-      await store().commit(reducible.stream(), [event as unknown as Msg]);
+    if (reducible) {
+      const committed = await store().commit(reducible.stream(), [
+        event as unknown as Msg
+      ]);
+      this._apply(reducible, committed, state);
+    }
 
-    return response;
+    return { response, state };
   }
 
   /**
@@ -241,10 +236,11 @@ export abstract class AppBase extends Builder {
 
   /**
    * Reads all stream
+   * @param query optional query parameters
    */
-  async read(name?: string, after = -1, limit = 1): Promise<Evt[]> {
+  async read(query: AllQuery = { after: -1, limit: 1 }): Promise<Evt[]> {
     const events: Evt[] = [];
-    await store().read((e) => events.push(e), { name, after, limit });
+    await store().read((e) => events.push(e), query);
     return events;
   }
 }

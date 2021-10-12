@@ -13,7 +13,7 @@ import {
   ProcessManagerFactory
 } from ".";
 
-export type Factories = {
+type Factories = {
   commands: MessageFactory<unknown>;
   commandHandlerFactories: {
     [name: string]:
@@ -28,7 +28,7 @@ export type Factories = {
   };
 };
 
-export type Handlers = {
+type Handlers = {
   commandHandlers: {
     [name: string]: {
       type: "aggregate" | "external-system";
@@ -51,13 +51,27 @@ export type Handlers = {
   };
 };
 
+export type Subscriptions = {
+  [name: string]: (
+    | PolicyFactory<unknown, unknown>
+    | ProcessManagerFactory<Payload, unknown, unknown>
+  )[];
+};
+
 export class Builder {
-  private _factories: Factories = {
+  private readonly _factories: Factories = {
     commands: {},
     commandHandlerFactories: {},
     events: {},
     eventHandlerFactories: {}
   };
+
+  protected readonly _handlers: Handlers = {
+    commandHandlers: {},
+    eventHandlers: {}
+  };
+
+  protected readonly _private_subscriptions: Subscriptions = {};
 
   /**
    * Registers events factory
@@ -106,48 +120,68 @@ export class Builder {
   }
 
   /**
-   * Builds handlers
+   * Builds message handlers and private subscriptions
+   * Concrete app implementations should deal with their own building steps
+   * @returns optional internal application object (e.g. express)
    */
-  protected handlers(): Handlers {
-    const handlers: Handlers = {
-      commandHandlers: {},
-      eventHandlers: {}
-    };
-
+  build(): unknown | undefined {
+    // command handlers
     Object.values(this._factories.commandHandlerFactories).map((chf) => {
       const handler = chf(undefined);
+      const type = "init" in handler ? "aggregate" : "external-system";
+      log().info("white", chf.name, type);
       handlersOf(this._factories.commands).map((cf) => {
         const command = cf() as Msg;
         const path = commandHandlerPath(chf, command);
         if (Object.keys(handler).includes("on".concat(command.name))) {
-          handlers.commandHandlers[command.name] = {
-            type: "init" in handler ? "aggregate" : "external-system",
+          this._handlers.commandHandlers[command.name] = {
+            type,
             factory: chf,
             command,
             path
           };
-          log().info("blue", `[POST ${command.name}]`, path);
+          log().info(
+            "blue",
+            `  ${command.name}`,
+            command.scope() === "public" ? `POST ${path}` : chf.name
+          );
         }
       });
     });
 
+    // event handlers
     Object.values(this._factories.eventHandlerFactories).map((ehf) => {
       const handler = ehf(undefined);
+      const type = "init" in handler ? "process-manager" : "policy";
+      log().info("white", ehf.name, type);
       handlersOf(this._factories.events).map((ef) => {
-        const event = ef() as Evt;
+        const event = ef();
         if (Object.keys(handler).includes("on".concat(event.name))) {
           const path = eventHandlerPath(ehf, event);
-          handlers.eventHandlers[path] = {
-            type: "init" in handler ? "process-manager" : "policy",
+          this._handlers.eventHandlers[path] = {
+            type,
             factory: ehf,
             event,
             path
           };
-          log().info("magenta", `[POST ${event.name}]`, path);
+          log().info(
+            "magenta",
+            `  ${event.name}]`,
+            event.scope() === "public" ? `POST ${path}` : ehf.name
+          );
         }
       });
     });
 
-    return handlers;
+    // private subscriptions
+    Object.values(this._handlers.eventHandlers)
+      .filter(({ event }) => event.scope() === "private")
+      .map(({ factory, event }) => {
+        const sub = (this._private_subscriptions[event.name] =
+          this._private_subscriptions[event.name] || []);
+        sub.push(factory);
+      });
+
+    return;
   }
 }

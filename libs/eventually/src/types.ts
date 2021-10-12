@@ -12,6 +12,7 @@ export type Payload = Record<string, unknown>;
 export type Message<Name extends string, Type extends Payload> = {
   readonly name: Name;
   readonly data?: Type;
+  scope: () => "public" | "private";
   schema: () => joi.ObjectSchema<Message<Name, Type>>;
 };
 
@@ -33,9 +34,9 @@ export type MessageFactory<Messages> = {
 /**
  * Events committed to a stream have extra persisted attributes
  */
-export type CommittedEvent<Name extends string, Type extends Payload> = Omit<
-  Message<Name, Type>,
-  "schema"
+export type CommittedEvent<Name extends string, Type extends Payload> = Message<
+  Name,
+  Type
 > & {
   readonly id: number;
   readonly stream: string;
@@ -133,3 +134,13 @@ export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> & {
 export type ProcessManagerFactory<M extends Payload, C, E> = (
   event: EvtOf<E>
 ) => ProcessManager<M, C, E>;
+
+/**
+ * Options to query the all stream
+ */
+export type AllQuery = {
+  stream?: string;
+  name?: string;
+  after?: number;
+  limit?: number;
+};

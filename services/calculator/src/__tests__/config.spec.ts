@@ -10,4 +10,10 @@ describe("config", () => {
       '"pg.host" is not allowed to be empty'
     );
   });
+
+  it("should cover log error", async () => {
+    const { log } = await import("@rotorsoft/eventually");
+    log().error(Error("error"));
+    expect(true).toEqual(true);
+  });
 });

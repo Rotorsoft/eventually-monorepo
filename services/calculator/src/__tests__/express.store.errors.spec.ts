@@ -30,7 +30,7 @@ describe("express app", () => {
 
   describe("errors", () => {
     it("should throw internal error on stream", async () => {
-      await expect(get("/stream", 3001)).rejects.toThrowError("500");
+      await expect(get("/all", 3001)).rejects.toThrowError("500");
     });
 
     it("should throw internal error on aggregate", async () => {

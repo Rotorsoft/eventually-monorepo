@@ -1,4 +1,4 @@
-import { ProcessManagerFactory } from ".";
+import { AllQuery, ProcessManagerFactory } from ".";
 import { Evt, Msg, Payload, PolicyFactory } from "./types";
 
 /**
@@ -49,28 +49,22 @@ export interface Store {
   /**
    * Loads events from store
    * @param callback callback predicate
-   * @param stream optional stream filter
-   * @param name optional event name filter
-   * @param after optional starting point - defaults to -1
-   * @param limit optional limit of events to return
+   * @param query optional query values
    */
-  read: (
-    callback: (event: Evt) => void,
-    options?: { stream?: string; name?: string; after?: number; limit?: number }
-  ) => Promise<void>;
+  read: (callback: (event: Evt) => void, query?: AllQuery) => Promise<void>;
 
   /**
    * Commits message into stream of aggregate id
    * @param stream stream name
    * @param events array of uncommitted events
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
-   * @param publish flag to publish committed events before closing the transaction - "at-least-once" delivery
+   * @param callback optional callback to handle committed events before closing the transaction
    * @returns array of committed events
    */
   commit: (
     stream: string,
     events: Msg[],
     expectedVersion?: number,
-    publish?: boolean
+    callback?: (events: Evt[]) => Promise<void>
   ) => Promise<Evt[]>;
 }
