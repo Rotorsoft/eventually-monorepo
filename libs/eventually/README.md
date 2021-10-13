@@ -45,12 +45,42 @@ This project is trying to answer the following questions:
 
 From a technical perspective, our reactive microservices should encapsulate a small number of protocol-agnostic message handlers in charge of solving very specific business problems. These handlers are grouped together logically according to the domain model, and can be optionally streamable or reducible to some kind of pesistent state if needed. The table below presents all these options and their proper mapping to DDD:
 
-| Message Handler | Streamable | Reducible | DDD Artifact    |
-| :-------------- | :--------: | :-------: | :-------------- |
-| Command Handler |    Yes     |    Yes    | Aggregate       |
-|                 |    Yes     |    No     | External System |
-| Event Handler   |     No     |    No     | Policy          |
-|                 |    Yes     |    Yes    | Process Manager |
+<table>
+    <tr>
+        <th>Message Handler</th>
+        <th>Consume</th>
+        <th>Produce</th>
+        <th style="text-align:center">Streamable</th>
+        <th style="text-align:center">Reducible</th>
+        <th>DDD Artifact</th>
+    </tr>
+    <tr>
+        <td rowspan="2">Command Handlers</td>
+        <td rowspan="2" style="color:cyan">Commands</td>
+        <td rowspan="2" style="color:orange">Events</td>
+        <td style="text-align:center">Yes</td>
+        <td style="text-align:center">Yes</td>
+        <td style="color:yellow">Aggregate</td>
+    </tr>
+    <tr>
+        <td style="text-align:center">Yes</td>
+        <td style="text-align:center">No</td>
+        <td style="color:pink">External System</td>
+    </tr>
+    <tr>
+        <td rowspan="2">Event Handlers</td>
+        <td rowspan="2" style="color:orange">Events</td>
+        <td rowspan="2" style="color:cyan">Commands</td>
+        <td style="text-align:center">Yes</td>
+        <td style="text-align:center">Yes</td>
+        <td style="color:purple">Process Manager</td>
+    </tr>
+    </tr>
+        <td style="text-align:center">No</td>
+        <td style="text-align:center">No</td>
+        <td style="color:purple">Policy</td>
+    </tr>
+</table>
 
 Aggregates define the consistency boundaries of business entities while process managers can expand those boundaries across many aggregates or systems.
 
