@@ -1,54 +1,59 @@
-import { App, EvtOf } from "@rotorsoft/eventually";
+import { app, EvtOf } from "@rotorsoft/eventually";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
 
-App()
+app()
   .withCommands(commands.factory)
   .withEvents(events.factory)
-  .withPolicy(policies.IntegrateAccount1)
-  .withPolicy(policies.IntegrateAccount2)
-  .withPolicy(policies.IntegrateAccount3)
-  .withPolicy(policies.WaitForAllAndComplete)
-  .withExternalSystem(systems.ExternalSystem1)
-  .withExternalSystem(systems.ExternalSystem2)
-  .withExternalSystem(systems.ExternalSystem3)
-  .withExternalSystem(systems.ExternalSystem4)
+  .withEventHandlers(
+    policies.IntegrateAccount1,
+    policies.IntegrateAccount2,
+    policies.IntegrateAccount3,
+    policies.WaitForAllAndComplete
+  )
+  .withCommandHandlers(
+    systems.ExternalSystem1,
+    systems.ExternalSystem2,
+    systems.ExternalSystem3,
+    systems.ExternalSystem4
+  )
   .build();
 
 const trigger = (id: string): EvtOf<Pick<events.Events, "AccountCreated">> => {
   return {
     id: 1,
-    version: "1",
+    version: 1,
     stream: "main",
     created: new Date(),
     name: "AccountCreated",
     data: { id },
+    scope: () => "public",
     schema: events.factory.AccountCreated().schema
   } as EvtOf<Pick<events.Events, "AccountCreated">>;
 };
 
 describe("happy path", () => {
   beforeAll(async () => {
-    await App().listen();
+    await app().listen();
   });
 
   it("should complete integration 1-2", async () => {
     const t = trigger("account12");
 
     // given
-    await App().event(policies.IntegrateAccount1, t);
+    await app().event(policies.IntegrateAccount1, t);
 
     // when
-    await App().event(policies.IntegrateAccount2, t);
+    await app().event(policies.IntegrateAccount2, t);
 
     // then
-    const [seed] = await App().read("Account1Created");
-    const snapshots = await App().stream(
+    const [seed] = await app().read({ name: "Account1Created" });
+    const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>
-      ).reducer
+      )
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);
@@ -63,19 +68,19 @@ describe("happy path", () => {
     const t = trigger("account21");
 
     // given
-    await App().event(policies.IntegrateAccount2, t);
+    await app().event(policies.IntegrateAccount2, t);
 
     // when
-    await App().event(policies.IntegrateAccount1, t);
+    await app().event(policies.IntegrateAccount1, t);
 
     // then
-    const [seed] = (await App().read("Account1Created", -1, 100)).filter(
-      (e) => e.data.id === t.data.id
-    );
-    const snapshots = await App().stream(
+    const [seed] = (
+      await app().read({ name: "Account1Created", after: -1, limit: 100 })
+    ).filter((e) => e.data.id === t.data.id);
+    const snapshots = await app().stream(
       policies.WaitForAllAndComplete(
         seed as EvtOf<Pick<events.Events, "Account1Created">>
-      ).reducer
+      )
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);

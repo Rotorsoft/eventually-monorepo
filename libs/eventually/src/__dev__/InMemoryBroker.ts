@@ -1,43 +1,35 @@
 import {
-  AppBase,
+  app,
   Broker,
   Evt,
-  EvtOf,
   Payload,
   PolicyFactory,
-  TopicNotFound
+  ProcessManagerFactory
 } from "..";
+import { Subscriptions } from "../builder";
 
-export const InMemoryBroker = (app: AppBase): Broker => {
-  const _topics: {
-    [name: string]: PolicyFactory<unknown, unknown, Payload>[];
-  } = {};
+export const InMemoryBroker = (): Broker => {
+  const _subscriptions: Subscriptions = {};
 
   return {
-    topic: <E>(event: EvtOf<E>): Promise<void> => {
-      _topics[event.name] = _topics[event.name] || [];
-      return Promise.resolve();
-    },
-
-    subscribe: <C, E, M extends Payload>(
-      factory: PolicyFactory<C, E, M>,
-      event: EvtOf<E>
+    subscribe: (
+      factory:
+        | PolicyFactory<unknown, unknown>
+        | ProcessManagerFactory<Payload, unknown, unknown>,
+      event: Evt
     ): Promise<void> => {
-      const topic = _topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
-      topic.push(factory);
+      const sub = (_subscriptions[event.name] =
+        _subscriptions[event.name] || []);
+      sub.push(factory);
       return Promise.resolve();
     },
 
-    emit: async <E>(event: EvtOf<E>): Promise<void> => {
-      const topic = _topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
-      const promises = topic.map((factory) =>
-        app.event(factory as PolicyFactory<unknown, E, Payload>, event)
-      );
-      await Promise.all(promises);
+    publish: (event: Evt): Promise<string> => {
+      const sub = _subscriptions[event.name];
+      if (sub) {
+        sub.map((f) => setTimeout(() => app().event(f, event), 10));
+        return Promise.resolve(event.name);
+      }
     },
 
     decode: (msg: Payload): Evt => msg as Evt

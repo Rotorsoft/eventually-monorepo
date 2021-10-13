@@ -13,16 +13,19 @@ export const commands: MessageFactory<Commands> = {
   PressKey: (data: { key: Keys }) => ({
     name: "PressKey",
     data,
+    scope: () => "public",
     schema: () => schemas.PressKey
   }),
 
   Reset: () => ({
     name: "Reset",
+    scope: () => "private",
     schema: () => schemas.Reset
   }),
 
   Whatever: () => ({
     name: "Whatever",
+    scope: () => "private",
     schema: () => schemas.Whatever
   })
 };

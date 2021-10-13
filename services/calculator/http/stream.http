@@ -1,7 +1,7 @@
 @host = http://localhost:3000
 ###
 
-GET {{host}}/stream HTTP/1.1
+GET {{host}}/stream?limit=100 HTTP/1.1
 ###
 GET {{host}}/stream?after=10
 ###

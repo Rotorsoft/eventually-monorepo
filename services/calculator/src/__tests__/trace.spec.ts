@@ -1,28 +1,28 @@
 process.env.LOG_LEVEL = "trace";
 
-import { App } from "@rotorsoft/eventually";
+import { app } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
 
-const app = App()
-  .withAggregate(Calculator)
+app()
+  .withCommandHandlers(Calculator)
   .withEvents(events)
-  .withCommands(commands);
+  .withCommands(commands)
+  .build();
 
 describe("in memory app", () => {
   beforeAll(async () => {
-    app.build();
-    await app.listen();
+    await app().listen();
   });
 
   describe("calculator", () => {
     it("should compute correctly", async () => {
       const test = Calculator("test");
 
-      await app.command(test, commands.PressKey({ key: "1" }));
+      await app().command(test, commands.PressKey({ key: "1" }));
 
-      const { state } = await app.load(test);
+      const { state } = await app().load(test);
       expect(state).toEqual({
         left: "1",
         result: 0

@@ -1,42 +1,46 @@
-import { App, Errors, EvtOf, log } from "@rotorsoft/eventually";
+import { app, Errors, EvtOf, log } from "@rotorsoft/eventually";
+import { sleep } from "@rotorsoft/eventually-test";
+import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
 import * as schemas from "../calculator.schemas";
 import { Counter, CounterEvents } from "../counter.policy";
 
-const app = App()
-  .withAggregate(Calculator)
-  .withPolicy(Counter)
+const chance = new Chance();
+
+app()
+  .withCommandHandlers(Calculator)
+  .withEventHandlers(Counter)
   .withEvents(events)
-  .withCommands(commands);
+  .withCommands(commands)
+  .build();
 
 describe("in memory app", () => {
   beforeAll(async () => {
-    app.build();
-    await app.listen();
+    await app().listen();
   });
 
   afterAll(async () => {
-    await app.close();
+    await app().close();
   });
 
   describe("calculator", () => {
     it("should compute correctly", async () => {
-      const test = Calculator("test");
+      const test = Calculator(chance.guid());
 
       // GIVEN
-      await app.command(test, commands.PressKey({ key: "1" }));
-      await app.command(test, commands.PressKey({ key: "+" }));
-      await app.command(test, commands.PressKey({ key: "2" }));
-      await app.command(test, commands.PressKey({ key: "." }));
-      await app.command(test, commands.PressKey({ key: "3" }));
+      await app().command(test, commands.PressKey({ key: "1" }));
+      await app().command(test, commands.PressKey({ key: "+" }));
+      await app().command(test, commands.PressKey({ key: "2" }));
+      await app().command(test, commands.PressKey({ key: "." }));
+      await app().command(test, commands.PressKey({ key: "3" }));
 
       // WHEN
-      await app.command(test, commands.PressKey({ key: "=" }));
+      await app().command(test, commands.PressKey({ key: "=" }));
 
       // THEN
-      const { state } = await app.load(test);
+      const { state } = await app().load(test);
       expect(state).toEqual({
         left: "3.3",
         operator: "+",
@@ -53,45 +57,48 @@ describe("in memory app", () => {
     });
 
     it("should compute correctly 2", async () => {
-      const test2 = Calculator("test2");
+      const test2 = Calculator(chance.guid());
 
       // GIVEN
-      await app.command(test2, commands.PressKey({ key: "+" }));
-      await app.command(test2, commands.PressKey({ key: "1" }));
-      await app.command(test2, commands.PressKey({ key: "-" }));
-      await app.command(test2, commands.PressKey({ key: "2" }));
-      await app.command(test2, commands.PressKey({ key: "*" }));
-      await app.command(test2, commands.PressKey({ key: "3" }));
-      await app.command(test2, commands.PressKey({ key: "/" }));
-      await app.command(test2, commands.PressKey({ key: "3" }));
+      await app().command(test2, commands.PressKey({ key: "+" }));
+      await app().command(test2, commands.PressKey({ key: "1" }));
+      await app().command(test2, commands.PressKey({ key: "-" }));
+      await app().command(test2, commands.PressKey({ key: "2" }));
+      await app().command(test2, commands.PressKey({ key: "*" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+      await app().command(test2, commands.PressKey({ key: "/" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
 
       // WHEN
-      await app.command(test2, commands.PressKey({ key: "=" }));
+      await app().command(test2, commands.PressKey({ key: "=" }));
 
       // THEN
-      const { state } = await app.load(test2);
+      const { state } = await app().load(test2);
       expect(state).toEqual({
         left: "-1",
         operator: "/",
         result: -1
       });
+
+      const snapshots = await app().stream(test2);
+      expect(snapshots.length).toBe(9);
     });
 
     it("should compute correctly 3", async () => {
-      const test3 = Calculator("test3");
+      const test3 = Calculator(chance.guid());
 
       // GIVEN
-      await app.command(test3, commands.PressKey({ key: "." }));
-      await app.command(test3, commands.PressKey({ key: "1" }));
-      await app.command(test3, commands.PressKey({ key: "+" }));
-      await app.command(test3, commands.PressKey({ key: "." }));
-      await app.command(test3, commands.PressKey({ key: "2" }));
+      await app().command(test3, commands.PressKey({ key: "." }));
+      await app().command(test3, commands.PressKey({ key: "1" }));
+      await app().command(test3, commands.PressKey({ key: "+" }));
+      await app().command(test3, commands.PressKey({ key: "." }));
+      await app().command(test3, commands.PressKey({ key: "2" }));
 
       // WHEN
-      await app.command(test3, commands.PressKey({ key: "=" }));
+      await app().command(test3, commands.PressKey({ key: "=" }));
 
       // THEN
-      const { state } = await app.load(test3);
+      const { state } = await app().load(test3);
       expect(state).toEqual({
         left: "0.3",
         operator: "+",
@@ -110,21 +117,22 @@ describe("in memory app", () => {
     });
 
     it("should throw concurrency error", async () => {
-      const test = Calculator("test");
+      const test4 = Calculator(chance.guid());
 
       // GIVEN
-      await app.command(test, commands.PressKey({ key: "1" }));
+      await app().command(test4, commands.PressKey({ key: "1" }));
 
       // WHEN
-      await expect(app.command(test, commands.PressKey({ key: "1" }), "-1"))
+      await expect(app().command(test4, commands.PressKey({ key: "1" }), -1))
         // THEN
         .rejects.toThrowError(Errors.ConcurrencyError);
     });
 
     it("should throw validation error", async () => {
       await expect(
-        app.command(Calculator("test"), {
+        app().command(Calculator(chance.guid()), {
           name: "PressKey",
+          scope: () => "public",
           schema: () => schemas.PressKey
         })
       ).rejects.toThrowError(Errors.ValidationError);
@@ -132,41 +140,128 @@ describe("in memory app", () => {
 
     it("should throw model invariant violation", async () => {
       await expect(
-        app.command(Calculator("test5"), commands.PressKey({ key: "=" }))
+        app().command(
+          Calculator(chance.guid()),
+          commands.PressKey({ key: "=" })
+        )
       ).rejects.toThrowError("Don't have an operator");
     });
   });
 
   describe("Counter", () => {
     it("should return Reset on DigitPressed", async () => {
-      const test4 = Calculator("test4");
+      const test7 = Calculator(chance.guid());
 
       // GIVEN
-      await app.command(test4, commands.PressKey({ key: "1" }));
-      await app.command(test4, commands.PressKey({ key: "1" }));
-      await app.command(test4, commands.PressKey({ key: "2" }));
-      await app.command(test4, commands.PressKey({ key: "." }));
+      await app().command(test7, commands.Reset());
+      await sleep(10);
+      await app().command(test7, commands.PressKey({ key: "1" }));
+      await sleep(10);
+      await app().command(test7, commands.PressKey({ key: "1" }));
+      await sleep(10);
+      await app().command(test7, commands.PressKey({ key: "2" }));
+      await sleep(10);
+      await app().command(test7, commands.PressKey({ key: "." }));
+      await sleep(10);
 
       // WHEN
-      await app.command(test4, commands.PressKey({ key: "3" }));
+      await app().command(test7, commands.PressKey({ key: "3" }));
+      await sleep(10);
 
       // THEN
-      const { event, state } = await app.load(test4);
+      const { event, state } = await app().load(test7);
       expect(state).toEqual({ result: 0 });
 
-      const stream = await app.stream(
-        Counter(event as EvtOf<CounterEvents>).reducer,
-        true
-      );
-      expect(stream.length).toBe(5);
+      //TODO:
+      // const stream = await app.stream(
+      //   Counter(event as EvtOf<CounterEvents>).reducer,
+      //   true
+      // );
+      // expect(stream.length).toBe(5);
+      // // counter stream should have 5 events
+      // const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
+      // expect(stream.length).toBe(6);
+    });
+
+    it("should cover empty calculator", async () => {
+      const test8 = Calculator(chance.guid());
+      await app().event(Counter, {
+        id: 0,
+        stream: test8.stream(),
+        version: 0,
+        created: new Date(),
+        ...events.DigitPressed({ digit: "0" })
+      });
+      const { state } = await app().load(test8);
+      expect(state).toEqual({ result: 0 });
     });
   });
 
-  it("should cover schema", () => {
-    expect(commands.Whatever().schema()).toBe(schemas.Whatever);
+  it("should cover whatever command", () => {
+    const cmd = commands.Whatever();
+    expect(cmd.scope()).toBe("private");
+    expect(cmd.schema()).toBe(schemas.Whatever);
+  });
+
+  it("should cover event scopes", () => {
+    Object.values(events).map((f) => {
+      const e = f();
+      expect(e.scope()).toEqual(e.scope());
+    });
   });
 
   it("should cover initialized log", () => {
     expect(log()).toBeDefined();
+  });
+
+  describe("all stream", () => {
+    const test = Calculator(chance.guid());
+
+    beforeAll(async () => {
+      await app().command(test, commands.PressKey({ key: "1" }));
+      await app().command(test, commands.PressKey({ key: "+" }));
+      await app().command(test, commands.PressKey({ key: "2" }));
+      await app().command(test, commands.PressKey({ key: "." }));
+      await app().command(test, commands.PressKey({ key: "3" }));
+      await app().command(test, commands.PressKey({ key: "=" }));
+    });
+
+    it("should read stream", async () => {
+      const events = await app().read();
+      expect(events.length).toBe(1);
+    });
+
+    it("should read stream by name", async () => {
+      const stream = await app().read({ name: "DigitPressed", limit: 3 });
+      expect(stream[0].name).toBe("DigitPressed");
+      expect(stream.length).toBeGreaterThanOrEqual(3);
+      stream.map((evt) => expect(evt.name).toBe("DigitPressed"));
+    });
+
+    it("should read stream with after", async () => {
+      const stream = await app().read({ after: 3 });
+      expect(stream[0].id).toBe(4);
+    });
+
+    it("should read stream with limit", async () => {
+      const stream = await app().read({ limit: 5 });
+      expect(stream.length).toBe(5);
+    });
+
+    it("should read stream with after and limit", async () => {
+      const stream = await app().read({ after: 2, limit: 2 });
+      expect(stream[0].id).toBe(3);
+      expect(stream.length).toBe(2);
+    });
+
+    it("should read stream with stream name", async () => {
+      const stream = await app().read({ stream: test.stream() });
+      expect(stream.length).toBe(6);
+    });
+
+    it("should return an empty stream", async () => {
+      const stream = await app().read({ name: chance.guid() });
+      expect(stream.length).toBe(0);
+    });
   });
 });

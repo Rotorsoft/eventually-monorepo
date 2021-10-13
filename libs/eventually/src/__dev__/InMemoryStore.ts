@@ -1,74 +1,61 @@
-import { Evt, EvtOf, MsgOf } from "../types";
-
-import { Store } from "../Store";
+import { Store } from "../interfaces";
+import { AllQuery, Evt, Msg } from "../types";
 
 export const InMemoryStore = (): Store => {
-  const _events: Evt[] = [];
+  const _events: any[] = [];
 
   return {
-    load: async <E>(
-      stream: string,
-      afterEvent: number | ((event: EvtOf<E>) => void),
-      reducer?: (event: EvtOf<E>) => void
-    ): Promise<void> => {
-      if (typeof afterEvent === 'function'){
-        reducer = afterEvent;
-        afterEvent = -1;
+    init: (): Promise<void> => {
+      _events.length = 0;
+      return;
+    },
+
+    close: (): Promise<void> => {
+      _events.length = 0;
+      return;
+    },
+
+    read: (callback: (event: Evt) => void, query?: AllQuery): Promise<void> => {
+      const { stream, name, after = -1, limit } = query;
+      let i = after + 1,
+        count = 0;
+      while (i < _events.length) {
+        const e = _events[i++];
+        if (stream && e.stream !== stream) continue;
+        if (name && e.name !== name) continue;
+        callback(e);
+        if (limit && ++count >= limit) break;
       }
-      const events = _events.slice(afterEvent+1).filter((e) => e.stream === stream);
-      events.map(reducer);
       return Promise.resolve();
     },
 
-    getLastEvent: (stream:string) => {
-      const events = _events.filter((e) => e.stream === stream);
-      return Promise.resolve(events[events.length -1]);
-    },
-
-    commit: async <E>(
+    commit: async (
       stream: string,
-      events: MsgOf<E>[],
-      expectedVersion?: string
-      // eslint-disable-next-line
-    ): Promise<EvtOf<E>[]> => {
+      events: Msg[],
+      expectedVersion?: number,
+      callback?: (events: Evt[]) => Promise<void>
+    ): Promise<Evt[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
-      if (
-        expectedVersion &&
-        (aggregate.length - 1).toString() !== expectedVersion
-      )
+      if (expectedVersion && aggregate.length - 1 !== expectedVersion)
         throw Error("Concurrency Error");
 
       let version = aggregate.length;
-      return events.map((event) => {
-        const committed: EvtOf<E> = {
+      const committed = events.map((event) => {
+        const committed: Evt = {
           ...event,
           id: _events.length,
           stream,
-          version: version.toString(),
+          version,
           created: new Date()
         };
         _events.push(committed);
         version++;
         return committed;
       });
-    },
 
-    read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
-      const events: Evt[] = [];
-      let i = after + 1;
-      while (events.length < limit && i < _events.length) {
-        const e = _events[i++];
-        if (!name || name === e.name) events.push(e);
-      }
-      return Promise.resolve(events);
-    },
+      if (callback) await callback(committed);
 
-    init: (): Promise<void> => {
-      return;
-    },
-
-    close: (): Promise<void> => {
-      return;
+      return committed;
     }
   };
 };

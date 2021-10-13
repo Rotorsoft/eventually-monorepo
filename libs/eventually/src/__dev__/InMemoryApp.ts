@@ -1,46 +1,36 @@
-import { InMemoryBroker, InMemoryStore } from ".";
-import { AppBase } from "../AppBase";
+import { AppBase } from "../app";
 import { config } from "../config";
 import {
   Aggregate,
+  CommandResponse,
   EvtOf,
+  ExternalSystem,
   MsgOf,
   Payload,
   PolicyFactory,
-  PolicyResponse,
-  Snapshot,
-  ExternalSystem
+  ProcessManagerFactory,
+  Snapshot
 } from "../types";
 import { committedSchema, ValidationError } from "../utils";
 
 const validate = <T>(message: MsgOf<T>, committed = false): void => {
-  const { schema, ...value } = message;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { scope, schema, ...value } = message;
   const validator = committed ? committedSchema(schema()) : schema();
   const { error } = validator.validate(value, { abortEarly: false });
   if (error) throw new ValidationError(error);
 };
 
 export class InMemoryApp extends AppBase {
-  build(): unknown {
-    this._store = InMemoryStore();
-    this._broker = InMemoryBroker(this);
-    this.prepare();
-    return;
-  }
-
   async listen(): Promise<void> {
-    await this.connect();
-    this.log.info("white", "InMemory app is listening...", config);
-  }
-
-  async close(): Promise<void> {
-    await this._store.close();
+    await super.listen();
+    this.log.info("white", "InMemory app is listening...", undefined, config);
   }
 
   async command<M extends Payload, C, E>(
     handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
     command: MsgOf<C>,
-    expectedVersion?: string
+    expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
     validate(command);
     const snapshots = await super.command(handler, command, expectedVersion);
@@ -49,9 +39,9 @@ export class InMemoryApp extends AppBase {
   }
 
   async event<C, E, M extends Payload>(
-    factory: PolicyFactory<C, E, M>,
+    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: EvtOf<E>
-  ): Promise<PolicyResponse<C> | undefined> {
+  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
     validate(event as unknown as MsgOf<E>, true);
     return super.event(factory, event);
   }

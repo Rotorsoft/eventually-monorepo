@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 import * as joi from "joi";
-import { Singleton } from "./utils";
+import { singleton } from "./singleton";
 
 dotenv.config();
 
@@ -36,7 +36,7 @@ export const extend = <S extends Record<string, any>, T extends Config>(
 
 const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
-export const config = Singleton(function config() {
+export const config = singleton(function config() {
   return extend(
     {
       env: (NODE_ENV as Environments) || Environments.development,

@@ -1,16 +1,14 @@
-import { AppBase } from "./AppBase";
-import { Singleton } from "./utils";
+import { AppBase } from "./app";
+import { singleton } from "./singleton";
 import { InMemoryApp } from "./__dev__";
 
-export * from "./AppBase";
-export * from "./Broker";
+export * from "./app";
 export * from "./config";
-export * from "./Store";
+export * from "./interfaces";
+export * from "./log";
 export * from "./types";
 export * from "./utils";
-export * from "./log";
-export * from "./__dev__";
 
-export const App = Singleton(function App(base?: AppBase) {
-  return base || new InMemoryApp();
+export const app = singleton(function app(app?: AppBase) {
+  return app || new InMemoryApp();
 });

@@ -1,12 +1,12 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
-  policyEventPath,
+  eventHandlerPath,
   Evt,
-  EvtOf,
+  log,
   Payload,
   PolicyFactory,
-  TopicNotFound
+  ProcessManagerFactory
 } from "@rotorsoft/eventually";
 import { config } from "./config";
 
@@ -19,46 +19,60 @@ type Message = {
   subscription: string;
 };
 
+const pubsub = new PubSub(
+  config.gcp.project ? { projectId: config.gcp.project } : {}
+);
+const orderingKey = "id";
+const topics: { [name: string]: GcpTopic } = {};
+
+const topic = async (event: Evt): Promise<GcpTopic> => {
+  let topic = topics[event.name];
+  if (!topic) {
+    topic = new GcpTopic(pubsub, event.name);
+    const [exists] = await topic.exists();
+    if (!exists) await topic.create();
+    topics[event.name] = topic;
+  }
+  return topic;
+};
+
 export const PubSubBroker = (): Broker => {
-  const topics: { [name: string]: GcpTopic } = {};
-
   return {
-    topic: async <E>(event: EvtOf<E>): Promise<void> => {
-      const options = config.gcp.project
-        ? { projectId: config.gcp.project }
-        : {};
-
-      const pubsub = new PubSub(options);
-      const topic = new GcpTopic(pubsub, event.name);
-      const [exists] = await topic.exists();
-      if (!exists) await topic.create();
-      topics[event.name] = topic;
-    },
-
-    subscribe: async <C, E, M extends Payload>(
-      factory: PolicyFactory<C, E, M>,
-      event: EvtOf<E>
+    subscribe: async (
+      factory:
+        | PolicyFactory<unknown, unknown>
+        | ProcessManagerFactory<Payload, unknown, unknown>,
+      event: Evt
     ): Promise<void> => {
-      const topic = topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
-      const url = `${config.host}${policyEventPath(factory, event)}`;
-      const sub = topic.subscription(factory.name.concat(".", event.name));
-      const [exists] = await sub.exists();
-      if (!exists)
-        await sub.create({
-          pushEndpoint: url,
-          enableMessageOrdering: true
-        });
-      else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
-        await sub.modifyPushConfig({ pushEndpoint: url });
+      if (event.scope() === "public") {
+        const url = `${config.host}${eventHandlerPath(factory, event)}`;
+        const sub = (await topic(event)).subscription(
+          factory.name.concat(".", event.name)
+        );
+        const [exists] = await sub.exists();
+        if (!exists)
+          await sub.create({
+            pushEndpoint: url,
+            enableMessageOrdering: true
+          });
+        else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
+          await sub.modifyPushConfig({ pushEndpoint: url });
+      }
     },
 
-    emit: async <E>(event: EvtOf<E>): Promise<void> => {
-      const topic = topics[event.name];
-      if (!topic) throw new TopicNotFound(event);
-
-      await topic.publish(Buffer.from(JSON.stringify(event)));
+    publish: async (event: Evt): Promise<string> => {
+      let t: GcpTopic;
+      try {
+        t = await topic(event);
+        const [messageId] = await t.publishMessage({
+          data: Buffer.from(JSON.stringify(event)),
+          orderingKey
+        });
+        return `${messageId}@${event.name}`;
+      } catch (error) {
+        log().error(error);
+        if (t) t.resumePublishing(orderingKey);
+      }
     },
 
     decode: (msg: Payload): Evt => {

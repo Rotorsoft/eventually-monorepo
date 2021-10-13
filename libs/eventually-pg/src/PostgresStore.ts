@@ -1,16 +1,13 @@
 import {
+  AllQuery,
   ConcurrencyError,
   Evt,
-  EvtOf,
-  MsgOf,
+  log,
+  Msg,
   Store
 } from "@rotorsoft/eventually";
-
 import { Pool } from "pg";
 import { config } from "./config";
-
-const pool = new Pool(config.pg);
-delete config.pg.password; // use it and forget it
 
 const create_script = (table: string): string => `
 CREATE TABLE IF NOT EXISTS public.${table}
@@ -43,112 +40,99 @@ type Event = {
   created: Date;
 };
 
-const formatEvent = (e: Event): Evt => ({
-    id: e.id,
-    name: e.name,
-    data: e.data,
-    stream: e.stream,
-    version: e.version.toString(),
-    created: e.created
-  })
+export const PostgresStore = (table: string): Store => {
+  const pool = new Pool(config.pg);
+  delete config.pg.password; // use it and forget it
+  let initialized = false;
 
-export const PostgresStore = (table: string): Store => ({
-  init: async (): Promise<void> => {
-    await pool.query(create_script(table));
-  },
+  return {
+    init: async (): Promise<void> => {
+      if (!initialized) await pool.query(create_script(table));
+      initialized = true;
+    },
 
-  close: async (): Promise<void> => {
-    await pool.end();
-  },
-
-  getLastEvent: async (stream:string)=> {
+    /* TODO: getLastEvent: async (stream:string)=> {
     return pool.query<Event>(
       `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
       [stream]
     )
       .then(x=> x.rows.length && formatEvent(x.rows[0]))
-  },
+  }, */
 
-  load: async <E>(
-    stream: string,
-    afterEvent: number | ((event: EvtOf<E>) => void),
-    reducer?: (event: EvtOf<E>) => void
-  ): Promise<void> => {
-    let sql = '';
-    
-    if (typeof afterEvent === 'function'){
-      reducer = afterEvent;
-      sql = `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version`;
-    } else {
-      sql = `SELECT * FROM ${table} WHERE stream=$1 AND id > ${afterEvent || -1} ORDER BY version`;
-    }
-    
-    const events = await pool.query<Event>( sql, [stream] );
-    
-    events.rows.map((e) =>
-      reducer({
-        id: e.id,
-        name: e.name as keyof E & string,
-        data: e.data,
-        stream: e.stream,
-        version: e.version.toString(),
-        created: e.created
-      })
-    );
-  },
+    close: async (): Promise<void> => {
+      await pool.end();
+    },
 
-  commit: async <E>(
-    stream: string,
-    events: MsgOf<E>[],
-    expectedVersion?: string
-  ): Promise<EvtOf<E>[]> => {
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
-      const last = await client.query<Event>(
-        `SELECT version FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
-        [stream]
+    read: async (
+      callback: (event: Evt) => void,
+      query?: AllQuery
+    ): Promise<void> => {
+      const { stream, name, after = -1, limit } = query;
+
+      const values: any[] = [after];
+      let sql = `SELECT * FROM ${table} WHERE id>$1`;
+      if (stream) {
+        values.push(stream);
+        sql = sql.concat(` AND stream=$${values.length}`);
+      }
+      if (name) {
+        values.push(name);
+        sql = sql.concat(` AND name=$${values.length}`);
+      }
+      sql = sql.concat(" ORDER BY id");
+      if (limit) {
+        values.push(limit);
+        sql = sql.concat(` LIMIT $${values.length}`);
+      }
+
+      (await pool.query<Event>(sql, values)).rows.map((e) =>
+        callback(e as Evt)
       );
-      let version = last.rowCount ? last.rows[0].version : -1;
-      if (expectedVersion && version.toString() !== expectedVersion)
-        throw new ConcurrencyError(version, events, expectedVersion);
-      const committed = await Promise.all(
-        events.map(async ({ name, data }) => {
-          version++;
-          const committed = await client.query<Event>(
-            `INSERT INTO ${table}(name, data, stream, version)
-          VALUES($1, $2, $3, $4) RETURNING id, created`,
-            [name, data, stream, version]
-          );
-          const { id, created } = committed.rows[0];
-          return {
-            id,
-            name,
-            data,
-            stream,
-            version: version.toString(),
-            created
-          };
-        })
-      );
-      await client.query("COMMIT");
-      return committed;
-    } catch (e) {
-      await client.query("ROLLBACK");
-      throw e;
-    } finally {
-      client.release();
+    },
+
+    commit: async (
+      stream: string,
+      events: Msg[],
+      expectedVersion?: number,
+      callback?: (events: Evt[]) => Promise<void>
+    ): Promise<Evt[]> => {
+      const client = await pool.connect();
+      let version = -1;
+      try {
+        await client.query("BEGIN");
+        const last = await client.query<Event>(
+          `SELECT version FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
+          [stream]
+        );
+        version = last.rowCount ? last.rows[0].version : -1;
+        if (expectedVersion && version !== expectedVersion)
+          throw new ConcurrencyError(version, events, expectedVersion);
+
+        const committed = await Promise.all(
+          events.map(async ({ name, data }) => {
+            version++;
+            const committed = await client.query<Event>(
+              `INSERT INTO ${table}(name, data, stream, version)
+          VALUES($1, $2, $3, $4) RETURNING *`,
+              [name, data, stream, version]
+            );
+            return committed.rows[0] as Evt;
+          })
+        );
+
+        if (callback) await callback(committed);
+
+        await client.query("COMMIT").catch((error) => {
+          log().error(error);
+          throw new ConcurrencyError(version, events, expectedVersion);
+        });
+        return committed;
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
     }
-  },
-
-  read: async (name?: string, after = -1, limit = 1): Promise<Evt[]> => {
-    const events = await pool.query<Event>(
-      `SELECT * FROM ${table} WHERE id > $1 ${
-        name ? "AND name = $3" : ""
-      } ORDER BY id LIMIT $2`,
-      name ? [after, limit, name] : [after, limit]
-    );
-
-    return events.rows.map(formatEvent);
-  }
-});
+  };
+};
