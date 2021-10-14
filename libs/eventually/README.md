@@ -31,7 +31,7 @@ Event Sourcing is a practical methodology used by many to model business process
 
 This project is trying to answer the following questions:
 
-- **Future Proof Single Source of Truth** - The “append-only” nature of an Event Store is a very old and battle tested concept. We can audit and fully reproduce/re-project our business history by just replaying the log/ledger.
+- **Future Proof Single Source of Truth** - The “append-only” nature of an Event Store is an old and battle tested concept. We can audit and fully reproduce or re-project history by just replaying the log.
 
 - **Transparent Model-To-Implementation Process** - Developers focus on transferring business models to code with minimal technical load. We use a “convention over configuration” philosophy to remove tedious technical decision making from the process
 
@@ -43,11 +43,56 @@ This project is trying to answer the following questions:
 
 > The anatomy of a micro-service should reflect the business model
 
+From a technical perspective, our reactive microservices should encapsulate a small number of protocol-agnostic message handlers in charge of solving very specific business problems. These handlers are grouped together logically according to the domain model, and can be optionally streamable or reducible to some kind of pesistent state if needed. The table below presents all these options and their proper mapping to DDD:
+
+<table>
+    <tr>
+        <th>Message Handler</th>
+        <th>Consume</th>
+        <th>Produce</th>
+        <th style="text-align:center">Streamable</th>
+        <th style="text-align:center">Reducible</th>
+        <th>DDD Artifact</th>
+    </tr>
+    <tr>
+        <td rowspan="2">Command Handlers</td>
+        <td rowspan="2" style="color:cyan">Commands</td>
+        <td rowspan="2" style="color:orange">Events</td>
+        <td style="text-align:center">Yes</td>
+        <td style="text-align:center">Yes</td>
+        <td style="color:yellow">Aggregate</td>
+    </tr>
+    <tr>
+        <td style="text-align:center">Yes</td>
+        <td style="text-align:center">No</td>
+        <td style="color:pink">External System</td>
+    </tr>
+    <tr>
+        <td rowspan="2">Event Handlers</td>
+        <td rowspan="2" style="color:orange">Events</td>
+        <td rowspan="2" style="color:cyan">Commands</td>
+        <td style="text-align:center">Yes</td>
+        <td style="text-align:center">Yes</td>
+        <td style="color:purple">Process Manager</td>
+    </tr>
+    </tr>
+        <td style="text-align:center">No</td>
+        <td style="text-align:center">No</td>
+        <td style="color:purple">Policy</td>
+    </tr>
+</table>
+
+Aggregates define the consistency boundaries of business entities while process managers can expand those boundaries across many aggregates or systems.
+
+### Public and Private Messages
+
+Commands and Events can have either public of private scope. Public messages are used for integrations with other services by exposing public endpoints (e.g. HTTP POST) and their schemas are usually bigger and more stable. Public events are published to the message broker with at-least-once delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns. Private messages are for internal use and delivered synchronously (in-process). Private schemas are usually smaller and can change more frequently.
+
 ## Bootstraps the micro-service `index.ts`
 
 - Command handlers are routed by convention `/aggregate-type/:id/command-name`
 
-- Event handlers follow a similar approach `/policy-or-projector-type/event-name`
+- Event handlers follow a similar approach `/policy-type/event-name`
 
 - Use App builder interface to build your app
 

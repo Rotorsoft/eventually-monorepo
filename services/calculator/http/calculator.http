@@ -6,6 +6,12 @@ GET {{host}}/calculator/calc1
 GET {{host}}/calculator/calc1/stream
 ###
 
+
+GET {{host}}/counter/CounterCalculatorcalc1
+###
+GET {{host}}/counter/CounterCalculatorcalc1/stream
+###
+
 POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
