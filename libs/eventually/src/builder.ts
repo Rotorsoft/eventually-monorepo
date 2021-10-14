@@ -15,13 +15,13 @@ import {
 
 type Factories = {
   commands: MessageFactory<unknown>;
-  commandHandlerFactories: {
+  commandHandlers: {
     [name: string]:
       | AggregateFactory<Payload, unknown, unknown>
       | ExternalSystemFactory<unknown, unknown>;
   };
   events: MessageFactory<unknown>;
-  eventHandlerFactories: {
+  eventHandlers: {
     [name: string]:
       | PolicyFactory<unknown, unknown>
       | ProcessManagerFactory<Payload, unknown, unknown>;
@@ -29,7 +29,7 @@ type Factories = {
 };
 
 type Handlers = {
-  commandHandlers: {
+  commands: {
     [name: string]: {
       type: "aggregate" | "external-system";
       factory:
@@ -39,7 +39,7 @@ type Handlers = {
       path: string;
     };
   };
-  eventHandlers: {
+  events: {
     [path: string]: {
       type: "policy" | "process-manager";
       factory:
@@ -59,16 +59,16 @@ export type Subscriptions = {
 };
 
 export class Builder {
-  private readonly _factories: Factories = {
+  protected readonly _factories: Factories = {
     commands: {},
-    commandHandlerFactories: {},
+    commandHandlers: {},
     events: {},
-    eventHandlerFactories: {}
+    eventHandlers: {}
   };
 
   protected readonly _handlers: Handlers = {
-    commandHandlers: {},
-    eventHandlers: {}
+    commands: {},
+    events: {}
   };
 
   protected readonly _private_subscriptions: Subscriptions = {};
@@ -101,7 +101,7 @@ export class Builder {
       | ExternalSystemFactory<unknown, unknown>
     )[]
   ): this {
-    factories.map((f) => (this._factories.commandHandlerFactories[f.name] = f));
+    factories.map((f) => (this._factories.commandHandlers[f.name] = f));
     return this;
   }
 
@@ -115,7 +115,7 @@ export class Builder {
       | ProcessManagerFactory<Payload, unknown, unknown>
     )[]
   ): this {
-    factories.map((f) => (this._factories.eventHandlerFactories[f.name] = f));
+    factories.map((f) => (this._factories.eventHandlers[f.name] = f));
     return this;
   }
 
@@ -126,7 +126,7 @@ export class Builder {
    */
   build(): unknown | undefined {
     // command handlers
-    Object.values(this._factories.commandHandlerFactories).map((chf) => {
+    Object.values(this._factories.commandHandlers).map((chf) => {
       const handler = chf(undefined);
       const type = "init" in handler ? "aggregate" : "external-system";
       log().info("white", chf.name, type);
@@ -134,7 +134,7 @@ export class Builder {
         const command = cf() as Msg;
         const path = commandHandlerPath(chf, command);
         if (Object.keys(handler).includes("on".concat(command.name))) {
-          this._handlers.commandHandlers[command.name] = {
+          this._handlers.commands[command.name] = {
             type,
             factory: chf,
             command,
@@ -150,7 +150,7 @@ export class Builder {
     });
 
     // event handlers
-    Object.values(this._factories.eventHandlerFactories).map((ehf) => {
+    Object.values(this._factories.eventHandlers).map((ehf) => {
       const handler = ehf(undefined);
       const type = "init" in handler ? "process-manager" : "policy";
       log().info("white", ehf.name, type);
@@ -158,7 +158,7 @@ export class Builder {
         const event = ef();
         if (Object.keys(handler).includes("on".concat(event.name))) {
           const path = eventHandlerPath(ehf, event);
-          this._handlers.eventHandlers[path] = {
+          this._handlers.events[path] = {
             type,
             factory: ehf,
             event,
@@ -174,7 +174,7 @@ export class Builder {
     });
 
     // private subscriptions
-    Object.values(this._handlers.eventHandlers)
+    Object.values(this._handlers.events)
       .filter(({ event }) => event.scope() === "private")
       .map(({ factory, event }) => {
         const sub = (this._private_subscriptions[event.name] =

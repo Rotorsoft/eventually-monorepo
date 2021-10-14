@@ -83,7 +83,7 @@ export abstract class AppBase extends Builder {
   async listen(): Promise<void> {
     await store().init();
     await Promise.all(
-      Object.values(this._handlers.eventHandlers)
+      Object.values(this._handlers.events)
         .filter(({ event }) => event.scope() === "public")
         .map(({ factory, event }) => {
           return broker()
@@ -173,7 +173,7 @@ export abstract class AppBase extends Builder {
     if (response) {
       // handle commands synchronously
       const { id, command, expectedVersion } = response;
-      const { factory } = this._handlers.commandHandlers[command.name];
+      const { factory } = this._handlers.commands[command.name];
       this.log.trace(
         "blue",
         `<<< ${command.name} ${factory.name} ${id || ""}`,

@@ -104,7 +104,7 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.commandHandlers)
+    Object.values(this._handlers.commands)
       .filter(({ type, factory, command }) => {
         if (type === "aggregate")
           aggregates[factory.name] = factory as AggregateFactory<
@@ -162,7 +162,7 @@ export class ExpressApp extends AppBase {
       string,
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.eventHandlers)
+    Object.values(this._handlers.events)
       .filter(({ type, factory, event }) => {
         if (type === "process-manager")
           managers[factory.name] = factory as ProcessManagerFactory<

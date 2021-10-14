@@ -48,8 +48,8 @@ From a technical perspective, our reactive microservices should encapsulate a sm
 <table>
     <tr>
         <th>Message Handler</th>
-        <th>Consume</th>
-        <th>Produce</th>
+        <th>Consumes</th>
+        <th>Produces</th>
         <th style="text-align:center">Streamable</th>
         <th style="text-align:center">Reducible</th>
         <th>DDD Artifact</th>
@@ -88,15 +88,17 @@ Aggregates define the consistency boundaries of business entities while process 
 
 Commands and Events can have either public of private scope. Public messages are used for integrations with other services by exposing public endpoints (e.g. HTTP POST) and their schemas are usually bigger and more stable. Public events are published to the message broker with at-least-once delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns. Private messages are for internal use and delivered synchronously (in-process). Private schemas are usually smaller and can change more frequently.
 
-## Bootstraps the micro-service `index.ts`
+## Routing conventions (using REST protocol by default)
 
-- Command handlers are routed by convention `/aggregate-type/:id/command-name`
+Public message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling:
 
-- Event handlers follow a similar approach `/policy-type/event-name`
-
-- Use App builder interface to build your app
-
-- Listen for requests
+| Artifact        | Handler                                     | Getters                                                                |
+| --------------- | ------------------------------------------- | ---------------------------------------------------------------------- |
+| Aggregate       | `POST /aggregate-type/:stream/command-name` | `GET /aggregate-type/:stream`<br/>`GET /aggregate-type/:stream/stream` |
+| Process Manager | `POST /manager-type/event-name`             | `GET /manager-type/:stream`<br/>`GET /manager-type/:stream/stream`     |
+| External System | `POST /system-type/command-name`            | `GET /all?stream=system-type`                                          |
+| Policy          | `POST /policy-type/event-name`              | `N/A`                                                                  |
+| All Stream      | `N/A`                                       | `GET /all?[stream=stream-type]&[name=event-name]&[after=-1]&[limit=1]` |
 
 ## Testing your code
 
