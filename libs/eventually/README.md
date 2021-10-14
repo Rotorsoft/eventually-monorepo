@@ -86,7 +86,13 @@ Aggregates define the consistency boundaries of business entities while process 
 
 ### Public and Private Messages
 
-Commands and Events can have either public of private scope. Public messages are used for integrations with other services by exposing public endpoints (e.g. HTTP POST) and their schemas are usually bigger and more stable. Public events are published to the message broker with at-least-once delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns. Private messages are for internal use and delivered synchronously (in-process). Private schemas are usually smaller and can change more frequently.
+Commands and Events can have either public of private scope. Public messages are used for integrations with other services by exposing public endpoints (e.g. HTTP POST) and their schemas are usually bigger and more stable. Public events are published to the message broker with `at-least-once` delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns.
+
+Private messages are limited to the internal application scope and get delivered synchronously (in-process) inside a single transaction context. Private schemas are usually smaller and can change more frequently.
+
+The sequence below shows two `{{ systems }}` exchanging a public event while processing internal private flows within `[[ transaction ]]` contexts.
+
+`command -> {{ system1 -> [[ private-event1 -> policy1 -> private-command1 -> aggregate1 -> public-event1 ]] }} -> public-event1 -> {{ policy2 -> private-command2 -> system2 -> [[ private-event2 ]] }}`
 
 ## Routing conventions (using REST protocol by default)
 

@@ -73,11 +73,14 @@ describe("sad path", () => {
     const t = trigger(chance.guid());
 
     await app().event(policies.IntegrateAccount1, t);
+
+    const spyCommit = jest.spyOn(store(), "commit");
     await expect(app().event(policies.IntegrateAccount2, t)).rejects.toThrow(
       "error completing integration"
     );
 
     // expect nothing committed
+    expect(spyCommit).toHaveBeenCalledTimes(2);
     const sys2 = (
       await app().read({
         stream: systems.ExternalSystem2().stream()
