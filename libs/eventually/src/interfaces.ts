@@ -1,4 +1,4 @@
-import { AllQuery, ProcessManagerFactory } from ".";
+import { AllQuery, ProcessManagerFactory, Snapshot } from ".";
 import { Evt, Msg, Payload, PolicyFactory } from "./types";
 
 /**
@@ -67,4 +67,37 @@ export interface Store {
     expectedVersion?: number,
     callback?: (events: Evt[]) => Promise<void>
   ) => Promise<Evt[]>;
+}
+
+export enum SnapshotStoresEnum {
+  PostgresTable = 'PostgresTable',
+  memory = 'memory'
+}
+
+export type SnapshotStoreFactory = (table?:string) => SnapshotStore;
+
+export type SnapshotStore = {
+  /**
+   * Store initializer
+   */
+  init: () => Promise<void>;
+
+  /**
+    * Store closer
+    */
+  close: () => Promise<void>;
+
+  /**
+   * Reads snapshot from store for stream
+   */
+  read: <M extends Payload>(stream: string) => Promise<Snapshot<M>>;
+
+  /**
+   * Commits a snapshot into stream for stream
+   * @param data the current state to be sotred
+   */
+  upsert: <M extends Payload>(
+    stream: string,
+    data: Snapshot<M>
+  ) => Promise<void>;
 }
