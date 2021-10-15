@@ -66,10 +66,13 @@ export const load = async <M extends Payload, C, E>(
 export const stream = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
   id: string,
-  port?: number
+  options: {
+    port?: number,
+    useSnapshots?: boolean
+  } = {useSnapshots: false}
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
-    url(reduciblePath(factory).replace(":id", id).concat("/stream"), port)
+    url(reduciblePath(factory).replace(":id", id).concat(`/stream${options.useSnapshots? '?useSnapshots=true' : ''}`), options.port)
   );
   return data;
 };

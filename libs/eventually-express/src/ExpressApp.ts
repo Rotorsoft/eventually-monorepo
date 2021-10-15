@@ -25,11 +25,9 @@ import express, {
 } from "express";
 import { Server } from "http";
 
-// TODO: type GetCallback = <M extends Payload, C, E>(
-//   aggregate: Aggregate<M, C, E>,
-//   noSnapshots?: boolean
 type GetCallback = <M extends Payload, E>(
-  reducible: Reducible<M, E>
+  reducible: Reducible<M, E>,
+  noSnapthots?: boolean
 ) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
@@ -81,12 +79,11 @@ export class ExpressApp extends AppBase {
       ) => {
         try {
           const { id } = req.params;
-          /* TODO: const noSnapshots = req.query.noSnapshots;
-          const result = await callback(factory(id), ['true','1'].includes(noSnapshots as string)); */
           const result = await callback(
             overrideId
               ? { ...factory(undefined), stream: () => id }
-              : (factory as AggregateFactory<M, C, E>)(id)
+              : (factory as AggregateFactory<M, C, E>)(id),
+            ['true', '1'].includes(req.query.useSnapshots as string)
           );
           let etag = "-1";
           if (Array.isArray(result)) {
