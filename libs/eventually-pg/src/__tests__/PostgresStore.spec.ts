@@ -1,5 +1,5 @@
+import { Evt, EvtOf, Msg, Payload } from "@rotorsoft/eventually";
 import { Chance } from "chance";
-import { Msg, Payload, Evt, EvtOf } from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
 const table = 'test';
@@ -25,8 +25,6 @@ const event = (name: keyof E, data?: Payload): Msg =>
   } as Msg);
 
 describe("PostgresStore", () => {
-  const pool = new Pool(localPGConfig);
-  delete localPGConfig.password; // use it and forget it    
   
   beforeAll(async () => {
     await db.init();
@@ -49,8 +47,6 @@ describe("PostgresStore", () => {
   });
 
   afterAll(async () => {
-    await pool.query(`DROP TABLE ${table}`);
-    await pool.end();
     await db.close();
   });
 
@@ -66,40 +62,6 @@ describe("PostgresStore", () => {
     );
     expect(first).toBeGreaterThan(0);
     expect(count).toBe(6);
-  });
-
-  it('should load events after the specified events', async()=>{
-    let count = 0;
-    let lastEvent;
-    await db.load(a1, 4, (e) => {
-      count++;
-      lastEvent = e;
-    });
-    expect(count).toEqual(1);
-    expect(lastEvent).toEqual({
-      created: expect.any(Date),
-      data: {
-        value: "5",
-      },
-      id: 5,
-      name: "test2",
-      stream: a1,
-      version: "2",
-    })
-  });
-  
-  it('should load last event', async()=>{
-    const lastEvent = await db.getLastEvent(a1);
-    expect(lastEvent).toEqual({
-      created: expect.any(Date),
-      data: {
-        value: "5",
-      },
-      id: 5,
-      name: "test2",
-      stream: a1,
-      version: "2",
-    })
   });
 
   it("should commit events array", async () => {

@@ -42,7 +42,8 @@ type Event = {
 
 export const PostgresStore = (table: string): Store => {
   const pool = new Pool(config.pg);
-  delete config.pg.password; // use it and forget it
+  //TODO: How to handle password deletion
+  // delete config.pg.password; // use it and forget it
   let initialized = false;
 
   return {
@@ -50,14 +51,6 @@ export const PostgresStore = (table: string): Store => {
       if (!initialized) await pool.query(create_script(table));
       initialized = true;
     },
-
-    /* TODO: getLastEvent: async (stream:string)=> {
-    return pool.query<Event>(
-      `SELECT * FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
-      [stream]
-    )
-      .then(x=> x.rows.length && formatEvent(x.rows[0]))
-  }, */
 
     close: async (): Promise<void> => {
       await pool.end();
