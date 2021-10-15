@@ -1,13 +1,17 @@
 import * as joi from "joi";
 
 import {
+  Aggregate,
   AggregateFactory,
+  ExternalSystem,
   ExternalSystemFactory,
   MessageFactory,
   MsgOf,
   Payload,
+  Policy,
   PolicyFactory,
-  ProcessManagerFactory
+  ProcessManager,
+  ProcessManagerFactory,
 } from "./types";
 
 /**
@@ -123,12 +127,10 @@ const instances: { [name: string]: unknown } = {};
 export const Singleton =
   <T>(target: (...args: any[]) => T) =>
   (...args: any[]): T => {
+    // TODO: A test for this lines???
     if (!instances[target.name]) instances[target.name] = target(...args);
     return instances[target.name] as T;
   };
 
-
-export const shouldStoreSnapshot = (lastCommittedEvent: {version:string}, snapshotEventsThreshold?:number):boolean => 
-  snapshotEventsThreshold && 
-  lastCommittedEvent.version !== '0' && 
-  Number(lastCommittedEvent.version) % snapshotEventsThreshold === 0
+export const getReducible = <M extends Payload, C, E>(handler: Policy<C, E> | ProcessManager<M, C, E> | Aggregate<M, C, E> | ExternalSystem<C, E>): ProcessManager<M, C, E> | Aggregate<M, C, E> | undefined =>
+  "init" in handler ? handler : undefined;
