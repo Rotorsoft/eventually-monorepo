@@ -1,4 +1,4 @@
-import { Aggregate, CommittedEvent } from "@rotorsoft/eventually";
+import { Aggregate, app, CommittedEvent, SnapshotStoresEnum } from "@rotorsoft/eventually";
 import {
   CalculatorModel,
   DIGITS,
@@ -33,7 +33,10 @@ const compute = (model: CalculatorModel): CalculatorModel => {
 export const Calculator = (
   id: string
 ): Aggregate<CalculatorModel, Omit<Commands, "Whatever">, Events> => ({
-  //TODO: snapshotEventsThreshold: 2
+  snapshot: {
+    store: app().snapshotStores(SnapshotStoresEnum.PostgresTable, 'calculator_snapshots'),
+    threshold: 2
+  },
   stream: () => `Calculator${id}`,
 
   // Model Reducer with event side effects
