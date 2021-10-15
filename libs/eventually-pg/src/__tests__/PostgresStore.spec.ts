@@ -50,7 +50,7 @@ describe("PostgresStore", () => {
   it("should commit events", async () => {
     let first: number,
       count = 0;
-    await db.read(
+    await db.query(
       (e) => {
         first = first || e.id;
         count++;
@@ -63,7 +63,7 @@ describe("PostgresStore", () => {
 
   it("should commit events array", async () => {
     const events: Evt[] = [];
-    await db.read(
+    await db.query(
       (e) => {
         events.push(e);
       },
@@ -84,14 +84,14 @@ describe("PostgresStore", () => {
 
   it("should read stream with after", async () => {
     const events: EvtOf<E>[] = [];
-    await db.read((e) => events.push(e), { after: 2, limit: 2 });
+    await db.query((e) => events.push(e), { after: 2, limit: 2 });
     expect(events[0].id).toBe(3);
     expect(events.length).toBe(2);
   });
 
   it("should read stream by name", async () => {
     const events: EvtOf<E>[] = [];
-    await db.read((e) => events.push(e), { name: "test1", limit: 5 });
+    await db.query((e) => events.push(e), { name: "test1", limit: 5 });
     expect(events[0].name).toBe("test1");
     expect(events.length).toBeGreaterThanOrEqual(3);
     events.map((evt) => expect(evt.name).toBe("test1"));
@@ -99,7 +99,7 @@ describe("PostgresStore", () => {
 
   it("should read stream with limit", async () => {
     const events: EvtOf<E>[] = [];
-    await db.read((e) => events.push(e), { limit: 5 });
+    await db.query((e) => events.push(e), { limit: 5 });
     expect(events.length).toBe(5);
   });
 });

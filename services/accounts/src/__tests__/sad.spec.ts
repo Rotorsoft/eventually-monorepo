@@ -82,17 +82,17 @@ describe("sad path", () => {
     // expect nothing committed
     expect(spyCommit).toHaveBeenCalledTimes(2);
     const sys2 = (
-      await app().read({
+      await app().query({
         stream: systems.ExternalSystem2().stream()
       })
     ).filter((e) => e.data.id === t.data.id);
     const sys3 = (
-      await app().read({
+      await app().query({
         stream: systems.ExternalSystem3().stream()
       })
     ).filter((e) => e.data.id === t.data.id);
     const sys4 = (
-      await app().read({
+      await app().query({
         stream: systems.ExternalSystem4().stream()
       })
     ).filter((e) => e.data.id === t.data.id);

@@ -60,13 +60,13 @@ export abstract class AppBase extends Builder implements Reader {
 
   /**
    * Applies events to model
-   * @param reducer model reducer
+   * @param reducible a reducible artifact
    * @param events events to apply
    * @param state initial model state
    * @returns snapshots
    */
   private _apply<M extends Payload>(
-    reducer: Reducible<M, unknown>,
+    reducible: Reducible<M, unknown>,
     events: Evt[],
     state: M
   ): Snapshot<M>[] {
@@ -76,7 +76,7 @@ export abstract class AppBase extends Builder implements Reader {
         `   ... committed ${event.name} @ ${event.version} - `,
         event.data
       );
-      state = (reducer as any)["apply".concat(event.name)](state, event);
+      state = (reducible as any)["apply".concat(event.name)](state, event);
       this.log.trace("gray", `   === @ ${event.version}`, state);
       return { event, state };
     });
@@ -200,58 +200,58 @@ export abstract class AppBase extends Builder implements Reader {
 
   /**
    * Loads current model state
-   * @param reducer model reducer
+   * @param reducible a reducible artifact
    * @param useSnapshots flag to use snapshot store
    * @param callback optional reduction predicate
    * @returns current model state
    */
   async load<M extends Payload>(
-    reducer: Reducible<M, unknown>,
+    reducible: Reducible<M, unknown>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
   ): Promise<Snapshot<M>> {
     let event: Evt;
-    let state = reducer.init();
+    let state = reducible.init();
     let count = 0;
-    await store().read(
+    await store().query(
       (e) => {
         event = e;
-        state = (reducer as any)["apply".concat(e.name)](state, e);
+        state = (reducible as any)["apply".concat(e.name)](state, e);
         count++;
         if (callback) callback({ event, state });
       },
-      { stream: reducer.stream() }
+      { stream: reducible.stream() }
     );
     this.log.trace(
       "gray",
-      `   ... ${reducer.stream()} loaded ${count} event(s)`
+      `   ... ${reducible.stream()} loaded ${count} event(s)`
     );
     return { event, state };
   }
 
   /**
    * Loads stream
-   * @param reducer model reducer
+   * @param reducible a reducible artifact
    * @param useSnapshots flag to use snapshot store
    * @returns stream log with events and state transitions
    */
   async stream<M extends Payload, E>(
-    reducer: Reducible<M, E>,
+    reducible: Reducible<M, E>,
     useSnapshots = false
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
-    await this.load(reducer, useSnapshots, (snapshot) => log.push(snapshot));
+    await this.load(reducible, useSnapshots, (snapshot) => log.push(snapshot));
     return log;
   }
 
   /**
-   * Reads all stream
+   * Queries the store - all streams
    * @param query optional query parameters
    */
-  async read(query: AllQuery = { after: -1, limit: 1 }): Promise<Evt[]> {
+  async query(query: AllQuery = { after: -1, limit: 1 }): Promise<Evt[]> {
     const events: Evt[] = [];
-    await store().read((e) => events.push(e), query);
+    await store().query((e) => events.push(e), query);
     return events;
   }
 }

@@ -55,7 +55,7 @@ export const PostgresStore = (table: string): Store => {
       await pool.end();
     },
 
-    read: async (
+    query: async (
       callback: (event: Evt) => void,
       query?: AllQuery
     ): Promise<void> => {

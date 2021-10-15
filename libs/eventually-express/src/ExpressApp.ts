@@ -39,7 +39,7 @@ export class ExpressApp extends AppBase {
       ) => {
         try {
           const { stream, name, after = -1, limit = 1 } = req.query;
-          const result = await this.read({
+          const result = await this.query({
             stream,
             name,
             after: after && +after,
