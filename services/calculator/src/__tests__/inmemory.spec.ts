@@ -1,4 +1,4 @@
-import { app, Errors, EvtOf, log } from "@rotorsoft/eventually";
+import { app, Errors, EvtOf, log, SnapshotStoresEnum } from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
@@ -20,6 +20,14 @@ describe("in memory app", () => {
   beforeAll(async () => {
     await app().listen();
   });
+
+  beforeEach(async () => {
+    await app().snapshotStores(SnapshotStoresEnum.memory).init()
+  })
+  
+  afterEach(async () => {
+    await app().snapshotStores(SnapshotStoresEnum.memory).close()
+  })
 
   afterAll(async () => {
     await app().close();
@@ -48,17 +56,16 @@ describe("in memory app", () => {
       });
       
       // With no Snapshot loading
-      const snapshots1 = await app.stream(test, true);
+      const snapshots1 = await app().stream(test);
       expect(snapshots1.length).toEqual(6);
       
       // With Snapshot loading
-      const snapshots2 = await app.stream(test);
+      const snapshots2 = await app().stream(test, true);
       expect(snapshots2.length).toEqual(1);
     });
 
     it("should compute correctly 2", async () => {
       const test2 = Calculator(chance.guid());
-
       // GIVEN
       await app().command(test2, commands.PressKey({ key: "+" }));
       await app().command(test2, commands.PressKey({ key: "1" }));
@@ -84,6 +91,42 @@ describe("in memory app", () => {
       expect(snapshots.length).toBe(9);
     });
 
+    it("should read aggregate stream", async () => {
+      const test2 = Calculator(chance.guid());
+      // GIVEN
+      await app().command(test2, commands.PressKey({ key: "+" }));
+      await app().command(test2, commands.PressKey({ key: "1" }));
+      await app().command(test2, commands.PressKey({ key: "-" }));
+      await app().command(test2, commands.PressKey({ key: "2" }));
+      await app().command(test2, commands.PressKey({ key: "*" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+      await app().command(test2, commands.PressKey({ key: "/" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+
+      // WHEN
+      await app().command(test2, commands.PressKey({ key: "=" }));
+      const snapshots = await app().stream(test2);
+      expect(snapshots.length).toBe(9);
+    });
+
+    it("should read aggregate stream using Snapshots", async () => {
+      const test2 = Calculator(chance.guid());
+      // GIVEN
+      await app().command(test2, commands.PressKey({ key: "+" }));
+      await app().command(test2, commands.PressKey({ key: "1" }));
+      await app().command(test2, commands.PressKey({ key: "-" }));
+      await app().command(test2, commands.PressKey({ key: "2" }));
+      await app().command(test2, commands.PressKey({ key: "*" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+      await app().command(test2, commands.PressKey({ key: "/" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+
+      // WHEN
+      await app().command(test2, commands.PressKey({ key: "=" }));
+      const snapshots = await app().stream(test2, true);
+      expect(snapshots.length).toBe(1);
+    });
+
     it("should compute correctly 3", async () => {
       const test3 = Calculator(chance.guid());
 
@@ -104,16 +147,6 @@ describe("in memory app", () => {
         operator: "+",
         result: 0.3
       });
-    });
-
-    it("should read aggregate stream", async () => {
-      const snapshots = await app.stream(Calculator("test2"), true);
-      expect(snapshots.length).toBe(9);
-    });
-
-    it("should read aggregate stream using Snapshots", async () => {
-      const snapshots = await app.stream(Calculator("test2"));
-      expect(snapshots.length).toBe(1);
     });
 
     it("should throw concurrency error", async () => {
@@ -172,15 +205,8 @@ describe("in memory app", () => {
       const { event, state } = await app().load(test7);
       expect(state).toEqual({ result: 0 });
 
-      //TODO:
-      // const stream = await app.stream(
-      //   Counter(event as EvtOf<CounterEvents>).reducer,
-      //   true
-      // );
-      // expect(stream.length).toBe(5);
-      // // counter stream should have 5 events
-      // const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
-      // expect(stream.length).toBe(6);
+      const stream = await app().stream(Counter(event as EvtOf<CounterEvents>), true);
+      expect(stream.length).toBe(6);
     });
 
     it("should cover empty calculator", async () => {

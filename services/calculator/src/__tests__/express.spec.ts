@@ -81,7 +81,16 @@ describe("express app", () => {
     });
     
     it("should read aggregate stream using snapshots", async () => {
-      const snapshots = await stream(Calculator, "test2");
+      await command(Calculator, commands.PressKey({ key: "+" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "1" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "-" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "2" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "*" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "3" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "/" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "3" }), 'withSnapshots');
+      await command(Calculator, commands.PressKey({ key: "=" }), 'withSnapshots');
+      const snapshots = await stream(Calculator, "withSnapshots", {useSnapshots: true});
       expect(snapshots.length).toBe(1);
     });
 
