@@ -4,7 +4,8 @@ import {
   EvtOf,
   Policy,
   CommandResponse,
-  ProcessManager
+  ProcessManager,
+  SnapshotStoresEnum
 } from "@rotorsoft/eventually";
 import { Commands, commands } from "./calculator.commands";
 import { CounterState, Digits } from "./calculator.models";
@@ -28,6 +29,7 @@ const policy = async (
     const id = event.stream.substr("Calculator".length);
     const { state } = await app().load(Calculator(id));
     if (
+      //TODO: Race condition???
       (state.left || "").length >= threshold ||
       (state.right || "").length >= threshold
     )
@@ -45,6 +47,10 @@ export const Counter = (
 ): ProcessManager<CounterState, Commands, Events> => ({
   stream: () => `Counter${event.stream}`,
   init: (): CounterState => ({ count: 0 }),
+  snapshot:{
+    store: app().snapshotStores(SnapshotStoresEnum.PostgresTable, 'calculator_snapshots'),
+    threshold: 2
+  },
 
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>,
