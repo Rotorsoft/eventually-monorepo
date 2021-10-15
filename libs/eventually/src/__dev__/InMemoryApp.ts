@@ -1,3 +1,5 @@
+import * as joi from "joi";
+import { MessageFactory } from "..";
 import { AppBase } from "../app";
 import { config } from "../config";
 import {
@@ -13,10 +15,14 @@ import {
 } from "../types";
 import { committedSchema, ValidationError } from "../utils";
 
-const validate = <T>(message: MsgOf<T>, committed = false): void => {
+const validate = <T>(
+  message: MsgOf<T>,
+  sch: joi.ObjectSchema,
+  committed = false
+): void => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { scope, schema, ...value } = message;
-  const validator = committed ? committedSchema(schema()) : schema();
+  const validator = committed ? committedSchema(sch) : sch;
   const { error } = validator.validate(value, { abortEarly: false });
   if (error) throw new ValidationError(error);
 };
@@ -32,9 +38,18 @@ export class InMemoryApp extends AppBase {
     command: MsgOf<C>,
     expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
-    validate(command);
+    const factories = this._factories;
+    const command_schema = (factories.commands as MessageFactory<C>)
+      [command.name]()
+      .schema();
+    validate(command, command_schema);
     const snapshots = await super.command(handler, command, expectedVersion);
-    snapshots.map(({ event }) => validate(event as unknown as MsgOf<E>, true));
+    snapshots.map(({ event }) => {
+      const event_schema = (factories.events as MessageFactory<E>)
+        [(event as EvtOf<E>).name]()
+        .schema();
+      return validate(event as unknown as MsgOf<E>, event_schema, true);
+    });
     return snapshots;
   }
 
@@ -42,7 +57,10 @@ export class InMemoryApp extends AppBase {
     factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: EvtOf<E>
   ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
-    validate(event as unknown as MsgOf<E>, true);
+    const event_schema = (this._factories.events as MessageFactory<E>)
+      [event.name]()
+      .schema();
+    validate(event as unknown as MsgOf<E>, event_schema, true);
     return super.event(factory, event);
   }
 }

@@ -20,12 +20,15 @@
   "dependencies": {
     "@rotorsoft/eventually": "workspace:libs/eventually",
     "@rotorsoft/eventually-express": "workspace:libs/eventually-express",
+    "@rotorsoft/eventually-pg": "workspace:libs/eventually-pg",
     "joi": "^17.4.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@rotorsoft/eventually-test": "workspace:libs/eventually-test",
+    "@types/chance": "^1",
     "@types/uuid": "^8",
+    "chance": "^1.1.8",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.4.3"
   }

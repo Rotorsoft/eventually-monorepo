@@ -9,6 +9,7 @@
   "references": [
     { "path": "../../libs/eventually" },
     { "path": "../../libs/eventually-express" },
+    { "path": "../../libs/eventually-pg" },
     { "path": "../../libs/eventually-test" }
   ],
   "include": ["src"],

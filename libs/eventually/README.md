@@ -48,8 +48,8 @@ From a technical perspective, our reactive microservices should encapsulate a sm
 <table>
     <tr>
         <th>Message Handler</th>
-        <th>Consume</th>
-        <th>Produce</th>
+        <th>Consumes</th>
+        <th>Produces</th>
         <th style="text-align:center">Streamable</th>
         <th style="text-align:center">Reducible</th>
         <th>DDD Artifact</th>
@@ -86,17 +86,25 @@ Aggregates define the consistency boundaries of business entities while process 
 
 ### Public and Private Messages
 
-Commands and Events can have either public of private scope. Public messages are used for integrations with other services by exposing public endpoints (e.g. HTTP POST) and their schemas are usually bigger and more stable. Public events are published to the message broker with at-least-once delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns. Private messages are for internal use and delivered synchronously (in-process). Private schemas are usually smaller and can change more frequently.
+Commands and Events can have either public of private scope. Public messages are used for integrations with other services by exposing public endpoints (e.g. HTTP POST) and their schemas are usually bigger and more stable. Public events are published to the message broker with `at-least-once` delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns.
 
-## Bootstraps the micro-service `index.ts`
+Private messages are limited to the internal application scope and get delivered synchronously (in-process) inside a single transaction context. Private schemas are usually smaller and can change more frequently.
 
-- Command handlers are routed by convention `/aggregate-type/:id/command-name`
+The sequence below shows two `{{ systems }}` exchanging a public event while processing internal private flows within `[[ transaction ]]` contexts.
 
-- Event handlers follow a similar approach `/policy-type/event-name`
+`command -> {{ system1 -> [[ private-event1 -> policy1 -> private-command1 -> aggregate1 -> public-event1 ]] }} -> public-event1 -> {{ policy2 -> private-command2 -> system2 -> [[ private-event2 ]] }}`
 
-- Use App builder interface to build your app
+## Routing conventions (using REST protocol by default)
 
-- Listen for requests
+Public message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling:
+
+| Artifact        | Handler                                     | Getters                                                                |
+| --------------- | ------------------------------------------- | ---------------------------------------------------------------------- |
+| Aggregate       | `POST /aggregate-type/:stream/command-name` | `GET /aggregate-type/:stream`<br/>`GET /aggregate-type/:stream/stream` |
+| Process Manager | `POST /manager-type/event-name`             | `GET /manager-type/:stream`<br/>`GET /manager-type/:stream/stream`     |
+| External System | `POST /system-type/command-name`            | `GET /all?stream=system-type`                                          |
+| Policy          | `POST /policy-type/event-name`              | `N/A`                                                                  |
+| All Stream      | `N/A`                                       | `GET /all?[stream=stream-type]&[name=event-name]&[after=-1]&[limit=1]` |
 
 ## Testing your code
 
