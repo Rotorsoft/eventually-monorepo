@@ -1,4 +1,5 @@
 import * as joi from "joi";
+import { SnapshotStore } from ".";
 
 /**
  * Message payloads are records
@@ -68,7 +69,10 @@ export type Streamable = { stream: () => string };
  */
 export type Reducible<M extends Payload, E> = Streamable & {
   init: () => Readonly<M>;
-  snapshotEventsThreshold?: number
+  snapshot?:{
+    threshold: number,
+    store: SnapshotStore
+  }
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
     state: Readonly<M>,
