@@ -9,6 +9,7 @@ import {
   Evt,
   EvtOf,
   ExternalSystem,
+  Getter,
   Msg,
   MsgOf,
   Payload,
@@ -27,10 +28,15 @@ export const broker = singleton(function broker(broker?: Broker) {
   return broker || InMemoryBroker();
 });
 
+interface Reader {
+  load: Getter;
+  stream: Getter;
+}
+
 /**
  * App abstraction implementing generic handlers
  */
-export abstract class AppBase extends Builder {
+export abstract class AppBase extends Builder implements Reader {
   public readonly log = log();
 
   /**
@@ -195,11 +201,14 @@ export abstract class AppBase extends Builder {
   /**
    * Loads current model state
    * @param reducer model reducer
+   * @param useSnapshots flag to use snapshot store
    * @param callback optional reduction predicate
    * @returns current model state
    */
   async load<M extends Payload>(
     reducer: Reducible<M, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
   ): Promise<Snapshot<M>> {
     let event: Evt;
@@ -224,13 +233,15 @@ export abstract class AppBase extends Builder {
   /**
    * Loads stream
    * @param reducer model reducer
+   * @param useSnapshots flag to use snapshot store
    * @returns stream log with events and state transitions
    */
   async stream<M extends Payload, E>(
-    reducer: Reducible<M, E>
+    reducer: Reducible<M, E>,
+    useSnapshots = false
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
-    await this.load(reducer, (snapshot) => log.push(snapshot));
+    await this.load(reducer, useSnapshots, (snapshot) => log.push(snapshot));
     return log;
   }
 

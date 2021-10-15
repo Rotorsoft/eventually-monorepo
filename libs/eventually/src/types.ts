@@ -144,3 +144,12 @@ export type AllQuery = {
   after?: number;
   limit?: number;
 };
+
+/**
+ * Apps are getters of reducibles
+ */
+export type Getter = <M extends Payload, E>(
+  reducible: Reducible<M, E>,
+  useSnapshot?: boolean,
+  callback?: (snapshot: Snapshot<M>) => void
+) => Promise<Snapshot<M> | Snapshot<M>[]>;
