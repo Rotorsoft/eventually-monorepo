@@ -2,28 +2,26 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
-This project aims at the exploration of different ideas around building reactive web services. Based on well known methodologies, patterns, and tools - our guiding principle is **simplicity**.
+This project aims at exploring practical ideas around building reactive web services. Our goal is to provide a simple recipe grounded on well known methodologies, patterns, and tools.
 
-## Methodologies-Patterns-Tools
+## Methodologies, Patterns, and Tools
 
-- Domain Driven Design - DDD
-- Event Storming
-- Event Sourcing
-- Command Query Responsibility Segregation - CQRS
-- TypeScript 3 Project References
-- Yarn 2 Zero Installs, Plug and Play, Workspaces
-- Monorepo Structure
-- Test Driven Development - TDD
-- ESLint, Prettier, Jest
-- ...More to come
+- [Domain Driven Design](https://martinfowler.com/bliki/DomainDrivenDesign.html) - DDD
+- [Event Storming](https://www.eventstorming.com/)
+- [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
+- [Command Query Responsibility Segregation](https://martinfowler.com/bliki/CQRS.html) - CQRS
+- [TypeScript Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
+- [Yarn 2 Zero Installs](https://yarnpkg.com/features/zero-installs)- [Yarn 2 Plug'n'Play](https://yarnpkg.com/features/pnp)
+- [Yarn 2 Workspaces](https://yarnpkg.com/features/workspaces) - Monorepo Structure
+- [Test Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) - TDD
 
 ## Logical Model
 
-Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear models” as the drivers of implementations - source code should be seen as a side effect. The deeper we can track these models within the implementation the better.
+Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear business models” as the drivers of implementations - [source code should be seen as a side effect](https://www.lambdabytes.io/posts/selearning/). The deeper we can track these models within the implementation the better.
 
 > Tackle complexity early by understanding the domain
 
-Event Sourcing is a practical methodology used by many to model business processes. The nice thing about it is how easiliy models get tranferred to source code. The working patterns of any reactive system can be identified in the diagram below using the colors prescribed by Event Storming:
+Event Sourcing is a practical methodology used to model business processes. The nice thing about it is how easiliy models get tranferred to source code by 1-to-1 mappings of DDD artifacts to the common working patterns of any reactive system:
 
 ![Logical Model](./assets/flow.png)
 
@@ -31,19 +29,17 @@ Event Sourcing is a practical methodology used by many to model business process
 
 This project is trying to answer the following questions:
 
-- **Future Proof Single Source of Truth** - The “append-only” nature of an Event Store is an old and battle tested concept. We can audit and fully reproduce or re-project history by just replaying the log.
+- **Future Proof Single Source of Truth** - The “append-only” nature of event sourcing is an old and battle tested concept. The replayability aspect of it guarantees full auditability, integrability, and testability.
 
-- **Transparent Model-To-Implementation Process** - Developers focus on transferring business models to code with minimal technical load. We use a “convention over configuration” philosophy to remove tedious technical decision making from the process
+- **Transparent Model-To-Implementation Process** - Focus on transferring business models to code with minimal technical load. A “convention over configuration” philosophy removes tedious technical decision making from the process.
 
-- **Ability to Swap Platform Services** - Frameworks, protocols, and other platform related services are abstracted away from the developer
-
-- **Practically Self-Testable** - Replaying event streams effectively tests/covers models and business rules - one generic unit test
+- **Ability to Swap Platform Services** - Abstractions before frameworks, protocols, or any other platform services.
 
 ## Building your first Micro-Service
 
 > The anatomy of a micro-service should reflect the business model
 
-From a technical perspective, our reactive microservices should encapsulate a small number of protocol-agnostic message handlers in charge of solving very specific business problems. These handlers are grouped together logically according to the domain model, and can be optionally streamable or reducible to some kind of pesistent state if needed. The table below presents all these options and their proper mapping to DDD:
+From a technical perspective, reactive microservices encapsulate a small number of protocol-agnostic message handlers in charge of solving specific business problems. These handlers are grouped together logically according to a domain model, and can be optionally streamable or reducible to some kind of pesistent state if needed. The table below presents all practical options available and their proper mapping to DDD:
 
 <table>
     <tr>
@@ -82,17 +78,27 @@ From a technical perspective, our reactive microservices should encapsulate a sm
     </tr>
 </table>
 
-Aggregates define the consistency boundaries of business entities while process managers can expand those boundaries across many aggregates or systems.
+> `Aggregates` define the consistency boundaries of business entities while `Process Managers` can expand those boundaries across many aggregates or systems.
 
 ### Public and Private Messages
 
-Commands and Events can have either public of private scope. Public messages are used for integrations with other services by exposing public endpoints (e.g. HTTP POST) and their schemas are usually bigger and more stable. Public events are published to the message broker with `at-least-once` delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns.
+`Commands` and `Events` can have either public of private scope.
 
-Private messages are limited to the internal application scope and get delivered synchronously (in-process) inside a single transaction context. Private schemas are usually smaller and can change more frequently.
+Public messages are used for integrations with other micro-services by exposing public endpoints (e.g. HTTP POST).
 
-The sequence below shows two `{{ systems }}` exchanging a public event while processing internal private flows within `[[ transaction ]]` contexts.
+- Public schemas are usually bigger and more stable
+- Public events are published to the message broker with `at-least-once` delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns
 
-`command -> {{ system1 -> [[ private-event1 -> policy1 -> private-command1 -> aggregate1 -> public-event1 ]] }} -> public-event1 -> {{ policy2 -> private-command2 -> system2 -> [[ private-event2 ]] }}`
+Private messages are limited to the boundaries of the micro-service
+
+- Private messages get delivered synchronously (in-process) inside a single transaction context
+- Private schemas are usually smaller and can change more frequently
+
+The sequence below shows two `{{ applications }}` exchanging a public event triggered by an internal private flow within a `[[ transaction ]]` context:
+
+command -> `{{ system1 -> [[ private-event1 -> policy1 -> private-command1 -> aggregate1 -> public-event1 ]] }}` ->
+
+public-event1 -> `{{ policy2 -> private-command2 -> system2 -> [[ private-event2 ]] }}`
 
 ## Routing conventions (using REST protocol by default)
 
@@ -108,4 +114,6 @@ Public message handlers are routed by convention. Getters provide the current st
 
 ## Testing your code
 
-We group our unit tests inside the `__tests__` folder. We want tests only focusing on application logic, and we are planning to provide tooling to facilitate this. The `test_command` utility simulates commands flows in memory and covers messages payload validations automatically.
+We group unit tests inside `__tests__` folders. Tests should mainly focus on testing business logic and follow this basic pattern:
+
+- `given` [messages] `when` [message] `expect` [state]
