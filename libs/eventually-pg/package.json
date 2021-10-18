@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-pg",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Eventually Framework Postgres Services",
   "author": {
     "name": "rotorsoft",
