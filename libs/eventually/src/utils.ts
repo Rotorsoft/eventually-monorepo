@@ -3,10 +3,13 @@ import {
   AggregateFactory,
   ExternalSystemFactory,
   MessageFactory,
+  MessageHandler,
   MsgOf,
   Payload,
   PolicyFactory,
-  ProcessManagerFactory
+  ProcessManagerFactory,
+  Reducible,
+  Streamable
 } from "./types";
 
 /**
@@ -40,6 +43,26 @@ export const handlersOf = <Messages>(
 };
 
 /**
+ * Reducible type guard
+ * @param handler a message handler
+ * @returns a reducible type or undefined
+ */
+export const getReducible = <M extends Payload, C, E>(
+  handler: MessageHandler<M, C, E>
+): Reducible<M, E> | undefined =>
+  "init" in handler ? (handler as Reducible<M, E>) : undefined;
+
+/**
+ * Streamable type guard
+ * @param handler a message handler
+ * @returns a streamable type or undefined
+ */
+export const getStreamable = <M extends Payload, C, E>(
+  handler: MessageHandler<M, C, E>
+): Streamable | undefined =>
+  "stream" in handler ? (handler as Streamable) : undefined;
+
+/**
  * Normalizes reducible paths
  * @param factory reducible factory
  * @returns the reducible path
@@ -60,7 +83,7 @@ export const commandHandlerPath = <M extends Payload, C, E>(
 ): string =>
   "/".concat(
     decamelize(factory.name),
-    "init" in factory(undefined) ? "/:id/" : "",
+    getReducible(factory(undefined)) ? "/:id/" : "",
     decamelize(command.name)
   );
 

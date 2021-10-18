@@ -4,6 +4,7 @@ import {
   eventHandlerPath,
   Evt,
   ExternalSystemFactory,
+  getReducible,
   handlersOf,
   log,
   MessageFactory,
@@ -128,7 +129,7 @@ export class Builder {
     // command handlers
     Object.values(this._factories.commandHandlers).map((chf) => {
       const handler = chf(undefined);
-      const type = "init" in handler ? "aggregate" : "external-system";
+      const type = getReducible(handler) ? "aggregate" : "external-system";
       log().info("white", chf.name, type);
       handlersOf(this._factories.commands).map((cf) => {
         const command = cf() as Msg;
@@ -152,7 +153,7 @@ export class Builder {
     // event handlers
     Object.values(this._factories.eventHandlers).map((ehf) => {
       const handler = ehf(undefined);
-      const type = "init" in handler ? "process-manager" : "policy";
+      const type = getReducible(handler) ? "process-manager" : "policy";
       log().info("white", ehf.name, type);
       handlersOf(this._factories.events).map((ef) => {
         const event = ef();
