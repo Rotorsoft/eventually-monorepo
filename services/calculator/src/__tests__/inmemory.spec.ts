@@ -46,13 +46,18 @@ describe("in memory app", () => {
         operator: "+",
         result: 3.3
       });
-      const snapshots = await app().stream(test);
-      expect(snapshots.length).toEqual(6);
+      
+      // With no Snapshot loading
+      const snapshots1 = await app().stream(test);
+      expect(snapshots1.length).toEqual(6);
+      
+      // With Snapshot loading
+      const snapshots2 = await app().stream(test, true);
+      expect(snapshots2.length).toEqual(2);
     });
 
     it("should compute correctly 2", async () => {
       const test2 = Calculator(chance.guid());
-
       // GIVEN
       await app().command(test2, commands.PressKey({ key: "+" }));
       await app().command(test2, commands.PressKey({ key: "1" }));
@@ -76,6 +81,42 @@ describe("in memory app", () => {
 
       const snapshots = await app().stream(test2);
       expect(snapshots.length).toBe(9);
+    });
+
+    it("should read aggregate stream", async () => {
+      const test2 = Calculator(chance.guid());
+      // GIVEN
+      await app().command(test2, commands.PressKey({ key: "+" }));
+      await app().command(test2, commands.PressKey({ key: "1" }));
+      await app().command(test2, commands.PressKey({ key: "-" }));
+      await app().command(test2, commands.PressKey({ key: "2" }));
+      await app().command(test2, commands.PressKey({ key: "*" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+      await app().command(test2, commands.PressKey({ key: "/" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+
+      // WHEN
+      await app().command(test2, commands.PressKey({ key: "=" }));
+      const snapshots = await app().stream(test2);
+      expect(snapshots.length).toBe(9);
+    });
+
+    it("should read aggregate stream using Snapshots", async () => {
+      const test2 = Calculator(chance.guid());
+      // GIVEN
+      await app().command(test2, commands.PressKey({ key: "+" }));
+      await app().command(test2, commands.PressKey({ key: "1" }));
+      await app().command(test2, commands.PressKey({ key: "-" }));
+      await app().command(test2, commands.PressKey({ key: "2" }));
+      await app().command(test2, commands.PressKey({ key: "*" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+      await app().command(test2, commands.PressKey({ key: "/" }));
+      await app().command(test2, commands.PressKey({ key: "3" }));
+
+      // WHEN
+      await app().command(test2, commands.PressKey({ key: "=" }));
+      const snapshots = await app().stream(test2, true);
+      expect(snapshots.length).toBe(1);
     });
 
     it("should compute correctly 3", async () => {
@@ -154,11 +195,10 @@ describe("in memory app", () => {
 
       // THEN
       const { event, state } = await app().load(test7);
-      expect(state).toEqual({ result: 0 });
+      expect(state).toEqual(expect.objectContaining({ result: 0 }));
 
-      // counter stream should have 5 events
       const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
-      expect(stream.length).toBe(6);
+      expect(stream.length).toBe(5);
     });
 
     it("should cover empty calculator", async () => {

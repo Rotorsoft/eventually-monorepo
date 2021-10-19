@@ -76,7 +76,8 @@ export class ExpressApp extends AppBase {
           const result = await callback(
             overrideId
               ? { ...factory(undefined), stream: () => id }
-              : (factory as AggregateFactory<M, C, E>)(id)
+              : (factory as AggregateFactory<M, C, E>)(id),
+            ["true", "1"].includes(req.query.useSnapshots as string)
           );
           let etag = "-1";
           if (Array.isArray(result)) {

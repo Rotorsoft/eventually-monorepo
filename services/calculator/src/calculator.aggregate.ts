@@ -1,14 +1,15 @@
 import { Aggregate, CommittedEvent } from "@rotorsoft/eventually";
-import {
-  DIGITS,
-  SYMBOLS,
-  Digits,
-  CalculatorModel,
-  Operators,
-  Keys
-} from "./calculator.models";
+import { PostgresSnapshotStore } from "@rotorsoft/eventually-pg";
 import { Commands } from "./calculator.commands";
 import { Events, events } from "./calculator.events";
+import {
+  CalculatorModel,
+  DIGITS,
+  Digits,
+  Keys,
+  Operators,
+  SYMBOLS
+} from "./calculator.models";
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 const Operations = {
@@ -32,6 +33,10 @@ const compute = (model: CalculatorModel): CalculatorModel => {
 export const Calculator = (
   id: string
 ): Aggregate<CalculatorModel, Omit<Commands, "Whatever">, Events> => ({
+  snapshot: {
+    store: PostgresSnapshotStore,
+    threshold: 2
+  },
   stream: () => `Calculator${id}`,
 
   init: (): CalculatorModel => ({

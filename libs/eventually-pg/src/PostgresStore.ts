@@ -42,7 +42,8 @@ type Event = {
 
 export const PostgresStore = (table: string): Store => {
   const pool = new Pool(config.pg);
-  delete config.pg.password; // use it and forget it
+  //TODO: How to handle password deletion
+  // delete config.pg.password; // use it and forget it
   let initialized = false;
 
   return {

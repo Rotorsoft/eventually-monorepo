@@ -76,9 +76,9 @@ export abstract class AppBase extends Builder implements Reader {
   ): Promise<Snapshot<M>[]> {
     const streamable = getStreamable(handler);
     const reducible = getReducible(handler);
-    let { state } = reducible
+    let { state, count } = reducible // eslint-disable-line prefer-const
       ? await this.load(reducible)
-      : { state: undefined };
+      : { state: undefined, count: 0 };
     const events = await callback(state);
     if (streamable) {
       const committed = await store().commit(
@@ -87,21 +87,30 @@ export abstract class AppBase extends Builder implements Reader {
         expectedVersion,
         publishCallback
       );
-      return reducible
-        ? committed.map((event) => {
-            this.log.trace(
-              "gray",
-              `   ... committed ${event.name} @ ${event.version} - `,
-              event.data
-            );
-            state = (reducible as any)["apply".concat(event.name)](
-              state,
-              event
-            );
-            this.log.trace("gray", `   === @ ${event.version}`, state);
-            return { event, state };
-          })
-        : committed.map((event) => ({ event }));
+      if (reducible) {
+        const snapshots = committed.map((event) => {
+          this.log.trace(
+            "gray",
+            `   ... committed ${event.name} @ ${event.version} - `,
+            event.data
+          );
+          state = (reducible as any)["apply".concat(event.name)](state, event);
+          this.log.trace("gray", `   === @ ${event.version}`, state);
+          return { event, state };
+        });
+
+        // Snapshot store
+        if (count > reducible.snapshot?.threshold) {
+          await this.getSnapshotStore(reducible).upsert(
+            streamable.stream(),
+            snapshots[snapshots.length - 1]
+          );
+        }
+
+        return snapshots;
+      } else {
+        return committed.map((event) => ({ event }));
+      }
     }
     return [{ event: undefined }];
   }
@@ -112,6 +121,7 @@ export abstract class AppBase extends Builder implements Reader {
    */
   async listen(): Promise<void> {
     await store().init();
+    await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
       Object.values(this._handlers.events)
         .filter(({ event }) => event.scope() === "public")
@@ -195,17 +205,24 @@ export abstract class AppBase extends Builder implements Reader {
    * @param reducible a reducible artifact
    * @param useSnapshots flag to use snapshot store
    * @param callback optional reduction predicate
+   * @param noSnapshots boolean flag to load the stream without snapshost
    * @returns current model state
    */
   async load<M extends Payload>(
     reducible: Reducible<M, unknown>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
-  ): Promise<Snapshot<M>> {
-    let event: Evt;
-    let state = reducible.init();
+  ): Promise<Snapshot<M> & { count: number }> {
+    const snapshot =
+      useSnapshots &&
+      reducible.snapshot &&
+      (await this.getSnapshotStore(reducible).read<M>(
+        reducible.stream()
+      ));
+    let state = snapshot?.state || reducible.init();
+    let event = snapshot?.event;
     let count = 0;
+
     await store().query(
       (e) => {
         event = e;
@@ -213,13 +230,15 @@ export abstract class AppBase extends Builder implements Reader {
         count++;
         if (callback) callback({ event, state });
       },
-      { stream: reducible.stream() }
+      { stream: reducible.stream(), after: event?.id }
     );
+
     this.log.trace(
       "gray",
       `   ... ${reducible.stream()} loaded ${count} event(s)`
     );
-    return { event, state };
+
+    return { event, state, count };
   }
 
   /**

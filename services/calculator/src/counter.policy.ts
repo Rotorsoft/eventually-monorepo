@@ -1,15 +1,15 @@
 import {
   app,
+  CommandResponse,
   CommittedEvent,
   EvtOf,
   Policy,
-  CommandResponse,
-  ProcessManager
+  ProcessManager,
 } from "@rotorsoft/eventually";
-import { Commands, commands } from "./calculator.commands";
-import { CounterState, Digits } from "./calculator.models";
 import { Calculator } from "./calculator.aggregate";
+import { Commands, commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
+import { CounterState, Digits } from "./calculator.models";
 
 const policy = async (
   counter: CounterState,
@@ -27,6 +27,7 @@ const policy = async (
     const id = event.stream.substr("Calculator".length);
     const { state } = await app().load(Calculator(id));
     if (
+      //TODO: Race condition???
       (state.left || "").length >= threshold ||
       (state.right || "").length >= threshold
     )
@@ -41,9 +42,12 @@ export type CounterEvents = Pick<Events, "DigitPressed" | "DotPressed">;
 
 export const Counter = (
   event: EvtOf<Events>
-): ProcessManager<CounterState, Commands, Events> => ({
+): ProcessManager<CounterState, Commands, Omit<Events, 'Cleared'>> => ({
   stream: () => `Counter${event.stream}`,
   init: (): CounterState => ({ count: 0 }),
+  snapshot: {
+    threshold: 2
+  },
 
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>,
@@ -55,7 +59,6 @@ export const Counter = (
     state: CounterState
   ) => policy(state, event, 5),
 
-  onCleared: () => undefined,
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined,
 
@@ -64,10 +67,6 @@ export const Counter = (
   },
   applyDotPressed: (model: CounterState) => {
     return { count: model.count + 1 };
-  },
-
-  applyCleared: () => {
-    return { count: 0 };
   },
 
   applyEqualsPressed: () => {

@@ -1,8 +1,10 @@
+import { Evt, EvtOf, Msg, Payload } from "@rotorsoft/eventually";
 import { Chance } from "chance";
-import { Msg, Payload, Evt, EvtOf } from "@rotorsoft/eventually";
 import { PostgresStore } from "..";
 
-const db = PostgresStore("test");
+const table = 'test';
+
+const db = PostgresStore(table);
 
 const chance = new Chance();
 const a1 = chance.guid();
@@ -23,6 +25,7 @@ const event = (name: keyof E, data?: Payload): Msg =>
   } as Msg);
 
 describe("PostgresStore", () => {
+  
   beforeAll(async () => {
     await db.init();
     await db.init();

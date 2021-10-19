@@ -14,7 +14,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "start:dev": "yarn run ts-node-dev --respawn ./src/index.ts",
+    "start:dev": "ts-node-dev --respawn ./src/index.ts",
     "start": "node index.js"
   },
   "dependencies": {
