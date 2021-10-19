@@ -1,18 +1,15 @@
 import * as joi from "joi";
-
 import {
-  Aggregate,
-  AggregateFactory,
-  ExternalSystem,
-  ExternalSystemFactory,
+  AggregateFactory, ExternalSystemFactory,
   MessageFactory,
+  MessageHandler,
   MsgOf,
-  Payload,
-  Policy,
-  PolicyFactory,
-  ProcessManager,
+  Payload, PolicyFactory,
   ProcessManagerFactory,
+  Reducible,
+  Streamable
 } from "./types";
+
 
 /**
  * Decamelizes string
@@ -45,6 +42,26 @@ export const handlersOf = <Messages>(
 };
 
 /**
+ * Reducible type guard
+ * @param handler a message handler
+ * @returns a reducible type or undefined
+ */
+export const getReducible = <M extends Payload, C, E>(
+  handler: MessageHandler<M, C, E>
+): Reducible<M, E> | undefined =>
+  "init" in handler ? (handler as Reducible<M, E>) : undefined;
+
+/**
+ * Streamable type guard
+ * @param handler a message handler
+ * @returns a streamable type or undefined
+ */
+export const getStreamable = <M extends Payload, C, E>(
+  handler: MessageHandler<M, C, E>
+): Streamable | undefined =>
+  "stream" in handler ? (handler as Streamable) : undefined;
+
+/**
  * Normalizes reducible paths
  * @param factory reducible factory
  * @returns the reducible path
@@ -65,7 +82,7 @@ export const commandHandlerPath = <M extends Payload, C, E>(
 ): string =>
   "/".concat(
     decamelize(factory.name),
-    "init" in factory(undefined) ? "/:id/" : "",
+    getReducible(factory(undefined)) ? "/:id/" : "",
     decamelize(command.name)
   );
 
@@ -117,20 +134,3 @@ export class ConcurrencyError extends Error {
     super(Errors.ConcurrencyError);
   }
 }
-
-/**
- * Wraps creation of singletons around factory functions
- * @param target the factory function
- * @returns the singleton function
- */
-const instances: { [name: string]: unknown } = {};
-export const Singleton =
-  <T>(target: (...args: any[]) => T) =>
-  (...args: any[]): T => {
-    // TODO: A test for this lines???
-    if (!instances[target.name]) instances[target.name] = target(...args);
-    return instances[target.name] as T;
-  };
-
-export const getReducible = <M extends Payload, C, E>(handler: Policy<C, E> | ProcessManager<M, C, E> | Aggregate<M, C, E> | ExternalSystem<C, E>): ProcessManager<M, C, E> | Aggregate<M, C, E> | undefined =>
-  "init" in handler ? handler : undefined;

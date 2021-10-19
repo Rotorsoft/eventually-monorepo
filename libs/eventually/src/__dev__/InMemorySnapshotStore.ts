@@ -1,19 +1,15 @@
 import { app } from "..";
-import { SnapshotStoreFactory } from "../interfaces";
+import { SnapshotStore } from "../interfaces";
 
-let _store: Record<string, any> = {};
-export const InMemorySnapshotStore: SnapshotStoreFactory = (/* table: string */) => {
+const _store: Record<string, any> = {};
+export const InMemorySnapshotStore = (): SnapshotStore => {
 
   return {
-    init: ()=> {
-      _store = {};
-      return Promise.resolve();
-    },
-
-    close: () => {
-      _store = {};
-      return Promise.resolve();
-    },
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    init: async ()=> {},
+    
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    close: async () => {},
 
     read: (stream) => {
       _store[stream] && app().log.trace("white", `Snapshot loaded for stream ${stream}`)

@@ -1,4 +1,4 @@
-import { app, Errors, EvtOf, log, SnapshotStoresEnum } from "@rotorsoft/eventually";
+import { app, Errors, EvtOf, log } from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
@@ -20,14 +20,6 @@ describe("in memory app", () => {
   beforeAll(async () => {
     await app().listen();
   });
-
-  beforeEach(async () => {
-    await app().snapshotStores(SnapshotStoresEnum.memory).init()
-  })
-  
-  afterEach(async () => {
-    await app().snapshotStores(SnapshotStoresEnum.memory).close()
-  })
 
   afterAll(async () => {
     await app().close();
@@ -205,7 +197,7 @@ describe("in memory app", () => {
       const { event, state } = await app().load(test7);
       expect(state).toEqual({ result: 0 });
 
-      const stream = await app().stream(Counter(event as EvtOf<CounterEvents>), true);
+      const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
       expect(stream.length).toBe(6);
     });
 
@@ -253,40 +245,40 @@ describe("in memory app", () => {
     });
 
     it("should read stream", async () => {
-      const events = await app().read();
+      const events = await app().query();
       expect(events.length).toBe(1);
     });
 
     it("should read stream by name", async () => {
-      const stream = await app().read({ name: "DigitPressed", limit: 3 });
+      const stream = await app().query({ name: "DigitPressed", limit: 3 });
       expect(stream[0].name).toBe("DigitPressed");
       expect(stream.length).toBeGreaterThanOrEqual(3);
       stream.map((evt) => expect(evt.name).toBe("DigitPressed"));
     });
 
     it("should read stream with after", async () => {
-      const stream = await app().read({ after: 3 });
+      const stream = await app().query({ after: 3 });
       expect(stream[0].id).toBe(4);
     });
 
     it("should read stream with limit", async () => {
-      const stream = await app().read({ limit: 5 });
+      const stream = await app().query({ limit: 5 });
       expect(stream.length).toBe(5);
     });
 
     it("should read stream with after and limit", async () => {
-      const stream = await app().read({ after: 2, limit: 2 });
+      const stream = await app().query({ after: 2, limit: 2 });
       expect(stream[0].id).toBe(3);
       expect(stream.length).toBe(2);
     });
 
     it("should read stream with stream name", async () => {
-      const stream = await app().read({ stream: test.stream() });
+      const stream = await app().query({ stream: test.stream() });
       expect(stream.length).toBe(6);
     });
 
     it("should return an empty stream", async () => {
-      const stream = await app().read({ name: chance.guid() });
+      const stream = await app().query({ name: chance.guid() });
       expect(stream.length).toBe(0);
     });
   });

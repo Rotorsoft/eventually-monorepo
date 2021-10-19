@@ -1,6 +1,5 @@
-import { app, getReducible  } from ".";
 import { Builder } from "./builder";
-import { Broker, Store, SnapshotStoreFactory, SnapshotStore, SnapshotStoresEnum } from "./interfaces";
+import { Broker, SnapshotStore, Store } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
 import {
@@ -10,35 +9,41 @@ import {
   Evt,
   EvtOf,
   ExternalSystem,
+  Getter,
+  MessageHandler,
   Msg,
   MsgOf,
   Payload,
-  PolicyFactory,
-  ProcessManager,
-  ProcessManagerFactory,
+  PolicyFactory, ProcessManagerFactory,
   Reducible,
   Snapshot
 } from "./types";
-import { InMemoryBroker, InMemoryStore, InMemorySnapshotStore } from "./__dev__";
+import { getReducible, getStreamable } from "./utils";
+import { InMemoryBroker, InMemorySnapshotStore, InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
 });
 
-export const snapshotStores = singleton(function snapshotStores(snapshotStores?: Partial<Record<SnapshotStoresEnum, SnapshotStoreFactory>>) {
-  return snapshotStores || new Proxy({} as Record<SnapshotStoresEnum,SnapshotStoreFactory>, {get: () => InMemorySnapshotStore});
+export const snapshotStores = singleton(function snapshotStores(snapshotStores?: Record<string, SnapshotStore>) {
+  return snapshotStores || new Proxy({} as Record<string, SnapshotStore>, {get: () => InMemorySnapshotStore()});
 });
 
 export const broker = singleton(function broker(broker?: Broker) {
   return broker || InMemoryBroker();
 });
 
+interface Reader {
+  load: Getter;
+  stream: Getter;
+}
+
 /**
  * App abstraction implementing generic handlers
  */
-export abstract class AppBase extends Builder {
+export abstract class AppBase extends Builder implements Reader {
   public readonly log = log();
-  public readonly snapshotStores = (type: SnapshotStoresEnum, name = 'snapshots'): SnapshotStore =>  snapshotStores()[type](name);
+  public readonly snapshotStores = (name: string): SnapshotStore =>  snapshotStores()[name];
 
   /**
    * Publishes committed events inside commit transaction to ensure "at-least-once" delivery
@@ -60,27 +65,63 @@ export abstract class AppBase extends Builder {
   }
 
   /**
-   * Applies events to model
-   * @param reducer model reducer
-   * @param events events to apply
-   * @param state initial model state
-   * @returns snapshots
+   * Handles reducible storage
+   * @param handler the message handler
+   * @param callback the concrete message handling
+   * @param expectedVersion optional reducible expected version
+   * @param publishCallback optional callback to publish events with "at-least-once" delivery guarantees
+   * @returns the reduced snapshots
    */
-  private _apply<M extends Payload>(
-    reducer: Reducible<M, unknown>,
-    events: Evt[],
-    state: M
-  ): Snapshot<M>[] {
-    return events.map((event) => {
-      this.log.trace(
-        "gray",
-        `   ... committed ${event.name} @ ${event.version} - `,
-        event.data
+  private async _handle<M extends Payload, C, E>(
+    handler: MessageHandler<M, C, E>,
+    callback: (state: M) => Promise<Msg[] | Evt[]>,
+    expectedVersion?: number,
+    publishCallback?: (events: Evt[]) => Promise<void>
+  ): Promise<Snapshot<M>[]> {
+    const streamable = getStreamable(handler);
+    const reducible = getReducible(handler);
+    let { state, count } = reducible // eslint-disable-line prefer-const
+      ? await this.load(reducible)
+      : { state: undefined, count: 0 };
+    const events = await callback(state);
+    if (streamable) {
+      const committed = await store().commit(
+        streamable.stream(),
+        events,
+        expectedVersion,
+        publishCallback
       );
-      state = (reducer as any)["apply".concat(event.name)](state, event);
-      this.log.trace("gray", `   === @ ${event.version}`, state);
-      return { event, state };
-    });
+      if (reducible) {
+        const snapshots = committed.map((event) => {
+          this.log.trace(
+            "gray",
+            `   ... committed ${event.name} @ ${event.version} - `,
+            event.data
+          );
+          state = (reducible as any)["apply".concat(event.name)](
+            state,
+            event
+          );
+          this.log.trace("gray", `   === @ ${event.version}`, state);
+          return { event, state };
+        })
+        
+        // Snapshot store
+        const lastCommittedEvent = committed[committed.length-1];
+        if ( reducible.snapshot 
+          && lastCommittedEvent.version !== 0 
+          && count >= reducible.snapshot.threshold
+        ){
+          reducible.snapshot?.store.upsert(streamable.stream(), snapshots[snapshots.length-1])
+        }
+        
+        return snapshots;
+      } 
+      else {
+        return committed.map((event) => ({ event }));
+      }
+    }
+    return [{ event: undefined }];
   }
 
   /**
@@ -89,7 +130,7 @@ export abstract class AppBase extends Builder {
    */
   async listen(): Promise<void> {
     await store().init();
-    await Promise.all(Object.values(snapshotStores()).map(s=> s().init()));
+    await Promise.all(Object.values(snapshotStores()).map(s=> s.init()));
     await Promise.all(
       Object.values(this._handlers.events)
         .filter(({ event }) => event.scope() === "public")
@@ -124,29 +165,18 @@ export abstract class AppBase extends Builder {
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
-      `\n>>> ${command.name} ${handler.stream()}`,
+      `\n>>> ${command.name} ${handler.stream()} ${
+        expectedVersion ? ` @${expectedVersion}` : ""
+      }`,
       command.data
     );
-    const reducible = getReducible(handler);
-
-    const { state } = reducible
-      ? await this.load(reducible)
-      : { state: undefined };
-
-    const events: Msg[] = await (handler as any)["on".concat(command.name)](
-      command.data,
-      state
+    return await this._handle(
+      handler,
+      (state: M) =>
+        (handler as any)["on".concat(command.name)](command.data, state),
+      expectedVersion,
+      this._publish.bind(this)
     );
-
-      const snapshots =  this.commit(
-        state, 
-        handler,
-        events,
-        expectedVersion,
-        this._publish.bind(this)
-      )
-
-    return snapshots;
   }
 
   /**
@@ -165,137 +195,81 @@ export abstract class AppBase extends Builder {
       event.data
     );
     const handler = factory(event);
-    const reducible = getReducible(handler);
-
-    const { state } = reducible
-      ? await this.load<M>(reducible)
-      : { state: undefined };
-
-    const response: CommandResponse<unknown> | undefined = await (
-      handler as any
-    )["on".concat(event.name)](event, state);
-
-    if (response) {
-      // handle commands synchronously
-      const { id, command, expectedVersion } = response;
-      const { factory } = this._handlers.commands[command.name];
-      this.log.trace(
-        "blue",
-        `<<< ${command.name} ${factory.name} ${id || ""}`,
-        expectedVersion ? ` @${expectedVersion}` : ""
-      );
-      await this.command(factory(id), command, expectedVersion);
-    }
-
-    if (reducible){
-      const snapshots = await this.commit<M, C, E>(state, reducible, [event as unknown as Msg]);
-      // TODO: Un test que pase por aqui
-      Object.assign(state, snapshots && snapshots[snapshots.length-1]?.state || {});
-    }
-
+    let response: CommandResponse<unknown> | undefined;
+    const [{ state }] = await this._handle(handler, async (state: M) => {
+      response = await (handler as any)["on".concat(event.name)](event, state);
+      if (response) {
+        // handle commands synchronously
+        const { id, command, expectedVersion } = response;
+        const { factory } = this._handlers.commands[command.name];
+        await this.command(factory(id), command, expectedVersion);
+      }
+      return [event as Evt];
+    });
     return { response, state };
   }
 
   /**
-   * Commits message into stream of aggregate id
-   * @param stream stream name
-   * @param events array of uncommitted events
-   * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
-   * @param callback optional callback to handle committed events before closing the transaction
-   * @returns array of committed events
-   */
-  async commit<M extends Payload, C, E>(
-    state: M,
-    handler: Aggregate<M, C, E> | ExternalSystem<C, E> | ProcessManager<M, C, E>,
-    events: Msg[],
-    expectedVersion?: number,
-    callback?: (events: Evt[]) => Promise<void>
-  ): Promise<Snapshot<M>[]> {
-    let snapshots;
-    
-    const committed = await store().commit(
-      handler.stream(),
-      events,
-      expectedVersion,
-      callback
-    );
-
-    const reducible = getReducible(handler);
-    if (reducible){
-      snapshots = this._apply(reducible, committed, state)
-      try {
-        const lastCommittedEvent = committed[committed.length-1];
-          lastCommittedEvent.version !== 0 
-            //TODO: Would it be better to subtract last commited event id minus last snapshot event id >= threshold?
-            && Number(lastCommittedEvent.version) % reducible.snapshot.threshold === 0
-            && await reducible.snapshot?.store.upsert(handler.stream(), snapshots[snapshots.length-1])
-      } catch (error) {
-        app().log.error(error) 
-      }
-    } else {
-      snapshots = committed.map((event) => ({ event }))
-    }
-
-
-    return snapshots;
-  }
-
-  /**
    * Loads current model state
-   * @param reducer model reducer
+   * @param reducible a reducible artifact
+   * @param useSnapshots flag to use snapshot store
    * @param callback optional reduction predicate
    * @param noSnapshots boolean flag to load the stream without snapshost
    * @returns current model state
    */
   async load<M extends Payload>(
-    reducer: Reducible<M, unknown>,
-    callback?: (snapshot: Snapshot<M>) => void,
-    noSnapshots = false
-  ): Promise<Snapshot<M>> {
-    const snapshot = !noSnapshots && await reducer.snapshot?.store.read<M>(reducer.stream());
-    let state = snapshot?.state || reducer.init();
+    reducible: Reducible<M, unknown>,
+    useSnapshots = true,
+    callback?: (snapshot: Snapshot<M>) => void
+  ): Promise<Snapshot<M> & {count: number}> {
+    const snapshot = useSnapshots && await reducible.snapshot?.store.read<M>(reducible.stream());
+    let state = snapshot?.state || reducible.init();
     let event = snapshot?.event;
-    // const lastEvent = snapshot?.event;
     let count = 0;
-    await store().read(
+    
+    await store().query(
       (e) => {
         event = e;
-        state = (reducer as any)["apply".concat(e.name)](state, e);
+        state = (reducible as any)["apply".concat(e.name)](state, e);
         count++;
         if (callback) callback({ event, state });
       },
-      { stream: reducer.stream(), after: event?.id }
+      { stream: reducible.stream(), after: event?.id }
     );
+    
     this.log.trace(
       "gray",
-      `   ... ${reducer.stream()} loaded ${count} event(s)`
+      `   ... ${reducible.stream()} loaded ${count} event(s)`
     );
-    count === 0 && event && callback && callback(snapshot);
-    return { event, state };
+    
+    if (count === 0 && event && callback) 
+      callback(snapshot);
+    
+    return { event, state, count };
   }
 
   /**
    * Loads stream
-   * @param reducer model reducer
-   * @param useSnapshots boolean flag to load the stream without snapshost
+   * @param reducible a reducible artifact
+   * @param useSnapshots flag to use snapshot store
    * @returns stream log with events and state transitions
    */
   async stream<M extends Payload, E>(
-    reducer: Reducible<M, E>,
+    reducible: Reducible<M, E>,
     useSnapshots = false
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
-    await this.load(reducer, (snapshot) => log.push(snapshot), !useSnapshots);
+    await this.load(reducible, useSnapshots, (snapshot) => log.push(snapshot));
     return log;
   }
 
   /**
-   * Reads all stream
+   * Queries the store - all streams
    * @param query optional query parameters
    */
-  async read(query: AllQuery = { after: -1, limit: 1 }): Promise<Evt[]> {
+  async query(query: AllQuery = { after: -1, limit: 1 }): Promise<Evt[]> {
     const events: Evt[] = [];
-    await store().read((e) => events.push(e), query);
+    await store().query((e) => events.push(e), query);
     return events;
   }
 }

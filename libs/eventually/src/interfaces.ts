@@ -47,11 +47,11 @@ export interface Store {
   close: () => Promise<void>;
 
   /**
-   * Reads events from store
+   * Queries the event store
    * @param callback callback predicate
    * @param query optional query values
    */
-  read: (callback: (event: Evt) => void, query?: AllQuery) => Promise<void>;
+  query: (callback: (event: Evt) => void, query?: AllQuery) => Promise<void>;
 
   /**
    * Commits message into stream of aggregate id
@@ -69,12 +69,12 @@ export interface Store {
   ) => Promise<Evt[]>;
 }
 
-export enum SnapshotStoresEnum {
-  PostgresTable = 'PostgresTable',
-  memory = 'memory'
-}
+// export enum SnapshotStoresEnum {
+//   PostgresTable = 'PostgresTable',
+//   memory = 'memory'
+// }
 
-export type SnapshotStoreFactory = (table?:string) => SnapshotStore;
+// export type SnapshotStoreFactory = (table?:string) => SnapshotStore;
 
 export type SnapshotStore = {
   /**
