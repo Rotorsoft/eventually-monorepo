@@ -69,7 +69,7 @@ export interface Store {
   ) => Promise<Evt[]>;
 }
 
-export type SnapshotStore = {
+export interface SnapshotStore {
   /**
    * Store initializer
    */
