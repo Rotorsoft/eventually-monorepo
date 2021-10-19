@@ -50,18 +50,13 @@ export const PostgresSnapshotStore: SnapshotStoreFactory = (table: string) =>  {
       stream,
       data
     ) => {
-      const existing = await store.read(stream)
-      if (existing)
-        await pool.query(
-          `UPDATE ${table} set data=$2 WHERE stream=$1`,
-          [stream, data]
-        );
-      else
-        await pool.query(
-          `INSERT INTO ${table}(stream, data) VALUES($1, $2)`,
-          [stream, data]
-        );
-
+      await pool.query(
+        `INSERT INTO ${table}(stream, data) VALUES($1, $2)
+          ON CONFLICT (stream)
+          DO
+          UPDATE set data=$2 WHERE ${table}.stream=$1`,
+        [stream, data]
+      );
       app().log.trace("white", `Snapshot Created for stream ${stream}`)
     }
   };
