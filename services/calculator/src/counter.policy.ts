@@ -5,7 +5,6 @@ import {
   Policy,
   CommandResponse,
   ProcessManager,
-  SnapshotStoresEnum
 } from "@rotorsoft/eventually";
 import { Commands, commands } from "./calculator.commands";
 import { CounterState, Digits } from "./calculator.models";
@@ -48,7 +47,7 @@ export const Counter = (
   stream: () => `Counter${event.stream}`,
   init: (): CounterState => ({ count: 0 }),
   snapshot:{
-    store: app().snapshotStores(SnapshotStoresEnum.PostgresTable, 'calculator_snapshots'),
+    store: app().snapshotStores('postgres'),
     threshold: 2
   },
 

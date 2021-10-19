@@ -1,4 +1,4 @@
-import { app, broker, config, snapshotStores, SnapshotStoresEnum, store } from "@rotorsoft/eventually";
+import { app, broker, config, snapshotStores, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PubSubBroker } from "@rotorsoft/eventually-gcp";
 import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
@@ -9,11 +9,9 @@ import { Counter } from "./counter.policy";
 
 store(PostgresStore("calculator"));
 broker(config().host !== "http://localhost" ? PubSubBroker() : undefined);
-snapshotStores(
-  {
-    [SnapshotStoresEnum.PostgresTable]: PostgresSnapshotStore
-  }
-)
+snapshotStores({
+  postgres: PostgresSnapshotStore("calculator_snapshots")
+})
 
 const expressApp = app(new ExpressApp()) as ExpressApp;
 expressApp

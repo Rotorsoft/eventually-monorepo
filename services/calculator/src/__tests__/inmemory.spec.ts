@@ -1,4 +1,4 @@
-import { app, Errors, EvtOf, log, SnapshotStoresEnum } from "@rotorsoft/eventually";
+import { app, Errors, EvtOf, log } from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
@@ -20,14 +20,6 @@ describe("in memory app", () => {
   beforeAll(async () => {
     await app().listen();
   });
-
-  beforeEach(async () => {
-    await app().snapshotStores(SnapshotStoresEnum.memory).init()
-  })
-  
-  afterEach(async () => {
-    await app().snapshotStores(SnapshotStoresEnum.memory).close()
-  })
 
   afterAll(async () => {
     await app().close();

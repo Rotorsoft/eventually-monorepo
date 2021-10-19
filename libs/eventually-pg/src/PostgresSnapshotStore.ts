@@ -1,7 +1,6 @@
 import {
   app,
-  SnapshotStore,
-  SnapshotStoreFactory
+  SnapshotStore
 } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { config } from "./config";
@@ -16,7 +15,7 @@ ALTER TABLE public.${table} OWNER to postgres;`;
 
 const tables: Set<string> = new Set();
 
-export const PostgresSnapshotStore: SnapshotStoreFactory = (table: string) =>  {
+export const PostgresSnapshotStore = (table: string): SnapshotStore =>  {
   const pool = new Pool(config.pg);
   // delete config.pg.password; // use it and forget it
   let initialized = false;

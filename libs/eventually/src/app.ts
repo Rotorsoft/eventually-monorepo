@@ -1,5 +1,5 @@
 import { Builder } from "./builder";
-import { Broker, SnapshotStore, SnapshotStoreFactory, SnapshotStoresEnum, Store } from "./interfaces";
+import { Broker, SnapshotStore, Store } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
 import {
@@ -25,8 +25,8 @@ export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
 });
 
-export const snapshotStores = singleton(function snapshotStores(snapshotStores?: Partial<Record<SnapshotStoresEnum, SnapshotStoreFactory>>) {
-  return snapshotStores || new Proxy({} as Record<SnapshotStoresEnum,SnapshotStoreFactory>, {get: () => InMemorySnapshotStore});
+export const snapshotStores = singleton(function snapshotStores(snapshotStores?: Record<string, SnapshotStore>) {
+  return snapshotStores || new Proxy({} as Record<string, SnapshotStore>, {get: () => InMemorySnapshotStore()});
 });
 
 export const broker = singleton(function broker(broker?: Broker) {
@@ -43,7 +43,7 @@ interface Reader {
  */
 export abstract class AppBase extends Builder implements Reader {
   public readonly log = log();
-  public readonly snapshotStores = (type: SnapshotStoresEnum, name = 'snapshots'): SnapshotStore =>  snapshotStores()[type](name);
+  public readonly snapshotStores = (name: string): SnapshotStore =>  snapshotStores()[name];
 
   /**
    * Publishes committed events inside commit transaction to ensure "at-least-once" delivery
@@ -130,7 +130,7 @@ export abstract class AppBase extends Builder implements Reader {
    */
   async listen(): Promise<void> {
     await store().init();
-    await Promise.all(Object.values(snapshotStores()).map(s=> s().init()));
+    await Promise.all(Object.values(snapshotStores()).map(s=> s.init()));
     await Promise.all(
       Object.values(this._handlers.events)
         .filter(({ event }) => event.scope() === "public")

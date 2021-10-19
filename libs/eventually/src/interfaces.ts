@@ -69,12 +69,12 @@ export interface Store {
   ) => Promise<Evt[]>;
 }
 
-export enum SnapshotStoresEnum {
-  PostgresTable = 'PostgresTable',
-  memory = 'memory'
-}
+// export enum SnapshotStoresEnum {
+//   PostgresTable = 'PostgresTable',
+//   memory = 'memory'
+// }
 
-export type SnapshotStoreFactory = (table?:string) => SnapshotStore;
+// export type SnapshotStoreFactory = (table?:string) => SnapshotStore;
 
 export type SnapshotStore = {
   /**
