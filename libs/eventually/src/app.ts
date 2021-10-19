@@ -25,10 +25,6 @@ export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
 });
 
-// export const snapshotStores = singleton(function snapshotStores(snapshotStores?: Record<string, SnapshotStore>) {
-//   return snapshotStores || new Proxy({} as Record<string, SnapshotStore>, {get: () => InMemorySnapshotStore()});
-// });
-
 export const broker = singleton(function broker(broker?: Broker) {
   return broker || InMemoryBroker();
 });
@@ -43,7 +39,6 @@ interface Reader {
  */
 export abstract class AppBase extends Builder implements Reader {
   public readonly log = log();
-  // public readonly snapshotStores = (name: string): SnapshotStore =>  snapshotStores()[name];
 
   /**
    * Publishes committed events inside commit transaction to ensure "at-least-once" delivery
