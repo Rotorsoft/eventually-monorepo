@@ -205,7 +205,7 @@ describe("in memory app", () => {
       const { event, state } = await app().load(test7);
       expect(state).toEqual({ result: 0 });
 
-      const stream = await app().stream(Counter(event as EvtOf<CounterEvents>), true);
+      const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
       expect(stream.length).toBe(6);
     });
 
