@@ -1,16 +1,14 @@
 import {
-  app,
-  CommittedEvent,
+  app,CommandResponse,CommittedEvent,
   EvtOf,
-  Policy,
-  CommandResponse,
-  ProcessManager,
+  Policy,ProcessManager
 } from "@rotorsoft/eventually";
-import { Commands, commands } from "./calculator.commands";
-import { CounterState, Digits } from "./calculator.models";
+import {PostgresSnapshotStore} from "@rotorsoft/eventually-pg";
+import {Calculator} from "./calculator.aggregate";
+import {Commands,commands} from "./calculator.commands";
+import {Events} from "./calculator.events";
+import {CounterState,Digits} from "./calculator.models";
 
-import { Calculator } from "./calculator.aggregate";
-import { Events } from "./calculator.events";
 
 const policy = async (
   counter: CounterState,
@@ -47,7 +45,7 @@ export const Counter = (
   stream: () => `Counter${event.stream}`,
   init: (): CounterState => ({ count: 0 }),
   snapshot:{
-    store: app().snapshotStores('postgres'),
+    store: PostgresSnapshotStore,
     threshold: 2
   },
 

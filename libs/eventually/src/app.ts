@@ -1,7 +1,7 @@
-import { Builder } from "./builder";
-import { Broker, SnapshotStore, Store } from "./interfaces";
-import { log } from "./log";
-import { singleton } from "./singleton";
+import {Builder} from "./builder";
+import {Broker,Store} from "./interfaces";
+import {log} from "./log";
+import {singleton} from "./singleton";
 import {
   Aggregate,
   AllQuery,
@@ -14,20 +14,20 @@ import {
   Msg,
   MsgOf,
   Payload,
-  PolicyFactory, ProcessManagerFactory,
+  PolicyFactory,ProcessManagerFactory,
   Reducible,
   Snapshot
 } from "./types";
-import { getReducible, getStreamable } from "./utils";
-import { InMemoryBroker, InMemorySnapshotStore, InMemoryStore } from "./__dev__";
+import {getReducible,getStreamable} from "./utils";
+import {InMemoryBroker,InMemoryStore} from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
 });
 
-export const snapshotStores = singleton(function snapshotStores(snapshotStores?: Record<string, SnapshotStore>) {
-  return snapshotStores || new Proxy({} as Record<string, SnapshotStore>, {get: () => InMemorySnapshotStore()});
-});
+// export const snapshotStores = singleton(function snapshotStores(snapshotStores?: Record<string, SnapshotStore>) {
+//   return snapshotStores || new Proxy({} as Record<string, SnapshotStore>, {get: () => InMemorySnapshotStore()});
+// });
 
 export const broker = singleton(function broker(broker?: Broker) {
   return broker || InMemoryBroker();
@@ -43,7 +43,7 @@ interface Reader {
  */
 export abstract class AppBase extends Builder implements Reader {
   public readonly log = log();
-  public readonly snapshotStores = (name: string): SnapshotStore =>  snapshotStores()[name];
+  // public readonly snapshotStores = (name: string): SnapshotStore =>  snapshotStores()[name];
 
   /**
    * Publishes committed events inside commit transaction to ensure "at-least-once" delivery
@@ -107,12 +107,8 @@ export abstract class AppBase extends Builder implements Reader {
         })
         
         // Snapshot store
-        const lastCommittedEvent = committed[committed.length-1];
-        if ( reducible.snapshot 
-          && lastCommittedEvent.version !== 0 
-          && count >= reducible.snapshot.threshold
-        ){
-          reducible.snapshot?.store.upsert(streamable.stream(), snapshots[snapshots.length-1])
+        if ( count > reducible.snapshot?.threshold) {
+          await this._snapshotStores[reducible.snapshot.store.name].upsert(streamable.stream(), snapshots[snapshots.length-1])
         }
         
         return snapshots;
@@ -130,7 +126,8 @@ export abstract class AppBase extends Builder implements Reader {
    */
   async listen(): Promise<void> {
     await store().init();
-    await Promise.all(Object.values(snapshotStores()).map(s=> s.init()));
+    await Promise.all(Object.values(this._snapshotStores).map(s=> s.init()));
+    // TODO: Init all snapshot stores from builders.
     await Promise.all(
       Object.values(this._handlers.events)
         .filter(({ event }) => event.scope() === "public")
@@ -222,7 +219,7 @@ export abstract class AppBase extends Builder implements Reader {
     useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
   ): Promise<Snapshot<M> & {count: number}> {
-    const snapshot = useSnapshots && await reducible.snapshot?.store.read<M>(reducible.stream());
+    const snapshot = useSnapshots && reducible.snapshot && await this._snapshotStores[reducible.snapshot.store.name].read<M>(reducible.stream());
     let state = snapshot?.state || reducible.init();
     let event = snapshot?.event;
     let count = 0;
@@ -241,9 +238,6 @@ export abstract class AppBase extends Builder implements Reader {
       "gray",
       `   ... ${reducible.stream()} loaded ${count} event(s)`
     );
-    
-    if (count === 0 && event && callback) 
-      callback(snapshot);
     
     return { event, state, count };
   }

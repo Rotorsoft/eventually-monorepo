@@ -13,6 +13,7 @@ import {
   PolicyFactory,
   ProcessManagerFactory
 } from ".";
+import {SnapshotStore} from "./interfaces";
 
 type Factories = {
   commands: MessageFactory<unknown>;
@@ -71,6 +72,8 @@ export class Builder {
     commands: {},
     events: {}
   };
+  
+  protected readonly _snapshotStores: Record<string, SnapshotStore> = {};
 
   protected readonly _private_subscriptions: Subscriptions = {};
 
@@ -129,7 +132,11 @@ export class Builder {
     // command handlers
     Object.values(this._factories.commandHandlers).map((chf) => {
       const handler = chf(undefined);
-      const type = getReducible(handler) ? "aggregate" : "external-system";
+      const reducible = getReducible(handler);
+      if (reducible?.snapshot){
+        this._snapshotStores[reducible.snapshot.store.name] = this._snapshotStores[reducible.snapshot.store.name] || reducible.snapshot.store()
+      }
+      const type = reducible ? "aggregate" : "external-system";
       log().info("white", chf.name, type);
       handlersOf(this._factories.commands).map((cf) => {
         const command = cf() as Msg;
@@ -153,7 +160,11 @@ export class Builder {
     // event handlers
     Object.values(this._factories.eventHandlers).map((ehf) => {
       const handler = ehf(undefined);
-      const type = getReducible(handler) ? "process-manager" : "policy";
+      const reducible = getReducible(handler);
+      if (reducible?.snapshot){
+        this._snapshotStores[reducible.snapshot.store.name] = this._snapshotStores[reducible.snapshot.store.name] || reducible.snapshot.store()
+      }
+      const type = reducible ? "process-manager" : "policy";
       log().info("white", ehf.name, type);
       handlersOf(this._factories.events).map((ef) => {
         const event = ef();

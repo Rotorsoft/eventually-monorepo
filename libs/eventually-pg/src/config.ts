@@ -7,11 +7,12 @@ interface PgConfig {
     user: string;
     password: string;
     database: string;
+    snapshotsTable: string;
     port: number;
   };
 }
 
-const { PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE, PG_PORT } = process.env;
+const { PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE, PG_SNAPSHOTS_TABLE, PG_PORT } = process.env;
 
 export const config: Config & PgConfig = extend(
   {
@@ -20,6 +21,7 @@ export const config: Config & PgConfig = extend(
       user: PG_USER,
       password: PG_PASSWORD,
       database: PG_DATABASE,
+      snapshotsTable: PG_SNAPSHOTS_TABLE,
       port: Number.parseInt(PG_PORT || "5432")
     }
   },
@@ -29,6 +31,7 @@ export const config: Config & PgConfig = extend(
       user: joi.string().required(),
       password: joi.string().required(),
       database: joi.string().required(),
+      snapshotsTable: joi.string().required(),
       port: joi.number().port().required()
     })
   }),

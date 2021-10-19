@@ -71,7 +71,7 @@ export type Reducible<M extends Payload, E> = Streamable & {
   init: () => Readonly<M>;
   snapshot?:{
     threshold: number,
-    store: SnapshotStore
+    store: () => SnapshotStore,
   }
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (

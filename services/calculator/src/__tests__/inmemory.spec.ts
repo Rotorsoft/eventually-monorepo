@@ -53,7 +53,7 @@ describe("in memory app", () => {
       
       // With Snapshot loading
       const snapshots2 = await app().stream(test, true);
-      expect(snapshots2.length).toEqual(1);
+      expect(snapshots2.length).toEqual(2);
     });
 
     it("should compute correctly 2", async () => {
@@ -195,10 +195,10 @@ describe("in memory app", () => {
 
       // THEN
       const { event, state } = await app().load(test7);
-      expect(state).toEqual({ result: 0 });
+      expect(state).toEqual(expect.objectContaining({ result: 0 }));
 
       const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
-      expect(stream.length).toBe(6);
+      expect(stream.length).toBe(5);
     });
 
     it("should cover empty calculator", async () => {
