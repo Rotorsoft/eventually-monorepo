@@ -122,7 +122,6 @@ export abstract class AppBase extends Builder implements Reader {
   async listen(): Promise<void> {
     await store().init();
     await Promise.all(Object.values(this._snapshotStores).map(s=> s.init()));
-    // TODO: Init all snapshot stores from builders.
     await Promise.all(
       Object.values(this._handlers.events)
         .filter(({ event }) => event.scope() === "public")
