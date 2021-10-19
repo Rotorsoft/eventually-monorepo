@@ -10,6 +10,7 @@ import {
   EvtOf,
   ExternalSystem,
   Getter,
+  MessageHandler,
   Msg,
   MsgOf,
   Payload,
@@ -18,6 +19,7 @@ import {
   Reducible,
   Snapshot
 } from "./types";
+import { getReducible, getStreamable } from "./utils";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
@@ -59,27 +61,49 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Applies events to model
-   * @param reducible a reducible artifact
-   * @param events events to apply
-   * @param state initial model state
-   * @returns snapshots
+   * Handles reducible storage
+   * @param handler the message handler
+   * @param callback the concrete message handling
+   * @param expectedVersion optional reducible expected version
+   * @param publishCallback optional callback to publish events with "at-least-once" delivery guarantees
+   * @returns the reduced snapshots
    */
-  private _apply<M extends Payload>(
-    reducible: Reducible<M, unknown>,
-    events: Evt[],
-    state: M
-  ): Snapshot<M>[] {
-    return events.map((event) => {
-      this.log.trace(
-        "gray",
-        `   ... committed ${event.name} @ ${event.version} - `,
-        event.data
+  private async _handle<M extends Payload, C, E>(
+    handler: MessageHandler<M, C, E>,
+    callback: (state: M) => Promise<Msg[] | Evt[]>,
+    expectedVersion?: number,
+    publishCallback?: (events: Evt[]) => Promise<void>
+  ): Promise<Snapshot<M>[]> {
+    const streamable = getStreamable(handler);
+    const reducible = getReducible(handler);
+    let { state } = reducible
+      ? await this.load(reducible)
+      : { state: undefined };
+    const events = await callback(state);
+    if (streamable) {
+      const committed = await store().commit(
+        streamable.stream(),
+        events,
+        expectedVersion,
+        publishCallback
       );
-      state = (reducible as any)["apply".concat(event.name)](state, event);
-      this.log.trace("gray", `   === @ ${event.version}`, state);
-      return { event, state };
-    });
+      return reducible
+        ? committed.map((event) => {
+            this.log.trace(
+              "gray",
+              `   ... committed ${event.name} @ ${event.version} - `,
+              event.data
+            );
+            state = (reducible as any)["apply".concat(event.name)](
+              state,
+              event
+            );
+            this.log.trace("gray", `   === @ ${event.version}`, state);
+            return { event, state };
+          })
+        : committed.map((event) => ({ event }));
+    }
+    return [{ event: undefined }];
   }
 
   /**
@@ -122,32 +146,18 @@ export abstract class AppBase extends Builder implements Reader {
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
-      `\n>>> ${command.name} ${handler.stream()}`,
+      `\n>>> ${command.name} ${handler.stream()} ${
+        expectedVersion ? ` @${expectedVersion}` : ""
+      }`,
       command.data
     );
-    const reducible = "init" in handler ? handler : undefined;
-
-    const { state } = reducible
-      ? await this.load(reducible)
-      : { state: undefined };
-
-    const events: Msg[] = await (handler as any)["on".concat(command.name)](
-      command.data,
-      state
-    );
-
-    const committed = await store().commit(
-      handler.stream(),
-      events,
+    return await this._handle(
+      handler,
+      (state: M) =>
+        (handler as any)["on".concat(command.name)](command.data, state),
       expectedVersion,
       this._publish.bind(this)
     );
-
-    const snapshots = reducible
-      ? this._apply(reducible, committed, state)
-      : committed.map((event) => ({ event }));
-
-    return snapshots;
   }
 
   /**
@@ -166,35 +176,17 @@ export abstract class AppBase extends Builder implements Reader {
       event.data
     );
     const handler = factory(event);
-    const reducible = "init" in handler ? handler : undefined;
-
-    const { state } = reducible
-      ? await this.load(reducible)
-      : { state: undefined };
-
-    const response: CommandResponse<unknown> | undefined = await (
-      handler as any
-    )["on".concat(event.name)](event, state);
-
-    if (response) {
-      // handle commands synchronously
-      const { id, command, expectedVersion } = response;
-      const { factory } = this._handlers.commands[command.name];
-      this.log.trace(
-        "blue",
-        `<<< ${command.name} ${factory.name} ${id || ""}`,
-        expectedVersion ? ` @${expectedVersion}` : ""
-      );
-      await this.command(factory(id), command, expectedVersion);
-    }
-
-    if (reducible) {
-      const committed = await store().commit(reducible.stream(), [
-        event as unknown as Msg
-      ]);
-      this._apply(reducible, committed, state);
-    }
-
+    let response: CommandResponse<unknown> | undefined;
+    const [{ state }] = await this._handle(handler, async (state: M) => {
+      response = await (handler as any)["on".concat(event.name)](event, state);
+      if (response) {
+        // handle commands synchronously
+        const { id, command, expectedVersion } = response;
+        const { factory } = this._handlers.commands[command.name];
+        await this.command(factory(id), command, expectedVersion);
+      }
+      return [event as Evt];
+    });
     return { response, state };
   }
 
