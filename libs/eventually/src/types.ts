@@ -149,3 +149,21 @@ export type AllQuery = {
   after?: number;
   limit?: number;
 };
+
+/**
+ * Apps are getters of reducibles
+ */
+export type Getter = <M extends Payload, E>(
+  reducible: Reducible<M, E>,
+  useSnapshot?: boolean,
+  callback?: (snapshot: Snapshot<M>) => void
+) => Promise<Snapshot<M> | Snapshot<M>[]>;
+
+/**
+ * All message handler types
+ */
+export type MessageHandler<M extends Payload, C, E> =
+  | Aggregate<M, C, E>
+  | ExternalSystem<C, E>
+  | ProcessManager<M, C, E>
+  | Policy<C, E>;

@@ -7,12 +7,11 @@ import {
   config,
   Errors,
   Evt,
+  Getter,
   Msg,
   Payload,
   ProcessManagerFactory,
-  Reducible,
   reduciblePath,
-  Snapshot,
   ValidationError
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -24,11 +23,6 @@ import express, {
   urlencoded
 } from "express";
 import { Server } from "http";
-
-type GetCallback = <M extends Payload, E>(
-  reducible: Reducible<M, E>,
-  noSnapthots?: boolean
-) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 export class ExpressApp extends AppBase {
   private _app = express();
@@ -45,7 +39,7 @@ export class ExpressApp extends AppBase {
       ) => {
         try {
           const { stream, name, after = -1, limit = 1 } = req.query;
-          const result = await this.read({
+          const result = await this.query({
             stream,
             name,
             after: after && +after,
@@ -66,7 +60,7 @@ export class ExpressApp extends AppBase {
 
   private _buildGetter<M extends Payload, C, E>(
     factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
-    callback: GetCallback,
+    callback: Getter,
     path: string,
     overrideId = false
   ): void {
@@ -106,7 +100,7 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.commandHandlers)
+    Object.values(this._handlers.commands)
       .filter(({ type, factory, command }) => {
         if (type === "aggregate")
           aggregates[factory.name] = factory as AggregateFactory<
@@ -164,7 +158,7 @@ export class ExpressApp extends AppBase {
       string,
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.eventHandlers)
+    Object.values(this._handlers.events)
       .filter(({ type, factory, event }) => {
         if (type === "process-manager")
           managers[factory.name] = factory as ProcessManagerFactory<

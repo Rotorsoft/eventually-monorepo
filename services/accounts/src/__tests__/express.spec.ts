@@ -1,11 +1,17 @@
-import { app } from "@rotorsoft/eventually";
+import { app, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
+import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { command } from "@rotorsoft/eventually-test";
+import { Chance } from "chance";
 import { Server } from "http";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
+
+const chance = new Chance();
+
+store(PostgresStore("accounts"));
 
 app(new ExpressApp())
   .withCommands(commands.factory)
@@ -28,15 +34,15 @@ const port = 3005;
 
 describe("express", () => {
   beforeAll(async () => {
-    const express = app().build();
+    const express = (app() as ExpressApp).build();
     await (app() as ExpressApp).listen(true);
-    server = (express as any).listen(port, () => {
+    server = express.listen(port, () => {
       return;
     });
   });
 
   afterAll(async () => {
-    (server as unknown as Server).close();
+    if (server) server.close();
     await app().close();
   });
 
@@ -44,7 +50,7 @@ describe("express", () => {
     // when
     const [result] = await command(
       systems.ExternalSystem1,
-      commands.factory.CreateAccount1({ id: "test" }),
+      commands.factory.CreateAccount1({ id: chance.guid() }),
       undefined,
       undefined,
       port

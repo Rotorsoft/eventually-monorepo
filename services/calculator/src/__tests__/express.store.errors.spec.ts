@@ -12,7 +12,7 @@ app(new ExpressApp())
   .withCommandHandlers(Calculator);
 let server: Server;
 
-jest.spyOn(store(), "read").mockRejectedValue("Error");
+jest.spyOn(store(), "query").mockRejectedValue("Error");
 
 describe("express app", () => {
   beforeAll(async () => {

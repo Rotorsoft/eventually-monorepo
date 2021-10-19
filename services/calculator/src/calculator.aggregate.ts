@@ -39,7 +39,6 @@ export const Calculator = (
   },
   stream: () => `Calculator${id}`,
 
-  // Model Reducer with event side effects
   init: (): CalculatorModel => ({
     result: 0
   }),

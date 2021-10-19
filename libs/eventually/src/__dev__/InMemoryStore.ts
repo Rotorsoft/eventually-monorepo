@@ -15,7 +15,10 @@ export const InMemoryStore = (): Store => {
       return;
     },
 
-    read: (callback: (event: Evt) => void, query?: AllQuery): Promise<void> => {
+    query: (
+      callback: (event: Evt) => void,
+      query?: AllQuery
+    ): Promise<void> => {
       const { stream, name, after = -1, limit } = query;
       let i = after + 1,
         count = 0;
