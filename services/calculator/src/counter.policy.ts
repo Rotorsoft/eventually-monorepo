@@ -1,14 +1,15 @@
 import {
-  app,CommandResponse,CommittedEvent,
+  app,
+  CommandResponse,
+  CommittedEvent,
   EvtOf,
-  Policy,ProcessManager
+  Policy,
+  ProcessManager,
 } from "@rotorsoft/eventually";
-import {PostgresSnapshotStore} from "@rotorsoft/eventually-pg";
-import {Calculator} from "./calculator.aggregate";
-import {Commands,commands} from "./calculator.commands";
-import {Events} from "./calculator.events";
-import {CounterState,Digits} from "./calculator.models";
-
+import { Calculator } from "./calculator.aggregate";
+import { Commands, commands } from "./calculator.commands";
+import { Events } from "./calculator.events";
+import { CounterState, Digits } from "./calculator.models";
 
 const policy = async (
   counter: CounterState,
@@ -41,11 +42,10 @@ export type CounterEvents = Pick<Events, "DigitPressed" | "DotPressed">;
 
 export const Counter = (
   event: EvtOf<Events>
-): ProcessManager<CounterState, Commands, Events> => ({
+): ProcessManager<CounterState, Commands, Omit<Events, 'Cleared'>> => ({
   stream: () => `Counter${event.stream}`,
   init: (): CounterState => ({ count: 0 }),
-  snapshot:{
-    store: PostgresSnapshotStore,
+  snapshot: {
     threshold: 2
   },
 
@@ -59,7 +59,6 @@ export const Counter = (
     state: CounterState
   ) => policy(state, event, 5),
 
-  onCleared: () => undefined,
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined,
 
@@ -68,10 +67,6 @@ export const Counter = (
   },
   applyDotPressed: (model: CounterState) => {
     return { count: model.count + 1 };
-  },
-
-  applyCleared: () => {
-    return { count: 0 };
   },
 
   applyEqualsPressed: () => {

@@ -13,7 +13,9 @@ import {
   PolicyFactory,
   ProcessManagerFactory
 } from ".";
-import {SnapshotStore} from "./interfaces";
+import { SnapshotStore } from "./interfaces";
+import {Reducible} from "./types";
+import {InMemorySnapshotStore} from "./__dev__";
 
 type Factories = {
   commands: MessageFactory<unknown>;
@@ -72,7 +74,7 @@ export class Builder {
     commands: {},
     events: {}
   };
-  
+
   protected readonly _snapshotStores: Record<string, SnapshotStore> = {};
 
   protected readonly _private_subscriptions: Subscriptions = {};
@@ -123,6 +125,16 @@ export class Builder {
     return this;
   }
 
+  protected getSnapshotStore<M extends Payload, E>(reducible: Reducible<M, E>): SnapshotStore | undefined{
+    return reducible?.snapshot && this._snapshotStores[reducible.snapshot.store?.name || InMemorySnapshotStore.name]
+  }
+  private registerSnapshotStore<M extends Payload, E>(reducible: Reducible<M, E>): void{
+    if (reducible?.snapshot) {
+      const store = reducible.snapshot.store || InMemorySnapshotStore;
+      this._snapshotStores[store.name] = this._snapshotStores[store.name] || store();
+    }    
+  }
+
   /**
    * Builds message handlers and private subscriptions
    * Concrete app implementations should deal with their own building steps
@@ -133,9 +145,7 @@ export class Builder {
     Object.values(this._factories.commandHandlers).map((chf) => {
       const handler = chf(undefined);
       const reducible = getReducible(handler);
-      if (reducible?.snapshot){
-        this._snapshotStores[reducible.snapshot.store.name] = this._snapshotStores[reducible.snapshot.store.name] || reducible.snapshot.store()
-      }
+      reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "aggregate" : "external-system";
       log().info("white", chf.name, type);
       handlersOf(this._factories.commands).map((cf) => {
@@ -161,9 +171,7 @@ export class Builder {
     Object.values(this._factories.eventHandlers).map((ehf) => {
       const handler = ehf(undefined);
       const reducible = getReducible(handler);
-      if (reducible?.snapshot){
-        this._snapshotStores[reducible.snapshot.store.name] = this._snapshotStores[reducible.snapshot.store.name] || reducible.snapshot.store()
-      }
+      reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "process-manager" : "policy";
       log().info("white", ehf.name, type);
       handlersOf(this._factories.events).map((ef) => {

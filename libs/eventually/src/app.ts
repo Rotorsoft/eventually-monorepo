@@ -1,7 +1,7 @@
-import {Builder} from "./builder";
-import {Broker,Store} from "./interfaces";
-import {log} from "./log";
-import {singleton} from "./singleton";
+import { Builder } from "./builder";
+import { Broker, Store } from "./interfaces";
+import { log } from "./log";
+import { singleton } from "./singleton";
 import {
   Aggregate,
   AllQuery,
@@ -14,12 +14,13 @@ import {
   Msg,
   MsgOf,
   Payload,
-  PolicyFactory,ProcessManagerFactory,
+  PolicyFactory,
+  ProcessManagerFactory,
   Reducible,
   Snapshot
 } from "./types";
-import {getReducible,getStreamable} from "./utils";
-import {InMemoryBroker,InMemoryStore} from "./__dev__";
+import { getReducible, getStreamable } from "./utils";
+import { InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
@@ -93,22 +94,21 @@ export abstract class AppBase extends Builder implements Reader {
             `   ... committed ${event.name} @ ${event.version} - `,
             event.data
           );
-          state = (reducible as any)["apply".concat(event.name)](
-            state,
-            event
-          );
+          state = (reducible as any)["apply".concat(event.name)](state, event);
           this.log.trace("gray", `   === @ ${event.version}`, state);
           return { event, state };
-        })
-        
+        });
+
         // Snapshot store
-        if ( count > reducible.snapshot?.threshold) {
-          await this._snapshotStores[reducible.snapshot.store.name].upsert(streamable.stream(), snapshots[snapshots.length-1])
+        if (count > reducible.snapshot?.threshold) {
+          await this.getSnapshotStore(reducible).upsert(
+            streamable.stream(),
+            snapshots[snapshots.length - 1]
+          );
         }
-        
+
         return snapshots;
-      } 
-      else {
+      } else {
         return committed.map((event) => ({ event }));
       }
     }
@@ -121,7 +121,7 @@ export abstract class AppBase extends Builder implements Reader {
    */
   async listen(): Promise<void> {
     await store().init();
-    await Promise.all(Object.values(this._snapshotStores).map(s=> s.init()));
+    await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
       Object.values(this._handlers.events)
         .filter(({ event }) => event.scope() === "public")
@@ -212,12 +212,17 @@ export abstract class AppBase extends Builder implements Reader {
     reducible: Reducible<M, unknown>,
     useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
-  ): Promise<Snapshot<M> & {count: number}> {
-    const snapshot = useSnapshots && reducible.snapshot && await this._snapshotStores[reducible.snapshot.store.name].read<M>(reducible.stream());
+  ): Promise<Snapshot<M> & { count: number }> {
+    const snapshot =
+      useSnapshots &&
+      reducible.snapshot &&
+      (await this.getSnapshotStore(reducible).read<M>(
+        reducible.stream()
+      ));
     let state = snapshot?.state || reducible.init();
     let event = snapshot?.event;
     let count = 0;
-    
+
     await store().query(
       (e) => {
         event = e;
@@ -227,12 +232,12 @@ export abstract class AppBase extends Builder implements Reader {
       },
       { stream: reducible.stream(), after: event?.id }
     );
-    
+
     this.log.trace(
       "gray",
       `   ... ${reducible.stream()} loaded ${count} event(s)`
     );
-    
+
     return { event, state, count };
   }
 

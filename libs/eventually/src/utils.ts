@@ -1,15 +1,16 @@
 import * as joi from "joi";
 import {
-  AggregateFactory, ExternalSystemFactory,
+  AggregateFactory,
+  ExternalSystemFactory,
   MessageFactory,
   MessageHandler,
   MsgOf,
-  Payload, PolicyFactory,
+  Payload,
+  PolicyFactory,
   ProcessManagerFactory,
   Reducible,
   Streamable
 } from "./types";
-
 
 /**
  * Decamelizes string

@@ -1,5 +1,6 @@
 process.env.NODE_ENV = "";
 process.env.PG_HOST = "";
+process.env.PG_SNAPSHOTS_TABLE = "";
 
 describe("config", () => {
   it("should initialize in dev mode and fail validation", async () => {

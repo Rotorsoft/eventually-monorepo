@@ -76,8 +76,8 @@ export type SnapshotStore = {
   init: () => Promise<void>;
 
   /**
-    * Store closer
-    */
+   * Store closer
+   */
   close: () => Promise<void>;
 
   /**
@@ -93,4 +93,4 @@ export type SnapshotStore = {
     stream: string,
     data: Snapshot<M>
   ) => Promise<void>;
-}
+};

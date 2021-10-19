@@ -1,7 +1,7 @@
-import {Aggregate,CommittedEvent} from "@rotorsoft/eventually";
-import {PostgresSnapshotStore} from "@rotorsoft/eventually-pg";
-import {Commands} from "./calculator.commands";
-import {Events,events} from "./calculator.events";
+import { Aggregate, CommittedEvent } from "@rotorsoft/eventually";
+import { PostgresSnapshotStore } from "@rotorsoft/eventually-pg";
+import { Commands } from "./calculator.commands";
+import { Events, events } from "./calculator.events";
 import {
   CalculatorModel,
   DIGITS,
@@ -10,7 +10,6 @@ import {
   Operators,
   SYMBOLS
 } from "./calculator.models";
-
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 const Operations = {
