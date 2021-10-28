@@ -79,18 +79,56 @@ describe("express app", () => {
       const snapshots = await stream(Calculator, id);
       expect(snapshots.length).toBe(9);
     });
-    
+
     it("should read aggregate stream using snapshots", async () => {
-      await command(Calculator, commands.PressKey({ key: "+" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "1" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "-" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "2" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "*" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "3" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "/" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "3" }), 'withSnapshots');
-      await command(Calculator, commands.PressKey({ key: "=" }), 'withSnapshots');
-      const snapshots = await stream(Calculator, "withSnapshots", {useSnapshots: true});
+      await command(
+        Calculator,
+        commands.PressKey({ key: "+" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "1" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "-" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "2" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "*" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "3" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "/" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "3" }),
+        "withSnapshots"
+      );
+      await command(
+        Calculator,
+        commands.PressKey({ key: "=" }),
+        "withSnapshots"
+      );
+      const snapshots = await stream(Calculator, "withSnapshots", {
+        useSnapshots: true
+      });
       expect(snapshots.length).toBe(1);
     });
 
@@ -136,6 +174,7 @@ describe("express app", () => {
     it("should reset on last key pressed", async () => {
       const id = chance.guid();
 
+      await command(Calculator, commands.PressKey({ key: "+" }), id);
       await command(Calculator, commands.PressKey({ key: "1" }), id);
       await command(Calculator, commands.PressKey({ key: "1" }), id);
       await command(Calculator, commands.PressKey({ key: "2" }), id);

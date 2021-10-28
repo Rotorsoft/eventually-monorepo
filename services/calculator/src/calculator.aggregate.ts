@@ -34,7 +34,7 @@ export const Calculator = (
   id: string
 ): Aggregate<CalculatorModel, Omit<Commands, "Whatever">, Events> => ({
   snapshot: {
-    store: PostgresSnapshotStore,
+    factory: PostgresSnapshotStore,
     threshold: 2
   },
   stream: () => `Calculator${id}`,

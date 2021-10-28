@@ -31,8 +31,7 @@
     "fix": "yarn lint --fix && yarn pretty --write --ignore-path ./.prettierignore",
     "publish": "sh ./scripts/publish.sh",
     "deploy:function": "sh ./scripts/deploy-function.sh",
-    "deploy:app": "sh ./scripts/deploy-app.sh",
-    "initdb": "node ./scripts/init.db.js"
+    "deploy:app": "sh ./scripts/deploy-app.sh"
   },
   "husky": {
     "hooks": {

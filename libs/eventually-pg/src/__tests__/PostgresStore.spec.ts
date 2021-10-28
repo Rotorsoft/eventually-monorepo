@@ -2,7 +2,7 @@ import { Evt, EvtOf, Msg, Payload } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 
-const table = 'test';
+const table = "test";
 
 const db = PostgresStore(table);
 
@@ -25,7 +25,6 @@ const event = (name: keyof E, data?: Payload): Msg =>
   } as Msg);
 
 describe("PostgresStore", () => {
-  
   beforeAll(async () => {
     await db.init();
     await db.init();
@@ -47,6 +46,7 @@ describe("PostgresStore", () => {
   });
 
   afterAll(async () => {
+    await db.close();
     await db.close();
   });
 

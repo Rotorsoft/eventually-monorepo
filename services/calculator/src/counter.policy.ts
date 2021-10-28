@@ -4,7 +4,7 @@ import {
   CommittedEvent,
   EvtOf,
   Policy,
-  ProcessManager,
+  ProcessManager
 } from "@rotorsoft/eventually";
 import { Calculator } from "./calculator.aggregate";
 import { Commands, commands } from "./calculator.commands";
@@ -27,7 +27,6 @@ const policy = async (
     const id = event.stream.substr("Calculator".length);
     const { state } = await app().load(Calculator(id));
     if (
-      //TODO: Race condition???
       (state.left || "").length >= threshold ||
       (state.right || "").length >= threshold
     )
@@ -38,11 +37,11 @@ const policy = async (
   }
 };
 
-export type CounterEvents = Pick<Events, "DigitPressed" | "DotPressed">;
+export type CounterEvents = Omit<Events, "Cleared">;
 
 export const Counter = (
   event: EvtOf<Events>
-): ProcessManager<CounterState, Commands, Omit<Events, 'Cleared'>> => ({
+): ProcessManager<CounterState, Commands, CounterEvents> => ({
   stream: () => `Counter${event.stream}`,
   init: (): CounterState => ({ count: 0 }),
   snapshot: {
@@ -84,5 +83,8 @@ export const StatelessCounter = (): Policy<Commands, CounterEvents> => ({
   ) => policy(undefined, event, 5),
 
   onDotPressed: async (event: CommittedEvent<"DotPressed", undefined>) =>
-    policy(undefined, event, 5)
+    policy(undefined, event, 5),
+
+  onEqualsPressed: () => undefined,
+  onOperatorPressed: () => undefined
 });

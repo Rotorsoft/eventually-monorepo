@@ -41,19 +41,21 @@ type Event = {
 };
 
 export const PostgresStore = (table: string): Store => {
-  const pool = new Pool(config.pg);
-  //TODO: How to handle password deletion
-  // delete config.pg.password; // use it and forget it
-  let initialized = false;
+  let pool: Pool;
 
   return {
     init: async (): Promise<void> => {
-      if (!initialized) await pool.query(create_script(table));
-      initialized = true;
+      if (!pool) {
+        pool = new Pool(config.pg);
+        await pool.query(create_script(table));
+      }
     },
 
     close: async (): Promise<void> => {
-      await pool.end();
+      if (pool) {
+        await pool.end();
+        pool = null;
+      }
     },
 
     query: async (

@@ -16,6 +16,10 @@ describe("in memory app", () => {
     await app().listen();
   });
 
+  afterAll(async () => {
+    await app().close();
+  });
+
   describe("calculator", () => {
     it("should compute correctly", async () => {
       const test = Calculator("test");

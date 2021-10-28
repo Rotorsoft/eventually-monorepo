@@ -14,8 +14,8 @@ import {
   ProcessManagerFactory
 } from ".";
 import { SnapshotStore } from "./interfaces";
-import {Reducible} from "./types";
-import {InMemorySnapshotStore} from "./__dev__";
+import { Reducible } from "./types";
+import { InMemorySnapshotStore } from "./__dev__";
 
 type Factories = {
   commands: MessageFactory<unknown>;
@@ -125,14 +125,24 @@ export class Builder {
     return this;
   }
 
-  protected getSnapshotStore<M extends Payload, E>(reducible: Reducible<M, E>): SnapshotStore | undefined{
-    return reducible?.snapshot && this._snapshotStores[reducible.snapshot.store?.name || InMemorySnapshotStore.name]
+  protected getSnapshotStore<M extends Payload, E>(
+    reducible: Reducible<M, E>
+  ): SnapshotStore | undefined {
+    return (
+      reducible?.snapshot &&
+      this._snapshotStores[
+        reducible.snapshot.factory?.name || InMemorySnapshotStore.name
+      ]
+    );
   }
-  private registerSnapshotStore<M extends Payload, E>(reducible: Reducible<M, E>): void{
+  private registerSnapshotStore<M extends Payload, E>(
+    reducible: Reducible<M, E>
+  ): void {
     if (reducible?.snapshot) {
-      const store = reducible.snapshot.store || InMemorySnapshotStore;
-      this._snapshotStores[store.name] = this._snapshotStores[store.name] || store();
-    }    
+      const factory = reducible.snapshot.factory || InMemorySnapshotStore;
+      this._snapshotStores[factory.name] =
+        this._snapshotStores[factory.name] || factory();
+    }
   }
 
   /**

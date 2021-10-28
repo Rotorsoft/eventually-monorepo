@@ -99,7 +99,6 @@ export abstract class AppBase extends Builder implements Reader {
           return { event, state };
         });
 
-        // Snapshot store
         if (count > reducible.snapshot?.threshold) {
           await this.getSnapshotStore(reducible).upsert(
             streamable.stream(),
@@ -140,6 +139,9 @@ export abstract class AppBase extends Builder implements Reader {
    */
   async close(): Promise<void> {
     await store().close();
+    await Promise.all(
+      Object.values(this._snapshotStores).map((s) => s.close())
+    );
   }
 
   /**
@@ -216,9 +218,7 @@ export abstract class AppBase extends Builder implements Reader {
     const snapshot =
       useSnapshots &&
       reducible.snapshot &&
-      (await this.getSnapshotStore(reducible).read<M>(
-        reducible.stream()
-      ));
+      (await this.getSnapshotStore(reducible).read<M>(reducible.stream()));
     let state = snapshot?.state || reducible.init();
     let event = snapshot?.event;
     let count = 0;
