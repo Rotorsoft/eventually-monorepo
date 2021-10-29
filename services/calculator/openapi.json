@@ -1,0 +1,252 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Calculator API",
+    "version": "0.0.1",
+    "description": "Calculator API",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "components": {
+    "parameters": {
+      "id": {
+        "in": "path",
+        "name": "id",
+        "schema": { "type": "string" },
+        "required": true
+      }
+    },
+    "schemas": {
+      "ValidationError": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Validation Error Name",
+            "type": "string"
+          },
+          "message": {
+            "description": "Validation Error Message",
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "description": "Specific validation failure",
+                  "type": "string"
+                },
+                "path": {
+                  "description": "Successive keys into the object marking the failed property",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "type": {
+                  "description": "Specific validation failure type",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Calculator": {
+        "type": "object",
+        "properties": {
+          "left": { "type": "string" },
+          "right": { "type": "string" },
+          "operator": { "type": "string", "enum": ["+", "-", "*", "/"] },
+          "result": { "type": "number" }
+        },
+        "required": ["result"]
+      },
+      "PressKey": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["PressKey"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "enum": [
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7",
+                  "8",
+                  "9",
+                  ".",
+                  "+",
+                  "-",
+                  "*",
+                  "/",
+                  "="
+                ]
+              }
+            },
+            "required": ["key"]
+          }
+        },
+        "required": ["name", "data"],
+        "example": {
+          "name": "PressKey",
+          "data": {
+            "key": "1"
+          }
+        }
+      },
+      "DigitPressed": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "stream": { "type": "string" },
+          "version": { "type": "number" },
+          "created": { "type": "string" },
+          "name": {
+            "type": "string",
+            "enum": ["DigitPressed"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "digit": {
+                "type": "string",
+                "enum": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+              }
+            },
+            "required": ["digit"]
+          }
+        },
+        "required": ["id", "stream", "version", "created", "name", "data"]
+      },
+      "OperatorPressed": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "stream": { "type": "string" },
+          "version": { "type": "number" },
+          "created": { "type": "string" },
+          "name": {
+            "type": "string",
+            "enum": ["OperatorPressed"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "operator": {
+                "type": "string",
+                "enum": ["+", "-", "*", "/"]
+              }
+            },
+            "required": ["operator"]
+          }
+        },
+        "required": ["id", "stream", "version", "created", "name", "data"]
+      },
+      "DotPressed": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "stream": { "type": "string" },
+          "version": { "type": "number" },
+          "created": { "type": "string" },
+          "name": {
+            "type": "string",
+            "enum": ["DotPressed"]
+          }
+        },
+        "required": ["id", "stream", "version", "created", "name"]
+      },
+      "EqualsPressed": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "stream": { "type": "string" },
+          "version": { "type": "number" },
+          "created": { "type": "string" },
+          "name": {
+            "type": "string",
+            "enum": ["EqualsPressed"]
+          }
+        },
+        "required": ["id", "stream", "version", "created", "name"]
+      }
+    },
+    "securitySchemes": {
+      "auth0_jwt": {
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://{OAS_AUTH0_AUTHORIZATION_URL}/authorize",
+            "scopes": {
+              "role": "role"
+            }
+          }
+        },
+        "type": "oauth2",
+        "x-google-audiences": "https://{OAS_AUTH0_AUDIENCE}",
+        "x-google-issuer": "https://{OAS_AUTH0_AUTHORIZATION_URL}",
+        "x-google-jwks_uri": "https://{OAS_AUTH0_AUTHORIZATION_URL}/.well-known/jwks.json"
+      }
+    }
+  },
+  "servers": [
+    { "url": "http://localhost:3000" },
+    { "url": "https://{OAS_SVC_GATEWAY}" }
+  ],
+  "paths": {
+    "/calculator/{id}/press-key": {
+      "parameters": [{ "$ref": "#/components/parameters/id" }],
+      "post": {
+        "operationId": "PressKey",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PressKey" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "event": {
+                        "anyOf": [
+                          { "$ref": "#/components/schemas/DigitPressed" },
+                          { "$ref": "#/components/schemas/DotPressed" },
+                          { "$ref": "#/components/schemas/OperatorPressed" },
+                          { "$ref": "#/components/schemas/EqualsPressed" }
+                        ]
+                      },
+                      "state": { "$ref": "#/components/schemas/Calculator" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad Request" },
+          "default": { "description": "Internal Server Error" }
+        }
+      }
+    }
+  }
+}
