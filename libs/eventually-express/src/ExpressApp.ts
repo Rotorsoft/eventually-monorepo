@@ -232,8 +232,11 @@ export class ExpressApp extends AppBase {
     );
 
     // swagger-ui
-    const spec = swagger(this._handlers);
-    this._app.use("/swagger-ui", swaggerUI.serve, swaggerUI.setup(spec));
+    this._app.use(
+      "/",
+      swaggerUI.serve,
+      swaggerUI.setup(swagger(this._handlers))
+    );
 
     return this._app;
   }

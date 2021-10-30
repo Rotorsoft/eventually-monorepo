@@ -167,3 +167,12 @@ export type MessageHandler<M extends Payload, C, E> =
   | ExternalSystem<C, E>
   | ProcessManager<M, C, E>
   | Policy<C, E>;
+
+/**
+ * All message handler factory types
+ */
+export type MessageHandlerFactory<M extends Payload, C, E> =
+  | AggregateFactory<M, C, E>
+  | ExternalSystemFactory<C, E>
+  | ProcessManagerFactory<M, C, E>
+  | PolicyFactory<C, E>;
