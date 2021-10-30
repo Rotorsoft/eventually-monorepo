@@ -108,7 +108,7 @@ export const committedSchema = (schema: joi.ObjectSchema): joi.ObjectSchema =>
     joi.object({
       id: joi.number().integer().required(),
       stream: joi.string().required(),
-      version: joi.number().required(),
+      version: joi.number().integer().required(),
       created: joi.date().required()
     })
   );

@@ -23,6 +23,8 @@ import express, {
   urlencoded
 } from "express";
 import { Server } from "http";
+import * as swaggerUI from "swagger-ui-express";
+import { swagger } from "./swagger";
 
 export class ExpressApp extends AppBase {
   private _app = express();
@@ -228,6 +230,10 @@ export class ExpressApp extends AppBase {
         else res.status(500).send({ message });
       }
     );
+
+    // swagger-ui
+    const spec = swagger(this._handlers);
+    this._app.use("/swagger-ui", swaggerUI.serve, swaggerUI.setup(spec));
 
     return this._app;
   }

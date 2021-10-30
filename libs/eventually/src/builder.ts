@@ -32,7 +32,7 @@ type Factories = {
   };
 };
 
-type Handlers = {
+export type Handlers = {
   commands: {
     [name: string]: {
       type: "aggregate" | "external-system";

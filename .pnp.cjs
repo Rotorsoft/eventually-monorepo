@@ -1493,9 +1493,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/cors", "npm:2.8.12"],
             ["@types/express", "npm:4.17.13"],
             ["@types/node", "npm:16.9.2"],
+            ["@types/swagger-ui-express", "npm:4.1.3"],
             ["cors", "npm:2.8.5"],
             ["express", "npm:4.17.1"],
-            ["joi", "npm:17.4.2"]
+            ["joi", "npm:17.4.2"],
+            ["joi-to-swagger", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:6.0.1"],
+            ["swagger-ui-express", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.1.6"]
           ],
           "linkType": "SOFT",
         }]
@@ -1923,6 +1926,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-strip-json-comments-npm-0.0.30-4d685379c3-829ddd3896.zip/node_modules/@types/strip-json-comments/",
           "packageDependencies": [
             ["@types/strip-json-comments", "npm:0.0.30"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["@types/swagger-ui-express", [
+        ["npm:4.1.3", {
+          "packageLocation": "./.yarn/cache/@types-swagger-ui-express-npm-4.1.3-0c91a9cfb5-1c990fa8c1.zip/node_modules/@types/swagger-ui-express/",
+          "packageDependencies": [
+            ["@types/swagger-ui-express", "npm:4.1.3"],
+            ["@types/express", "npm:4.17.13"],
+            ["@types/serve-static", "npm:1.13.10"]
           ],
           "linkType": "HARD",
         }]
@@ -5403,6 +5417,29 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD",
         }]
       ]],
+      ["joi-to-swagger", [
+        ["npm:6.0.1", {
+          "packageLocation": "./.yarn/cache/joi-to-swagger-npm-6.0.1-5c842666b9-26e34ca25d.zip/node_modules/joi-to-swagger/",
+          "packageDependencies": [
+            ["joi-to-swagger", "npm:6.0.1"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:6.0.1", {
+          "packageLocation": "./.yarn/__virtual__/joi-to-swagger-virtual-8618a12aae/0/cache/joi-to-swagger-npm-6.0.1-5c842666b9-26e34ca25d.zip/node_modules/joi-to-swagger/",
+          "packageDependencies": [
+            ["joi-to-swagger", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:6.0.1"],
+            ["@types/joi", null],
+            ["joi", "npm:17.4.2"],
+            ["lodash", "npm:4.17.21"]
+          ],
+          "packagePeers": [
+            "@types/joi",
+            "joi"
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
       ["js-tokens", [
         ["npm:4.0.0", {
           "packageLocation": "./.yarn/cache/js-tokens-npm-4.0.0-0ac852e9e2-8a95213a5a.zip/node_modules/js-tokens/",
@@ -7473,6 +7510,38 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["supports-hyperlinks", "npm:2.2.0"],
             ["has-flag", "npm:4.0.0"],
             ["supports-color", "npm:7.2.0"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["swagger-ui-dist", [
+        ["npm:3.52.5", {
+          "packageLocation": "./.yarn/cache/swagger-ui-dist-npm-3.52.5-c21f4b4952-a8bd28bf47.zip/node_modules/swagger-ui-dist/",
+          "packageDependencies": [
+            ["swagger-ui-dist", "npm:3.52.5"]
+          ],
+          "linkType": "HARD",
+        }]
+      ]],
+      ["swagger-ui-express", [
+        ["npm:4.1.6", {
+          "packageLocation": "./.yarn/cache/swagger-ui-express-npm-4.1.6-1400f0d081-aff7981294.zip/node_modules/swagger-ui-express/",
+          "packageDependencies": [
+            ["swagger-ui-express", "npm:4.1.6"]
+          ],
+          "linkType": "SOFT",
+        }],
+        ["virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.1.6", {
+          "packageLocation": "./.yarn/__virtual__/swagger-ui-express-virtual-30043fce81/0/cache/swagger-ui-express-npm-4.1.6-1400f0d081-aff7981294.zip/node_modules/swagger-ui-express/",
+          "packageDependencies": [
+            ["swagger-ui-express", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.1.6"],
+            ["@types/express", "npm:4.17.13"],
+            ["express", "npm:4.17.1"],
+            ["swagger-ui-dist", "npm:3.52.5"]
+          ],
+          "packagePeers": [
+            "@types/express",
+            "express"
           ],
           "linkType": "HARD",
         }]

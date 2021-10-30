@@ -954,9 +954,12 @@ __metadata:
     "@types/cors": ^2.8.12
     "@types/express": ^4.17.13
     "@types/node": ^16.9.2
+    "@types/swagger-ui-express": ^4
     cors: ^2.8.5
     express: ^4.17.1
     joi: ^17.4.2
+    joi-to-swagger: ^6.0.1
+    swagger-ui-express: ^4.1.6
   languageName: unknown
   linkType: soft
 
@@ -1169,7 +1172,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express@npm:^4.17.13":
+"@types/express@npm:*, @types/express@npm:^4.17.13":
   version: 4.17.13
   resolution: "@types/express@npm:4.17.13"
   dependencies:
@@ -1334,6 +1337,16 @@ __metadata:
   version: 0.0.30
   resolution: "@types/strip-json-comments@npm:0.0.30"
   checksum: 829ddd389645073f347c5b1924a8c34b8813af29756576e511c46f40e218193cf93ccbade62661d47fc70f707e98f410331729b8c20edfcb2e807d51df1ad4b7
+  languageName: node
+  linkType: hard
+
+"@types/swagger-ui-express@npm:^4":
+  version: 4.1.3
+  resolution: "@types/swagger-ui-express@npm:4.1.3"
+  dependencies:
+    "@types/express": "*"
+    "@types/serve-static": "*"
+  checksum: 1c990fa8c158f699c5443245383daef2c4b47efce715c105e67f9b88447cf23663774393fdeea7d5a6e97a83d6959b09129f19c4abca64abdb7db74517162295
   languageName: node
   linkType: hard
 
@@ -4245,6 +4258,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"joi-to-swagger@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "joi-to-swagger@npm:6.0.1"
+  dependencies:
+    lodash: ^4.17.21
+  peerDependencies:
+    joi: ">=17.1.1"
+  checksum: 26e34ca25d67c358d139b744ce69783fef94f4903c7c69f5b9fb98818203a12848e979fe1032ecd4ee54f8f6ceafc1ba9bad79732f25e4e9db56088e5653ee6d
+  languageName: node
+  linkType: hard
+
 "joi@npm:^17.4.2":
   version: 17.4.2
   resolution: "joi@npm:17.4.2"
@@ -4521,7 +4545,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.x, lodash@npm:^4.7.0":
+"lodash@npm:4.x, lodash@npm:^4.17.21, lodash@npm:^4.7.0":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
@@ -6064,6 +6088,24 @@ __metadata:
     has-flag: ^4.0.0
     supports-color: ^7.0.0
   checksum: aef04fb41f4a67f1bc128f7c3e88a81b6cf2794c800fccf137006efe5bafde281da3e42e72bf9206c2fcf42e6438f37e3a820a389214d0a88613ca1f2d36076a
+  languageName: node
+  linkType: hard
+
+"swagger-ui-dist@npm:^3.18.1":
+  version: 3.52.5
+  resolution: "swagger-ui-dist@npm:3.52.5"
+  checksum: a8bd28bf475c67ad8445a2bb864c4130415d001caeb5db54f0a561785ac9f7df77230a7634520e9c10f25b568035a8f924ecc059945d4caed00a3f2a39ca243c
+  languageName: node
+  linkType: hard
+
+"swagger-ui-express@npm:^4.1.6":
+  version: 4.1.6
+  resolution: "swagger-ui-express@npm:4.1.6"
+  dependencies:
+    swagger-ui-dist: ^3.18.1
+  peerDependencies:
+    express: ">=4.0.0"
+  checksum: aff79812940fa1e693eb9a9f2abd7f6e38d62a9d60b9a70fc90749e572d997d70f4cc110b791774f09c5197f8da32941bec25da780ab4c6d58593df23628d735
   languageName: node
   linkType: hard
 
