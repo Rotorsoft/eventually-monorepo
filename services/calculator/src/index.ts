@@ -8,7 +8,9 @@ import { events } from "./calculator.events";
 import { Counter } from "./counter.policy";
 
 store(PostgresStore("calculator"));
-broker(config().host !== "http://localhost" ? PubSubBroker() : undefined);
+broker(
+  config().host.startsWith("http://localhost") ? undefined : PubSubBroker()
+);
 
 const expressApp = app(new ExpressApp()) as ExpressApp;
 expressApp

@@ -359,7 +359,7 @@ export const swagger = (factories: Factories, handlers: Handlers): any => {
       title: pkg.name,
       version: pkg.version
     },
-    servers: [{ url: `${config().host}:${config().port}` }],
+    servers: [{ url: `${config().host}` }],
     components: getComponents(factories, handlers),
     paths: getPaths(handlers)
   };
