@@ -20,7 +20,7 @@
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^2.1.3",
     "@rotorsoft/eventually-express": "workspace:^2.1.3",
-    "@rotorsoft/eventually-gcp": "workspace:^2.1.2",
+    "@rotorsoft/eventually-gcp": "workspace:^2.1.3",
     "@rotorsoft/eventually-pg": "workspace:^2.1.2",
     "joi": "^17.4.2"
   },
