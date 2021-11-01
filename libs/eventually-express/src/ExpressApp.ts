@@ -233,9 +233,9 @@ export class ExpressApp extends AppBase {
 
     // swagger-ui
     this._app.use(
-      "/",
+      "/swagger",
       swaggerUI.serve,
-      swaggerUI.setup(swagger(this._handlers))
+      swaggerUI.setup(swagger(this._factories, this._handlers))
     );
 
     return this._app;

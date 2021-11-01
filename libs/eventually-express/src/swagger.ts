@@ -2,14 +2,18 @@ import {
   AggregateFactory,
   committedSchema,
   config,
+  eventsOf,
+  Factories,
   getReducible,
   Handlers,
+  handlersOf,
   MessageHandlerFactory,
   Payload,
   ProcessManagerFactory,
   reduciblePath
 } from "@rotorsoft/eventually";
 import * as fs from "fs";
+import * as joi from "joi";
 import j2s, { ComponentsSchema } from "joi-to-swagger";
 
 type Package = {
@@ -18,15 +22,14 @@ type Package = {
 };
 
 const getPackage = (): Package => {
-  try {
-    const pkg = fs.readFileSync("package.json");
-    return JSON.parse(pkg.toString()) as unknown as Package;
-  } catch {
-    return { name: "unknown", version: "unknown" };
-  }
+  const pkg = fs.readFileSync("package.json");
+  return JSON.parse(pkg.toString()) as unknown as Package;
 };
 
-const getComponents = (handlers: Handlers): ComponentsSchema => {
+const getComponents = (
+  factories: Factories,
+  handlers: Handlers
+): ComponentsSchema => {
   const components: ComponentsSchema = {
     parameters: {
       id: {
@@ -95,65 +98,52 @@ const getComponents = (handlers: Handlers): ComponentsSchema => {
     }
   };
 
+  // all events are components of snapshots
+  handlersOf(factories.events).map((ef) => {
+    const event = ef();
+    const { swagger } = j2s(committedSchema(event.schema()), components);
+    components.schemas[event.name] = swagger;
+  });
+
+  // public commands and aggregate models are components
   Object.values(handlers.commands)
     .filter(({ command }) => command.scope() === "public")
     .map(({ factory, command }) => {
       const { swagger } = j2s(command.schema(), components);
       components.schemas[command.name] = swagger;
-      if (getReducible(factory(null))) {
-        components.schemas[factory.name] = {
-          type: "object",
-          properties: {
-            event: {
-              type: "object"
-              // TODO: schema of events
-              //   anyOf: [
-              //     { $ref: "#/components/schemas/DigitPressed" },
-              //     { $ref: "#/components/schemas/DotPressed" },
-              //     { $ref: "#/components/schemas/OperatorPressed" },
-              //     { $ref: "#/components/schemas/EqualsPressed" }
-              //   ]
-            },
-            state: {
-              type: "object"
-              // TODO: schema of model
-              // $ref: "#/components/schemas/Calculator"
-            }
-          }
-        };
-      }
+      getReducibleComponent(components, factory);
     });
 
-  Object.values(handlers.events)
-    .filter(({ event }) => event.scope() === "public")
-    .map(({ factory, event }) => {
-      const { swagger } = j2s(committedSchema(event.schema()), components);
-      components.schemas[event.name] = swagger;
-      if (getReducible(factory(null))) {
-        components.schemas[factory.name] = {
-          type: "object",
-          properties: {
-            event: {
-              type: "object"
-              // TODO: schema of events
-              //   anyOf: [
-              //     { $ref: "#/components/schemas/DigitPressed" },
-              //     { $ref: "#/components/schemas/DotPressed" },
-              //     { $ref: "#/components/schemas/OperatorPressed" },
-              //     { $ref: "#/components/schemas/EqualsPressed" }
-              //   ]
-            },
-            state: {
-              type: "object"
-              // TODO: schema of model
-              // $ref: "#/components/schemas/Calculator"
-            }
-          }
-        };
-      }
-    });
+  // process manager models are components
+  Object.values(handlers.events).map(({ factory }) => {
+    getReducibleComponent(components, factory);
+  });
 
   return components;
+};
+
+const getReducibleComponent = (
+  components: ComponentsSchema,
+  factory: MessageHandlerFactory<Payload, unknown, unknown>
+): void => {
+  const reducible = getReducible(factory(null));
+  if (!reducible) return;
+  if (components.schemas[factory.name]) return;
+
+  const { swagger } = j2s(reducible.schema(), components);
+  components.schemas[factory.name] = swagger;
+  components.schemas[factory.name.concat("Snapshot")] = {
+    type: "object",
+    properties: {
+      event: {
+        type: "object",
+        oneOf: eventsOf(reducible).map((name) => ({
+          $ref: `#/components/schemas/${name}`
+        }))
+      },
+      state: { $ref: `#/components/schemas/${factory.name}` }
+    }
+  };
 };
 
 const getReducibleGetters = (
@@ -179,7 +169,7 @@ const getReducibleGetters = (
           content: {
             "application/json": {
               schema: {
-                $ref: `#/components/schemas/${factory.name}`
+                $ref: `#/components/schemas/${factory.name}Snapshot`
               }
             }
           }
@@ -202,7 +192,7 @@ const getReducibleGetters = (
               schema: {
                 type: "array",
                 items: {
-                  $ref: `#/components/schemas/${factory.name}`
+                  $ref: `#/components/schemas/${factory.name}Snapshot`
                 }
               }
             }
@@ -232,13 +222,14 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
               "application/json": {
                 schema: {
                   type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      event: { type: "object" },
-                      state: { type: "object" }
-                    }
-                  }
+                  items: j2s(
+                    committedSchema(
+                      joi.object({
+                        name: joi.string().required(),
+                        data: joi.object()
+                      })
+                    )
+                  ).swagger
                 }
               }
             }
@@ -259,7 +250,6 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
         post: {
           operationId: command.name,
           tags: [factory.name],
-          summary: "TODO command summary",
           requestBody: {
             required: true,
             content: {
@@ -276,7 +266,7 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
                   schema: {
                     type: "array",
                     items: {
-                      $ref: `#/components/schemas/${factory.name}`
+                      $ref: `#/components/schemas/${factory.name}Snapshot`
                     }
                   }
                 }
@@ -308,7 +298,6 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
         post: {
           operationId: event.name,
           tags: [factory.name],
-          summary: "TODO event summary",
           requestBody: {
             required: true,
             content: {
@@ -323,8 +312,20 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
               content: {
                 "application/json": {
                   schema: {
-                    type: "object"
-                    // TODO: schema of event response
+                    type: "object",
+                    properties: {
+                      response: {
+                        type: "object",
+                        properties: {
+                          command: { type: "object" },
+                          id: { type: "string" },
+                          expectedVersion: { type: "integer" }
+                        }
+                      },
+                      state: {
+                        type: "object"
+                      }
+                    }
                   }
                 }
               }
@@ -349,7 +350,7 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
   return paths;
 };
 
-export const swagger = (handlers: Handlers): any => {
+export const swagger = (factories: Factories, handlers: Handlers): any => {
   const pkg = getPackage();
 
   return {
@@ -359,7 +360,7 @@ export const swagger = (handlers: Handlers): any => {
       version: pkg.version
     },
     servers: [{ url: `${config().host}:${config().port}` }],
-    components: getComponents(handlers),
+    components: getComponents(factories, handlers),
     paths: getPaths(handlers)
   };
 };

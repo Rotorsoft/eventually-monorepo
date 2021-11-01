@@ -7,6 +7,7 @@ import {
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as models from "./accounts.models";
+import * as schemas from "./accounts.schemas";
 
 export const IntegrateAccount1 = (): Policy<
   Pick<commands.Commands, "CreateAccount1">,
@@ -60,6 +61,7 @@ export const WaitForAllAndComplete = (
   stream: () =>
     `WaitForAllAndComplete:${(event.data as models.ExternalAccount).id}`,
 
+  schema: () => schemas.WaitForAllState,
   init: () => ({ id: (event.data as models.ExternalAccount).id }),
 
   onAccount1Created: (

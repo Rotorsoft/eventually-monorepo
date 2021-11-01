@@ -43,6 +43,22 @@ export const handlersOf = <Messages>(
 };
 
 /**
+ * Extracts events from reducible
+ * @param reducible the reducible
+ * @returns array of event names
+ */
+export const eventsOf = <M extends Payload, E>(
+  reducible: Reducible<M, E>
+): string[] => {
+  // eslint-disable-next-line
+  return Object.values<Function>(reducible)
+    .filter((value) => {
+      return typeof value === "function" && value.name.startsWith("apply");
+    })
+    .map((value) => value.name.substr(5));
+};
+
+/**
  * Reducible type guard
  * @param handler a message handler
  * @returns a reducible type or undefined

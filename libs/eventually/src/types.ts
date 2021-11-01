@@ -68,6 +68,7 @@ export type Streamable = { stream: () => string };
  * Artifacts that reduce models from event streams
  */
 export type Reducible<M extends Payload, E> = Streamable & {
+  schema: () => joi.ObjectSchema<M>;
   init: () => Readonly<M>;
   snapshot?: {
     threshold: number;

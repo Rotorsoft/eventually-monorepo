@@ -17,7 +17,7 @@ import { SnapshotStore } from "./interfaces";
 import { Reducible } from "./types";
 import { InMemorySnapshotStore } from "./__dev__";
 
-type Factories = {
+export type Factories = {
   commands: MessageFactory<unknown>;
   commandHandlers: {
     [name: string]:

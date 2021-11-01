@@ -1,5 +1,16 @@
 import * as joi from "joi";
-import { DIGITS, OPERATORS, SYMBOLS } from "./calculator.models";
+import * as models from "./calculator.models";
+
+export const CalculatorModel = joi.object<models.CalculatorModel>({
+  left: joi.string(),
+  right: joi.string(),
+  operator: joi.string().valid(...models.OPERATORS),
+  result: joi.number().required()
+});
+
+export const CounterState = joi.object<models.CounterState>({
+  count: joi.number().required()
+});
 
 export const DigitPressed = joi.object({
   name: joi.string().required().valid("DigitPressed"),
@@ -8,7 +19,7 @@ export const DigitPressed = joi.object({
       digit: joi
         .string()
         .required()
-        .valid(...DIGITS)
+        .valid(...models.DIGITS)
     })
     .required()
 });
@@ -27,7 +38,7 @@ export const OperatorPressed = joi.object({
       operator: joi
         .string()
         .required()
-        .valid(...OPERATORS)
+        .valid(...models.OPERATORS)
     })
     .required()
 });
@@ -45,7 +56,7 @@ export const PressKey = joi.object({
         .required()
         .min(1)
         .max(1)
-        .valid(...DIGITS, ...OPERATORS, ...SYMBOLS)
+        .valid(...models.DIGITS, ...models.OPERATORS, ...models.SYMBOLS)
     })
     .required()
 });

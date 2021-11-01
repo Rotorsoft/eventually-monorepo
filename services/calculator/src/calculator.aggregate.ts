@@ -10,6 +10,7 @@ import {
   Operators,
   SYMBOLS
 } from "./calculator.models";
+import * as schemas from "./calculator.schemas";
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 const Operations = {
@@ -38,6 +39,8 @@ export const Calculator = (
     threshold: 2
   },
   stream: () => `Calculator${id}`,
+
+  schema: () => schemas.CalculatorModel,
 
   init: (): CalculatorModel => ({
     result: 0

@@ -10,6 +10,7 @@ import { Calculator } from "./calculator.aggregate";
 import { Commands, commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import { CounterState, Digits } from "./calculator.models";
+import * as schemas from "./calculator.schemas";
 
 const policy = async (
   counter: CounterState,
@@ -43,6 +44,7 @@ export const Counter = (
   event: EvtOf<Events>
 ): ProcessManager<CounterState, Commands, CounterEvents> => ({
   stream: () => `Counter${event.stream}`,
+  schema: () => schemas.CounterState,
   init: (): CounterState => ({ count: 0 }),
   snapshot: {
     threshold: 2
