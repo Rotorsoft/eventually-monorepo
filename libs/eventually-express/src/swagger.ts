@@ -21,6 +21,25 @@ type Package = {
   version: string;
 };
 
+// TODO: get this from config
+const securitySchemes = {
+  auth0_jwt: {
+    flows: {
+      implicit: {
+        authorizationUrl: "https://{OAS_AUTH0_AUTHORIZATION_URL}/authorize",
+        scopes: {
+          role: "role"
+        }
+      }
+    },
+    type: "oauth2",
+    "x-google-audiences": "https://{OAS_AUTH0_AUDIENCE}",
+    "x-google-issuer": "https://{OAS_AUTH0_AUTHORIZATION_URL}",
+    "x-google-jwks_uri":
+      "https://{OAS_AUTH0_AUTHORIZATION_URL}/.well-known/jwks.json"
+  }
+};
+
 const getPackage = (): Package => {
   const pkg = fs.readFileSync("package.json");
   return JSON.parse(pkg.toString()) as unknown as Package;
@@ -64,23 +83,7 @@ const getComponents = (
         schema: { type: "integer", default: 1 }
       }
     },
-    securitySchemes: {
-      auth0_jwt: {
-        flows: {
-          implicit: {
-            authorizationUrl: "https://{OAS_AUTH0_AUTHORIZATION_URL}/authorize",
-            scopes: {
-              role: "role"
-            }
-          }
-        },
-        type: "oauth2",
-        "x-google-audiences": "https://{OAS_AUTH0_AUDIENCE}",
-        "x-google-issuer": "https://{OAS_AUTH0_AUTHORIZATION_URL}",
-        "x-google-jwks_uri":
-          "https://{OAS_AUTH0_AUTHORIZATION_URL}/.well-known/jwks.json"
-      }
-    },
+    securitySchemes,
     schemas: {
       ValidationError: {
         type: "object",
@@ -93,7 +96,31 @@ const getComponents = (
             type: "array",
             items: { type: "string" }
           }
-        }
+        },
+        required: ["message", "details"]
+      },
+      ConcurrencyError: {
+        type: "object",
+        properties: {
+          message: {
+            type: "string",
+            enum: ["Concurrency Error"]
+          },
+          lastVersion: { type: "integer" },
+          events: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                data: { type: "object" }
+              },
+              required: ["name"]
+            }
+          },
+          expectedVersion: { type: "integer" }
+        },
+        required: ["message", "lastEvent", "events", "expectedVersion"]
       }
     }
   };
@@ -281,7 +308,12 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
               }
             },
             "409": {
-              description: "Concurrency Error"
+              description: "Concurrency Error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ConcurrencyError" }
+                }
+              }
             },
             default: { description: "Internal Server Error" }
           }
@@ -339,7 +371,12 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
               }
             },
             "409": {
-              description: "Concurrency Error"
+              description: "Concurrency Error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ConcurrencyError" }
+                }
+              }
             },
             default: { description: "Internal Server Error" }
           }

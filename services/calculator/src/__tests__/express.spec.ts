@@ -257,4 +257,11 @@ describe("express app", () => {
       expect(stream.length).toBe(0);
     });
   });
+
+  describe("swagger", () => {
+    it("should get swagger spec", async () => {
+      const swagger = await get("/swagger");
+      expect(swagger.status).toBe(200);
+    });
+  });
 });

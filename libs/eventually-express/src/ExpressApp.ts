@@ -30,6 +30,7 @@ export class ExpressApp extends AppBase {
   private _app = express();
   private _router = Router();
   private _server: Server;
+  private _swagger: any;
 
   private _buildAllStreamRoute(): void {
     this._router.get(
@@ -231,11 +232,15 @@ export class ExpressApp extends AppBase {
       }
     );
 
-    // swagger-ui
+    // swagger
+    this._swagger = swagger(this._factories, this._handlers);
+    this._app.get("/swagger", (req: Request, res: Response) => {
+      res.json(this._swagger);
+    });
     this._app.use(
-      "/swagger",
+      "/swagger-ui",
       swaggerUI.serve,
-      swaggerUI.setup(swagger(this._factories, this._handlers))
+      swaggerUI.setup(this._swagger)
     );
 
     return this._app;

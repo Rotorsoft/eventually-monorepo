@@ -20,8 +20,8 @@ import axios, { AxiosResponse } from "axios";
 const url = (path: string, port?: number): string =>
   `http://localhost:${port || 3000}${path}`;
 
-export const get = (path: string, port?: number): Promise<void> =>
-  axios.get(url(path, port));
+export const get = (path: string, port?: number): Promise<AxiosResponse<any>> =>
+  axios.get<any>(url(path, port));
 
 export const command = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
