@@ -38,6 +38,24 @@ const getSecurity = (): Security => {
   }
 };
 
+const getCommittedSchema = (name?: string): any => {
+  const { swagger } = j2s(
+    joi.object({
+      name: joi.string().required(),
+      id: joi.number().integer().required(),
+      stream: joi.string().required(),
+      version: joi.number().integer().required(),
+      created: joi.date().required(),
+      data: joi.object()
+    })
+  );
+  if (name) {
+    swagger.properties.name.enum = [name];
+    swagger.properties.data.$ref = `#/components/schemas/${name}`;
+  }
+  return swagger;
+};
+
 const getComponents = (
   factories: Factories,
   handlers: Handlers,
@@ -161,10 +179,7 @@ const getReducibleComponent = (
     type: "object",
     properties: {
       event: {
-        type: "object",
-        oneOf: eventsOf(reducible).map((name) => ({
-          $ref: `#/components/schemas/${name}`
-        }))
+        oneOf: eventsOf(reducible).map((name) => getCommittedSchema(name))
       },
       state: { $ref: `#/components/schemas/${factory.name}` }
     }
@@ -250,16 +265,7 @@ const getPaths = (
               "application/json": {
                 schema: {
                   type: "array",
-                  items: j2s(
-                    joi.object({
-                      name: joi.string().required(),
-                      data: joi.object(),
-                      id: joi.number().integer().required(),
-                      stream: joi.string().required(),
-                      version: joi.number().integer().required(),
-                      created: joi.date().required()
-                    })
-                  ).swagger
+                  items: getCommittedSchema()
                 }
               }
             }
@@ -339,18 +345,7 @@ const getPaths = (
             required: true,
             content: {
               "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    name: { type: "string", enum: [event.name] },
-                    id: { type: "integer" },
-                    stream: { type: "string" },
-                    version: { type: "integer" },
-                    created: { type: "date-time" },
-                    data: { $ref: `#/components/schemas/${event.name}` }
-                  },
-                  required: ["name", "id", "stream", "version", "created"]
-                }
+                schema: getCommittedSchema(event.name)
               }
             }
           },
