@@ -1,0 +1,42 @@
+{
+  "schemes": {
+    "auth0_jwt": {
+      "flows": {
+        "implicit": {
+          "authorizationUrl": "https://AUTH0_AUTHORIZATION_URL/authorize",
+          "scopes": {
+            "write:entity": "modify entity in your account",
+            "read:entity": "read your entity"
+          }
+        }
+      },
+      "type": "oauth2",
+      "x-google-audiences": "https://AUTH0_AUDIENCE",
+      "x-google-issuer": "https://AUTH0_AUTHORIZATION_URL",
+      "x-google-jwks_uri": "https://AUTH0_AUTHORIZATION_URL/.well-known/jwks.json"
+    },
+    "api_key": {
+      "type": "apiKey",
+      "name": "api_key",
+      "in": "header"
+    },
+    "jwt": {
+      "type": "http",
+      "scheme": "bearer",
+      "bearerFormat": "JWT"
+    }
+  },
+  "operations": {
+    "all": [{}],
+    "PressKey": [
+      {
+        "api_key": {}
+      }
+    ],
+    "DigitPressed": [
+      {
+        "auth0_jwt": ["write:entity", "read:entity"]
+      }
+    ]
+  }
+}

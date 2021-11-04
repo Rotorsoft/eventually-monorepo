@@ -21,23 +21,9 @@ type Package = {
   version: string;
 };
 
-// TODO: get this from config
-const securitySchemes = {
-  auth0_jwt: {
-    flows: {
-      implicit: {
-        authorizationUrl: "https://{OAS_AUTH0_AUTHORIZATION_URL}/authorize",
-        scopes: {
-          role: "role"
-        }
-      }
-    },
-    type: "oauth2",
-    "x-google-audiences": "https://{OAS_AUTH0_AUDIENCE}",
-    "x-google-issuer": "https://{OAS_AUTH0_AUTHORIZATION_URL}",
-    "x-google-jwks_uri":
-      "https://{OAS_AUTH0_AUTHORIZATION_URL}/.well-known/jwks.json"
-  }
+type Security = {
+  schemes: Record<string, any>;
+  operations: Record<string, Array<any>>;
 };
 
 const getPackage = (): Package => {
@@ -45,9 +31,19 @@ const getPackage = (): Package => {
   return JSON.parse(pkg.toString()) as unknown as Package;
 };
 
+const getSecurity = (): Security => {
+  try {
+    const sec = fs.readFileSync("security.json");
+    return JSON.parse(sec.toString()) as Security;
+  } catch {
+    return { schemes: {}, operations: {} };
+  }
+};
+
 const getComponents = (
   factories: Factories,
-  handlers: Handlers
+  handlers: Handlers,
+  security: Security
 ): ComponentsSchema => {
   const components: ComponentsSchema = {
     parameters: {
@@ -83,7 +79,7 @@ const getComponents = (
         schema: { type: "integer", default: 1 }
       }
     },
-    securitySchemes,
+    securitySchemes: security.schemes,
     schemas: {
       ValidationError: {
         type: "object",
@@ -231,7 +227,10 @@ const getReducibleGetters = (
   };
 };
 
-const getPaths = (handlers: Handlers): Record<string, any> => {
+const getPaths = (
+  handlers: Handlers,
+  security: Security
+): Record<string, any> => {
   const paths: Record<string, any> = {
     ["/all"]: {
       parameters: [
@@ -262,7 +261,8 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
             }
           },
           default: { description: "Internal Server Error" }
-        }
+        },
+        security: security.operations["all"] || [{}]
       }
     }
   };
@@ -316,7 +316,8 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
               }
             },
             default: { description: "Internal Server Error" }
-          }
+          },
+          security: security.operations[command.name] || [{}]
         }
       };
     });
@@ -379,7 +380,8 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
               }
             },
             default: { description: "Internal Server Error" }
-          }
+          },
+          security: security.operations[event.name] || [{}]
         }
       };
     });
@@ -389,6 +391,7 @@ const getPaths = (handlers: Handlers): Record<string, any> => {
 
 export const swagger = (factories: Factories, handlers: Handlers): any => {
   const pkg = getPackage();
+  const sec = getSecurity();
 
   return {
     openapi: "3.0.3",
@@ -397,7 +400,7 @@ export const swagger = (factories: Factories, handlers: Handlers): any => {
       version: pkg.version
     },
     servers: [{ url: `${config().host}` }],
-    components: getComponents(factories, handlers),
-    paths: getPaths(handlers)
+    components: getComponents(factories, handlers, sec),
+    paths: getPaths(handlers, sec)
   };
 };
