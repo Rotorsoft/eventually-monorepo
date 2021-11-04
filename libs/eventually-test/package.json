@@ -19,7 +19,7 @@
   ],
   "scripts": {},
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^2.1.4",
+    "@rotorsoft/eventually": "workspace:^2.2.0",
     "axios": "^0.22.0"
   },
   "devDependencies": {
