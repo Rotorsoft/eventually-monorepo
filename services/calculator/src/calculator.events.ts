@@ -20,14 +20,12 @@ export const events: MessageFactory<Events> = {
 
   DotPressed: () => ({
     name: "DotPressed",
-    scope: () => "private",
-    schema: () => schemas.DotPressed
+    scope: () => "public"
   }),
 
   EqualsPressed: () => ({
     name: "EqualsPressed",
-    scope: () => "private",
-    schema: () => schemas.EqualsPressed
+    scope: () => "public"
   }),
 
   OperatorPressed: (data: { operator: Operators }) => ({
@@ -39,7 +37,6 @@ export const events: MessageFactory<Events> = {
 
   Cleared: () => ({
     name: "Cleared",
-    scope: () => "public",
-    schema: () => schemas.Cleared
+    scope: () => "public"
   })
 };

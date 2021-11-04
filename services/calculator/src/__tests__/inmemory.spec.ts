@@ -46,11 +46,11 @@ describe("in memory app", () => {
         operator: "+",
         result: 3.3
       });
-      
+
       // With no Snapshot loading
       const snapshots1 = await app().stream(test);
       expect(snapshots1.length).toEqual(6);
-      
+
       // With Snapshot loading
       const snapshots2 = await app().stream(test, true);
       expect(snapshots2.length).toEqual(2);
@@ -179,19 +179,19 @@ describe("in memory app", () => {
 
       // GIVEN
       await app().command(test7, commands.Reset());
-      await sleep(10);
+      await sleep(100);
       await app().command(test7, commands.PressKey({ key: "1" }));
-      await sleep(10);
+      await sleep(100);
       await app().command(test7, commands.PressKey({ key: "1" }));
-      await sleep(10);
+      await sleep(100);
       await app().command(test7, commands.PressKey({ key: "2" }));
-      await sleep(10);
+      await sleep(100);
       await app().command(test7, commands.PressKey({ key: "." }));
-      await sleep(10);
+      await sleep(100);
 
       // WHEN
       await app().command(test7, commands.PressKey({ key: "3" }));
-      await sleep(10);
+      await sleep(100);
 
       // THEN
       const { event, state } = await app().load(test7);
@@ -218,7 +218,6 @@ describe("in memory app", () => {
   it("should cover whatever command", () => {
     const cmd = commands.Whatever();
     expect(cmd.scope()).toBe("private");
-    expect(cmd.schema()).toBe(schemas.Whatever);
   });
 
   it("should cover event scopes", () => {

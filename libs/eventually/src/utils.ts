@@ -2,8 +2,8 @@ import * as joi from "joi";
 import {
   AggregateFactory,
   ExternalSystemFactory,
-  MessageFactory,
   MessageHandler,
+  Msg,
   MsgOf,
   Payload,
   PolicyFactory,
@@ -25,22 +25,6 @@ export const decamelize = (value: string): string =>
       "$1-$2"
     )
     .toLowerCase();
-
-/**
- * Extracts message handlers from message factory
- * @param factory message factory
- * @returns array of message handlers
- */
-export const handlersOf = <Messages>(
-  factory: MessageFactory<Messages>
-  // eslint-disable-next-line
-): Function[] => {
-  // eslint-disable-next-line
-  return Object.values<Function>(factory).filter((f: Function) => {
-    const message = f();
-    return message.name && message.schema;
-  });
-};
 
 /**
  * Extracts events from reducible
@@ -114,21 +98,6 @@ export const eventHandlerPath = <M extends Payload, C, E>(
   event: MsgOf<E>
 ): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
 
-/**
- * Concatenates committed event persisted schema for validation
- * @param schema message schema
- * @returns committed message schema
- */
-export const committedSchema = (schema: joi.ObjectSchema): joi.ObjectSchema =>
-  schema.concat(
-    joi.object({
-      id: joi.number().integer().required(),
-      stream: joi.string().required(),
-      version: joi.number().integer().required(),
-      created: joi.date().required()
-    })
-  );
-
 export enum Errors {
   ValidationError = "Validation Error",
   ConcurrencyError = "Concurrency Error"
@@ -145,7 +114,7 @@ export class ValidationError extends Error {
 export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,
-    public readonly events: { name: string; data?: Payload }[],
+    public readonly events: Msg[],
     public readonly expectedVersion: number
   ) {
     super(Errors.ConcurrencyError);

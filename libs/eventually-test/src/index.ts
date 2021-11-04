@@ -30,9 +30,9 @@ export const command = async <M extends Payload, C, E>(
   expectedVersion?: number,
   port?: number
 ): Promise<Snapshot<M>[]> => {
-  const { data } = await axios.post<MsgOf<C>, AxiosResponse<Snapshot<M>[]>>(
+  const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
     url(commandHandlerPath(factory, msg).replace(":id", id), port),
-    msg,
+    msg.data || {},
     {
       headers: expectedVersion ? { "If-Match": expectedVersion.toString() } : {}
     }

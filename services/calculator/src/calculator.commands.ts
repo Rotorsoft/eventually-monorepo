@@ -19,13 +19,11 @@ export const commands: MessageFactory<Commands> = {
 
   Reset: () => ({
     name: "Reset",
-    scope: () => "private",
-    schema: () => schemas.Reset
+    scope: () => "public"
   }),
 
   Whatever: () => ({
     name: "Whatever",
-    scope: () => "private",
-    schema: () => schemas.Whatever
+    scope: () => "private"
   })
 };

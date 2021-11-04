@@ -8,13 +8,13 @@ export interface Broker {
   /**
    * Subscribes event handler to topic
    * @param factory event handler factory
-   * @param event committed event
+   * @param event the event
    */
   subscribe(
     factory:
       | PolicyFactory<unknown, unknown>
       | ProcessManagerFactory<Payload, unknown, unknown>,
-    event: Evt
+    event: Msg
   ): Promise<void>;
 
   /**
@@ -93,4 +93,4 @@ export interface SnapshotStore {
     stream: string,
     data: Snapshot<M>
   ) => Promise<void>;
-};
+}

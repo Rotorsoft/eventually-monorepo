@@ -2,6 +2,7 @@ import {
   app,
   Broker,
   Evt,
+  Msg,
   Payload,
   PolicyFactory,
   ProcessManagerFactory
@@ -16,7 +17,7 @@ export const InMemoryBroker = (): Broker => {
       factory:
         | PolicyFactory<unknown, unknown>
         | ProcessManagerFactory<Payload, unknown, unknown>,
-      event: Evt
+      event: Msg
     ): Promise<void> => {
       const sub = (_subscriptions[event.name] =
         _subscriptions[event.name] || []);

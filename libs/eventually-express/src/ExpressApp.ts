@@ -3,12 +3,10 @@ import {
   AllQuery,
   AppBase,
   broker,
-  committedSchema,
   config,
   Errors,
   Evt,
   Getter,
-  Msg,
   Payload,
   ProcessManagerFactory,
   reduciblePath,
@@ -117,18 +115,20 @@ export class ExpressApp extends AppBase {
         this._router.post(
           path,
           async (
-            req: Request<{ id: string }>,
+            req: Request<{ id: string }, any, Payload>,
             res: Response,
             next: NextFunction
           ) => {
             try {
-              const { error, value } = command
-                .schema()
-                .validate(req.body, { abortEarly: false });
-              if (error) throw new ValidationError(error);
+              if (command.schema) {
+                const { error } = command
+                  .schema()
+                  .validate(req.body, { abortEarly: false });
+                if (error) throw new ValidationError(error);
+              }
               const snapshots = await this.command(
                 factory(req.params.id),
-                value,
+                { ...command, data: req.body },
                 type === "aggregate" ? +req.headers["if-match"] : undefined
               );
               res.setHeader(
@@ -174,17 +174,20 @@ export class ExpressApp extends AppBase {
       .map(({ factory, event, path }) => {
         this._router.post(
           path,
-          async (req: Request, res: Response, next: NextFunction) => {
+          async (
+            req: Request<never, any, Evt>,
+            res: Response,
+            next: NextFunction
+          ) => {
             try {
               const message = broker().decode(req.body);
-              const validator = committedSchema(
-                (event as unknown as Msg).schema()
-              );
-              const { error, value } = validator.validate(message, {
-                abortEarly: false
-              });
-              if (error) throw new ValidationError(error);
-              const response = await this.event(factory, value);
+              if (event.schema) {
+                const { error } = event.schema().validate(message.data, {
+                  abortEarly: false
+                });
+                if (error) throw new ValidationError(error);
+              }
+              const response = await this.event(factory, message);
               return res.status(200).send(response);
             } catch (error) {
               next(error);

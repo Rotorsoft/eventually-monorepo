@@ -2,10 +2,8 @@ import {
   AggregateFactory,
   commandHandlerPath,
   eventHandlerPath,
-  Evt,
   ExternalSystemFactory,
   getReducible,
-  handlersOf,
   log,
   MessageFactory,
   Msg,
@@ -18,13 +16,13 @@ import { Reducible } from "./types";
 import { InMemorySnapshotStore } from "./__dev__";
 
 export type Factories = {
-  commands: MessageFactory<unknown>;
+  commands: Record<string, (data?: Payload) => Msg>;
   commandHandlers: {
     [name: string]:
       | AggregateFactory<Payload, unknown, unknown>
       | ExternalSystemFactory<unknown, unknown>;
   };
-  events: MessageFactory<unknown>;
+  events: Record<string, (data?: Payload) => Msg>;
   eventHandlers: {
     [name: string]:
       | PolicyFactory<unknown, unknown>
@@ -49,7 +47,7 @@ export type Handlers = {
       factory:
         | PolicyFactory<unknown, unknown>
         | ProcessManagerFactory<Payload, unknown, unknown>;
-      event: Evt;
+      event: Msg;
       path: string;
     };
   };
@@ -158,8 +156,8 @@ export class Builder {
       reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "aggregate" : "external-system";
       log().info("white", chf.name, type);
-      handlersOf(this._factories.commands).map((cf) => {
-        const command = cf() as Msg;
+      Object.values(this._factories.commands).map((cf) => {
+        const command = cf();
         const path = commandHandlerPath(chf, command);
         if (Object.keys(handler).includes("on".concat(command.name))) {
           this._handlers.commands[command.name] = {
@@ -184,7 +182,7 @@ export class Builder {
       reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "process-manager" : "policy";
       log().info("white", ehf.name, type);
-      handlersOf(this._factories.events).map((ef) => {
+      Object.values(this._factories.events).map((ef) => {
         const event = ef();
         if (Object.keys(handler).includes("on".concat(event.name))) {
           const path = eventHandlerPath(ehf, event);

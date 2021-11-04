@@ -1,12 +1,10 @@
 import {
   AggregateFactory,
-  committedSchema,
   config,
   eventsOf,
   Factories,
   getReducible,
   Handlers,
-  handlersOf,
   MessageHandlerFactory,
   Payload,
   ProcessManagerFactory,
@@ -122,18 +120,22 @@ const getComponents = (
   };
 
   // all events are components of snapshots
-  handlersOf(factories.events).map((ef) => {
+  Object.values(factories.events).map((ef) => {
     const event = ef();
-    const { swagger } = j2s(committedSchema(event.schema()), components);
-    components.schemas[event.name] = swagger;
+    if (event.schema) {
+      const { swagger } = j2s(event.schema(), components);
+      components.schemas[event.name] = swagger;
+    }
   });
 
   // public commands and aggregate models are components
   Object.values(handlers.commands)
     .filter(({ command }) => command.scope() === "public")
     .map(({ factory, command }) => {
-      const { swagger } = j2s(command.schema(), components);
-      components.schemas[command.name] = swagger;
+      if (command.schema) {
+        const { swagger } = j2s(command.schema(), components);
+        components.schemas[command.name] = swagger;
+      }
       getReducibleComponent(components, factory);
     });
 
@@ -249,12 +251,14 @@ const getPaths = (
                 schema: {
                   type: "array",
                   items: j2s(
-                    committedSchema(
-                      joi.object({
-                        name: joi.string().required(),
-                        data: joi.object()
-                      })
-                    )
+                    joi.object({
+                      name: joi.string().required(),
+                      data: joi.object(),
+                      id: joi.number().integer().required(),
+                      stream: joi.string().required(),
+                      version: joi.number().integer().required(),
+                      created: joi.date().required()
+                    })
                   ).swagger
                 }
               }
@@ -335,7 +339,18 @@ const getPaths = (
             required: true,
             content: {
               "application/json": {
-                schema: { $ref: `#/components/schemas/${event.name}` }
+                schema: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string", enum: [event.name] },
+                    id: { type: "integer" },
+                    stream: { type: "string" },
+                    version: { type: "integer" },
+                    created: { type: "date-time" },
+                    data: { $ref: `#/components/schemas/${event.name}` }
+                  },
+                  required: ["name", "id", "stream", "version", "created"]
+                }
               }
             }
           },

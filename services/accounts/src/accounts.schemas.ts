@@ -18,47 +18,12 @@ export const WaitForAllState = joi
   .concat(Account)
   .required();
 
-export const AccountCreated = joi.object({
-  name: joi.string().required().valid("AccountCreated"),
-  data: Account.required()
-});
-
-export const Account1Created = joi.object({
-  name: joi.string().required().valid("Account1Created"),
-  data: ExternalAccount.required()
-});
-
-export const Account2Created = joi.object({
-  name: joi.string().required().valid("Account2Created"),
-  data: ExternalAccount.required()
-});
-
-export const Account3Created = joi.object({
-  name: joi.string().required().valid("Account3Created"),
-  data: ExternalAccount.required()
-});
-
-export const IntegrationCompleted = joi.object({
-  name: joi.string().required().valid("IntegrationCompleted"),
-  data: WaitForAllState.required()
-});
-
-export const CreateAccount1 = joi.object({
-  name: joi.string().required().valid("CreateAccount1"),
-  data: Account.required()
-});
-
-export const CreateAccount2 = joi.object({
-  name: joi.string().required().valid("CreateAccount2"),
-  data: Account.required()
-});
-
-export const CreateAccount3 = joi.object({
-  name: joi.string().required().valid("CreateAccount3"),
-  data: Account.required()
-});
-
-export const CompleteIntegration = joi.object({
-  name: joi.string().required().valid("CompleteIntegration"),
-  data: WaitForAllState.required()
-});
+export const AccountCreated = Account.required();
+export const Account1Created = ExternalAccount.required();
+export const Account2Created = ExternalAccount.required();
+export const Account3Created = ExternalAccount.required();
+export const IntegrationCompleted = WaitForAllState.required();
+export const CreateAccount1 = Account.required();
+export const CreateAccount2 = Account.required();
+export const CreateAccount3 = Account.required();
+export const CompleteIntegration = WaitForAllState.required();

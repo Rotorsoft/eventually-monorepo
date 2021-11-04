@@ -12,9 +12,9 @@ export type Payload = Record<string, unknown>;
  */
 export type Message<Name extends string, Type extends Payload> = {
   readonly name: Name;
-  readonly data?: Type;
   scope: () => "public" | "private";
-  schema: () => joi.ObjectSchema<Message<Name, Type>>;
+  readonly data?: Type;
+  schema?: () => joi.ObjectSchema<Type>;
 };
 
 /**
@@ -43,6 +43,7 @@ export type CommittedEvent<Name extends string, Type extends Payload> = Message<
   readonly stream: string;
   readonly version: number;
   readonly created: Date;
+  readonly name: string;
 };
 
 /**

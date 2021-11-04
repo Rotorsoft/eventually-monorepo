@@ -4,6 +4,7 @@ import {
   eventHandlerPath,
   Evt,
   log,
+  Msg,
   Payload,
   PolicyFactory,
   ProcessManagerFactory
@@ -25,7 +26,7 @@ const pubsub = new PubSub(
 const orderingKey = "id";
 const topics: { [name: string]: GcpTopic } = {};
 
-const topic = async (event: Evt): Promise<GcpTopic> => {
+const topic = async (event: Msg): Promise<GcpTopic> => {
   let topic = topics[event.name];
   if (!topic) {
     topic = new GcpTopic(pubsub, event.name);
@@ -42,7 +43,7 @@ export const PubSubBroker = (): Broker => {
       factory:
         | PolicyFactory<unknown, unknown>
         | ProcessManagerFactory<Payload, unknown, unknown>,
-      event: Evt
+      event: Msg
     ): Promise<void> => {
       if (event.scope() === "public") {
         const url = `${config.host}${eventHandlerPath(factory, event)}`;

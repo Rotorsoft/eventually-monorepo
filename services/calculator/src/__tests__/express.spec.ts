@@ -174,6 +174,7 @@ describe("express app", () => {
     it("should reset on last key pressed", async () => {
       const id = chance.guid();
 
+      await command(Calculator, commands.Reset(), id);
       await command(Calculator, commands.PressKey({ key: "+" }), id);
       await command(Calculator, commands.PressKey({ key: "1" }), id);
       await command(Calculator, commands.PressKey({ key: "1" }), id);
@@ -190,6 +191,19 @@ describe("express app", () => {
       const snapshots = await command(
         Calculator,
         commands.PressKey({ key: "1" }),
+        chance.guid()
+      );
+      const response = await event(
+        StatelessCounter,
+        snapshots[0].event as EvtOf<Pick<Events, "DigitPressed" | "DotPressed">>
+      );
+      expect(response).toStrictEqual({});
+    });
+
+    it("should return no command 2", async () => {
+      const snapshots = await command(
+        Calculator,
+        commands.PressKey({ key: "." }),
         chance.guid()
       );
       const response = await event(
