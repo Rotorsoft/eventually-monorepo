@@ -937,7 +937,7 @@ __metadata:
     "@rotorsoft/eventually-express": "workspace:^2.2.0"
     "@rotorsoft/eventually-gcp": "workspace:^2.2.0"
     "@rotorsoft/eventually-pg": "workspace:^2.2.0"
-    "@rotorsoft/eventually-test": "workspace:^1.1.4"
+    "@rotorsoft/eventually-test": "workspace:^1.2.0"
     "@types/chance": ^1
     chance: ^1.1.8
     joi: ^17.4.2
@@ -1008,7 +1008,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-test@workspace:^1.1.4, @rotorsoft/eventually-test@workspace:libs/eventually-test":
+"@rotorsoft/eventually-test@workspace:^1.2.0, @rotorsoft/eventually-test@workspace:libs/eventually-test":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-test@workspace:libs/eventually-test"
   dependencies:
