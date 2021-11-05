@@ -1,4 +1,4 @@
-import { Evt, EvtOf, Msg, Payload } from "@rotorsoft/eventually";
+import { Evt, EvtOf, Message, Payload } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 
@@ -17,12 +17,14 @@ type E = {
   test3: { value: string };
 };
 
-const event = (name: keyof E, data?: Payload): Msg =>
-  ({
-    name,
-    data,
-    schema: () => null
-  } as Msg);
+const event = (
+  name: keyof E,
+  data?: Payload
+): Message<keyof E & string, Payload> => ({
+  name,
+  data,
+  scope: () => "public"
+});
 
 describe("PostgresStore", () => {
   beforeAll(async () => {

@@ -1,4 +1,4 @@
-import { MessageFactory } from "@rotorsoft/eventually";
+import { MessageFactories } from "@rotorsoft/eventually";
 import * as schemas from "./calculator.schemas";
 import { Digits, Operators } from "./calculator.models";
 
@@ -10,7 +10,7 @@ export type Events = {
   Cleared: undefined;
 };
 
-export const events: MessageFactory<Events> = {
+export const events: MessageFactories<Events> = {
   DigitPressed: (data: { digit: Digits }) => ({
     name: "DigitPressed",
     data,

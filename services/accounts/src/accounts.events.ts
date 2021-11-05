@@ -1,4 +1,4 @@
-import { MessageFactory } from "@rotorsoft/eventually";
+import { MessageFactories } from "@rotorsoft/eventually";
 import * as models from "./accounts.models";
 import * as schemas from "./accounts.schemas";
 
@@ -10,7 +10,7 @@ export type Events = {
   IntegrationCompleted: models.Account;
 };
 
-export const factory: MessageFactory<Events> = {
+export const factory: MessageFactories<Events> = {
   AccountCreated: (data: models.Account) => ({
     name: "AccountCreated",
     data,

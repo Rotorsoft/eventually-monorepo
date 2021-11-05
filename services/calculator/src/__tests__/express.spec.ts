@@ -38,12 +38,12 @@ describe("express app", () => {
     it("should compute correctly", async () => {
       const id = chance.guid();
 
-      await command(Calculator, commands.PressKey({ key: "1" }), id);
-      await command(Calculator, commands.PressKey({ key: "+" }), id);
-      await command(Calculator, commands.PressKey({ key: "2" }), id);
-      await command(Calculator, commands.PressKey({ key: "." }), id);
-      await command(Calculator, commands.PressKey({ key: "3" }), id);
-      await command(Calculator, commands.PressKey({ key: "=" }), id);
+      await command(Calculator, commands.PressKey, { key: "1" }, id);
+      await command(Calculator, commands.PressKey, { key: "+" }, id);
+      await command(Calculator, commands.PressKey, { key: "2" }, id);
+      await command(Calculator, commands.PressKey, { key: "." }, id);
+      await command(Calculator, commands.PressKey, { key: "3" }, id);
+      await command(Calculator, commands.PressKey, { key: "=" }, id);
 
       const { state } = await load(Calculator, id);
       expect(state).toEqual({
@@ -59,15 +59,15 @@ describe("express app", () => {
     it("should compute correctly 2", async () => {
       const id = chance.guid();
 
-      await command(Calculator, commands.PressKey({ key: "+" }), id);
-      await command(Calculator, commands.PressKey({ key: "1" }), id);
-      await command(Calculator, commands.PressKey({ key: "-" }), id);
-      await command(Calculator, commands.PressKey({ key: "2" }), id);
-      await command(Calculator, commands.PressKey({ key: "*" }), id);
-      await command(Calculator, commands.PressKey({ key: "3" }), id);
-      await command(Calculator, commands.PressKey({ key: "/" }), id);
-      await command(Calculator, commands.PressKey({ key: "3" }), id);
-      await command(Calculator, commands.PressKey({ key: "=" }), id);
+      await command(Calculator, commands.PressKey, { key: "+" }, id);
+      await command(Calculator, commands.PressKey, { key: "1" }, id);
+      await command(Calculator, commands.PressKey, { key: "-" }, id);
+      await command(Calculator, commands.PressKey, { key: "2" }, id);
+      await command(Calculator, commands.PressKey, { key: "*" }, id);
+      await command(Calculator, commands.PressKey, { key: "3" }, id);
+      await command(Calculator, commands.PressKey, { key: "/" }, id);
+      await command(Calculator, commands.PressKey, { key: "3" }, id);
+      await command(Calculator, commands.PressKey, { key: "=" }, id);
 
       const { state } = await load(Calculator, id);
       expect(state).toEqual({
@@ -83,47 +83,56 @@ describe("express app", () => {
     it("should read aggregate stream using snapshots", async () => {
       await command(
         Calculator,
-        commands.PressKey({ key: "+" }),
+        commands.PressKey,
+        { key: "+" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "1" }),
+        commands.PressKey,
+        { key: "1" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "-" }),
+        commands.PressKey,
+        { key: "-" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "2" }),
+        commands.PressKey,
+        { key: "2" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "*" }),
+        commands.PressKey,
+        { key: "*" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "3" }),
+        commands.PressKey,
+        { key: "3" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "/" }),
+        commands.PressKey,
+        { key: "/" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "3" }),
+        commands.PressKey,
+        { key: "3" },
         "withSnapshots"
       );
       await command(
         Calculator,
-        commands.PressKey({ key: "=" }),
+        commands.PressKey,
+        { key: "=" },
         "withSnapshots"
       );
       const snapshots = await stream(Calculator, "withSnapshots", {
@@ -145,15 +154,15 @@ describe("express app", () => {
     it("should throw concurrency error", async () => {
       const id = chance.guid();
 
-      await command(Calculator, commands.PressKey({ key: "1" }), id);
+      await command(Calculator, commands.PressKey, { key: "1" }, id);
       await expect(
-        command(Calculator, commands.PressKey({ key: "1" }), id, -1)
+        command(Calculator, commands.PressKey, { key: "1" }, id, -1)
       ).rejects.toThrowError("Request failed with status code 409");
     });
 
     it("should throw validation error", async () => {
       await expect(
-        command(Calculator, commands.PressKey(), chance.guid())
+        command(Calculator, commands.PressKey, {}, chance.guid())
       ).rejects.toThrowError("Request failed with status code 400");
     });
 
@@ -165,7 +174,7 @@ describe("express app", () => {
 
     it("should throw model invariant violation", async () => {
       await expect(
-        command(Calculator, commands.PressKey({ key: "=" }), chance.guid())
+        command(Calculator, commands.PressKey, { key: "=" }, chance.guid())
       ).rejects.toThrowError("Request failed with status code 500");
     });
   });
@@ -174,13 +183,13 @@ describe("express app", () => {
     it("should reset on last key pressed", async () => {
       const id = chance.guid();
 
-      await command(Calculator, commands.Reset(), id);
-      await command(Calculator, commands.PressKey({ key: "+" }), id);
-      await command(Calculator, commands.PressKey({ key: "1" }), id);
-      await command(Calculator, commands.PressKey({ key: "1" }), id);
-      await command(Calculator, commands.PressKey({ key: "2" }), id);
-      await command(Calculator, commands.PressKey({ key: "." }), id);
-      await command(Calculator, commands.PressKey({ key: "3" }), id);
+      await command(Calculator, commands.Reset, null, id);
+      await command(Calculator, commands.PressKey, { key: "+" }, id);
+      await command(Calculator, commands.PressKey, { key: "1" }, id);
+      await command(Calculator, commands.PressKey, { key: "1" }, id);
+      await command(Calculator, commands.PressKey, { key: "2" }, id);
+      await command(Calculator, commands.PressKey, { key: "." }, id);
+      await command(Calculator, commands.PressKey, { key: "3" }, id);
 
       await sleep(100); // wait for counters to reset
       const { state } = await load(Calculator, id);
@@ -190,12 +199,14 @@ describe("express app", () => {
     it("should return no command", async () => {
       const snapshots = await command(
         Calculator,
-        commands.PressKey({ key: "1" }),
+        commands.PressKey,
+        { key: "1" },
         chance.guid()
       );
       const response = await event(
         StatelessCounter,
-        snapshots[0].event as EvtOf<Pick<Events, "DigitPressed" | "DotPressed">>
+        events.DigitPressed,
+        snapshots[0].event
       );
       expect(response).toStrictEqual({});
     });
@@ -203,19 +214,21 @@ describe("express app", () => {
     it("should return no command 2", async () => {
       const snapshots = await command(
         Calculator,
-        commands.PressKey({ key: "." }),
+        commands.PressKey,
+        { key: "." },
         chance.guid()
       );
       const response = await event(
         StatelessCounter,
-        snapshots[0].event as EvtOf<Pick<Events, "DigitPressed" | "DotPressed">>
+        events.DotPressed,
+        snapshots[0].event
       );
       expect(response).toStrictEqual({});
     });
 
     it("should throw validation error", async () => {
       await expect(
-        event(StatelessCounter, {
+        event(StatelessCounter, events.DigitPressed, {
           id: 1,
           stream: chance.guid(),
           version: 1,
@@ -230,12 +243,12 @@ describe("express app", () => {
     beforeAll(async () => {
       const id = chance.guid();
 
-      await command(Calculator, commands.PressKey({ key: "1" }), id);
-      await command(Calculator, commands.PressKey({ key: "+" }), id);
-      await command(Calculator, commands.PressKey({ key: "2" }), id);
-      await command(Calculator, commands.PressKey({ key: "." }), id);
-      await command(Calculator, commands.PressKey({ key: "3" }), id);
-      await command(Calculator, commands.PressKey({ key: "=" }), id);
+      await command(Calculator, commands.PressKey, { key: "1" }, id);
+      await command(Calculator, commands.PressKey, { key: "+" }, id);
+      await command(Calculator, commands.PressKey, { key: "2" }, id);
+      await command(Calculator, commands.PressKey, { key: "." }, id);
+      await command(Calculator, commands.PressKey, { key: "3" }, id);
+      await command(Calculator, commands.PressKey, { key: "=" }, id);
     });
 
     it("should read stream", async () => {

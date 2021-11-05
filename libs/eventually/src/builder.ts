@@ -5,28 +5,28 @@ import {
   ExternalSystemFactory,
   getReducible,
   log,
+  MessageFactories,
   MessageFactory,
-  Msg,
   Payload,
   PolicyFactory,
-  ProcessManagerFactory
+  ProcessManagerFactory,
+  Reducible
 } from ".";
 import { SnapshotStore } from "./interfaces";
-import { Reducible } from "./types";
 import { InMemorySnapshotStore } from "./__dev__";
 
 export type Factories = {
-  commands: Record<string, (data?: Payload) => Msg>;
+  commands: Record<string, MessageFactory>;
   commandHandlers: {
     [name: string]:
       | AggregateFactory<Payload, unknown, unknown>
       | ExternalSystemFactory<unknown, unknown>;
   };
-  events: Record<string, (data?: Payload) => Msg>;
+  events: Record<string, MessageFactory>;
   eventHandlers: {
     [name: string]:
-      | PolicyFactory<unknown, unknown>
-      | ProcessManagerFactory<Payload, unknown, unknown>;
+      | PolicyFactory<unknown>
+      | ProcessManagerFactory<Payload, unknown>;
   };
 };
 
@@ -37,17 +37,15 @@ export type Handlers = {
       factory:
         | AggregateFactory<Payload, unknown, unknown>
         | ExternalSystemFactory<unknown, unknown>;
-      command: Msg;
+      command: MessageFactory;
       path: string;
     };
   };
   events: {
     [path: string]: {
       type: "policy" | "process-manager";
-      factory:
-        | PolicyFactory<unknown, unknown>
-        | ProcessManagerFactory<Payload, unknown, unknown>;
-      event: Msg;
+      factory: PolicyFactory<unknown> | ProcessManagerFactory<Payload, unknown>;
+      event: MessageFactory;
       path: string;
     };
   };
@@ -55,8 +53,8 @@ export type Handlers = {
 
 export type Subscriptions = {
   [name: string]: (
-    | PolicyFactory<unknown, unknown>
-    | ProcessManagerFactory<Payload, unknown, unknown>
+    | PolicyFactory<unknown>
+    | ProcessManagerFactory<Payload, unknown>
   )[];
 };
 
@@ -81,7 +79,7 @@ export class Builder {
    * Registers events factory
    * @param factory event factory
    */
-  withEvents(factory: MessageFactory<unknown>): this {
+  withEvents(factory: MessageFactories<unknown>): this {
     this._factories.events = factory;
     return this;
   }
@@ -90,7 +88,7 @@ export class Builder {
    * Registers commands factory
    * @param factory command factory
    */
-  withCommands(factory: MessageFactory<unknown>): this {
+  withCommands(factory: MessageFactories<unknown>): this {
     this._factories.commands = factory;
     return this;
   }
@@ -115,8 +113,8 @@ export class Builder {
    */
   withEventHandlers(
     ...factories: (
-      | PolicyFactory<unknown, unknown>
-      | ProcessManagerFactory<Payload, unknown, unknown>
+      | PolicyFactory<unknown>
+      | ProcessManagerFactory<Payload, unknown>
     )[]
   ): this {
     factories.map((f) => (this._factories.eventHandlers[f.name] = f));
@@ -158,17 +156,17 @@ export class Builder {
       log().info("white", chf.name, type);
       Object.values(this._factories.commands).map((cf) => {
         const command = cf();
-        const path = commandHandlerPath(chf, command);
-        if (Object.keys(handler).includes("on".concat(command.name))) {
-          this._handlers.commands[command.name] = {
+        const path = commandHandlerPath(chf, cf);
+        if (Object.keys(handler).includes("on".concat(cf.name))) {
+          this._handlers.commands[cf.name] = {
             type,
             factory: chf,
-            command,
+            command: cf,
             path
           };
           log().info(
             "blue",
-            `  ${command.name}`,
+            `  ${cf.name}`,
             command.scope() === "public" ? `POST ${path}` : chf.name
           );
         }
@@ -185,11 +183,11 @@ export class Builder {
       Object.values(this._factories.events).map((ef) => {
         const event = ef();
         if (Object.keys(handler).includes("on".concat(event.name))) {
-          const path = eventHandlerPath(ehf, event);
+          const path = eventHandlerPath(ehf, ef);
           this._handlers.events[path] = {
             type,
             factory: ehf,
-            event,
+            event: ef,
             path
           };
           log().info(
@@ -203,7 +201,7 @@ export class Builder {
 
     // private subscriptions
     Object.values(this._handlers.events)
-      .filter(({ event }) => event.scope() === "private")
+      .filter(({ event }) => event().scope() === "private")
       .map(({ factory, event }) => {
         const sub = (this._private_subscriptions[event.name] =
           this._private_subscriptions[event.name] || []);

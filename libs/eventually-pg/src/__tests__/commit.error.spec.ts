@@ -1,4 +1,4 @@
-import { Errors, EvtOf, Msg } from "@rotorsoft/eventually";
+import { Errors, EvtOf, Message, Payload } from "@rotorsoft/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 
@@ -50,7 +50,10 @@ describe("Mocked", () => {
     }));
     await expect(
       db2.commit("stream", [
-        { name: "test", data: {}, schema: () => undefined } as Msg
+        { name: "test", data: {}, schema: () => undefined } as Message<
+          string,
+          Payload
+        >
       ])
     ).rejects.toThrowError(Errors.ConcurrencyError);
   });

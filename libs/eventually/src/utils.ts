@@ -1,10 +1,10 @@
 import * as joi from "joi";
 import {
   AggregateFactory,
+  MessageFactory,
   ExternalSystemFactory,
+  Message,
   MessageHandler,
-  Msg,
-  MsgOf,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
@@ -68,7 +68,7 @@ export const getStreamable = <M extends Payload, C, E>(
  * @returns the reducible path
  */
 export const reduciblePath = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>
+  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, E>
 ): string => "/".concat(decamelize(factory.name), "/:id");
 
 /**
@@ -79,11 +79,11 @@ export const reduciblePath = <M extends Payload, C, E>(
  */
 export const commandHandlerPath = <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
-  command: MsgOf<C>
+  command: MessageFactory
 ): string =>
   "/".concat(
     decamelize(factory.name),
-    getReducible(factory(undefined)) ? "/:id/" : "",
+    getReducible(factory(undefined)) ? "/:id/" : "/",
     decamelize(command.name)
   );
 
@@ -93,9 +93,9 @@ export const commandHandlerPath = <M extends Payload, C, E>(
  * @param event event
  * @returns normalized path
  */
-export const eventHandlerPath = <M extends Payload, C, E>(
-  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-  event: MsgOf<E>
+export const eventHandlerPath = <M extends Payload, E>(
+  factory: PolicyFactory<E> | ProcessManagerFactory<M, E>,
+  event: MessageFactory
 ): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
 
 export enum Errors {
@@ -114,7 +114,7 @@ export class ValidationError extends Error {
 export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,
-    public readonly events: Msg[],
+    public readonly events: Message<string, Payload>[],
     public readonly expectedVersion: number
   ) {
     super(Errors.ConcurrencyError);

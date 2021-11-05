@@ -34,7 +34,8 @@ describe("express app", () => {
 
       await command(
         Calculator,
-        commands.PressKey({ key: "1" }),
+        commands.PressKey,
+        { key: "1" },
         id,
         undefined,
         port
@@ -42,7 +43,8 @@ describe("express app", () => {
       await sleep(100);
       await command(
         Calculator,
-        commands.PressKey({ key: "+" }),
+        commands.PressKey,
+        { key: "+" },
         id,
         undefined,
         port
@@ -50,7 +52,8 @@ describe("express app", () => {
       await sleep(100);
       await command(
         Calculator,
-        commands.PressKey({ key: "2" }),
+        commands.PressKey,
+        { key: "2" },
         id,
         undefined,
         port
@@ -58,7 +61,8 @@ describe("express app", () => {
       await sleep(100);
       await command(
         Calculator,
-        commands.PressKey({ key: "." }),
+        commands.PressKey,
+        { key: "." },
         id,
         undefined,
         port
@@ -66,7 +70,8 @@ describe("express app", () => {
       await sleep(100);
       await command(
         Calculator,
-        commands.PressKey({ key: "3" }),
+        commands.PressKey,
+        { key: "3" },
         id,
         undefined,
         port
@@ -74,7 +79,8 @@ describe("express app", () => {
       await sleep(100);
       await command(
         Calculator,
-        commands.PressKey({ key: "=" }),
+        commands.PressKey,
+        { key: "=" },
         id,
         undefined,
         port

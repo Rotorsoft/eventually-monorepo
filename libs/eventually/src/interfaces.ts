@@ -1,5 +1,5 @@
 import { AllQuery, ProcessManagerFactory, Snapshot } from ".";
-import { Evt, Msg, Payload, PolicyFactory } from "./types";
+import { MessageFactory, Evt, Message, Payload, PolicyFactory } from "./types";
 
 /**
  * Brokers publish committed events to pub/sub topics
@@ -11,10 +11,8 @@ export interface Broker {
    * @param event the event
    */
   subscribe(
-    factory:
-      | PolicyFactory<unknown, unknown>
-      | ProcessManagerFactory<Payload, unknown, unknown>,
-    event: Msg
+    factory: PolicyFactory<unknown> | ProcessManagerFactory<Payload, unknown>,
+    event: MessageFactory
   ): Promise<void>;
 
   /**
@@ -63,7 +61,7 @@ export interface Store {
    */
   commit: (
     stream: string,
-    events: Msg[],
+    events: Message<string, Payload>[],
     expectedVersion?: number,
     callback?: (events: Evt[]) => Promise<void>
   ) => Promise<Evt[]>;

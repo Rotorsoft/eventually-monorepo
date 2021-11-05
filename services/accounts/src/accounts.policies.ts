@@ -10,7 +10,6 @@ import * as models from "./accounts.models";
 import * as schemas from "./accounts.schemas";
 
 export const IntegrateAccount1 = (): Policy<
-  Pick<commands.Commands, "CreateAccount1">,
   Pick<events.Events, "AccountCreated">
 > => ({
   onAccountCreated: (
@@ -18,13 +17,13 @@ export const IntegrateAccount1 = (): Policy<
   ) => {
     // we don't have much to do here, just return the command to external system 1
     return Promise.resolve({
-      command: commands.factory.CreateAccount1(event.data)
+      command: commands.factory.CreateAccount1,
+      data: event.data
     });
   }
 });
 
 export const IntegrateAccount2 = (): Policy<
-  Pick<commands.Commands, "CreateAccount2">,
   Pick<events.Events, "AccountCreated">
 > => ({
   onAccountCreated: (
@@ -32,13 +31,13 @@ export const IntegrateAccount2 = (): Policy<
   ) => {
     // we don't have much to do here, just return the command to external system 2
     return Promise.resolve({
-      command: commands.factory.CreateAccount2(event.data)
+      command: commands.factory.CreateAccount2,
+      data: event.data
     });
   }
 });
 
 export const IntegrateAccount3 = (): Policy<
-  Pick<commands.Commands, "CreateAccount3">,
   Pick<events.Events, "Account2Created">
 > => ({
   onAccount2Created: (
@@ -46,7 +45,8 @@ export const IntegrateAccount3 = (): Policy<
   ) => {
     // we don't have much to do here, just return the command to external system 3
     return Promise.resolve({
-      command: commands.factory.CreateAccount3({ id: event.data.id })
+      command: commands.factory.CreateAccount3,
+      data: { id: event.data.id }
     });
   }
 });
@@ -55,7 +55,6 @@ export const WaitForAllAndComplete = (
   event: EvtOf<Pick<events.Events, "Account1Created" | "Account3Created">>
 ): ProcessManager<
   models.WaitForAllState,
-  Pick<commands.Commands, "CompleteIntegration">,
   Pick<events.Events, "Account1Created" | "Account3Created">
 > => ({
   stream: () =>
@@ -71,7 +70,8 @@ export const WaitForAllAndComplete = (
     // make sure all accounts are created
     if (data.account3)
       return Promise.resolve({
-        command: commands.factory.CompleteIntegration(data)
+        command: commands.factory.CompleteIntegration,
+        data
       });
   },
 
@@ -82,7 +82,8 @@ export const WaitForAllAndComplete = (
     // make sure all accounts are created
     if (data.account1)
       return Promise.resolve({
-        command: commands.factory.CompleteIntegration({ id: event.data.id })
+        command: commands.factory.CompleteIntegration,
+        data: { id: event.data.id }
       });
   },
 

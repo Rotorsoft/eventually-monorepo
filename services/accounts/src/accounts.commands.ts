@@ -1,4 +1,4 @@
-import { MessageFactory } from "@rotorsoft/eventually";
+import { MessageFactories } from "@rotorsoft/eventually";
 import * as models from "./accounts.models";
 import * as schemas from "./accounts.schemas";
 
@@ -9,7 +9,7 @@ export type Commands = {
   CompleteIntegration: models.Account;
 };
 
-export const factory: MessageFactory<Commands> = {
+export const factory: MessageFactories<Commands> = {
   CreateAccount1: (data: models.Account) => ({
     name: "CreateAccount1",
     data,

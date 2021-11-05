@@ -50,7 +50,8 @@ describe("express", () => {
     // when
     const [result] = await command(
       systems.ExternalSystem1,
-      commands.factory.CreateAccount1({ id: chance.guid() }),
+      commands.factory.CreateAccount1,
+      { id: chance.guid() },
       undefined,
       undefined,
       port
@@ -65,7 +66,8 @@ describe("express", () => {
     await expect(
       command(
         systems.ExternalSystem1,
-        commands.factory.CreateAccount1(),
+        commands.factory.CreateAccount1,
+        null,
         undefined,
         undefined,
         port

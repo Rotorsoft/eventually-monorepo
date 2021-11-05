@@ -1,10 +1,10 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
+  MessageFactory,
   eventHandlerPath,
   Evt,
   log,
-  Msg,
   Payload,
   PolicyFactory,
   ProcessManagerFactory
@@ -26,13 +26,13 @@ const pubsub = new PubSub(
 const orderingKey = "id";
 const topics: { [name: string]: GcpTopic } = {};
 
-const topic = async (event: Msg): Promise<GcpTopic> => {
-  let topic = topics[event.name];
+const topic = async (name: string): Promise<GcpTopic> => {
+  let topic = topics[name];
   if (!topic) {
-    topic = new GcpTopic(pubsub, event.name);
+    topic = new GcpTopic(pubsub, name);
     const [exists] = await topic.exists();
     if (!exists) await topic.create();
-    topics[event.name] = topic;
+    topics[name] = topic;
   }
   return topic;
 };
@@ -40,14 +40,12 @@ const topic = async (event: Msg): Promise<GcpTopic> => {
 export const PubSubBroker = (): Broker => {
   return {
     subscribe: async (
-      factory:
-        | PolicyFactory<unknown, unknown>
-        | ProcessManagerFactory<Payload, unknown, unknown>,
-      event: Msg
+      factory: PolicyFactory<unknown> | ProcessManagerFactory<Payload, unknown>,
+      event: MessageFactory
     ): Promise<void> => {
-      if (event.scope() === "public") {
+      if (event().scope() === "public") {
         const url = `${config.host}${eventHandlerPath(factory, event)}`;
-        const sub = (await topic(event)).subscription(
+        const sub = (await topic(event.name)).subscription(
           factory.name.concat(".", event.name)
         );
         const [exists] = await sub.exists();
@@ -64,7 +62,7 @@ export const PubSubBroker = (): Broker => {
     publish: async (event: Evt): Promise<string> => {
       let t: GcpTopic;
       try {
-        t = await topic(event);
+        t = await topic(event.name);
         const [messageId] = await t.publishMessage({
           data: Buffer.from(JSON.stringify(event)),
           orderingKey

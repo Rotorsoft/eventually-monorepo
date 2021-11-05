@@ -148,10 +148,10 @@ const getComponents = (
 
   // public commands and aggregate models are components
   Object.values(handlers.commands)
-    .filter(({ command }) => command.scope() === "public")
+    .filter(({ command }) => command().scope() === "public")
     .map(({ factory, command }) => {
-      if (command.schema) {
-        const { swagger } = j2s(command.schema(), components);
+      if (command().schema) {
+        const { swagger } = j2s(command().schema(), components);
         components.schemas[command.name] = swagger;
       }
       getReducibleComponent(components, factory);
@@ -194,7 +194,7 @@ const getReducibleGetters = (
   const path = reduciblePath(
     factory as
       | AggregateFactory<Payload, unknown, unknown>
-      | ProcessManagerFactory<Payload, unknown, unknown>
+      | ProcessManagerFactory<Payload, unknown>
   ).replace("/:id", "/{id}");
   if (paths[path]) return;
   // GET reducible
@@ -278,7 +278,7 @@ const getPaths = (
   };
 
   Object.values(handlers.commands)
-    .filter(({ command }) => command.scope() === "public")
+    .filter(({ command }) => command().scope() === "public")
     .map(({ factory, command, path }) => {
       getReducibleGetters(paths, factory);
       // POST command
@@ -333,7 +333,7 @@ const getPaths = (
     });
 
   Object.values(handlers.events)
-    .filter(({ event }) => event.scope() === "public")
+    .filter(({ event }) => event().scope() === "public")
     .map(({ factory, event, path }) => {
       getReducibleGetters(paths, factory);
       // POST event

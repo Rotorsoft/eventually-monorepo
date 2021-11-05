@@ -1,14 +1,12 @@
 import {
   AggregateFactory,
   AllQuery,
+  MessageFactory,
   commandHandlerPath,
   CommandResponse,
   eventHandlerPath,
   Evt,
-  EvtOf,
   ExternalSystemFactory,
-  Msg,
-  MsgOf,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
@@ -25,14 +23,15 @@ export const get = (path: string, port?: number): Promise<AxiosResponse<any>> =>
 
 export const command = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
-  msg: MsgOf<C>,
+  command: MessageFactory,
+  payload?: Payload,
   id?: string,
   expectedVersion?: number,
   port?: number
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
-    url(commandHandlerPath(factory, msg).replace(":id", id), port),
-    msg.data || {},
+    url(commandHandlerPath(factory, command).replace(":id", id), port),
+    payload || {},
     {
       headers: expectedVersion ? { "If-Match": expectedVersion.toString() } : {}
     }
@@ -40,20 +39,21 @@ export const command = async <M extends Payload, C, E>(
   return data;
 };
 
-export const event = async <M extends Payload, C, E>(
-  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-  event: EvtOf<E>,
+export const event = async <M extends Payload, E>(
+  factory: PolicyFactory<E> | ProcessManagerFactory<M, E>,
+  event: MessageFactory,
+  payload?: Payload,
   port?: number
-): Promise<CommandResponse<C> | undefined> => {
+): Promise<CommandResponse | undefined> => {
   const { data } = await axios.post<
-    EvtOf<E>,
-    AxiosResponse<CommandResponse<C> | undefined>
-  >(url(eventHandlerPath(factory, event as unknown as Msg), port), event);
+    Payload,
+    AxiosResponse<CommandResponse | undefined>
+  >(url(eventHandlerPath(factory, event), port), payload);
   return data;
 };
 
 export const load = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
+  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, E>,
   id: string,
   port?: number
 ): Promise<Snapshot<M>> => {
@@ -64,7 +64,7 @@ export const load = async <M extends Payload, C, E>(
 };
 
 export const stream = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
+  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, E>,
   id: string,
   options: {
     port?: number;

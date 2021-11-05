@@ -60,7 +60,7 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildGetter<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
+    factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, E>,
     callback: Getter,
     path: string,
     overrideId = false
@@ -109,7 +109,7 @@ export class ExpressApp extends AppBase {
             unknown,
             unknown
           >;
-        return command.scope() === "public";
+        return command().scope() === "public";
       })
       .map(({ type, factory, command, path }) => {
         this._router.post(
@@ -120,15 +120,16 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
-              if (command.schema) {
-                const { error } = command
+              if (command().schema) {
+                const { error } = command()
                   .schema()
                   .validate(req.body, { abortEarly: false });
                 if (error) throw new ValidationError(error);
               }
               const snapshots = await this.command(
                 factory(req.params.id),
-                { ...command, data: req.body },
+                command,
+                req.body,
                 type === "aggregate" ? +req.headers["if-match"] : undefined
               );
               res.setHeader(
@@ -159,17 +160,16 @@ export class ExpressApp extends AppBase {
   private _buildEventHandlers(): void {
     const managers: Record<
       string,
-      ProcessManagerFactory<Payload, unknown, unknown>
+      ProcessManagerFactory<Payload, unknown>
     > = {};
     Object.values(this._handlers.events)
       .filter(({ type, factory, event }) => {
         if (type === "process-manager")
           managers[factory.name] = factory as ProcessManagerFactory<
             Payload,
-            unknown,
             unknown
           >;
-        return event.scope() === "public";
+        return event().scope() === "public";
       })
       .map(({ factory, event, path }) => {
         this._router.post(
@@ -181,8 +181,8 @@ export class ExpressApp extends AppBase {
           ) => {
             try {
               const message = broker().decode(req.body);
-              if (event.schema) {
-                const { error } = event.schema().validate(message.data, {
+              if (event().schema) {
+                const { error } = event().schema().validate(message.data, {
                   abortEarly: false
                 });
                 if (error) throw new ValidationError(error);

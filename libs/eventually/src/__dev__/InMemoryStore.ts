@@ -1,5 +1,5 @@
 import { Store } from "../interfaces";
-import { AllQuery, Evt, Msg } from "../types";
+import { AllQuery, Evt, Message, Payload } from "../types";
 
 export const InMemoryStore = (): Store => {
   const _events: any[] = [];
@@ -34,7 +34,7 @@ export const InMemoryStore = (): Store => {
 
     commit: async (
       stream: string,
-      events: Msg[],
+      events: Message<string, Payload>[],
       expectedVersion?: number,
       callback?: (events: Evt[]) => Promise<void>
     ): Promise<Evt[]> => {
@@ -44,7 +44,7 @@ export const InMemoryStore = (): Store => {
 
       let version = aggregate.length;
       const committed = events.map((event) => {
-        const committed: Evt = {
+        const committed = {
           ...event,
           id: _events.length,
           stream,
@@ -54,7 +54,7 @@ export const InMemoryStore = (): Store => {
         _events.push(committed);
         version++;
         return committed;
-      });
+      }) as Evt[];
 
       if (callback) await callback(committed);
 
