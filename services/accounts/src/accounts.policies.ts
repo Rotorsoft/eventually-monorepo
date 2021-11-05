@@ -1,9 +1,4 @@
-import {
-  CommittedEvent,
-  Evt,
-  Policy,
-  ProcessManager
-} from "@rotorsoft/eventually";
+import { Evt, Policy, ProcessManager } from "@rotorsoft/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as models from "./accounts.models";
@@ -13,9 +8,7 @@ export const IntegrateAccount1 = (): Policy<
   commands.Commands,
   Pick<events.Events, "AccountCreated">
 > => ({
-  onAccountCreated: (
-    event: CommittedEvent<"AccountCreated", models.Account>
-  ) => {
+  onAccountCreated: (event) => {
     // we don't have much to do here, just return the command to external system 1
     return Promise.resolve({
       command: commands.factory.CreateAccount1,
@@ -28,9 +21,7 @@ export const IntegrateAccount2 = (): Policy<
   commands.Commands,
   Pick<events.Events, "AccountCreated">
 > => ({
-  onAccountCreated: (
-    event: CommittedEvent<"AccountCreated", models.Account>
-  ) => {
+  onAccountCreated: (event) => {
     // we don't have much to do here, just return the command to external system 2
     return Promise.resolve({
       command: commands.factory.CreateAccount2,
@@ -43,9 +34,7 @@ export const IntegrateAccount3 = (): Policy<
   commands.Commands,
   Pick<events.Events, "Account2Created">
 > => ({
-  onAccount2Created: (
-    event: CommittedEvent<"Account2Created", models.ExternalAccount>
-  ) => {
+  onAccount2Created: (event) => {
     // we don't have much to do here, just return the command to external system 3
     return Promise.resolve({
       command: commands.factory.CreateAccount3,
@@ -67,10 +56,7 @@ export const WaitForAllAndComplete = (
   schema: () => schemas.WaitForAllState,
   init: () => ({ id: (event.data as models.ExternalAccount).id }),
 
-  onAccount1Created: (
-    event: CommittedEvent<"Account1Created", models.ExternalAccount>,
-    data: models.WaitForAllState
-  ) => {
+  onAccount1Created: (event, data) => {
     // make sure all accounts are created
     if (data.account3)
       return Promise.resolve({
@@ -79,10 +65,7 @@ export const WaitForAllAndComplete = (
       });
   },
 
-  onAccount3Created: (
-    event: CommittedEvent<"Account3Created", models.ExternalAccount>,
-    data: models.WaitForAllState
-  ) => {
+  onAccount3Created: (event, data) => {
     // make sure all accounts are created
     if (data.account1)
       return Promise.resolve({

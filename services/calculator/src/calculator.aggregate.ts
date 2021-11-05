@@ -1,4 +1,4 @@
-import { Aggregate, Apply, CommittedEvent } from "@rotorsoft/eventually";
+import { Aggregate, Apply } from "@rotorsoft/eventually";
 import { PostgresSnapshotStore } from "@rotorsoft/eventually-pg";
 import { Commands } from "./calculator.commands";
 import { Events, events } from "./calculator.events";
@@ -6,7 +6,6 @@ import {
   CalculatorModel,
   DIGITS,
   Digits,
-  Keys,
   Operators,
   SYMBOLS
 } from "./calculator.models";
@@ -46,10 +45,7 @@ export const Calculator = (
     result: 0
   }),
 
-  applyDigitPressed: (
-    model: CalculatorModel,
-    event: CommittedEvent<"DigitPressed", { digit: Digits }>
-  ) => {
+  applyDigitPressed: (model, event) => {
     if (model.operator) {
       const right = (model.right || "").concat(event.data.digit);
       return { ...model, right };
@@ -58,10 +54,7 @@ export const Calculator = (
     return { ...model, left };
   },
 
-  applyOperatorPressed: (
-    model: CalculatorModel,
-    event: CommittedEvent<"OperatorPressed", { operator: Operators }>
-  ) => {
+  applyOperatorPressed: (model, event) => {
     if (model.left) {
       const newmodel = compute(model);
       return { ...newmodel, operator: event.data.operator };
@@ -69,7 +62,7 @@ export const Calculator = (
     return { ...model };
   },
 
-  applyDotPressed: (model: CalculatorModel) => {
+  applyDotPressed: (model) => {
     if (model.operator) {
       const right = (model.right || "").concat(".");
       return { ...model, right };
@@ -78,13 +71,13 @@ export const Calculator = (
     return { ...model, left };
   },
 
-  applyEqualsPressed: (model: CalculatorModel) => compute(model),
+  applyEqualsPressed: (model) => compute(model),
 
   applyCleared: () => ({
     result: 0
   }),
 
-  onPressKey: async (data: { key: Keys }, state: CalculatorModel) => {
+  onPressKey: async (data, state) => {
     if (data.key === SYMBOLS[0]) {
       return Promise.resolve([Apply(events.DotPressed)]);
     }

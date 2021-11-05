@@ -37,24 +37,6 @@ const getSecurity = (): Security => {
   }
 };
 
-const getCommittedSchema = (name?: string): any => {
-  const { swagger } = j2s(
-    joi.object({
-      name: joi.string().required(),
-      id: joi.number().integer().required(),
-      stream: joi.string().required(),
-      version: joi.number().integer().required(),
-      created: joi.date().required(),
-      data: joi.object()
-    })
-  );
-  if (name) {
-    swagger.properties.name.enum = [name];
-    swagger.properties.data.$ref = `#/components/schemas/${name}`;
-  }
-  return swagger;
-};
-
 const getComponents = (
   factories: Factories,
   handlers: Handlers,
@@ -136,13 +118,19 @@ const getComponents = (
     }
   };
 
-  // all events are components of snapshots
+  // all events are in committed shape
   Object.values(factories.events).map((ef) => {
-    const event = ef();
-    if (event.schema) {
-      const { swagger } = j2s(event.schema, components);
-      components.schemas[ef.name] = swagger;
-    }
+    const { swagger } = j2s(
+      joi.object({
+        name: joi.string().required().valid(ef.name),
+        id: joi.number().integer().required(),
+        stream: joi.string().required(),
+        version: joi.number().integer().required(),
+        created: joi.date().required()
+      })
+    );
+    if (ef().schema) swagger.properties.data = j2s(ef().schema).swagger;
+    components.schemas[ef.name] = swagger;
   });
 
   // public commands and aggregate models are components
@@ -152,6 +140,8 @@ const getComponents = (
       if (command().schema) {
         const { swagger } = j2s(command().schema, components);
         components.schemas[command.name] = swagger;
+      } else {
+        components.schemas[command.name] = { type: "object" };
       }
       getReducibleComponent(components, factory);
     });
@@ -178,7 +168,9 @@ const getReducibleComponent = (
     type: "object",
     properties: {
       event: {
-        oneOf: eventsOf(reducible).map((name) => getCommittedSchema(name))
+        oneOf: eventsOf(reducible).map((name) => ({
+          $ref: `#/components/schemas/${name}`
+        }))
       },
       state: { $ref: `#/components/schemas/${factory.name}` }
     }
@@ -260,7 +252,16 @@ const getPaths = (
               "application/json": {
                 schema: {
                   type: "array",
-                  items: getCommittedSchema()
+                  items: j2s(
+                    joi.object({
+                      name: joi.string().required(),
+                      id: joi.number().integer().required(),
+                      stream: joi.string().required(),
+                      version: joi.number().integer().required(),
+                      created: joi.date().required(),
+                      data: joi.object()
+                    })
+                  ).swagger
                 }
               }
             }
@@ -340,7 +341,7 @@ const getPaths = (
             required: true,
             content: {
               "application/json": {
-                schema: getCommittedSchema(event.name)
+                schema: { $ref: `#/components/schemas/${event.name}` }
               }
             }
           },

@@ -16,8 +16,7 @@ POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
 {
-  "name": "PressKey",
-  "data": { "key": "1" }
+  "key": "1"
 }
 
 ###
@@ -25,20 +24,14 @@ Content-Type: application/json
 POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
-{
-  "name": "PressKey",
-  "data": { "key": "+" }
-}
+{ "key": "+" }
 
 ###
 
 POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
-{
-  "name": "PressKey",
-  "data": { "key" : "=" }
-}
+{ "key" : "=" }
 
 ### 
 POST {{host}}/counter/digit-pressed

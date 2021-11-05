@@ -1,7 +1,6 @@
 import {
   app,
   CommandResponse,
-  CommittedEvent,
   Evt,
   Policy,
   ProcessManager
@@ -9,7 +8,7 @@ import {
 import { Calculator } from "./calculator.aggregate";
 import { Commands, commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
-import { CounterState, Digits } from "./calculator.models";
+import { CounterState } from "./calculator.models";
 import * as schemas from "./calculator.schemas";
 
 const policy = async (
@@ -50,43 +49,20 @@ export const Counter = (
     threshold: 2
   },
 
-  onDigitPressed: async (
-    event: CommittedEvent<"DigitPressed", { digit: Digits }>,
-    state: CounterState
-  ) => policy(state, event, 5),
-
-  onDotPressed: async (
-    event: CommittedEvent<"DotPressed", undefined>,
-    state: CounterState
-  ) => policy(state, event, 5),
-
+  onDigitPressed: (event, state) => policy(state, event, 5),
+  onDotPressed: (event, state) => policy(state, event, 5),
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined,
 
-  applyDigitPressed: (model: CounterState) => {
-    return { count: model.count + 1 };
-  },
-  applyDotPressed: (model: CounterState) => {
-    return { count: model.count + 1 };
-  },
-
-  applyEqualsPressed: () => {
-    return { count: 0 };
-  },
-
-  applyOperatorPressed: () => {
-    return { count: 0 };
-  }
+  applyDigitPressed: (model) => ({ count: model.count + 1 }),
+  applyDotPressed: (model) => ({ count: model.count + 1 }),
+  applyEqualsPressed: () => ({ count: 0 }),
+  applyOperatorPressed: () => ({ count: 0 })
 });
 
 export const StatelessCounter = (): Policy<Commands, CounterEvents> => ({
-  onDigitPressed: async (
-    event: CommittedEvent<"DigitPressed", { digit: Digits }>
-  ) => policy(undefined, event, 5),
-
-  onDotPressed: async (event: CommittedEvent<"DotPressed", undefined>) =>
-    policy(undefined, event, 5),
-
+  onDigitPressed: (event) => policy(undefined, event, 5),
+  onDotPressed: (event) => policy(undefined, event, 5),
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined
 });
