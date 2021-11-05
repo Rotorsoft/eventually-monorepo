@@ -1,6 +1,6 @@
 import {
   CommittedEvent,
-  EvtOf,
+  Evt,
   Policy,
   ProcessManager
 } from "@rotorsoft/eventually";
@@ -10,6 +10,7 @@ import * as models from "./accounts.models";
 import * as schemas from "./accounts.schemas";
 
 export const IntegrateAccount1 = (): Policy<
+  commands.Commands,
   Pick<events.Events, "AccountCreated">
 > => ({
   onAccountCreated: (
@@ -24,6 +25,7 @@ export const IntegrateAccount1 = (): Policy<
 });
 
 export const IntegrateAccount2 = (): Policy<
+  commands.Commands,
   Pick<events.Events, "AccountCreated">
 > => ({
   onAccountCreated: (
@@ -38,6 +40,7 @@ export const IntegrateAccount2 = (): Policy<
 });
 
 export const IntegrateAccount3 = (): Policy<
+  commands.Commands,
   Pick<events.Events, "Account2Created">
 > => ({
   onAccount2Created: (
@@ -52,9 +55,10 @@ export const IntegrateAccount3 = (): Policy<
 });
 
 export const WaitForAllAndComplete = (
-  event: EvtOf<Pick<events.Events, "Account1Created" | "Account3Created">>
+  event: Evt
 ): ProcessManager<
   models.WaitForAllState,
+  commands.Commands,
   Pick<events.Events, "Account1Created" | "Account3Created">
 > => ({
   stream: () =>

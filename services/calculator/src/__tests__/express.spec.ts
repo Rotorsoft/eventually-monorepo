@@ -1,4 +1,4 @@
-import { app, EvtOf } from "@rotorsoft/eventually";
+import { app } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import {
   command,
@@ -12,7 +12,7 @@ import {
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
-import { Events, events } from "../calculator.events";
+import { events } from "../calculator.events";
 import { StatelessCounter } from "../counter.policy";
 
 const chance = new Chance();

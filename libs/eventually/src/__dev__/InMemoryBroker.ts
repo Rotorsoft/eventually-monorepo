@@ -1,11 +1,11 @@
 import {
   app,
   Broker,
-  MessageFactory,
+  CommittedEvent,
+  EventHandlerFactory,
   Evt,
   Payload,
-  PolicyFactory,
-  ProcessManagerFactory
+  PolicyFactory
 } from "..";
 import { Subscriptions } from "../builder";
 
@@ -13,20 +13,20 @@ export const InMemoryBroker = (): Broker => {
   const _subscriptions: Subscriptions = {};
 
   return {
-    subscribe: (
-      factory: PolicyFactory<unknown> | ProcessManagerFactory<Payload, unknown>,
-      event: MessageFactory
-    ): Promise<void> => {
-      const sub = (_subscriptions[event.name] =
-        _subscriptions[event.name] || []);
+    subscribe: (factory: EventHandlerFactory, name: string): Promise<void> => {
+      const sub = (_subscriptions[name] = _subscriptions[name] || []);
       sub.push(factory);
       return Promise.resolve();
     },
 
-    publish: (event: Evt): Promise<string> => {
+    publish: <C, E>(
+      event: CommittedEvent<keyof E & string, Payload>
+    ): Promise<string> => {
       const sub = _subscriptions[event.name];
       if (sub) {
-        sub.map((f) => setTimeout(() => app().event(f, event), 10));
+        sub.map((f: PolicyFactory<C, E>) =>
+          setTimeout(() => app().event(f, event), 10)
+        );
         return Promise.resolve(event.name);
       }
     },

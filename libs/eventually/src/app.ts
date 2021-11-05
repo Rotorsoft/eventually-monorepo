@@ -1,3 +1,4 @@
+import { CommittedEvent, Scopes } from ".";
 import { Builder } from "./builder";
 import { Broker, Store } from "./interfaces";
 import { log } from "./log";
@@ -5,13 +6,11 @@ import { singleton } from "./singleton";
 import {
   Aggregate,
   AllQuery,
-  MessageFactory,
   CommandResponse,
   Evt,
-  EvtOf,
   ExternalSystem,
   Getter,
-  Message,
+  MessageFactory,
   MessageHandler,
   Payload,
   PolicyFactory,
@@ -47,13 +46,17 @@ export abstract class AppBase extends Builder implements Reader {
    * - Public events are delegated to the broker to be published
    * @param events the events about to commit
    */
-  private async _publish(events: Evt[]): Promise<void> {
+  private async _publish<C, E>(
+    events: CommittedEvent<keyof E & string, Payload>[]
+  ): Promise<void> {
     // private subscriptions are invoked synchronously (in-process)
     await Promise.all(
       events.map((e) => {
         const private_sub = this._private_subscriptions[e.name];
         if (private_sub)
-          return Promise.all(private_sub.map((f) => this.event(f, e)));
+          return Promise.all(
+            private_sub.map((f: PolicyFactory<C, E>) => this.event(f, e))
+          );
       })
     );
     // public subscriptions are delegated to the broker
@@ -70,7 +73,7 @@ export abstract class AppBase extends Builder implements Reader {
    */
   private async _handle<M extends Payload, C, E>(
     handler: MessageHandler<M, C, E>,
-    callback: (state: M) => Promise<Message<keyof E & string, Payload>[]>,
+    callback: (state: M) => Promise<{ name: string; data?: Payload }[]>,
     expectedVersion?: number,
     publishCallback?: (events: Evt[]) => Promise<void>
   ): Promise<Snapshot<M>[]> {
@@ -123,10 +126,10 @@ export abstract class AppBase extends Builder implements Reader {
     await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
       Object.values(this._handlers.events)
-        .filter(({ event }) => event().scope() === "public")
+        .filter(({ event }) => event().scope === Scopes.public)
         .map(({ factory, event }) => {
           return broker()
-            .subscribe(factory, event)
+            .subscribe(factory, event.name)
             .then(() =>
               this.log.info("red", `${factory.name} <<< ${event.name}`)
             );
@@ -154,7 +157,7 @@ export abstract class AppBase extends Builder implements Reader {
    */
   async command<M extends Payload, C, E>(
     handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
-    command: MessageFactory,
+    command: MessageFactory<keyof C & string, Payload>,
     data?: Payload,
     expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
@@ -179,26 +182,31 @@ export abstract class AppBase extends Builder implements Reader {
    * @param event the triggering event
    * @returns command response and optional state
    */
-  async event<E, M extends Payload>(
-    factory: PolicyFactory<E> | ProcessManagerFactory<M, E>,
-    event: EvtOf<E>
-  ): Promise<{ response: CommandResponse | undefined; state?: M }> {
+  async event<M extends Payload, C, E>(
+    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
+    event: CommittedEvent<keyof E & string, Payload>
+  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${factory.name}`,
       event.data
     );
     const handler = factory(event);
-    let response: CommandResponse | undefined;
+    let response: CommandResponse<C> | undefined;
     const [{ state }] = await this._handle(handler, async (state: M) => {
       response = await (handler as any)["on".concat(event.name)](event, state);
       if (response) {
         // handle commands synchronously
         const { id, command, data, expectedVersion } = response;
         const { factory } = this._handlers.commands[command.name];
-        await this.command(factory(id), command, data, expectedVersion);
+        await this.command(
+          factory(id) as Aggregate<M, C, E>,
+          command,
+          data,
+          expectedVersion
+        );
       }
-      return [event as Evt];
+      return [event];
     });
     return { response, state };
   }

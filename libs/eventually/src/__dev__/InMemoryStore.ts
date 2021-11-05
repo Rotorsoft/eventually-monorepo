@@ -1,5 +1,5 @@
 import { Store } from "../interfaces";
-import { AllQuery, Evt, Message, Payload } from "../types";
+import { AllQuery, Evt, Payload } from "../types";
 
 export const InMemoryStore = (): Store => {
   const _events: any[] = [];
@@ -34,7 +34,7 @@ export const InMemoryStore = (): Store => {
 
     commit: async (
       stream: string,
-      events: Message<string, Payload>[],
+      events: { name: string; data?: Payload }[],
       expectedVersion?: number,
       callback?: (events: Evt[]) => Promise<void>
     ): Promise<Evt[]> => {
@@ -43,13 +43,14 @@ export const InMemoryStore = (): Store => {
         throw Error("Concurrency Error");
 
       let version = aggregate.length;
-      const committed = events.map((event) => {
+      const committed = events.map(({ name, data }) => {
         const committed = {
-          ...event,
           id: _events.length,
           stream,
           version,
-          created: new Date()
+          created: new Date(),
+          name,
+          data
         };
         _events.push(committed);
         version++;

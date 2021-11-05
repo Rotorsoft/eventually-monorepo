@@ -1,9 +1,8 @@
 import * as joi from "joi";
+import { UncommittedEvent } from ".";
 import {
   AggregateFactory,
-  MessageFactory,
   ExternalSystemFactory,
-  Message,
   MessageHandler,
   Payload,
   PolicyFactory,
@@ -68,35 +67,35 @@ export const getStreamable = <M extends Payload, C, E>(
  * @returns the reducible path
  */
 export const reduciblePath = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, E>
+  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>
 ): string => "/".concat(decamelize(factory.name), "/:id");
 
 /**
  * Normalizes command handler paths
  * @param factory command handler factory
- * @param command command
+ * @param name command name
  * @returns normalized path
  */
 export const commandHandlerPath = <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
-  command: MessageFactory
+  name: string
 ): string =>
   "/".concat(
     decamelize(factory.name),
     getReducible(factory(undefined)) ? "/:id/" : "/",
-    decamelize(command.name)
+    decamelize(name)
   );
 
 /**
  * Normalizes event handler paths
  * @param factory event handler factory
- * @param event event
+ * @param name event name
  * @returns normalized path
  */
-export const eventHandlerPath = <M extends Payload, E>(
-  factory: PolicyFactory<E> | ProcessManagerFactory<M, E>,
-  event: MessageFactory
-): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
+export const eventHandlerPath = <M extends Payload, C, E>(
+  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
+  name: string
+): string => "/".concat(decamelize(factory.name), "/", decamelize(name));
 
 export enum Errors {
   ValidationError = "Validation Error",
@@ -114,7 +113,7 @@ export class ValidationError extends Error {
 export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,
-    public readonly events: Message<string, Payload>[],
+    public readonly events: UncommittedEvent<string, Payload>[],
     public readonly expectedVersion: number
   ) {
     super(Errors.ConcurrencyError);

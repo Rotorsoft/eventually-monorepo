@@ -1,4 +1,4 @@
-import { app, store } from "@rotorsoft/eventually";
+import { app, Scopes, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { command } from "@rotorsoft/eventually-test";
@@ -77,6 +77,6 @@ describe("express", () => {
 
   it("should cover IntegrationCompleted", () => {
     const event = events.factory.IntegrationCompleted();
-    expect(event.scope()).toBe("public");
+    expect(event.scope).toBe(Scopes.public);
   });
 });

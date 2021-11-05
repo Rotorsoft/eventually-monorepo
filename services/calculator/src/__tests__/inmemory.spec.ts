@@ -1,11 +1,10 @@
-import { app, Errors, EvtOf, log } from "@rotorsoft/eventually";
+import { app, Apply, Errors, log } from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
-import * as schemas from "../calculator.schemas";
-import { Counter, CounterEvents } from "../counter.policy";
+import { Counter } from "../counter.policy";
 
 const chance = new Chance();
 
@@ -192,7 +191,7 @@ describe("in memory app", () => {
       const { event, state } = await app().load(test7);
       expect(state).toEqual(expect.objectContaining({ result: 0 }));
 
-      const stream = await app().stream(Counter(event as EvtOf<CounterEvents>));
+      const stream = await app().stream(Counter(event));
       expect(stream.length).toBe(5);
     });
 
@@ -203,7 +202,7 @@ describe("in memory app", () => {
         stream: test8.stream(),
         version: 0,
         created: new Date(),
-        ...events.DigitPressed({ digit: "0" })
+        ...Apply(events.DigitPressed, { digit: "0" })
       });
       const { state } = await app().load(test8);
       expect(state).toEqual({ result: 0 });
@@ -212,13 +211,13 @@ describe("in memory app", () => {
 
   it("should cover whatever command", () => {
     const cmd = commands.Whatever();
-    expect(cmd.scope()).toBe("private");
+    expect(cmd.scope).toBeUndefined();
   });
 
   it("should cover event scopes", () => {
     Object.values(events).map((f) => {
       const e = f();
-      expect(e.scope()).toEqual(e.scope());
+      expect(e.scope).toEqual(e.scope);
     });
   });
 

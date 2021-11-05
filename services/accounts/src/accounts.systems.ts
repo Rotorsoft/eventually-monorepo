@@ -1,4 +1,4 @@
-import { ExternalSystem } from "@rotorsoft/eventually";
+import { Apply, ExternalSystem } from "@rotorsoft/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as models from "./accounts.models";
@@ -13,7 +13,7 @@ export const ExternalSystem1 = (): ExternalSystem<
     // here we create the external account 1
     const externalId = uuid.v4();
     return Promise.resolve([
-      events.factory.Account1Created({ ...data, externalId })
+      Apply(events.factory.Account1Created, { ...data, externalId })
     ]);
   }
 });
@@ -27,7 +27,7 @@ export const ExternalSystem2 = (): ExternalSystem<
     // here we create the external account 2
     const externalId = uuid.v4();
     return Promise.resolve([
-      events.factory.Account2Created({ ...data, externalId })
+      Apply(events.factory.Account2Created, { ...data, externalId })
     ]);
   }
 });
@@ -41,7 +41,7 @@ export const ExternalSystem3 = (): ExternalSystem<
     // here we create the external account 3
     const externalId = uuid.v4();
     return Promise.resolve([
-      events.factory.Account3Created({ ...data, externalId })
+      Apply(events.factory.Account3Created, { ...data, externalId })
     ]);
   }
 });
@@ -53,6 +53,6 @@ export const ExternalSystem4 = (): ExternalSystem<
   stream: () => "ExternalSystem4",
   onCompleteIntegration: (data: models.WaitForAllState) => {
     // here we could send and email
-    return Promise.resolve([events.factory.IntegrationCompleted(data)]);
+    return Promise.resolve([Apply(events.factory.IntegrationCompleted, data)]);
   }
 });

@@ -2,22 +2,21 @@ import {
   app,
   CommandResponse,
   CommittedEvent,
-  EvtOf,
-  Payload,
+  Evt,
   Policy,
   ProcessManager
 } from "@rotorsoft/eventually";
 import { Calculator } from "./calculator.aggregate";
-import { commands } from "./calculator.commands";
+import { Commands, commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import { CounterState, Digits } from "./calculator.models";
 import * as schemas from "./calculator.schemas";
 
 const policy = async (
   counter: CounterState,
-  event: EvtOf<CounterEvents>,
+  event: Evt,
   threshold: number
-): Promise<CommandResponse> => {
+): Promise<CommandResponse<Commands>> => {
   if (counter) {
     if (counter.count >= threshold - 1)
       return {
@@ -42,8 +41,8 @@ const policy = async (
 export type CounterEvents = Omit<Events, "Cleared">;
 
 export const Counter = (
-  event: EvtOf<Events>
-): ProcessManager<CounterState, CounterEvents> => ({
+  event: Evt
+): ProcessManager<CounterState, Commands, CounterEvents> => ({
   stream: () => `Counter${event.stream}`,
   schema: () => schemas.CounterState,
   init: (): CounterState => ({ count: 0 }),
@@ -80,7 +79,7 @@ export const Counter = (
   }
 });
 
-export const StatelessCounter = (): Policy<CounterEvents> => ({
+export const StatelessCounter = (): Policy<Commands, CounterEvents> => ({
   onDigitPressed: async (
     event: CommittedEvent<"DigitPressed", { digit: Digits }>
   ) => policy(undefined, event, 5),

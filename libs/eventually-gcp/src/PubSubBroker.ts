@@ -1,13 +1,11 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
-  MessageFactory,
   eventHandlerPath,
   Evt,
   log,
   Payload,
-  PolicyFactory,
-  ProcessManagerFactory
+  EventHandlerFactory
 } from "@rotorsoft/eventually";
 import { config } from "./config";
 
@@ -40,23 +38,21 @@ const topic = async (name: string): Promise<GcpTopic> => {
 export const PubSubBroker = (): Broker => {
   return {
     subscribe: async (
-      factory: PolicyFactory<unknown> | ProcessManagerFactory<Payload, unknown>,
-      event: MessageFactory
+      factory: EventHandlerFactory,
+      name: string
     ): Promise<void> => {
-      if (event().scope() === "public") {
-        const url = `${config.host}${eventHandlerPath(factory, event)}`;
-        const sub = (await topic(event.name)).subscription(
-          factory.name.concat(".", event.name)
-        );
-        const [exists] = await sub.exists();
-        if (!exists)
-          await sub.create({
-            pushEndpoint: url,
-            enableMessageOrdering: true
-          });
-        else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
-          await sub.modifyPushConfig({ pushEndpoint: url });
-      }
+      const url = `${config.host}${eventHandlerPath(factory, name)}`;
+      const sub = (await topic(name)).subscription(
+        factory.name.concat(".", name)
+      );
+      const [exists] = await sub.exists();
+      if (!exists)
+        await sub.create({
+          pushEndpoint: url,
+          enableMessageOrdering: true
+        });
+      else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
+        await sub.modifyPushConfig({ pushEndpoint: url });
     },
 
     publish: async (event: Evt): Promise<string> => {

@@ -1,5 +1,4 @@
 import {
-  AggregateFactory,
   config,
   eventsOf,
   Factories,
@@ -7,8 +6,8 @@ import {
   Handlers,
   MessageHandlerFactory,
   Payload,
-  ProcessManagerFactory,
-  reduciblePath
+  reduciblePath,
+  Scopes
 } from "@rotorsoft/eventually";
 import * as fs from "fs";
 import * as joi from "joi";
@@ -141,17 +140,17 @@ const getComponents = (
   Object.values(factories.events).map((ef) => {
     const event = ef();
     if (event.schema) {
-      const { swagger } = j2s(event.schema(), components);
-      components.schemas[event.name] = swagger;
+      const { swagger } = j2s(event.schema, components);
+      components.schemas[ef.name] = swagger;
     }
   });
 
   // public commands and aggregate models are components
   Object.values(handlers.commands)
-    .filter(({ command }) => command().scope() === "public")
+    .filter(({ command }) => command().scope === Scopes.public)
     .map(({ factory, command }) => {
       if (command().schema) {
-        const { swagger } = j2s(command().schema(), components);
+        const { swagger } = j2s(command().schema, components);
         components.schemas[command.name] = swagger;
       }
       getReducibleComponent(components, factory);
@@ -191,11 +190,7 @@ const getReducibleGetters = (
   factory: MessageHandlerFactory<Payload, unknown, unknown>
 ): void => {
   if (!getReducible(factory(null))) return;
-  const path = reduciblePath(
-    factory as
-      | AggregateFactory<Payload, unknown, unknown>
-      | ProcessManagerFactory<Payload, unknown>
-  ).replace("/:id", "/{id}");
+  const path = reduciblePath(factory as any).replace("/:id", "/{id}");
   if (paths[path]) return;
   // GET reducible
   paths[path] = {
@@ -278,7 +273,7 @@ const getPaths = (
   };
 
   Object.values(handlers.commands)
-    .filter(({ command }) => command().scope() === "public")
+    .filter(({ command }) => command().scope === Scopes.public)
     .map(({ factory, command, path }) => {
       getReducibleGetters(paths, factory);
       // POST command
@@ -333,7 +328,7 @@ const getPaths = (
     });
 
   Object.values(handlers.events)
-    .filter(({ event }) => event().scope() === "public")
+    .filter(({ event }) => event().scope === Scopes.public)
     .map(({ factory, event, path }) => {
       getReducibleGetters(paths, factory);
       // POST event

@@ -4,18 +4,21 @@ import {
   Aggregate,
   MessageFactory,
   CommandResponse,
-  EvtOf,
   ExternalSystem,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
-  Snapshot
+  Snapshot,
+  CommittedEvent
 } from "../types";
 import { ValidationError } from "../utils";
 
-const validate = (data: Payload, msg: MessageFactory): void => {
+const validate = (
+  data: Payload,
+  msg: MessageFactory<string, Payload>
+): void => {
   if (msg().schema) {
-    const { error } = msg().schema().validate(data, { abortEarly: false });
+    const { error } = msg().schema.validate(data, { abortEarly: false });
     if (error) throw new ValidationError(error);
   }
 };
@@ -28,7 +31,7 @@ export class InMemoryApp extends AppBase {
 
   async command<M extends Payload, C, E>(
     handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
-    command: MessageFactory,
+    command: MessageFactory<keyof C & string, Payload>,
     data?: Payload,
     expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
@@ -46,10 +49,10 @@ export class InMemoryApp extends AppBase {
     return snapshots;
   }
 
-  async event<E, M extends Payload>(
-    factory: PolicyFactory<E> | ProcessManagerFactory<M, E>,
-    event: EvtOf<E>
-  ): Promise<{ response: CommandResponse | undefined; state?: M }> {
+  async event<M extends Payload, C, E>(
+    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
+    event: CommittedEvent<keyof E & string, Payload>
+  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
     validate(event.data, this._factories.events[event.name]);
     return super.event(factory, event);
   }

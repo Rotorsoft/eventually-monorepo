@@ -23,14 +23,14 @@ export const get = (path: string, port?: number): Promise<AxiosResponse<any>> =>
 
 export const command = async <M extends Payload, C, E>(
   factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
-  command: MessageFactory,
+  command: MessageFactory<string, Payload>,
   payload?: Payload,
   id?: string,
   expectedVersion?: number,
   port?: number
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
-    url(commandHandlerPath(factory, command).replace(":id", id), port),
+    url(commandHandlerPath(factory, command.name).replace(":id", id), port),
     payload || {},
     {
       headers: expectedVersion ? { "If-Match": expectedVersion.toString() } : {}
@@ -39,21 +39,21 @@ export const command = async <M extends Payload, C, E>(
   return data;
 };
 
-export const event = async <M extends Payload, E>(
-  factory: PolicyFactory<E> | ProcessManagerFactory<M, E>,
-  event: MessageFactory,
+export const event = async <M extends Payload, C, E>(
+  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
+  event: MessageFactory<string, Payload>,
   payload?: Payload,
   port?: number
-): Promise<CommandResponse | undefined> => {
+): Promise<CommandResponse<C> | undefined> => {
   const { data } = await axios.post<
     Payload,
-    AxiosResponse<CommandResponse | undefined>
-  >(url(eventHandlerPath(factory, event), port), payload);
+    AxiosResponse<CommandResponse<C> | undefined>
+  >(url(eventHandlerPath(factory, event.name), port), payload);
   return data;
 };
 
 export const load = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, E>,
+  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
   id: string,
   port?: number
 ): Promise<Snapshot<M>> => {
@@ -64,7 +64,7 @@ export const load = async <M extends Payload, C, E>(
 };
 
 export const stream = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, E>,
+  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
   id: string,
   options: {
     port?: number;
