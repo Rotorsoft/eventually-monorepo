@@ -1,7 +1,8 @@
 import {
   app,
-  CommandResponse,
+  bind,
   Evt,
+  Message,
   Policy,
   ProcessManager
 } from "@rotorsoft/eventually";
@@ -15,14 +16,15 @@ const policy = async (
   counter: CounterState,
   event: Evt,
   threshold: number
-): Promise<CommandResponse<Commands>> => {
+): Promise<Message<keyof Commands, undefined>> => {
   if (counter) {
     if (counter.count >= threshold - 1)
-      return {
-        id: event.stream.substr("Calculator".length),
-        expectedVersion: event.version,
-        command: commands.Reset
-      };
+      return bind(
+        commands.Reset,
+        undefined,
+        event.stream.substr("Calculator".length),
+        event.version
+      );
   } else {
     const id = event.stream.substr("Calculator".length);
     const { state } = await app().load(Calculator(id));
@@ -30,10 +32,7 @@ const policy = async (
       (state.left || "").length >= threshold ||
       (state.right || "").length >= threshold
     )
-      return {
-        id,
-        command: commands.Reset
-      };
+      return bind(commands.Reset, undefined, id);
   }
 };
 

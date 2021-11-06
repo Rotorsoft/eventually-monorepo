@@ -1,12 +1,12 @@
 import {
   AggregateFactory,
   AllQuery,
-  MessageFactory,
   commandHandlerPath,
-  CommandResponse,
   eventHandlerPath,
   Evt,
   ExternalSystemFactory,
+  Message,
+  MessageFactory,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
@@ -44,10 +44,10 @@ export const event = async <M extends Payload, C, E>(
   event: MessageFactory<string, Payload>,
   payload?: Payload,
   port?: number
-): Promise<CommandResponse<C> | undefined> => {
+): Promise<Message<keyof C & string, Payload> | undefined> => {
   const { data } = await axios.post<
     Payload,
-    AxiosResponse<CommandResponse<C> | undefined>
+    AxiosResponse<Message<keyof C & string, Payload> | undefined>
   >(url(eventHandlerPath(factory, event.name), port), payload);
   return data;
 };

@@ -1,4 +1,4 @@
-import { app, Apply, Errors, log } from "@rotorsoft/eventually";
+import { app, Errors, log } from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
@@ -202,7 +202,8 @@ describe("in memory app", () => {
         stream: test8.stream(),
         version: 0,
         created: new Date(),
-        ...Apply(events.DigitPressed, { digit: "0" })
+        name: "DigitPressed",
+        data: { digit: "0" }
       });
       const { state } = await app().load(test8);
       expect(state).toEqual({ result: 0 });

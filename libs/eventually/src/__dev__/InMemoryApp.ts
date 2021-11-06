@@ -2,14 +2,14 @@ import { AppBase } from "../app";
 import { config } from "../config";
 import {
   Aggregate,
-  MessageFactory,
-  CommandResponse,
+  CommittedEvent,
   ExternalSystem,
+  Message,
+  MessageFactory,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
-  Snapshot,
-  CommittedEvent
+  Snapshot
 } from "../types";
 import { ValidationError } from "../utils";
 
@@ -52,7 +52,10 @@ export class InMemoryApp extends AppBase {
   async event<M extends Payload, C, E>(
     factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: CommittedEvent<keyof E & string, Payload>
-  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
+  ): Promise<{
+    response: Message<keyof C & string, Payload> | undefined;
+    state?: M;
+  }> {
     validate(event.data, this._factories.events[event.name]);
     return super.event(factory, event);
   }

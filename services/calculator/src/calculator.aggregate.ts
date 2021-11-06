@@ -1,4 +1,4 @@
-import { Aggregate, Apply } from "@rotorsoft/eventually";
+import { Aggregate, bind } from "@rotorsoft/eventually";
 import { PostgresSnapshotStore } from "@rotorsoft/eventually-pg";
 import { Commands } from "./calculator.commands";
 import { Events, events } from "./calculator.events";
@@ -79,17 +79,17 @@ export const Calculator = (
 
   onPressKey: async (data, state) => {
     if (data.key === SYMBOLS[0]) {
-      return Promise.resolve([Apply(events.DotPressed)]);
+      return Promise.resolve([bind(events.DotPressed)]);
     }
     if (data.key === SYMBOLS[1]) {
       // let's say this is an invalid operation if there is no operator in the model
       if (!state.operator) throw Error("Don't have an operator!");
-      return Promise.resolve([Apply(events.EqualsPressed)]);
+      return Promise.resolve([bind(events.EqualsPressed)]);
     }
     return DIGITS.includes(data.key as Digits)
-      ? [Apply(events.DigitPressed, { digit: data.key as Digits })]
-      : [Apply(events.OperatorPressed, { operator: data.key as Operators })];
+      ? [bind(events.DigitPressed, { digit: data.key as Digits })]
+      : [bind(events.OperatorPressed, { operator: data.key as Operators })];
   },
 
-  onReset: async () => Promise.resolve([Apply(events.Cleared)])
+  onReset: async () => Promise.resolve([bind(events.Cleared)])
 });

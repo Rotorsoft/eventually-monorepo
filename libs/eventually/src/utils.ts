@@ -1,8 +1,8 @@
 import * as joi from "joi";
-import { UncommittedEvent } from ".";
 import {
   AggregateFactory,
   ExternalSystemFactory,
+  Message,
   MessageHandler,
   Payload,
   PolicyFactory,
@@ -113,7 +113,7 @@ export class ValidationError extends Error {
 export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,
-    public readonly events: UncommittedEvent<string, Payload>[],
+    public readonly events: Message<string, Payload>[],
     public readonly expectedVersion: number
   ) {
     super(Errors.ConcurrencyError);

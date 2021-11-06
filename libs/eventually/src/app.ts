@@ -1,4 +1,3 @@
-import { CommittedEvent, Scopes } from ".";
 import { Builder } from "./builder";
 import { Broker, Store } from "./interfaces";
 import { log } from "./log";
@@ -6,16 +5,19 @@ import { singleton } from "./singleton";
 import {
   Aggregate,
   AllQuery,
-  CommandResponse,
+  bind,
+  CommittedEvent,
   Evt,
   ExternalSystem,
   Getter,
+  Message,
   MessageFactory,
   MessageHandler,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
   Reducible,
+  Scopes,
   Snapshot
 } from "./types";
 import { getReducible, getStreamable } from "./utils";
@@ -53,10 +55,11 @@ export abstract class AppBase extends Builder implements Reader {
     await Promise.all(
       events.map((e) => {
         const private_sub = this._private_subscriptions[e.name];
-        if (private_sub)
+        if (private_sub) {
           return Promise.all(
             private_sub.map((f: PolicyFactory<C, E>) => this.event(f, e))
           );
+        }
       })
     );
     // public subscriptions are delegated to the broker
@@ -73,7 +76,7 @@ export abstract class AppBase extends Builder implements Reader {
    */
   private async _handle<M extends Payload, C, E>(
     handler: MessageHandler<M, C, E>,
-    callback: (state: M) => Promise<{ name: string; data?: Payload }[]>,
+    callback: (state: M) => Promise<Message<string, Payload>[]>,
     expectedVersion?: number,
     publishCallback?: (events: Evt[]) => Promise<void>
   ): Promise<Snapshot<M>[]> {
@@ -148,7 +151,7 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Handles commands
+   * Handles command
    * @param handler the aggregate or system with command handlers
    * @param command the command factory
    * @param data the payload
@@ -177,36 +180,38 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Handles policy events and optionally invokes command on target aggregate - side effect
+   * Handles event and optionally invokes command on target - side effect
    * @param factory the event handler factory
-   * @param event the triggering event
-   * @returns command response and optional state
+   * @param event the committed event payload
+   * @returns optional command response and reducible state
    */
   async event<M extends Payload, C, E>(
     factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
     event: CommittedEvent<keyof E & string, Payload>
-  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
+  ): Promise<{
+    response: Message<keyof C & string, Payload> | undefined;
+    state?: M;
+  }> {
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${factory.name}`,
       event.data
     );
     const handler = factory(event);
-    let response: CommandResponse<C> | undefined;
+    let response: Message<keyof C & string, Payload> | undefined;
     const [{ state }] = await this._handle(handler, async (state: M) => {
       response = await (handler as any)["on".concat(event.name)](event, state);
       if (response) {
         // handle commands synchronously
-        const { id, command, data, expectedVersion } = response;
-        const { factory } = this._handlers.commands[command.name];
+        const { factory } = this._handlers.commands[response.factory().name];
         await this.command(
-          factory(id) as Aggregate<M, C, E>,
-          command,
-          data,
-          expectedVersion
+          factory(response.id) as Aggregate<M, C, E>,
+          response.factory(),
+          response.data,
+          response.expectedVersion
         );
       }
-      return [event];
+      return [bind(this._factories.events[event.name], event.data)];
     });
     return { response, state };
   }

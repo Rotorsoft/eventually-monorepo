@@ -1,4 +1,4 @@
-import { Evt, Payload, UncommittedEvent } from "@rotorsoft/eventually";
+import { Evt, Payload, Message } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 
@@ -20,7 +20,8 @@ type E = {
 const event = (
   name: keyof E,
   data?: Payload
-): UncommittedEvent<keyof E & string, Payload> => ({
+): Message<keyof E & string, Payload> => ({
+  factory: () => undefined,
   name,
   data
 });

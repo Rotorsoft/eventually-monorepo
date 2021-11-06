@@ -2,9 +2,9 @@ import {
   AllQuery,
   EventHandlerFactory,
   Evt,
+  Message,
   Payload,
-  Snapshot,
-  UncommittedEvent
+  Snapshot
 } from "./types";
 
 /**
@@ -64,7 +64,7 @@ export interface Store {
    */
   commit: (
     stream: string,
-    events: UncommittedEvent<string, Payload>[],
+    events: Message<string, Payload>[],
     expectedVersion?: number,
     callback?: (events: Evt[]) => Promise<void>
   ) => Promise<Evt[]>;

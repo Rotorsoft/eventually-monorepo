@@ -3,9 +3,9 @@ import {
   ConcurrencyError,
   Evt,
   log,
+  Message,
   Payload,
-  Store,
-  UncommittedEvent
+  Store
 } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { config } from "./config";
@@ -88,7 +88,7 @@ export const PostgresStore = (table: string): Store => {
 
     commit: async (
       stream: string,
-      events: UncommittedEvent<string, Payload>[],
+      events: Message<string, Payload>[],
       expectedVersion?: number,
       callback?: (events: Evt[]) => Promise<void>
     ): Promise<Evt[]> => {
