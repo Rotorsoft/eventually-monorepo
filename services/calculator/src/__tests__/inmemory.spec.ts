@@ -195,35 +195,29 @@ describe("in memory app", () => {
       expect(stream.length).toBe(5);
     });
 
-    it("should cover empty calculator", async () => {
-      const test8 = Calculator(chance.guid());
-      await app().event(Counter, {
-        id: 0,
-        stream: test8.stream(),
-        version: 0,
-        created: new Date(),
-        name: "DigitPressed",
-        data: { digit: "0" }
-      });
-      const { state } = await app().load(test8);
-      expect(state).toEqual({ result: 0 });
+    it("should return Reset on DotPressed", async () => {
+      const test = Calculator(chance.guid());
+
+      // GIVEN
+      await app().command(test, commands.Reset);
+      await sleep(100);
+      await app().command(test, commands.PressKey, { key: "1" });
+      await sleep(100);
+      await app().command(test, commands.PressKey, { key: "1" });
+      await sleep(100);
+      await app().command(test, commands.PressKey, { key: "2" });
+      await sleep(100);
+      await app().command(test, commands.PressKey, { key: "2" });
+      await sleep(100);
+
+      // WHEN
+      await app().command(test, commands.PressKey, { key: "." });
+      await sleep(100);
+
+      // THEN
+      const { state } = await app().load(test);
+      expect(state).toEqual(expect.objectContaining({ result: 0 }));
     });
-  });
-
-  it("should cover whatever command", () => {
-    const cmd = commands.Whatever();
-    expect(cmd.scope).toBeUndefined();
-  });
-
-  it("should cover event scopes", () => {
-    Object.values(events).map((f) => {
-      const e = f();
-      expect(e.scope).toEqual(e.scope);
-    });
-  });
-
-  it("should cover initialized log", () => {
-    expect(log()).toBeDefined();
   });
 
   describe("all stream", () => {
@@ -274,6 +268,38 @@ describe("in memory app", () => {
     it("should return an empty stream", async () => {
       const stream = await app().query({ name: chance.guid() });
       expect(stream.length).toBe(0);
+    });
+  });
+
+  describe("misc", () => {
+    it("should cover empty calculator", async () => {
+      const test8 = Calculator(chance.guid());
+      await app().event(Counter, {
+        id: 0,
+        stream: test8.stream(),
+        version: 0,
+        created: new Date(),
+        name: "DigitPressed",
+        data: { digit: "0" }
+      });
+      const { state } = await app().load(test8);
+      expect(state).toEqual({ result: 0 });
+    });
+
+    it("should cover whatever command", () => {
+      const cmd = commands.Whatever();
+      expect(cmd.scope).toBeUndefined();
+    });
+
+    it("should cover event scopes", () => {
+      Object.values(events).map((f) => {
+        const e = f();
+        expect(e.scope).toEqual(e.scope);
+      });
+    });
+
+    it("should cover initialized log", () => {
+      expect(log()).toBeDefined();
     });
   });
 });

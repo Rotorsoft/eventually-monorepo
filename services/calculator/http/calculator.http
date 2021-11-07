@@ -34,13 +34,16 @@ Content-Type: application/json
 { "key" : "=" }
 
 ### 
+
+GET {{host}}/calculator/calc1
+###
 POST {{host}}/counter/digit-pressed
 Content-Type: application/json
 
 {
   "id": 1,
-  "stream": "calc2",
-  "version": "0",
+  "stream": "Calculatorcalc1",
+  "version": 31,
   "created": "2020-10-10",
   "name": "DigitPressed",
   "data": { "digit": "1" }

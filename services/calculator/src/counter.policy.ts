@@ -53,8 +53,12 @@ export const Counter = (
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined,
 
-  applyDigitPressed: (model) => ({ count: model.count + 1 }),
-  applyDotPressed: (model) => ({ count: model.count + 1 }),
+  applyDigitPressed: (model) => ({
+    count: model.count >= 4 ? 0 : model.count + 1
+  }),
+  applyDotPressed: (model) => ({
+    count: model.count >= 4 ? 0 : model.count + 1
+  }),
   applyEqualsPressed: () => ({ count: 0 }),
   applyOperatorPressed: () => ({ count: 0 })
 });

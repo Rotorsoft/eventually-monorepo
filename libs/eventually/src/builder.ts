@@ -69,8 +69,13 @@ export class Builder {
    * Registers events factory
    * @param factory event factory
    */
-  withEvents(factory: MessageFactories<unknown>): this {
-    this._factories.events = factory;
+  withEvents<E>(factory: MessageFactories<E>): this {
+    Object.entries(factory).map(
+      ([key, value]: [string, MessageFactory<string, Payload>]): void => {
+        if (this._factories.events[key]) throw Error(`Duplicate event ${key}`);
+        this._factories.events[key] = value;
+      }
+    );
     return this;
   }
 
@@ -78,17 +83,14 @@ export class Builder {
    * Registers commands factory
    * @param factory command factory
    */
-  withCommands(factory: MessageFactories<unknown>): this {
-    this._factories.commands = factory;
-    return this;
-  }
-
-  /**
-   * Registers command handler factories
-   * @param factories command handler factories
-   */
-  withCommandHandlers(...factories: CommandHandlerFactory[]): this {
-    factories.map((f) => (this._factories.commandHandlers[f.name] = f));
+  withCommands<C>(factory: MessageFactories<C>): this {
+    Object.entries(factory).map(
+      ([key, value]: [string, MessageFactory<string, Payload>]): void => {
+        if (this._factories.commands[key])
+          throw Error(`Duplicate command ${key}`);
+        this._factories.commands[key] = value;
+      }
+    );
     return this;
   }
 
@@ -97,7 +99,24 @@ export class Builder {
    * @param factories event handler factories
    */
   withEventHandlers(...factories: EventHandlerFactory[]): this {
-    factories.map((f) => (this._factories.eventHandlers[f.name] = f));
+    factories.map((f) => {
+      if (this._factories.eventHandlers[f.name])
+        throw Error(`Duplicate event handler ${f.name}`);
+      this._factories.eventHandlers[f.name] = f;
+    });
+    return this;
+  }
+
+  /**
+   * Registers command handler factories
+   * @param factories command handler factories
+   */
+  withCommandHandlers(...factories: CommandHandlerFactory[]): this {
+    factories.map((f) => {
+      if (this._factories.commandHandlers[f.name])
+        throw Error(`Duplicate command handler ${f.name}`);
+      this._factories.commandHandlers[f.name] = f;
+    });
     return this;
   }
 
