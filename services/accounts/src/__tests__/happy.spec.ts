@@ -58,7 +58,9 @@ describe("happy path", () => {
     const [seed] = (
       await app().query({ name: "Account1Created", after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
-    const snapshots = await app().stream(policies.WaitForAllAndComplete(seed));
+    const snapshots = await app().stream(
+      policies.WaitForAllAndComplete(seed as any)
+    );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);
     expect(snapshots[1].state.id).toBe(t.data.id);
@@ -81,7 +83,9 @@ describe("happy path", () => {
     const [seed] = (
       await app().query({ name: "Account1Created", after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
-    const snapshots = await app().stream(policies.WaitForAllAndComplete(seed));
+    const snapshots = await app().stream(
+      policies.WaitForAllAndComplete(seed as any)
+    );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);
     expect(snapshots[1].state.id).toBe(t.data.id);

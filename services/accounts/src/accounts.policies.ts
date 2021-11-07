@@ -1,10 +1,4 @@
-import {
-  bind,
-  CommittedEvent,
-  Payload,
-  Policy,
-  ProcessManager
-} from "@rotorsoft/eventually";
+import { bind, Policy, ProcessManagerFactory } from "@rotorsoft/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as models from "./accounts.models";
@@ -42,13 +36,11 @@ export const IntegrateAccount3 = (): Policy<
   }
 });
 
-export const WaitForAllAndComplete = (
-  event: CommittedEvent<string, Payload>
-): ProcessManager<
+export const WaitForAllAndComplete: ProcessManagerFactory<
   models.WaitForAllState,
   Pick<commands.Commands, "CompleteIntegration">,
   Pick<events.Events, "Account1Created" | "Account3Created">
-> => ({
+> = (event) => ({
   stream: () =>
     `WaitForAllAndComplete:${(event.data as models.ExternalAccount).id}`,
 

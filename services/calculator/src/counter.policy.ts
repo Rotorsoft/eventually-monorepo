@@ -5,7 +5,7 @@ import {
   Message,
   Payload,
   Policy,
-  ProcessManager
+  ProcessManagerFactory
 } from "@rotorsoft/eventually";
 import { Calculator } from "./calculator.aggregate";
 import { Commands, commands } from "./calculator.commands";
@@ -39,9 +39,11 @@ const policy = async (
 
 export type CounterEvents = Omit<Events, "Cleared">;
 
-export const Counter = (
-  event: CommittedEvent<string, Payload>
-): ProcessManager<CounterState, Commands, CounterEvents> => ({
+export const Counter: ProcessManagerFactory<
+  CounterState,
+  Commands,
+  CounterEvents
+> = (event) => ({
   stream: () => `Counter${event.stream}`,
   schema: () => schemas.CounterState,
   init: (): CounterState => ({ count: 0 }),
