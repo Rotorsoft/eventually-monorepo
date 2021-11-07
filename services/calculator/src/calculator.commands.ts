@@ -1,4 +1,4 @@
-import { MessageFactories, Scopes } from "@rotorsoft/eventually";
+import { MessageFactory, Scopes } from "@rotorsoft/eventually";
 import { Keys } from "./calculator.models";
 import * as schemas from "./calculator.schemas";
 
@@ -9,7 +9,7 @@ export type Commands = {
 };
 
 // Aggregate HTTP POST endpoints receiving commands from human actors and brokers (from policies)
-export const commands: MessageFactories<Commands> = {
+export const commands: MessageFactory<Commands> = {
   PressKey: () => ({
     scope: Scopes.public,
     schema: schemas.PressKey

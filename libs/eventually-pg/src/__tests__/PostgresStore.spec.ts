@@ -21,7 +21,7 @@ const event = (
   name: keyof E,
   data?: Payload
 ): Message<keyof E & string, Payload> => ({
-  factory: () => undefined,
+  options: () => undefined,
   name,
   data
 });

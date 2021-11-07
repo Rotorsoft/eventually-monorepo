@@ -1,26 +1,24 @@
+import { CommandHandler } from ".";
 import { Builder } from "./builder";
 import { Broker, Store } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
 import {
-  Aggregate,
   AllQuery,
-  bind,
   CommittedEvent,
   Evt,
-  ExternalSystem,
   Getter,
   Message,
-  MessageFactory,
+  MessageOptions,
   MessageHandler,
   Payload,
   PolicyFactory,
-  ProcessManagerFactory,
   Reducible,
   Scopes,
-  Snapshot
+  Snapshot,
+  EventHandlerFactory
 } from "./types";
-import { getReducible, getStreamable } from "./utils";
+import { bind, getReducible, getStreamable } from "./utils";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
@@ -130,11 +128,11 @@ export abstract class AppBase extends Builder implements Reader {
     await Promise.all(
       Object.values(this._handlers.events)
         .filter(({ event }) => event().scope === Scopes.public)
-        .map(({ factory, event }) => {
+        .map(({ handler, event }) => {
           return broker()
-            .subscribe(factory, event.name)
+            .subscribe(handler, event.name)
             .then(() =>
-              this.log.info("red", `${factory.name} <<< ${event.name}`)
+              this.log.info("red", `${handler.name} <<< ${event.name}`)
             );
         })
     );
@@ -152,28 +150,28 @@ export abstract class AppBase extends Builder implements Reader {
 
   /**
    * Handles command
-   * @param handler the aggregate or system with command handlers
-   * @param command the command factory
+   * @param handler the command handler
+   * @param options the command options factory
    * @param data the payload
    * @param expectedVersion optional aggregate expected version to allow optimistic concurrency
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
-    command: MessageFactory<keyof C & string, Payload>,
+    handler: CommandHandler<M, C, E>,
+    options: MessageOptions<keyof C & string, Payload>,
     data?: Payload,
     expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
-      `\n>>> ${command.name} ${handler.stream()} ${
+      `\n>>> ${options.name} ${handler.stream()} ${
         expectedVersion ? ` @${expectedVersion}` : ""
       }`,
       data
     );
     return await this._handle(
       handler,
-      (state: M) => (handler as any)["on".concat(command.name)](data, state),
+      (state: M) => (handler as any)["on".concat(options.name)](data, state),
       expectedVersion,
       this._publish.bind(this)
     );
@@ -186,7 +184,7 @@ export abstract class AppBase extends Builder implements Reader {
    * @returns optional command response and reducible state
    */
   async event<M extends Payload, C, E>(
-    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
+    factory: EventHandlerFactory<M, C, E>,
     event: CommittedEvent<keyof E & string, Payload>
   ): Promise<{
     response: Message<keyof C & string, Payload> | undefined;
@@ -203,10 +201,10 @@ export abstract class AppBase extends Builder implements Reader {
       response = await (handler as any)["on".concat(event.name)](event, state);
       if (response) {
         // handle commands synchronously
-        const { factory } = this._handlers.commands[response.factory().name];
+        const { handler } = this._handlers.commands[response.name];
         await this.command(
-          factory(response.id) as Aggregate<M, C, E>,
-          response.factory(),
+          handler(response.id) as CommandHandler<M, C, E>,
+          response.options(),
           response.data,
           response.expectedVersion
         );

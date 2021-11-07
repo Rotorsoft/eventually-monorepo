@@ -136,19 +136,19 @@ const getComponents = (
   // public commands and aggregate models are components
   Object.values(handlers.commands)
     .filter(({ command }) => command().scope === Scopes.public)
-    .map(({ factory, command }) => {
+    .map(({ handler, command }) => {
       if (command().schema) {
         const { swagger } = j2s(command().schema, components);
         components.schemas[command.name] = swagger;
       } else {
         components.schemas[command.name] = { type: "object" };
       }
-      getReducibleComponent(components, factory);
+      getReducibleComponent(components, handler);
     });
 
   // process manager models are components
-  Object.values(handlers.events).map(({ factory }) => {
-    getReducibleComponent(components, factory);
+  Object.values(handlers.events).map(({ handler }) => {
+    getReducibleComponent(components, handler);
   });
 
   return components;
@@ -156,15 +156,15 @@ const getComponents = (
 
 const getReducibleComponent = (
   components: ComponentsSchema,
-  factory: MessageHandlerFactory<Payload, unknown, unknown>
+  handler: MessageHandlerFactory<Payload, unknown, unknown>
 ): void => {
-  const reducible = getReducible(factory(null));
+  const reducible = getReducible(handler(null));
   if (!reducible) return;
-  if (components.schemas[factory.name]) return;
+  if (components.schemas[handler.name]) return;
 
   const { swagger } = j2s(reducible.schema(), components);
-  components.schemas[factory.name] = swagger;
-  components.schemas[factory.name.concat("Snapshot")] = {
+  components.schemas[handler.name] = swagger;
+  components.schemas[handler.name.concat("Snapshot")] = {
     type: "object",
     properties: {
       event: {
@@ -172,31 +172,31 @@ const getReducibleComponent = (
           $ref: `#/components/schemas/${name}`
         }))
       },
-      state: { $ref: `#/components/schemas/${factory.name}` }
+      state: { $ref: `#/components/schemas/${handler.name}` }
     }
   };
 };
 
 const getReducibleGetters = (
   paths: Record<string, any>,
-  factory: MessageHandlerFactory<Payload, unknown, unknown>
+  handler: MessageHandlerFactory<Payload, unknown, unknown>
 ): void => {
-  if (!getReducible(factory(null))) return;
-  const path = reduciblePath(factory as any).replace("/:id", "/{id}");
+  if (!getReducible(handler(null))) return;
+  const path = reduciblePath(handler as any).replace("/:id", "/{id}");
   if (paths[path]) return;
   // GET reducible
   paths[path] = {
     parameters: [{ $ref: "#/components/parameters/id" }],
     get: {
-      tags: [factory.name],
-      summary: `Gets ${factory.name} by id`,
+      tags: [handler.name],
+      summary: `Gets ${handler.name} by id`,
       responses: {
         "200": {
           description: "OK",
           content: {
             "application/json": {
               schema: {
-                $ref: `#/components/schemas/${factory.name}Snapshot`
+                $ref: `#/components/schemas/${handler.name}Snapshot`
               }
             }
           }
@@ -209,8 +209,8 @@ const getReducibleGetters = (
   paths[path.concat("/stream")] = {
     parameters: [{ $ref: "#/components/parameters/id" }],
     get: {
-      tags: [factory.name],
-      summary: `Gets ${factory.name} stream by id`,
+      tags: [handler.name],
+      summary: `Gets ${handler.name} stream by id`,
       responses: {
         "200": {
           description: "OK",
@@ -219,7 +219,7 @@ const getReducibleGetters = (
               schema: {
                 type: "array",
                 items: {
-                  $ref: `#/components/schemas/${factory.name}Snapshot`
+                  $ref: `#/components/schemas/${handler.name}Snapshot`
                 }
               }
             }
@@ -275,14 +275,14 @@ const getPaths = (
 
   Object.values(handlers.commands)
     .filter(({ command }) => command().scope === Scopes.public)
-    .map(({ factory, command, path }) => {
-      getReducibleGetters(paths, factory);
+    .map(({ handler, command, path }) => {
+      getReducibleGetters(paths, handler);
       // POST command
       paths[path.replace("/:id/", "/{id}/")] = {
         parameters: [{ $ref: "#/components/parameters/id" }],
         post: {
           operationId: command.name,
-          tags: [factory.name],
+          tags: [handler.name],
           requestBody: {
             required: true,
             content: {
@@ -299,7 +299,7 @@ const getPaths = (
                   schema: {
                     type: "array",
                     items: {
-                      $ref: `#/components/schemas/${factory.name}Snapshot`
+                      $ref: `#/components/schemas/${handler.name}Snapshot`
                     }
                   }
                 }
@@ -330,13 +330,13 @@ const getPaths = (
 
   Object.values(handlers.events)
     .filter(({ event }) => event().scope === Scopes.public)
-    .map(({ factory, event, path }) => {
-      getReducibleGetters(paths, factory);
+    .map(({ handler, event, path }) => {
+      getReducibleGetters(paths, handler);
       // POST event
       paths[path] = {
         post: {
           operationId: event.name,
-          tags: [factory.name],
+          tags: [handler.name],
           requestBody: {
             required: true,
             content: {

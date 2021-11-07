@@ -5,7 +5,7 @@ import * as models from "./accounts.models";
 import * as schemas from "./accounts.schemas";
 
 export const IntegrateAccount1 = (): Policy<
-  commands.Commands,
+  Pick<commands.Commands, "CreateAccount1">,
   Pick<events.Events, "AccountCreated">
 > => ({
   onAccountCreated: (event) => {
@@ -15,7 +15,7 @@ export const IntegrateAccount1 = (): Policy<
 });
 
 export const IntegrateAccount2 = (): Policy<
-  commands.Commands,
+  Pick<commands.Commands, "CreateAccount2">,
   Pick<events.Events, "AccountCreated">
 > => ({
   onAccountCreated: (event) => {
@@ -25,7 +25,7 @@ export const IntegrateAccount2 = (): Policy<
 });
 
 export const IntegrateAccount3 = (): Policy<
-  commands.Commands,
+  Pick<commands.Commands, "CreateAccount3">,
   Pick<events.Events, "Account2Created">
 > => ({
   onAccount2Created: (event) => {
@@ -40,7 +40,7 @@ export const WaitForAllAndComplete = (
   event: Evt
 ): ProcessManager<
   models.WaitForAllState,
-  commands.Commands,
+  Pick<commands.Commands, "CompleteIntegration">,
   Pick<events.Events, "Account1Created" | "Account3Created">
 > => ({
   stream: () =>

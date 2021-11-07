@@ -13,9 +13,12 @@ export const InMemoryBroker = (): Broker => {
   const _subscriptions: Subscriptions = {};
 
   return {
-    subscribe: (factory: EventHandlerFactory, name: string): Promise<void> => {
+    subscribe: (
+      handler: EventHandlerFactory<Payload, unknown, unknown>,
+      name: string
+    ): Promise<void> => {
       const sub = (_subscriptions[name] = _subscriptions[name] || []);
-      sub.push(factory);
+      sub.push(handler);
       return Promise.resolve();
     },
 

@@ -48,7 +48,7 @@ describe("Mocked", () => {
     }));
     await expect(
       db2.commit("stream", [
-        { factory: () => undefined, name: "test", data: {} }
+        { options: () => undefined, name: "test", data: {} }
       ])
     ).rejects.toThrowError(Errors.ConcurrencyError);
   });

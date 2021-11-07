@@ -1,4 +1,4 @@
-import { MessageFactories, Scopes } from "@rotorsoft/eventually";
+import { MessageFactory, Scopes } from "@rotorsoft/eventually";
 import * as models from "./accounts.models";
 import * as schemas from "./accounts.schemas";
 
@@ -9,7 +9,7 @@ export type Commands = {
   CompleteIntegration: models.Account;
 };
 
-export const factory: MessageFactories<Commands> = {
+export const factory: MessageFactory<Commands> = {
   CreateAccount1: () => ({
     scope: Scopes.public,
     schema: schemas.CreateAccount1

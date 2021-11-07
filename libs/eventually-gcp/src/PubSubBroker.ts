@@ -38,12 +38,12 @@ const topic = async (name: string): Promise<GcpTopic> => {
 export const PubSubBroker = (): Broker => {
   return {
     subscribe: async (
-      factory: EventHandlerFactory,
+      handler: EventHandlerFactory<Payload, unknown, unknown>,
       name: string
     ): Promise<void> => {
-      const url = `${config.host}${eventHandlerPath(factory, name)}`;
+      const url = `${config.host}${eventHandlerPath(handler, name)}`;
       const sub = (await topic(name)).subscription(
-        factory.name.concat(".", name)
+        handler.name.concat(".", name)
       );
       const [exists] = await sub.exists();
       if (!exists)

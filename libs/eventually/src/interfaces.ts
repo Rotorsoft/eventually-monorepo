@@ -13,10 +13,13 @@ import {
 export interface Broker {
   /**
    * Subscribes public event handler to topic
-   * @param factory event handler factory
+   * @param handler event handler factory
    * @param name the event name
    */
-  subscribe(factory: EventHandlerFactory, name: string): Promise<void>;
+  subscribe(
+    handler: EventHandlerFactory<Payload, unknown, unknown>,
+    name: string
+  ): Promise<void>;
 
   /**
    * Publishes event to topic

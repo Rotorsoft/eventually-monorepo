@@ -1,21 +1,19 @@
+import { CommandHandler } from "..";
 import { AppBase } from "../app";
 import { config } from "../config";
 import {
-  Aggregate,
   CommittedEvent,
-  ExternalSystem,
+  EventHandlerFactory,
   Message,
-  MessageFactory,
+  MessageOptions,
   Payload,
-  PolicyFactory,
-  ProcessManagerFactory,
   Snapshot
 } from "../types";
 import { ValidationError } from "../utils";
 
 const validate = (
   data: Payload,
-  msg: MessageFactory<string, Payload>
+  msg: MessageOptions<string, Payload>
 ): void => {
   if (msg().schema) {
     const { error } = msg().schema.validate(data, { abortEarly: false });
@@ -30,8 +28,8 @@ export class InMemoryApp extends AppBase {
   }
 
   async command<M extends Payload, C, E>(
-    handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
-    command: MessageFactory<keyof C & string, Payload>,
+    handler: CommandHandler<M, C, E>,
+    command: MessageOptions<keyof C & string, Payload>,
     data?: Payload,
     expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
@@ -50,7 +48,7 @@ export class InMemoryApp extends AppBase {
   }
 
   async event<M extends Payload, C, E>(
-    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
+    factory: EventHandlerFactory<M, C, E>,
     event: CommittedEvent<keyof E & string, Payload>
   ): Promise<{
     response: Message<keyof C & string, Payload> | undefined;

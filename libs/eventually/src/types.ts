@@ -9,7 +9,7 @@ export type Payload = Record<string, unknown>;
 /**
  * Message scopes can be
  * - `public` to expose public endpoints (HTTP command and event handlers), and publish events to brokers for async communication
- * - `private` to connect messages internally via sync calls - default
+ * - `private` to connect messages synchronously (in-process) - **default**
  */
 export enum Scopes {
   private = "private",
@@ -17,11 +17,11 @@ export enum Scopes {
 }
 
 /**
- * Messages transfer validatable information across service boundaries
- * - `scope` The optional scope of the message - private by default
- * - `schema` The optional payload validation schema
+ * Message options
+ * - `scope?` The optional scope of the message
+ * - `schema?` The optional payload validation schema
  */
-export type MessageFactory<_ extends string, Type extends Payload> = () => {
+export type MessageOptions<_ extends string, Type extends Payload> = () => {
   scope?: Scopes;
   schema?: joi.ObjectSchema<Type>;
 };
@@ -29,46 +29,28 @@ export type MessageFactory<_ extends string, Type extends Payload> = () => {
 /**
  * Dictionaries of message factories keyed by message names
  */
-export type MessageFactories<Messages> = {
-  [Name in keyof Messages]: MessageFactory<
+export type MessageFactory<Messages> = {
+  [Name in keyof Messages]: MessageOptions<
     Name & string,
     Messages[Name] & Payload
   >;
 };
 
 /**
- * Messages have:
+ * Messages transfer information across service boundaries
  * - `name` The unique name of the message
- * - `data` Optional payload
- * - `id` Optional target id
- * - `expectedVersion` Optional target expected version
+ * - `data?` Optional payload
+ * - `id?` Optional reducible target id
+ * - `expectedVersion?` Optional reducible target expected version
+ * - `options` The options factory in bound messages
  */
 export type Message<Name extends string, Type extends Payload> = {
-  factory: () => MessageFactory<Name, Type>;
   readonly name: Name;
   readonly data?: Type;
   readonly id?: string;
   readonly expectedVersion?: number;
+  options: () => MessageOptions<Name, Type>;
 };
-
-/**
- * Helper to bind typed messages to factories
- * @param factory The message factory
- * @param data The payload
- * @returns The bound message
- */
-export const bind = <Name extends string, Type extends Payload>(
-  factory: MessageFactory<Name, Type>,
-  data?: Type,
-  id?: string,
-  expectedVersion?: number
-): Message<Name, Type> => ({
-  factory: () => factory,
-  name: factory.name as Name,
-  data,
-  id,
-  expectedVersion
-});
 
 /**
  * Committed events have:
@@ -210,9 +192,22 @@ export type MessageHandlerFactory<M extends Payload, C, E> =
   | ProcessManagerFactory<M, C, E>
   | PolicyFactory<C, E>;
 
-export type CommandHandlerFactory =
-  | AggregateFactory<Payload, unknown, unknown>
-  | ExternalSystemFactory<unknown, unknown>;
-export type EventHandlerFactory =
-  | ProcessManagerFactory<Payload, unknown, unknown>
-  | PolicyFactory<unknown, unknown>;
+export type ReducibleFactory<M extends Payload, C, E> =
+  | AggregateFactory<M, C, E>
+  | ProcessManagerFactory<M, C, E>;
+
+export type CommandHandlerFactory<M extends Payload, C, E> =
+  | AggregateFactory<M, C, E>
+  | ExternalSystemFactory<C, E>;
+
+export type EventHandlerFactory<M extends Payload, C, E> =
+  | ProcessManagerFactory<M, C, E>
+  | PolicyFactory<C, E>;
+
+export type CommandHandler<M extends Payload, C, E> =
+  | Aggregate<M, C, E>
+  | ExternalSystem<C, E>;
+
+export type EventHandler<M extends Payload, C, E> =
+  | ProcessManager<M, C, E>
+  | Policy<C, E>;

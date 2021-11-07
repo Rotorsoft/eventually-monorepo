@@ -5,8 +5,8 @@ import {
   eventHandlerPath,
   getReducible,
   log,
-  MessageFactories,
   MessageFactory,
+  MessageOptions,
   Payload,
   Reducible,
   Scopes
@@ -15,13 +15,13 @@ import { SnapshotStore } from "./interfaces";
 import { InMemorySnapshotStore } from "./__dev__";
 
 export type Factories = {
-  commands: Record<string, MessageFactory<string, Payload>>;
+  commands: Record<string, MessageOptions<string, Payload>>;
   commandHandlers: {
-    [name: string]: CommandHandlerFactory;
+    [name: string]: CommandHandlerFactory<Payload, unknown, unknown>;
   };
-  events: Record<string, MessageFactory<string, Payload>>;
+  events: Record<string, MessageOptions<string, Payload>>;
   eventHandlers: {
-    [name: string]: EventHandlerFactory;
+    [name: string]: EventHandlerFactory<Payload, unknown, unknown>;
   };
 };
 
@@ -29,23 +29,23 @@ export type Handlers = {
   commands: {
     [name: string]: {
       type: "aggregate" | "external-system";
-      factory: CommandHandlerFactory;
-      command: MessageFactory<string, Payload>;
+      handler: CommandHandlerFactory<Payload, unknown, unknown>;
+      command: MessageOptions<string, Payload>;
       path: string;
     };
   };
   events: {
     [path: string]: {
       type: "policy" | "process-manager";
-      factory: EventHandlerFactory;
-      event: MessageFactory<string, Payload>;
+      handler: EventHandlerFactory<Payload, unknown, unknown>;
+      event: MessageOptions<string, Payload>;
       path: string;
     };
   };
 };
 
 export type Subscriptions = {
-  [name: string]: EventHandlerFactory[];
+  [name: string]: EventHandlerFactory<Payload, unknown, unknown>[];
 };
 
 export class Builder {
@@ -69,9 +69,9 @@ export class Builder {
    * Registers events factory
    * @param factory event factory
    */
-  withEvents<E>(factory: MessageFactories<E>): this {
+  withEvents<E>(factory: MessageFactory<E>): this {
     Object.entries(factory).map(
-      ([key, value]: [string, MessageFactory<string, Payload>]): void => {
+      ([key, value]: [string, MessageOptions<string, Payload>]): void => {
         if (this._factories.events[key]) throw Error(`Duplicate event ${key}`);
         this._factories.events[key] = value;
       }
@@ -83,9 +83,9 @@ export class Builder {
    * Registers commands factory
    * @param factory command factory
    */
-  withCommands<C>(factory: MessageFactories<C>): this {
+  withCommands<C>(factory: MessageFactory<C>): this {
     Object.entries(factory).map(
-      ([key, value]: [string, MessageFactory<string, Payload>]): void => {
+      ([key, value]: [string, MessageOptions<string, Payload>]): void => {
         if (this._factories.commands[key])
           throw Error(`Duplicate command ${key}`);
         this._factories.commands[key] = value;
@@ -98,7 +98,9 @@ export class Builder {
    * Registers event handler factories
    * @param factories event handler factories
    */
-  withEventHandlers(...factories: EventHandlerFactory[]): this {
+  withEventHandlers(
+    ...factories: EventHandlerFactory<Payload, unknown, unknown>[]
+  ): this {
     factories.map((f) => {
       if (this._factories.eventHandlers[f.name])
         throw Error(`Duplicate event handler ${f.name}`);
@@ -111,7 +113,9 @@ export class Builder {
    * Registers command handler factories
    * @param factories command handler factories
    */
-  withCommandHandlers(...factories: CommandHandlerFactory[]): this {
+  withCommandHandlers(
+    ...factories: CommandHandlerFactory<Payload, unknown, unknown>[]
+  ): this {
     factories.map((f) => {
       if (this._factories.commandHandlers[f.name])
         throw Error(`Duplicate command handler ${f.name}`);
@@ -159,7 +163,7 @@ export class Builder {
         if (Object.keys(handler).includes("on".concat(cf.name))) {
           this._handlers.commands[cf.name] = {
             type,
-            factory: chf,
+            handler: chf,
             command: cf,
             path
           };
@@ -185,7 +189,7 @@ export class Builder {
           const path = eventHandlerPath(ehf, ef.name);
           this._handlers.events[path] = {
             type,
-            factory: ehf,
+            handler: ehf,
             event: ef,
             path
           };
@@ -203,10 +207,10 @@ export class Builder {
       .filter(
         ({ event }) => (event().scope || Scopes.private) === Scopes.private
       )
-      .map(({ factory, event }) => {
+      .map(({ handler, event }) => {
         const sub = (this._private_subscriptions[event.name] =
           this._private_subscriptions[event.name] || []);
-        sub.push(factory);
+        sub.push(handler);
       });
 
     return;

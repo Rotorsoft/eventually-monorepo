@@ -1,15 +1,14 @@
 import {
-  AggregateFactory,
   AllQuery,
+  CommandHandlerFactory,
   commandHandlerPath,
+  EventHandlerFactory,
   eventHandlerPath,
   Evt,
-  ExternalSystemFactory,
   Message,
-  MessageFactory,
+  MessageOptions,
   Payload,
-  PolicyFactory,
-  ProcessManagerFactory,
+  ReducibleFactory,
   reduciblePath,
   Snapshot
 } from "@rotorsoft/eventually";
@@ -22,15 +21,15 @@ export const get = (path: string, port?: number): Promise<AxiosResponse<any>> =>
   axios.get<any>(url(path, port));
 
 export const command = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
-  command: MessageFactory<string, Payload>,
+  handler: CommandHandlerFactory<M, C, E>,
+  command: MessageOptions<string, Payload>,
   payload?: Payload,
   id?: string,
   expectedVersion?: number,
   port?: number
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
-    url(commandHandlerPath(factory, command.name).replace(":id", id), port),
+    url(commandHandlerPath(handler, command.name).replace(":id", id), port),
     payload || {},
     {
       headers: expectedVersion ? { "If-Match": expectedVersion.toString() } : {}
@@ -40,31 +39,31 @@ export const command = async <M extends Payload, C, E>(
 };
 
 export const event = async <M extends Payload, C, E>(
-  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-  event: MessageFactory<string, Payload>,
+  handler: EventHandlerFactory<M, C, E>,
+  event: MessageOptions<string, Payload>,
   payload?: Payload,
   port?: number
 ): Promise<Message<keyof C & string, Payload> | undefined> => {
   const { data } = await axios.post<
     Payload,
     AxiosResponse<Message<keyof C & string, Payload> | undefined>
-  >(url(eventHandlerPath(factory, event.name), port), payload);
+  >(url(eventHandlerPath(handler, event.name), port), payload);
   return data;
 };
 
 export const load = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
+  reducible: ReducibleFactory<M, C, E>,
   id: string,
   port?: number
 ): Promise<Snapshot<M>> => {
   const { data } = await axios.get<any, AxiosResponse<Snapshot<M>>>(
-    url(reduciblePath(factory).replace(":id", id), port)
+    url(reduciblePath(reducible).replace(":id", id), port)
   );
   return data;
 };
 
 export const stream = async <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
+  reducible: ReducibleFactory<M, C, E>,
   id: string,
   options: {
     port?: number;
@@ -73,7 +72,7 @@ export const stream = async <M extends Payload, C, E>(
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
     url(
-      reduciblePath(factory)
+      reduciblePath(reducible)
         .replace(":id", id)
         .concat(`/stream${options.useSnapshots ? "?useSnapshots=true" : ""}`),
       options.port
