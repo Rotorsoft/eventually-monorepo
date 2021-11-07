@@ -2,7 +2,7 @@ import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
   eventHandlerPath,
-  Evt,
+  CommittedEvent,
   log,
   Payload,
   EventHandlerFactory
@@ -55,7 +55,9 @@ export const PubSubBroker = (): Broker => {
         await sub.modifyPushConfig({ pushEndpoint: url });
     },
 
-    publish: async (event: Evt): Promise<string> => {
+    publish: async (
+      event: CommittedEvent<string, Payload>
+    ): Promise<string> => {
       let t: GcpTopic;
       try {
         t = await topic(event.name);
@@ -70,13 +72,13 @@ export const PubSubBroker = (): Broker => {
       }
     },
 
-    decode: (msg: Payload): Evt => {
+    decode: (msg: Payload): CommittedEvent<string, Payload> => {
       const { message, subscription } = msg as unknown as Message;
       if (message && subscription)
         return JSON.parse(
           Buffer.from(message.data, "base64").toString("utf-8")
-        ) as Evt;
-      return msg as Evt;
+        ) as CommittedEvent<string, Payload>;
+      return msg as CommittedEvent<string, Payload>;
     }
   };
 };

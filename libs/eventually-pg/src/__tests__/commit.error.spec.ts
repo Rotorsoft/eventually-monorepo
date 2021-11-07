@@ -1,8 +1,10 @@
-import { Errors, Evt } from "@rotorsoft/eventually";
+import { Errors, CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 
-const query = (sql: string): Promise<QueryResult<Evt>> => {
+const query = (
+  sql: string
+): Promise<QueryResult<CommittedEvent<string, Payload>>> => {
   if (sql === "COMMIT") {
     return Promise.reject("commit error");
   }

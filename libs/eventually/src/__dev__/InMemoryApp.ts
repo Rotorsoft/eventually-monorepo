@@ -13,10 +13,10 @@ import { ValidationError } from "../utils";
 
 const validate = (
   data: Payload,
-  msg: MessageOptions<string, Payload>
+  options: MessageOptions<string, Payload>
 ): void => {
-  if (msg().schema) {
-    const { error } = msg().schema.validate(data, { abortEarly: false });
+  if (options().schema) {
+    const { error } = options().schema.validate(data, { abortEarly: false });
     if (error) throw new ValidationError(error);
   }
 };

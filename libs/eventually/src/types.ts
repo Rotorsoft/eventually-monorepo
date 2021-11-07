@@ -71,11 +71,6 @@ export type CommittedEvent<Name extends string, Type extends Payload> = {
 };
 
 /**
- * Shortcut to untyped committed event
- */
-export type Evt = CommittedEvent<string, Payload>;
-
-/**
  * Artifacts that commit events to a stream
  */
 export type Streamable = { stream: () => string };
@@ -101,7 +96,7 @@ export type Reducible<M extends Payload, E> = Streamable & {
  * Reducible snapshots after events are applied
  */
 export type Snapshot<M extends Payload> = {
-  readonly event: Evt;
+  readonly event: CommittedEvent<string, Payload>;
   readonly state?: M;
 };
 

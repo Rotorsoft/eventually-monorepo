@@ -3,7 +3,6 @@ import {
   Broker,
   CommittedEvent,
   EventHandlerFactory,
-  Evt,
   Payload,
   PolicyFactory
 } from "..";
@@ -34,6 +33,7 @@ export const InMemoryBroker = (): Broker => {
       }
     },
 
-    decode: (msg: Payload): Evt => msg as Evt
+    decode: (msg: Payload): CommittedEvent<string, Payload> =>
+      msg as CommittedEvent<string, Payload>
   };
 };

@@ -1,7 +1,7 @@
 import {
   AllQuery,
+  CommittedEvent,
   ConcurrencyError,
-  Evt,
   log,
   Message,
   Payload,
@@ -60,7 +60,7 @@ export const PostgresStore = (table: string): Store => {
     },
 
     query: async (
-      callback: (event: Evt) => void,
+      callback: (event: CommittedEvent<string, Payload>) => void,
       query?: AllQuery
     ): Promise<void> => {
       const { stream, name, after = -1, limit } = query;
@@ -82,7 +82,7 @@ export const PostgresStore = (table: string): Store => {
       }
 
       (await pool.query<Event>(sql, values)).rows.map((e) =>
-        callback(e as Evt)
+        callback(e as CommittedEvent<string, Payload>)
       );
     },
 
@@ -90,8 +90,8 @@ export const PostgresStore = (table: string): Store => {
       stream: string,
       events: Message<string, Payload>[],
       expectedVersion?: number,
-      callback?: (events: Evt[]) => Promise<void>
-    ): Promise<Evt[]> => {
+      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+    ): Promise<CommittedEvent<string, Payload>[]> => {
       const client = await pool.connect();
       let version = -1;
       try {
@@ -112,7 +112,7 @@ export const PostgresStore = (table: string): Store => {
           VALUES($1, $2, $3, $4) RETURNING *`,
               [name, data, stream, version]
             );
-            return committed.rows[0] as Evt;
+            return committed.rows[0] as CommittedEvent<string, Payload>;
           })
         );
 

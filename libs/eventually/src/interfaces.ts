@@ -1,7 +1,7 @@
 import {
   AllQuery,
   EventHandlerFactory,
-  Evt,
+  CommittedEvent,
   Message,
   Payload,
   Snapshot
@@ -26,14 +26,14 @@ export interface Broker {
    * @param event committed event
    * @returns the message id
    */
-  publish: (event: Evt) => Promise<string>;
+  publish: (event: CommittedEvent<string, Payload>) => Promise<string>;
 
   /**
    * Decodes pushed messages
    * @param msg pushed message
    * @returns committed event in payload
    */
-  decode: (msg: Payload) => Evt;
+  decode: (msg: Payload) => CommittedEvent<string, Payload>;
 }
 
 /**
@@ -55,7 +55,10 @@ export interface Store {
    * @param callback callback predicate
    * @param query optional query values
    */
-  query: (callback: (event: Evt) => void, query?: AllQuery) => Promise<void>;
+  query: (
+    callback: (event: CommittedEvent<string, Payload>) => void,
+    query?: AllQuery
+  ) => Promise<void>;
 
   /**
    * Commits message into stream of aggregate id
@@ -69,8 +72,8 @@ export interface Store {
     stream: string,
     events: Message<string, Payload>[],
     expectedVersion?: number,
-    callback?: (events: Evt[]) => Promise<void>
-  ) => Promise<Evt[]>;
+    callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+  ) => Promise<CommittedEvent<string, Payload>[]>;
 }
 
 export interface SnapshotStore {

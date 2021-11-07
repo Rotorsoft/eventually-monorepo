@@ -1,4 +1,10 @@
-import { bind, Evt, Policy, ProcessManager } from "@rotorsoft/eventually";
+import {
+  bind,
+  CommittedEvent,
+  Payload,
+  Policy,
+  ProcessManager
+} from "@rotorsoft/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as models from "./accounts.models";
@@ -37,7 +43,7 @@ export const IntegrateAccount3 = (): Policy<
 });
 
 export const WaitForAllAndComplete = (
-  event: Evt
+  event: CommittedEvent<string, Payload>
 ): ProcessManager<
   models.WaitForAllState,
   Pick<commands.Commands, "CompleteIntegration">,

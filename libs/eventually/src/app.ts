@@ -1,12 +1,11 @@
-import { CommandHandler } from ".";
 import { Builder } from "./builder";
 import { Broker, Store } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
 import {
   AllQuery,
+  CommandHandler,
   CommittedEvent,
-  Evt,
   Getter,
   Message,
   MessageOptions,
@@ -76,7 +75,9 @@ export abstract class AppBase extends Builder implements Reader {
     handler: MessageHandler<M, C, E>,
     callback: (state: M) => Promise<Message<string, Payload>[]>,
     expectedVersion?: number,
-    publishCallback?: (events: Evt[]) => Promise<void>
+    publishCallback?: (
+      events: CommittedEvent<keyof E & string, Payload>[]
+    ) => Promise<void>
   ): Promise<Snapshot<M>[]> {
     const streamable = getStreamable(handler);
     const reducible = getReducible(handler);
@@ -272,8 +273,10 @@ export abstract class AppBase extends Builder implements Reader {
    * Queries the store - all streams
    * @param query optional query parameters
    */
-  async query(query: AllQuery = { after: -1, limit: 1 }): Promise<Evt[]> {
-    const events: Evt[] = [];
+  async query(
+    query: AllQuery = { after: -1, limit: 1 }
+  ): Promise<CommittedEvent<string, Payload>[]> {
+    const events: CommittedEvent<string, Payload>[] = [];
     await store().query((e) => events.push(e), query);
     return events;
   }

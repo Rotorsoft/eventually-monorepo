@@ -2,9 +2,9 @@ import {
   AllQuery,
   CommandHandlerFactory,
   commandHandlerPath,
+  CommittedEvent,
   EventHandlerFactory,
   eventHandlerPath,
-  Evt,
   Message,
   MessageOptions,
   Payload,
@@ -84,13 +84,13 @@ export const stream = async <M extends Payload, C, E>(
 export const read = async (
   query: AllQuery = { after: -1, limit: 1 },
   port?: number
-): Promise<Evt[]> => {
-  const { data } = await axios.get<any, AxiosResponse<Evt[]>>(
-    url("/all", port),
-    {
-      params: query
-    }
-  );
+): Promise<CommittedEvent<string, Payload>[]> => {
+  const { data } = await axios.get<
+    any,
+    AxiosResponse<CommittedEvent<string, Payload>[]>
+  >(url("/all", port), {
+    params: query
+  });
   return data;
 };
 

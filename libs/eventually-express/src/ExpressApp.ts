@@ -3,9 +3,9 @@ import {
   AllQuery,
   AppBase,
   broker,
+  CommittedEvent,
   config,
   Errors,
-  Evt,
   Getter,
   Payload,
   ProcessManagerFactory,
@@ -36,7 +36,7 @@ export class ExpressApp extends AppBase {
     this._router.get(
       "/all",
       async (
-        req: Request<any, Evt[], any, AllQuery>,
+        req: Request<any, CommittedEvent<string, Payload>[], any, AllQuery>,
         res: Response,
         next: NextFunction
       ) => {
@@ -125,7 +125,7 @@ export class ExpressApp extends AppBase {
               }
               const snapshots = await this.command(
                 handler(req.params.id),
-                command as any,
+                command,
                 req.body,
                 type === "aggregate" ? +req.headers["if-match"] : undefined
               );
@@ -168,7 +168,7 @@ export class ExpressApp extends AppBase {
         this._router.post(
           path,
           async (
-            req: Request<never, any, Evt>,
+            req: Request<never, any, CommittedEvent<string, Payload>>,
             res: Response,
             next: NextFunction
           ) => {

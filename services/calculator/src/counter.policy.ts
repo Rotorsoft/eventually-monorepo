@@ -1,8 +1,9 @@
 import {
   app,
   bind,
-  Evt,
+  CommittedEvent,
   Message,
+  Payload,
   Policy,
   ProcessManager
 } from "@rotorsoft/eventually";
@@ -14,7 +15,7 @@ import * as schemas from "./calculator.schemas";
 
 const policy = async (
   counter: CounterState,
-  event: Evt,
+  event: CommittedEvent<string, Payload>,
   threshold: number
 ): Promise<Message<keyof Commands, undefined>> => {
   if (counter) {
@@ -39,7 +40,7 @@ const policy = async (
 export type CounterEvents = Omit<Events, "Cleared">;
 
 export const Counter = (
-  event: Evt
+  event: CommittedEvent<string, Payload>
 ): ProcessManager<CounterState, Commands, CounterEvents> => ({
   stream: () => `Counter${event.stream}`,
   schema: () => schemas.CounterState,
