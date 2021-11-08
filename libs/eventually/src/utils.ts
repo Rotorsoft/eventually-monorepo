@@ -103,7 +103,7 @@ export const commandHandlerPath = <M extends Payload, C, E>(
     decamelize(handler.name),
     getReducible(handler(undefined)) ? "/:id/" : "/",
     decamelize(name)
-  );
+);
 
 /**
  * Normalizes event handler paths
