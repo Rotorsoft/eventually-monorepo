@@ -83,7 +83,7 @@ export const commandHandlerPath = <M extends Payload, C, E>(
 ): string =>
   "/".concat(
     decamelize(factory.name),
-    getReducible(factory(undefined)) ? "/:id/" : "",
+    getReducible(factory(undefined)) ? "/:id/" : "/",
     decamelize(command.name)
   );
 
