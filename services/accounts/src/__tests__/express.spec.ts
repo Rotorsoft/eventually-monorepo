@@ -1,4 +1,4 @@
-import { app, store } from "@rotorsoft/eventually";
+import { app, Scopes, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { command } from "@rotorsoft/eventually-test";
@@ -50,7 +50,8 @@ describe("express", () => {
     // when
     const [result] = await command(
       systems.ExternalSystem1,
-      commands.factory.CreateAccount1({ id: chance.guid() }),
+      commands.factory.CreateAccount1,
+      { id: chance.guid() },
       undefined,
       undefined,
       port
@@ -65,7 +66,8 @@ describe("express", () => {
     await expect(
       command(
         systems.ExternalSystem1,
-        commands.factory.CreateAccount1(),
+        commands.factory.CreateAccount1,
+        null,
         undefined,
         undefined,
         port
@@ -75,6 +77,6 @@ describe("express", () => {
 
   it("should cover IntegrationCompleted", () => {
     const event = events.factory.IntegrationCompleted();
-    expect(event.scope()).toBe("public");
+    expect(event.scope).toBe(Scopes.public);
   });
 });

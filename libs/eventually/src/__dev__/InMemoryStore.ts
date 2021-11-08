@@ -1,5 +1,5 @@
 import { Store } from "../interfaces";
-import { AllQuery, Evt, Msg } from "../types";
+import { AllQuery, CommittedEvent, Message, Payload } from "../types";
 
 export const InMemoryStore = (): Store => {
   const _events: any[] = [];
@@ -16,7 +16,7 @@ export const InMemoryStore = (): Store => {
     },
 
     query: (
-      callback: (event: Evt) => void,
+      callback: (event: CommittedEvent<string, Payload>) => void,
       query?: AllQuery
     ): Promise<void> => {
       const { stream, name, after = -1, limit } = query;
@@ -34,27 +34,28 @@ export const InMemoryStore = (): Store => {
 
     commit: async (
       stream: string,
-      events: Msg[],
+      events: Message<string, Payload>[],
       expectedVersion?: number,
-      callback?: (events: Evt[]) => Promise<void>
-    ): Promise<Evt[]> => {
+      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+    ): Promise<CommittedEvent<string, Payload>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
         throw Error("Concurrency Error");
 
       let version = aggregate.length;
-      const committed = events.map((event) => {
-        const committed: Evt = {
-          ...event,
+      const committed = events.map(({ name, data }) => {
+        const committed = {
           id: _events.length,
           stream,
           version,
-          created: new Date()
+          created: new Date(),
+          name,
+          data
         };
         _events.push(committed);
         version++;
         return committed;
-      });
+      }) as CommittedEvent<string, Payload>[];
 
       if (callback) await callback(committed);
 

@@ -1,12 +1,12 @@
 @host = http://localhost:3000
 ###
 
-GET {{host}}/stream?limit=100 HTTP/1.1
+GET {{host}}/all?limit=100 HTTP/1.1
 ###
-GET {{host}}/stream?after=10
+GET {{host}}/all?after=10
 ###
-GET {{host}}/stream?after=10&limit=3 
+GET {{host}}/all?after=10&limit=3 
 ###
-GET {{host}}/stream/DigitPressed?limit=2 
+GET {{host}}/all?name=DigitPressed&limit=2 
 ###
-GET {{host}}/stream/OperatorPressed?after=2&limit=5 
+GET {{host}}/all?name=OperatorPressed&after=2&limit=5 

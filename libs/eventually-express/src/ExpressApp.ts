@@ -3,13 +3,15 @@ import {
   AllQuery,
   AppBase,
   broker,
+  CommittedEvent,
   config,
   Errors,
-  Evt,
   Getter,
   Payload,
   ProcessManagerFactory,
+  ReducibleFactory,
   reduciblePath,
+  Scopes,
   ValidationError
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -34,7 +36,7 @@ export class ExpressApp extends AppBase {
     this._router.get(
       "/all",
       async (
-        req: Request<any, Evt[], any, AllQuery>,
+        req: Request<any, CommittedEvent<string, Payload>[], any, AllQuery>,
         res: Response,
         next: NextFunction
       ) => {
@@ -60,7 +62,7 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildGetter<M extends Payload, C, E>(
-    factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>,
+    reducible: ReducibleFactory<M, C, E>,
     callback: Getter,
     path: string,
     overrideId = false
@@ -76,8 +78,8 @@ export class ExpressApp extends AppBase {
           const { id } = req.params;
           const result = await callback(
             overrideId
-              ? { ...factory(undefined), stream: () => id }
-              : (factory as AggregateFactory<M, C, E>)(id),
+              ? { ...reducible(undefined), stream: () => id }
+              : (reducible as AggregateFactory<M, C, E>)(id),
             ["true", "1"].includes(req.query.useSnapshots as string)
           );
           let etag = "-1";
@@ -102,16 +104,11 @@ export class ExpressApp extends AppBase {
       AggregateFactory<Payload, unknown, unknown>
     > = {};
     Object.values(this._handlers.commands)
-      .filter(({ type, factory, command }) => {
-        if (type === "aggregate")
-          aggregates[factory.name] = factory as AggregateFactory<
-            Payload,
-            unknown,
-            unknown
-          >;
-        return command.scope() === "public";
+      .filter(({ type, handler, command }) => {
+        if (type === "aggregate") aggregates[handler.name] = handler as any;
+        return command().scope === Scopes.public;
       })
-      .map(({ type, factory, command, path }) => {
+      .map(({ type, handler, command, path }) => {
         this._router.post(
           path,
           async (
@@ -120,15 +117,16 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
-              if (command.schema) {
-                const { error } = command
-                  .schema()
-                  .validate(req.body, { abortEarly: false });
+              if (command().schema) {
+                const { error } = command().schema.validate(req.body, {
+                  abortEarly: false
+                });
                 if (error) throw new ValidationError(error);
               }
               const snapshots = await this.command(
-                factory(req.params.id),
-                { ...command, data: req.body },
+                handler(req.params.id),
+                command,
+                req.body,
                 type === "aggregate" ? +req.headers["if-match"] : undefined
               );
               res.setHeader(
@@ -143,15 +141,15 @@ export class ExpressApp extends AppBase {
         );
       });
 
-    Object.values(aggregates).map((factory) => {
-      this.log.info("green", factory.name);
+    Object.values(aggregates).map((aggregate) => {
+      this.log.info("green", aggregate.name);
 
-      const getpath = reduciblePath(factory);
-      this._buildGetter(factory, this.load.bind(this), getpath);
+      const getpath = reduciblePath(aggregate);
+      this._buildGetter(aggregate, this.load.bind(this), getpath);
       this.log.info("green", "  ", `GET ${getpath}`);
 
-      const streampath = reduciblePath(factory).concat("/stream");
-      this._buildGetter(factory, this.stream.bind(this), streampath);
+      const streampath = reduciblePath(aggregate).concat("/stream");
+      this._buildGetter(aggregate, this.stream.bind(this), streampath);
       this.log.info("green", "  ", `GET ${streampath}`);
     });
   }
@@ -162,32 +160,27 @@ export class ExpressApp extends AppBase {
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
     Object.values(this._handlers.events)
-      .filter(({ type, factory, event }) => {
-        if (type === "process-manager")
-          managers[factory.name] = factory as ProcessManagerFactory<
-            Payload,
-            unknown,
-            unknown
-          >;
-        return event.scope() === "public";
+      .filter(({ type, handler, event }) => {
+        if (type === "process-manager") managers[handler.name] = handler as any;
+        return event().scope === Scopes.public;
       })
-      .map(({ factory, event, path }) => {
+      .map(({ handler, event, path }) => {
         this._router.post(
           path,
           async (
-            req: Request<never, any, Evt>,
+            req: Request<never, any, CommittedEvent<string, Payload>>,
             res: Response,
             next: NextFunction
           ) => {
             try {
               const message = broker().decode(req.body);
-              if (event.schema) {
-                const { error } = event.schema().validate(message.data, {
+              if (event().schema) {
+                const { error } = event().schema.validate(message.data, {
                   abortEarly: false
                 });
                 if (error) throw new ValidationError(error);
               }
-              const response = await this.event(factory, message);
+              const response = await this.event(handler, message as any);
               return res.status(200).send(response);
             } catch (error) {
               next(error);
@@ -196,15 +189,15 @@ export class ExpressApp extends AppBase {
         );
       });
 
-    Object.values(managers).map((factory) => {
-      this.log.info("green", factory.name);
+    Object.values(managers).map((manager) => {
+      this.log.info("green", manager.name);
 
-      const getpath = reduciblePath(factory);
-      this._buildGetter(factory, this.load.bind(this), getpath, true);
+      const getpath = reduciblePath(manager);
+      this._buildGetter(manager, this.load.bind(this), getpath, true);
       this.log.info("green", "  ", `GET ${getpath}`);
 
-      const streampath = reduciblePath(factory).concat("/stream");
-      this._buildGetter(factory, this.stream.bind(this), streampath, true);
+      const streampath = reduciblePath(manager).concat("/stream");
+      this._buildGetter(manager, this.stream.bind(this), streampath, true);
       this.log.info("green", "  ", `GET ${streampath}`);
     });
   }

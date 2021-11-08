@@ -1,16 +1,34 @@
 import * as joi from "joi";
+import { ReducibleFactory } from ".";
 import {
-  AggregateFactory,
-  ExternalSystemFactory,
+  CommandHandlerFactory,
+  EventHandlerFactory,
+  Message,
   MessageHandler,
-  Msg,
-  MsgOf,
+  MessageOptions,
   Payload,
-  PolicyFactory,
-  ProcessManagerFactory,
   Reducible,
   Streamable
 } from "./types";
+
+/**
+ * Binds messages to options and payloads
+ * @param options The message options
+ * @param data The message payload
+ * @returns The bound message
+ */
+export const bind = <Name extends string, Type extends Payload>(
+  options: MessageOptions<Name, Type>,
+  data?: Type,
+  id?: string,
+  expectedVersion?: number
+): Message<Name, Type> => ({
+  options: () => options,
+  name: options.name as Name,
+  data,
+  id,
+  expectedVersion
+});
 
 /**
  * Decamelizes string
@@ -64,39 +82,39 @@ export const getStreamable = <M extends Payload, C, E>(
 
 /**
  * Normalizes reducible paths
- * @param factory reducible factory
+ * @param reducible reducible factory
  * @returns the reducible path
  */
 export const reduciblePath = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>
-): string => "/".concat(decamelize(factory.name), "/:id");
+  reducible: ReducibleFactory<M, C, E>
+): string => "/".concat(decamelize(reducible.name), "/:id");
 
 /**
  * Normalizes command handler paths
- * @param factory command handler factory
- * @param command command
+ * @param handler command handler factory
+ * @param name command name
  * @returns normalized path
  */
 export const commandHandlerPath = <M extends Payload, C, E>(
-  factory: AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>,
-  command: MsgOf<C>
+  handler: CommandHandlerFactory<M, C, E>,
+  name: string
 ): string =>
   "/".concat(
-    decamelize(factory.name),
-    getReducible(factory(undefined)) ? "/:id/" : "/",
-    decamelize(command.name)
-  );
+    decamelize(handler.name),
+    getReducible(handler(undefined)) ? "/:id/" : "/",
+    decamelize(name)
+);
 
 /**
  * Normalizes event handler paths
- * @param factory event handler factory
- * @param event event
+ * @param handler event handler factory
+ * @param name event name
  * @returns normalized path
  */
 export const eventHandlerPath = <M extends Payload, C, E>(
-  factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-  event: MsgOf<E>
-): string => "/".concat(decamelize(factory.name), "/", decamelize(event.name));
+  handler: EventHandlerFactory<M, C, E>,
+  name: string
+): string => "/".concat(decamelize(handler.name), "/", decamelize(name));
 
 export enum Errors {
   ValidationError = "Validation Error",
@@ -114,7 +132,7 @@ export class ValidationError extends Error {
 export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,
-    public readonly events: Msg[],
+    public readonly events: Message<string, Payload>[],
     public readonly expectedVersion: number
   ) {
     super(Errors.ConcurrencyError);

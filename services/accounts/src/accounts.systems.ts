@@ -1,7 +1,6 @@
-import { ExternalSystem } from "@rotorsoft/eventually";
+import { bind, ExternalSystem } from "@rotorsoft/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
-import * as models from "./accounts.models";
 import * as uuid from "uuid";
 
 export const ExternalSystem1 = (): ExternalSystem<
@@ -9,11 +8,11 @@ export const ExternalSystem1 = (): ExternalSystem<
   Pick<events.Events, "Account1Created">
 > => ({
   stream: () => "ExternalSystem1",
-  onCreateAccount1: (data: models.Account) => {
+  onCreateAccount1: (data) => {
     // here we create the external account 1
     const externalId = uuid.v4();
     return Promise.resolve([
-      events.factory.Account1Created({ ...data, externalId })
+      bind(events.factory.Account1Created, { ...data, externalId })
     ]);
   }
 });
@@ -23,11 +22,11 @@ export const ExternalSystem2 = (): ExternalSystem<
   Pick<events.Events, "Account2Created">
 > => ({
   stream: () => "ExternalSystem2",
-  onCreateAccount2: (data: models.Account) => {
+  onCreateAccount2: (data) => {
     // here we create the external account 2
     const externalId = uuid.v4();
     return Promise.resolve([
-      events.factory.Account2Created({ ...data, externalId })
+      bind(events.factory.Account2Created, { ...data, externalId })
     ]);
   }
 });
@@ -37,11 +36,11 @@ export const ExternalSystem3 = (): ExternalSystem<
   Pick<events.Events, "Account3Created">
 > => ({
   stream: () => "ExternalSystem3",
-  onCreateAccount3: (data: models.Account) => {
+  onCreateAccount3: (data) => {
     // here we create the external account 3
     const externalId = uuid.v4();
     return Promise.resolve([
-      events.factory.Account3Created({ ...data, externalId })
+      bind(events.factory.Account3Created, { ...data, externalId })
     ]);
   }
 });
@@ -51,8 +50,8 @@ export const ExternalSystem4 = (): ExternalSystem<
   Pick<events.Events, "IntegrationCompleted">
 > => ({
   stream: () => "ExternalSystem4",
-  onCompleteIntegration: (data: models.WaitForAllState) => {
+  onCompleteIntegration: (data) => {
     // here we could send and email
-    return Promise.resolve([events.factory.IntegrationCompleted(data)]);
+    return Promise.resolve([bind(events.factory.IntegrationCompleted, data)]);
   }
 });

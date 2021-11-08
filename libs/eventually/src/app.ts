@@ -3,23 +3,21 @@ import { Broker, Store } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
 import {
-  Aggregate,
   AllQuery,
-  CommandResponse,
-  Evt,
-  EvtOf,
-  ExternalSystem,
+  CommandHandler,
+  CommittedEvent,
   Getter,
+  Message,
+  MessageOptions,
   MessageHandler,
-  Msg,
-  MsgOf,
   Payload,
   PolicyFactory,
-  ProcessManagerFactory,
   Reducible,
-  Snapshot
+  Scopes,
+  Snapshot,
+  EventHandlerFactory
 } from "./types";
-import { getReducible, getStreamable } from "./utils";
+import { bind, getReducible, getStreamable } from "./utils";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
@@ -47,13 +45,18 @@ export abstract class AppBase extends Builder implements Reader {
    * - Public events are delegated to the broker to be published
    * @param events the events about to commit
    */
-  private async _publish(events: Evt[]): Promise<void> {
+  private async _publish<C, E>(
+    events: CommittedEvent<keyof E & string, Payload>[]
+  ): Promise<void> {
     // private subscriptions are invoked synchronously (in-process)
     await Promise.all(
       events.map((e) => {
         const private_sub = this._private_subscriptions[e.name];
-        if (private_sub)
-          return Promise.all(private_sub.map((f) => this.event(f, e)));
+        if (private_sub) {
+          return Promise.all(
+            private_sub.map((f: PolicyFactory<C, E>) => this.event(f, e))
+          );
+        }
       })
     );
     // public subscriptions are delegated to the broker
@@ -70,9 +73,11 @@ export abstract class AppBase extends Builder implements Reader {
    */
   private async _handle<M extends Payload, C, E>(
     handler: MessageHandler<M, C, E>,
-    callback: (state: M) => Promise<Msg[] | Evt[]>,
+    callback: (state: M) => Promise<Message<string, Payload>[]>,
     expectedVersion?: number,
-    publishCallback?: (events: Evt[]) => Promise<void>
+    publishCallback?: (
+      events: CommittedEvent<keyof E & string, Payload>[]
+    ) => Promise<void>
   ): Promise<Snapshot<M>[]> {
     const streamable = getStreamable(handler);
     const reducible = getReducible(handler);
@@ -123,12 +128,12 @@ export abstract class AppBase extends Builder implements Reader {
     await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
       Object.values(this._handlers.events)
-        .filter(({ event }) => event.scope() === "public")
-        .map(({ factory, event }) => {
+        .filter(({ event }) => event().scope === Scopes.public)
+        .map(({ handler, event }) => {
           return broker()
-            .subscribe(factory, event)
+            .subscribe(handler, event.name)
             .then(() =>
-              this.log.info("red", `${factory.name} <<< ${event.name}`)
+              this.log.info("red", `${handler.name} <<< ${event.name}`)
             );
         })
     );
@@ -145,59 +150,67 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Handles commands
-   * @param handler the aggregate or system with command handlers
-   * @param command the command to handle
+   * Handles command
+   * @param handler the command handler
+   * @param options the command options factory
+   * @param data the payload
    * @param expectedVersion optional aggregate expected version to allow optimistic concurrency
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
-    command: MsgOf<C>,
+    handler: CommandHandler<M, C, E>,
+    options: MessageOptions<keyof C & string, Payload>,
+    data?: Payload,
     expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
-      `\n>>> ${command.name} ${handler.stream()} ${
+      `\n>>> ${options.name} ${handler.stream()} ${
         expectedVersion ? ` @${expectedVersion}` : ""
       }`,
-      command.data
+      data
     );
     return await this._handle(
       handler,
-      (state: M) =>
-        (handler as any)["on".concat(command.name)](command.data, state),
+      (state: M) => (handler as any)["on".concat(options.name)](data, state),
       expectedVersion,
       this._publish.bind(this)
     );
   }
 
   /**
-   * Handles policy events and optionally invokes command on target aggregate - side effect
+   * Handles event and optionally invokes command on target - side effect
    * @param factory the event handler factory
-   * @param event the triggering event
-   * @returns command response and optional state
+   * @param event the committed event payload
+   * @returns optional command response and reducible state
    */
-  async event<C, E, M extends Payload>(
-    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-    event: EvtOf<E>
-  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
+  async event<M extends Payload, C, E>(
+    factory: EventHandlerFactory<M, C, E>,
+    event: CommittedEvent<keyof E & string, Payload>
+  ): Promise<{
+    response: Message<keyof C & string, Payload> | undefined;
+    state?: M;
+  }> {
     this.log.trace(
       "magenta",
       `\n>>> ${event.name} ${factory.name}`,
       event.data
     );
     const handler = factory(event);
-    let response: CommandResponse<unknown> | undefined;
+    let response: Message<keyof C & string, Payload> | undefined;
     const [{ state }] = await this._handle(handler, async (state: M) => {
       response = await (handler as any)["on".concat(event.name)](event, state);
       if (response) {
         // handle commands synchronously
-        const { id, command, expectedVersion } = response;
-        const { factory } = this._handlers.commands[command.name];
-        await this.command(factory(id), command, expectedVersion);
+        const { handler } = this._handlers.commands[response.name];
+        await this.command(
+          handler(response.id) as CommandHandler<M, C, E>,
+          response.options(),
+          response.data,
+          response.expectedVersion
+        );
       }
-      return [event as Evt];
+      return [bind(this._factories.events[event.name], event.data)];
     });
     return { response, state };
   }
@@ -260,8 +273,10 @@ export abstract class AppBase extends Builder implements Reader {
    * Queries the store - all streams
    * @param query optional query parameters
    */
-  async query(query: AllQuery = { after: -1, limit: 1 }): Promise<Evt[]> {
-    const events: Evt[] = [];
+  async query(
+    query: AllQuery = { after: -1, limit: 1 }
+  ): Promise<CommittedEvent<string, Payload>[]> {
+    const events: CommittedEvent<string, Payload>[] = [];
     await store().query((e) => events.push(e), query);
     return events;
   }

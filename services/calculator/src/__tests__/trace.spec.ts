@@ -24,7 +24,7 @@ describe("in memory app", () => {
     it("should compute correctly", async () => {
       const test = Calculator("test");
 
-      await app().command(test, commands.PressKey({ key: "1" }));
+      await app().command(test, commands.PressKey, { key: "1" });
 
       const { state } = await app().load(test);
       expect(state).toEqual({

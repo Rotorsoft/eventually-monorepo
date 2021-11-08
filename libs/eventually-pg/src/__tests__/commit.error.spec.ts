@@ -1,8 +1,10 @@
-import { Errors, EvtOf, Msg } from "@rotorsoft/eventually";
+import { Errors, CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 
-const query = (sql: string): Promise<QueryResult<EvtOf<any>>> => {
+const query = (
+  sql: string
+): Promise<QueryResult<CommittedEvent<string, Payload>>> => {
   if (sql === "COMMIT") {
     return Promise.reject("commit error");
   }
@@ -15,9 +17,7 @@ const query = (sql: string): Promise<QueryResult<EvtOf<any>>> => {
         data: {},
         stream: "stream",
         version: 1,
-        created: new Date(),
-        scope: () => "public",
-        schema: () => undefined
+        created: new Date()
       }
     ],
     command: undefined,
@@ -50,7 +50,7 @@ describe("Mocked", () => {
     }));
     await expect(
       db2.commit("stream", [
-        { name: "test", data: {}, schema: () => undefined } as Msg
+        { options: () => undefined, name: "test", data: {} }
       ])
     ).rejects.toThrowError(Errors.ConcurrencyError);
   });

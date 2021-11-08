@@ -1,4 +1,4 @@
-import { Evt, EvtOf, Msg, Payload } from "@rotorsoft/eventually";
+import { CommittedEvent, Payload, Message } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 
@@ -17,12 +17,14 @@ type E = {
   test3: { value: string };
 };
 
-const event = (name: keyof E, data?: Payload): Msg =>
-  ({
-    name,
-    data,
-    schema: () => null
-  } as Msg);
+const event = (
+  name: keyof E,
+  data?: Payload
+): Message<keyof E & string, Payload> => ({
+  options: () => undefined,
+  name,
+  data
+});
 
 describe("PostgresStore", () => {
   beforeAll(async () => {
@@ -65,7 +67,7 @@ describe("PostgresStore", () => {
   });
 
   it("should commit events array", async () => {
-    const events: Evt[] = [];
+    const events: CommittedEvent<string, Payload>[] = [];
     await db.query(
       (e) => {
         events.push(e);
@@ -86,14 +88,14 @@ describe("PostgresStore", () => {
   });
 
   it("should read stream with after", async () => {
-    const events: EvtOf<E>[] = [];
+    const events: CommittedEvent<string, Payload>[] = [];
     await db.query((e) => events.push(e), { after: 2, limit: 2 });
     expect(events[0].id).toBe(3);
     expect(events.length).toBe(2);
   });
 
   it("should read stream by name", async () => {
-    const events: EvtOf<E>[] = [];
+    const events: CommittedEvent<string, Payload>[] = [];
     await db.query((e) => events.push(e), { name: "test1", limit: 5 });
     expect(events[0].name).toBe("test1");
     expect(events.length).toBeGreaterThanOrEqual(3);
@@ -101,7 +103,7 @@ describe("PostgresStore", () => {
   });
 
   it("should read stream with limit", async () => {
-    const events: EvtOf<E>[] = [];
+    const events: CommittedEvent<string, Payload>[] = [];
     await db.query((e) => events.push(e), { limit: 5 });
     expect(events.length).toBe(5);
   });

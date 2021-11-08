@@ -14,7 +14,7 @@ jest.mock("../accounts.systems.ts", () => {
   };
 });
 
-import { app, EvtOf, store } from "@rotorsoft/eventually";
+import { app, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
@@ -43,18 +43,14 @@ app()
   )
   .build();
 
-const trigger = (id: string): EvtOf<Pick<events.Events, "AccountCreated">> => {
-  return {
-    id: 1,
-    version: 1,
-    stream: "main",
-    created: new Date(),
-    name: "AccountCreated",
-    data: { id },
-    scope: () => "public",
-    schema: events.factory.AccountCreated().schema
-  } as EvtOf<Pick<events.Events, "AccountCreated">>;
-};
+const trigger = (id: string): any => ({
+  id: 1,
+  version: 1,
+  stream: "main",
+  created: new Date(),
+  name: "AccountCreated",
+  data: { id }
+});
 
 describe("sad path", () => {
   beforeAll(async () => {

@@ -1,21 +1,22 @@
+import { CommandHandler } from "..";
 import { AppBase } from "../app";
 import { config } from "../config";
 import {
-  Aggregate,
-  CommandResponse,
-  EvtOf,
-  ExternalSystem,
-  MsgOf,
+  CommittedEvent,
+  EventHandlerFactory,
+  Message,
+  MessageOptions,
   Payload,
-  PolicyFactory,
-  ProcessManagerFactory,
   Snapshot
 } from "../types";
 import { ValidationError } from "../utils";
 
-const validate = <T>(data: T, msg: MsgOf<T>): void => {
-  if (msg.schema) {
-    const { error } = msg.schema().validate(data, { abortEarly: false });
+const validate = (
+  data: Payload,
+  options: MessageOptions<string, Payload>
+): void => {
+  if (options().schema) {
+    const { error } = options().schema.validate(data, { abortEarly: false });
     if (error) throw new ValidationError(error);
   }
 };
@@ -27,24 +28,33 @@ export class InMemoryApp extends AppBase {
   }
 
   async command<M extends Payload, C, E>(
-    handler: Aggregate<M, C, E> | ExternalSystem<C, E>,
-    command: MsgOf<C>,
+    handler: CommandHandler<M, C, E>,
+    command: MessageOptions<keyof C & string, Payload>,
+    data?: Payload,
     expectedVersion?: number
   ): Promise<Snapshot<M>[]> {
     const factories = this._factories;
-    validate(command.data, factories.commands[command.name]());
-    const snapshots = await super.command(handler, command, expectedVersion);
+    validate(data, factories.commands[command.name]);
+    const snapshots = await super.command(
+      handler,
+      command,
+      data,
+      expectedVersion
+    );
     snapshots.map(({ event }) => {
-      return validate(event.data, factories.events[event.name]());
+      return validate(event.data, factories.events[event.name]);
     });
     return snapshots;
   }
 
-  async event<C, E, M extends Payload>(
-    factory: PolicyFactory<C, E> | ProcessManagerFactory<M, C, E>,
-    event: EvtOf<E>
-  ): Promise<{ response: CommandResponse<C> | undefined; state?: M }> {
-    validate(event.data, this._factories.events[event.name]());
+  async event<M extends Payload, C, E>(
+    factory: EventHandlerFactory<M, C, E>,
+    event: CommittedEvent<keyof E & string, Payload>
+  ): Promise<{
+    response: Message<keyof C & string, Payload> | undefined;
+    state?: M;
+  }> {
+    validate(event.data, this._factories.events[event.name]);
     return super.event(factory, event);
   }
 }

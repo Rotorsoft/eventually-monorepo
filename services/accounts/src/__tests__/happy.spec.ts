@@ -1,4 +1,4 @@
-import { app, EvtOf, store } from "@rotorsoft/eventually";
+import { app, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
@@ -27,18 +27,14 @@ app()
   )
   .build();
 
-const trigger = (id: string): EvtOf<Pick<events.Events, "AccountCreated">> => {
-  return {
-    id: 1,
-    version: 1,
-    stream: "main",
-    created: new Date(),
-    name: "AccountCreated",
-    data: { id },
-    scope: () => "public",
-    schema: events.factory.AccountCreated().schema
-  } as EvtOf<Pick<events.Events, "AccountCreated">>;
-};
+const trigger = (id: string): any => ({
+  id: 1,
+  version: 1,
+  stream: "main",
+  created: new Date(),
+  name: "AccountCreated",
+  data: { id }
+});
 
 describe("happy path", () => {
   beforeAll(async () => {
@@ -63,9 +59,7 @@ describe("happy path", () => {
       await app().query({ name: "Account1Created", after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
     const snapshots = await app().stream(
-      policies.WaitForAllAndComplete(
-        seed as EvtOf<Pick<events.Events, "Account1Created">>
-      )
+      policies.WaitForAllAndComplete(seed as any)
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);
@@ -90,9 +84,7 @@ describe("happy path", () => {
       await app().query({ name: "Account1Created", after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
     const snapshots = await app().stream(
-      policies.WaitForAllAndComplete(
-        seed as EvtOf<Pick<events.Events, "Account1Created">>
-      )
+      policies.WaitForAllAndComplete(seed as any)
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0].state.id).toBe(t.data.id);

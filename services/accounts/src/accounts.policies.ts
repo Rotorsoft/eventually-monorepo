@@ -1,9 +1,4 @@
-import {
-  CommittedEvent,
-  EvtOf,
-  Policy,
-  ProcessManager
-} from "@rotorsoft/eventually";
+import { bind, Policy, ProcessManagerFactory } from "@rotorsoft/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as models from "./accounts.models";
@@ -13,13 +8,9 @@ export const IntegrateAccount1 = (): Policy<
   Pick<commands.Commands, "CreateAccount1">,
   Pick<events.Events, "AccountCreated">
 > => ({
-  onAccountCreated: (
-    event: CommittedEvent<"AccountCreated", models.Account>
-  ) => {
+  onAccountCreated: (event) => {
     // we don't have much to do here, just return the command to external system 1
-    return Promise.resolve({
-      command: commands.factory.CreateAccount1(event.data)
-    });
+    return Promise.resolve(bind(commands.factory.CreateAccount1, event.data));
   }
 });
 
@@ -27,13 +18,9 @@ export const IntegrateAccount2 = (): Policy<
   Pick<commands.Commands, "CreateAccount2">,
   Pick<events.Events, "AccountCreated">
 > => ({
-  onAccountCreated: (
-    event: CommittedEvent<"AccountCreated", models.Account>
-  ) => {
+  onAccountCreated: (event) => {
     // we don't have much to do here, just return the command to external system 2
-    return Promise.resolve({
-      command: commands.factory.CreateAccount2(event.data)
-    });
+    return Promise.resolve(bind(commands.factory.CreateAccount2, event.data));
   }
 });
 
@@ -41,49 +28,37 @@ export const IntegrateAccount3 = (): Policy<
   Pick<commands.Commands, "CreateAccount3">,
   Pick<events.Events, "Account2Created">
 > => ({
-  onAccount2Created: (
-    event: CommittedEvent<"Account2Created", models.ExternalAccount>
-  ) => {
+  onAccount2Created: (event) => {
     // we don't have much to do here, just return the command to external system 3
-    return Promise.resolve({
-      command: commands.factory.CreateAccount3({ id: event.data.id })
-    });
+    return Promise.resolve(
+      bind(commands.factory.CreateAccount3, { id: event.data.id })
+    );
   }
 });
 
-export const WaitForAllAndComplete = (
-  event: EvtOf<Pick<events.Events, "Account1Created" | "Account3Created">>
-): ProcessManager<
+export const WaitForAllAndComplete: ProcessManagerFactory<
   models.WaitForAllState,
   Pick<commands.Commands, "CompleteIntegration">,
   Pick<events.Events, "Account1Created" | "Account3Created">
-> => ({
+> = (event) => ({
   stream: () =>
     `WaitForAllAndComplete:${(event.data as models.ExternalAccount).id}`,
 
   schema: () => schemas.WaitForAllState,
   init: () => ({ id: (event.data as models.ExternalAccount).id }),
 
-  onAccount1Created: (
-    event: CommittedEvent<"Account1Created", models.ExternalAccount>,
-    data: models.WaitForAllState
-  ) => {
+  onAccount1Created: (event, data) => {
     // make sure all accounts are created
     if (data.account3)
-      return Promise.resolve({
-        command: commands.factory.CompleteIntegration(data)
-      });
+      return Promise.resolve(bind(commands.factory.CompleteIntegration, data));
   },
 
-  onAccount3Created: (
-    event: CommittedEvent<"Account3Created", models.ExternalAccount>,
-    data: models.WaitForAllState
-  ) => {
+  onAccount3Created: (event, data) => {
     // make sure all accounts are created
     if (data.account1)
-      return Promise.resolve({
-        command: commands.factory.CompleteIntegration({ id: event.data.id })
-      });
+      return Promise.resolve(
+        bind(commands.factory.CompleteIntegration, { id: event.data.id })
+      );
   },
 
   applyAccount1Created: (state, event) => ({

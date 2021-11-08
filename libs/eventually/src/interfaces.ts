@@ -1,20 +1,24 @@
-import { AllQuery, ProcessManagerFactory, Snapshot } from ".";
-import { Evt, Msg, Payload, PolicyFactory } from "./types";
+import {
+  AllQuery,
+  EventHandlerFactory,
+  CommittedEvent,
+  Message,
+  Payload,
+  Snapshot
+} from "./types";
 
 /**
  * Brokers publish committed events to pub/sub topics
  */
 export interface Broker {
   /**
-   * Subscribes event handler to topic
-   * @param factory event handler factory
-   * @param event the event
+   * Subscribes public event handler to topic
+   * @param handler event handler factory
+   * @param name the event name
    */
   subscribe(
-    factory:
-      | PolicyFactory<unknown, unknown>
-      | ProcessManagerFactory<Payload, unknown, unknown>,
-    event: Msg
+    handler: EventHandlerFactory<Payload, unknown, unknown>,
+    name: string
   ): Promise<void>;
 
   /**
@@ -22,14 +26,14 @@ export interface Broker {
    * @param event committed event
    * @returns the message id
    */
-  publish: (event: Evt) => Promise<string>;
+  publish: (event: CommittedEvent<string, Payload>) => Promise<string>;
 
   /**
    * Decodes pushed messages
    * @param msg pushed message
    * @returns committed event in payload
    */
-  decode: (msg: Payload) => Evt;
+  decode: (msg: Payload) => CommittedEvent<string, Payload>;
 }
 
 /**
@@ -51,7 +55,10 @@ export interface Store {
    * @param callback callback predicate
    * @param query optional query values
    */
-  query: (callback: (event: Evt) => void, query?: AllQuery) => Promise<void>;
+  query: (
+    callback: (event: CommittedEvent<string, Payload>) => void,
+    query?: AllQuery
+  ) => Promise<void>;
 
   /**
    * Commits message into stream of aggregate id
@@ -63,10 +70,10 @@ export interface Store {
    */
   commit: (
     stream: string,
-    events: Msg[],
+    events: Message<string, Payload>[],
     expectedVersion?: number,
-    callback?: (events: Evt[]) => Promise<void>
-  ) => Promise<Evt[]>;
+    callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+  ) => Promise<CommittedEvent<string, Payload>[]>;
 }
 
 export interface SnapshotStore {

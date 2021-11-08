@@ -38,7 +38,8 @@ describe("express app", () => {
       await expect(
         command(
           Calculator,
-          commands.PressKey({ key: "1" }),
+          commands.PressKey,
+          { key: "1" },
           "test5",
           undefined,
           3002

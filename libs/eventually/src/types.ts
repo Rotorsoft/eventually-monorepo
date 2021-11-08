@@ -2,62 +2,72 @@ import * as joi from "joi";
 import { SnapshotStore } from ".";
 
 /**
- * Message payloads are records
+ * Message payloads are objects
  */
 export type Payload = Record<string, unknown>;
 
 /**
- * Messages transfer validatable information across service boundaries
- * Commands and Events are messages
+ * Message scopes can be
+ * - `public` to expose public endpoints (HTTP command and event handlers), and publish events to brokers for async communication
+ * - `private` to connect messages synchronously (in-process) - **default**
+ */
+export enum Scopes {
+  private = "private",
+  public = "public"
+}
+
+/**
+ * Message options
+ * - `scope?` The optional scope of the message
+ * - `schema?` The optional payload validation schema
+ */
+export type MessageOptions<_ extends string, Type extends Payload> = () => {
+  scope?: Scopes;
+  schema?: joi.ObjectSchema<Type>;
+};
+
+/**
+ * Dictionaries of message factories keyed by message names
+ */
+export type MessageFactory<Messages> = {
+  [Name in keyof Messages]: MessageOptions<
+    Name & string,
+    Messages[Name] & Payload
+  >;
+};
+
+/**
+ * Messages transfer information across service boundaries
+ * - `name` The unique name of the message
+ * - `data?` Optional payload
+ * - `id?` Optional reducible target id
+ * - `expectedVersion?` Optional reducible target expected version
+ * - `options` The options factory in bound messages
  */
 export type Message<Name extends string, Type extends Payload> = {
   readonly name: Name;
-  scope: () => "public" | "private";
   readonly data?: Type;
-  schema?: () => joi.ObjectSchema<Type>;
+  readonly id?: string;
+  readonly expectedVersion?: number;
+  options: () => MessageOptions<Name, Type>;
 };
 
 /**
- * Shortcuts for messages
+ * Committed events have:
+ * - `id` The index of the event in the "all" stream
+ * - `stream` The unique name of the reducible stream
+ * - `version` The unique sequence number within the stream
+ * - `created` The date-time of creation
+ * - `name` The unique name of the event
+ * - `data?` The optional payload
  */
-export type MsgOf<T> = Message<keyof T & string, Payload>;
-export type Msg = MsgOf<unknown>;
-
-/**
- * Typed message factories
- */
-export type MessageFactory<Messages> = {
-  [Name in keyof Messages]: (
-    data?: Messages[Name]
-  ) => Message<Name & string, Messages[Name] & Payload>;
-};
-
-/**
- * Events committed to a stream have extra persisted attributes
- */
-export type CommittedEvent<Name extends string, Type extends Payload> = Message<
-  Name,
-  Type
-> & {
+export type CommittedEvent<Name extends string, Type extends Payload> = {
   readonly id: number;
   readonly stream: string;
   readonly version: number;
   readonly created: Date;
-  readonly name: string;
-};
-
-/**
- * Shortcuts for committed events
- */
-export type EvtOf<E> = CommittedEvent<keyof E & string, Payload>;
-export type Evt = EvtOf<unknown>;
-
-/**
- * Aggregate snapshot after event is applied
- */
-export type Snapshot<M extends Payload> = {
-  event: Evt;
-  state?: M;
+  readonly name: Name;
+  readonly data?: Type;
 };
 
 /**
@@ -83,6 +93,14 @@ export type Reducible<M extends Payload, E> = Streamable & {
 };
 
 /**
+ * Reducible snapshots after events are applied
+ */
+export type Snapshot<M extends Payload> = {
+  readonly event: CommittedEvent<string, Payload>;
+  readonly state?: M;
+};
+
+/**
  * Aggregates handle commands and produce events
  * - Define the consistency boundaries of a business model (entity graph)
  * - Have reducible state
@@ -91,7 +109,7 @@ export type Aggregate<M extends Payload, C, E> = Reducible<M, E> & {
   [Name in keyof C as `on${Capitalize<Name & string>}`]: (
     data?: C[Name] & Payload,
     state?: Readonly<M>
-  ) => Promise<MsgOf<E>[]>;
+  ) => Promise<Message<keyof E & string, Payload>[]>;
 };
 export type AggregateFactory<M extends Payload, C, E> = (
   id: string
@@ -104,19 +122,9 @@ export type AggregateFactory<M extends Payload, C, E> = (
 export type ExternalSystem<C, E> = Streamable & {
   [Name in keyof C as `on${Capitalize<Name & string>}`]: (
     data?: C[Name] & Payload
-  ) => Promise<MsgOf<E>[]>;
+  ) => Promise<Message<keyof E & string, Payload>[]>;
 };
 export type ExternalSystemFactory<C, E> = () => ExternalSystem<C, E>;
-
-/**
- * Event handlers can respond with commands targetting command handlers (aggregates or systems)
- * - Response is routed to aggregates when aggregate id and optional expectedVersion are included
- */
-export type CommandResponse<C> = {
-  command: MsgOf<C>;
-  id?: string;
-  expectedVersion?: number;
-};
 
 /**
  * Policies handle events and optionally produce commands
@@ -124,7 +132,7 @@ export type CommandResponse<C> = {
 export type Policy<C, E> = {
   [Name in keyof E as `on${Capitalize<Name & string>}`]: (
     event: CommittedEvent<Name & string, E[Name] & Payload>
-  ) => Promise<CommandResponse<C> | undefined>;
+  ) => Promise<Message<keyof C & string, Payload> | undefined>;
 };
 export type PolicyFactory<C, E> = () => Policy<C, E>;
 
@@ -136,20 +144,20 @@ export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> & {
   [Name in keyof E as `on${Capitalize<Name & string>}`]: (
     event: CommittedEvent<Name & string, E[Name] & Payload>,
     state: Readonly<M>
-  ) => Promise<CommandResponse<C> | undefined>;
+  ) => Promise<Message<keyof C & string, Payload> | undefined>;
 };
 export type ProcessManagerFactory<M extends Payload, C, E> = (
-  event: EvtOf<E>
+  event: CommittedEvent<keyof E & string, Payload>
 ) => ProcessManager<M, C, E>;
 
 /**
  * Options to query the all stream
  */
 export type AllQuery = {
-  stream?: string;
-  name?: string;
-  after?: number;
-  limit?: number;
+  readonly stream?: string;
+  readonly name?: string;
+  readonly after?: number;
+  readonly limit?: number;
 };
 
 /**
@@ -178,3 +186,23 @@ export type MessageHandlerFactory<M extends Payload, C, E> =
   | ExternalSystemFactory<C, E>
   | ProcessManagerFactory<M, C, E>
   | PolicyFactory<C, E>;
+
+export type ReducibleFactory<M extends Payload, C, E> =
+  | AggregateFactory<M, C, E>
+  | ProcessManagerFactory<M, C, E>;
+
+export type CommandHandlerFactory<M extends Payload, C, E> =
+  | AggregateFactory<M, C, E>
+  | ExternalSystemFactory<C, E>;
+
+export type EventHandlerFactory<M extends Payload, C, E> =
+  | ProcessManagerFactory<M, C, E>
+  | PolicyFactory<C, E>;
+
+export type CommandHandler<M extends Payload, C, E> =
+  | Aggregate<M, C, E>
+  | ExternalSystem<C, E>;
+
+export type EventHandler<M extends Payload, C, E> =
+  | ProcessManager<M, C, E>
+  | Policy<C, E>;
