@@ -1,9 +1,12 @@
 process.env.LOG_LEVEL = "trace";
 
-import { app } from "@rotorsoft/eventually";
+import { app, bind } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { commands } from "../calculator.commands";
 import { events } from "../calculator.events";
+import { Chance } from "chance";
+
+const chance = new Chance();
 
 app()
   .withCommandHandlers(Calculator)
@@ -22,11 +25,14 @@ describe("in memory app", () => {
 
   describe("calculator", () => {
     it("should compute correctly", async () => {
-      const test = Calculator("test");
+      const id = chance.guid();
 
-      await app().command(test, commands.PressKey, { key: "1" });
+      await app().command(
+        Calculator,
+        bind(commands.PressKey, { key: "1" }, id)
+      );
 
-      const { state } = await app().load(test);
+      const { state } = await app().load(Calculator(id));
       expect(state).toEqual({
         left: "1",
         result: 0

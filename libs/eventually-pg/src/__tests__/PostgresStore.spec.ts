@@ -1,4 +1,4 @@
-import { CommittedEvent, Payload, Message } from "@rotorsoft/eventually";
+import { CommittedEvent, Payload, Message, bind } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 
@@ -17,14 +17,16 @@ type E = {
   test3: { value: string };
 };
 
+const factory = {
+  test1: () => ({}),
+  test2: () => ({}),
+  test3: () => ({})
+};
+
 const event = (
   name: keyof E,
   data?: Payload
-): Message<keyof E & string, Payload> => ({
-  options: () => undefined,
-  name,
-  data
-});
+): Message<keyof E & string, Payload> => bind(factory[name], data);
 
 describe("PostgresStore", () => {
   beforeAll(async () => {

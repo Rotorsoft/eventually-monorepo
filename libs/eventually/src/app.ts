@@ -4,18 +4,18 @@ import { log } from "./log";
 import { singleton } from "./singleton";
 import {
   AllQuery,
-  CommandHandler,
+  Command,
+  CommandHandlerFactory,
   CommittedEvent,
+  EventHandlerFactory,
   Getter,
   Message,
-  MessageOptions,
   MessageHandler,
   Payload,
   PolicyFactory,
   Reducible,
   Scopes,
-  Snapshot,
-  EventHandlerFactory
+  Snapshot
 } from "./types";
 import { bind, getReducible, getStreamable } from "./utils";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
@@ -151,29 +151,27 @@ export abstract class AppBase extends Builder implements Reader {
 
   /**
    * Handles command
-   * @param handler the command handler
-   * @param options the command options factory
-   * @param data the payload
-   * @param expectedVersion optional aggregate expected version to allow optimistic concurrency
+   * @param factory the command handler factory
+   * @param command the command message
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    handler: CommandHandler<M, C, E>,
-    options: MessageOptions<keyof C & string, Payload>,
-    data?: Payload,
-    expectedVersion?: number
+    factory: CommandHandlerFactory<M, C, E>,
+    command: Command<keyof C & string, Payload>
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
-      `\n>>> ${options.name} ${handler.stream()} ${
-        expectedVersion ? ` @${expectedVersion}` : ""
+      `\n>>> ${command.name} ${command.id} ${
+        command.expectedVersion ? ` @${command.expectedVersion}` : ""
       }`,
-      data
+      command.data
     );
+    const handler = factory(command.id);
     return await this._handle(
       handler,
-      (state: M) => (handler as any)["on".concat(options.name)](data, state),
-      expectedVersion,
+      (state: M) =>
+        (handler as any)["on".concat(command.name)](command.data, state),
+      command.expectedVersion,
       this._publish.bind(this)
     );
   }
@@ -188,7 +186,7 @@ export abstract class AppBase extends Builder implements Reader {
     factory: EventHandlerFactory<M, C, E>,
     event: CommittedEvent<keyof E & string, Payload>
   ): Promise<{
-    response: Message<keyof C & string, Payload> | undefined;
+    response: Command<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
     this.log.trace(
@@ -197,18 +195,13 @@ export abstract class AppBase extends Builder implements Reader {
       event.data
     );
     const handler = factory(event);
-    let response: Message<keyof C & string, Payload> | undefined;
+    let response: Command<keyof C & string, Payload> | undefined;
     const [{ state }] = await this._handle(handler, async (state: M) => {
       response = await (handler as any)["on".concat(event.name)](event, state);
       if (response) {
         // handle commands synchronously
         const { handler } = this._handlers.commands[response.name];
-        await this.command(
-          handler(response.id) as CommandHandler<M, C, E>,
-          response.options(),
-          response.data,
-          response.expectedVersion
-        );
+        await this.command(handler as CommandHandlerFactory<M, C, E>, response);
       }
       return [bind(this._factories.events[event.name], event.data)];
     });

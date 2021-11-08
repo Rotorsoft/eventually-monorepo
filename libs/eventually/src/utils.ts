@@ -1,6 +1,6 @@
 import * as joi from "joi";
-import { ReducibleFactory } from ".";
 import {
+  Command,
   CommandHandlerFactory,
   EventHandlerFactory,
   Message,
@@ -8,6 +8,7 @@ import {
   MessageOptions,
   Payload,
   Reducible,
+  ReducibleFactory,
   Streamable
 } from "./types";
 
@@ -22,8 +23,7 @@ export const bind = <Name extends string, Type extends Payload>(
   data?: Type,
   id?: string,
   expectedVersion?: number
-): Message<Name, Type> => ({
-  options: () => options,
+): Message<Name, Type> | Command<Name, Type> => ({
   name: options.name as Name,
   data,
   id,
@@ -103,7 +103,7 @@ export const commandHandlerPath = <M extends Payload, C, E>(
     decamelize(handler.name),
     getReducible(handler(undefined)) ? "/:id/" : "/",
     decamelize(name)
-);
+  );
 
 /**
  * Normalizes event handler paths

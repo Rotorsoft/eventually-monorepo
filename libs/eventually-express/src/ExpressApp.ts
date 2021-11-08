@@ -2,6 +2,7 @@ import {
   AggregateFactory,
   AllQuery,
   AppBase,
+  bind,
   broker,
   CommittedEvent,
   config,
@@ -124,10 +125,13 @@ export class ExpressApp extends AppBase {
                 if (error) throw new ValidationError(error);
               }
               const snapshots = await this.command(
-                handler(req.params.id),
-                command,
-                req.body,
-                type === "aggregate" ? +req.headers["if-match"] : undefined
+                handler,
+                bind(
+                  command as any,
+                  req.body,
+                  req.params.id,
+                  type === "aggregate" ? +req.headers["if-match"] : undefined
+                )
               );
               res.setHeader(
                 "ETag",

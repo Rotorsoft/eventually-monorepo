@@ -37,19 +37,26 @@ export type MessageFactory<Messages> = {
 };
 
 /**
- * Messages transfer information across service boundaries
- * - `name` The unique name of the message
+ * Messages have
+ * - `name` The bound message name
  * - `data?` Optional payload
- * - `id?` Optional reducible target id
- * - `expectedVersion?` Optional reducible target expected version
- * - `options` The options factory in bound messages
  */
 export type Message<Name extends string, Type extends Payload> = {
   readonly name: Name;
   readonly data?: Type;
+};
+
+/**
+ * Commands are messages with optional target arguments
+ * - `id?` Target aggregate id
+ * - `expectedVersion?` Target aggregate expected version
+ */
+export type Command<Name extends string, Type extends Payload> = Message<
+  Name,
+  Type
+> & {
   readonly id?: string;
   readonly expectedVersion?: number;
-  options: () => MessageOptions<Name, Type>;
 };
 
 /**
@@ -132,7 +139,7 @@ export type ExternalSystemFactory<C, E> = () => ExternalSystem<C, E>;
 export type Policy<C, E> = {
   [Name in keyof E as `on${Capitalize<Name & string>}`]: (
     event: CommittedEvent<Name & string, E[Name] & Payload>
-  ) => Promise<Message<keyof C & string, Payload> | undefined>;
+  ) => Promise<Command<keyof C & string, Payload> | undefined>;
 };
 export type PolicyFactory<C, E> = () => Policy<C, E>;
 
@@ -144,7 +151,7 @@ export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> & {
   [Name in keyof E as `on${Capitalize<Name & string>}`]: (
     event: CommittedEvent<Name & string, E[Name] & Payload>,
     state: Readonly<M>
-  ) => Promise<Message<keyof C & string, Payload> | undefined>;
+  ) => Promise<Command<keyof C & string, Payload> | undefined>;
 };
 export type ProcessManagerFactory<M extends Payload, C, E> = (
   event: CommittedEvent<keyof E & string, Payload>
