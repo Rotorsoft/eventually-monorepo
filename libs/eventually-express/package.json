@@ -19,7 +19,7 @@
   ],
   "scripts": {},
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^3.0.3",
+    "@rotorsoft/eventually": "workspace:^3.1.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "joi": "^17.4.2",
