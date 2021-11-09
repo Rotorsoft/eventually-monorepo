@@ -8,7 +8,7 @@ import {
   ProcessManagerFactory
 } from "@rotorsoft/eventually";
 import { Calculator } from "./calculator.aggregate";
-import { Commands, commands } from "./calculator.commands";
+import { Commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import { CounterState } from "./calculator.models";
 import * as schemas from "./calculator.schemas";
@@ -21,7 +21,7 @@ const policy = async (
   if (counter) {
     if (counter.count >= threshold - 1)
       return bind(
-        commands.Reset,
+        "Reset",
         undefined,
         event.stream.substr("Calculator".length),
         event.version
@@ -33,11 +33,11 @@ const policy = async (
       (state.left || "").length >= threshold ||
       (state.right || "").length >= threshold
     )
-      return bind(commands.Reset, undefined, id);
+      return bind("Reset", undefined, id);
   }
 };
 
-export type CounterEvents = Omit<Events, "Cleared">;
+export type CounterEvents = Omit<Events, "Cleared" | "Ignored1" | "Ignored2">;
 
 export const Counter: ProcessManagerFactory<
   CounterState,
@@ -71,4 +71,12 @@ export const StatelessCounter = (): Policy<Commands, CounterEvents> => ({
   onDotPressed: (event) => policy(undefined, event, 5),
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined
+});
+
+export const IgnoredHandler = (): Policy<
+  undefined,
+  Pick<Events, "Ignored1" | "Ignored2">
+> => ({
+  onIgnored1: () => undefined,
+  onIgnored2: () => undefined
 });

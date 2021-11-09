@@ -1,10 +1,4 @@
-import {
-  Errors,
-  CommittedEvent,
-  Payload,
-  MessageFactory,
-  bind
-} from "@rotorsoft/eventually";
+import { Errors, CommittedEvent, Payload, bind } from "@rotorsoft/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 
@@ -54,12 +48,8 @@ describe("Mocked", () => {
         return;
       }
     }));
-    await expect(db2.commit("stream", [bind(f.test, {})])).rejects.toThrowError(
+    await expect(db2.commit("stream", [bind("test", {})])).rejects.toThrowError(
       Errors.ConcurrencyError
     );
   });
 });
-
-const f: MessageFactory<{ test: undefined }> = {
-  test: () => ({})
-};

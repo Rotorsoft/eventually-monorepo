@@ -1,3 +1,4 @@
+import Joi from "joi";
 import { AppBase } from "../app";
 import { config } from "../config";
 import {
@@ -6,18 +7,14 @@ import {
   CommittedEvent,
   EventHandlerFactory,
   Message,
-  MessageOptions,
   Payload,
   Snapshot
 } from "../types";
 import { ValidationError } from "../utils";
 
-const validate = (
-  data: Payload,
-  options: MessageOptions<string, Payload>
-): void => {
-  if (options().schema) {
-    const { error } = options().schema.validate(data, { abortEarly: false });
+const validate = (data: Payload, schema?: Joi.ObjectSchema): void => {
+  if (schema) {
+    const { error } = schema.validate(data, { abortEarly: false });
     if (error) throw new ValidationError(error);
   }
 };
@@ -32,11 +29,10 @@ export class InMemoryApp extends AppBase {
     handler: CommandHandlerFactory<M, C, E>,
     command: Command<keyof C & string, Payload>
   ): Promise<Snapshot<M>[]> {
-    const factories = this._factories;
-    validate(command.data, factories.commands[command.name]);
+    validate(command.data, this._options[command.name].schema);
     const snapshots = await super.command(handler, command);
     snapshots.map(({ event }) => {
-      return validate(event.data, factories.events[event.name]);
+      return validate(event.data, this._options[event.name].schema);
     });
     return snapshots;
   }
@@ -48,7 +44,7 @@ export class InMemoryApp extends AppBase {
     response: Message<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
-    validate(event.data, this._factories.events[event.name]);
+    validate(event.data, this._options[event.name].schema);
     return super.event(factory, event);
   }
 }

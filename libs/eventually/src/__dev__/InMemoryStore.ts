@@ -57,7 +57,7 @@ export const InMemoryStore = (): Store => {
         return committed;
       }) as CommittedEvent<string, Payload>[];
 
-      if (callback) await callback(committed);
+      callback && (await callback(committed));
 
       return committed;
     }

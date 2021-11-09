@@ -1,12 +1,12 @@
 import {
   AllQuery,
+  Command,
   CommandHandlerFactory,
   commandHandlerPath,
   CommittedEvent,
   EventHandlerFactory,
   eventHandlerPath,
   Message,
-  MessageOptions,
   Payload,
   ReducibleFactory,
   reduciblePath,
@@ -22,17 +22,19 @@ export const get = (path: string, port?: number): Promise<AxiosResponse<any>> =>
 
 export const command = async <M extends Payload, C, E>(
   handler: CommandHandlerFactory<M, C, E>,
-  command: MessageOptions<string, Payload>,
-  payload?: Payload,
-  id?: string,
-  expectedVersion?: number,
+  command: Command<keyof C & string, Payload>,
   port?: number
 ): Promise<Snapshot<M>[]> => {
   const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
-    url(commandHandlerPath(handler, command.name).replace(":id", id), port),
-    payload || {},
+    url(
+      commandHandlerPath(handler, command.name).replace(":id", command.id),
+      port
+    ),
+    command.data || {},
     {
-      headers: expectedVersion ? { "If-Match": expectedVersion.toString() } : {}
+      headers: command.expectedVersion
+        ? { "If-Match": command.expectedVersion.toString() }
+        : {}
     }
   );
   return data;
@@ -40,14 +42,13 @@ export const command = async <M extends Payload, C, E>(
 
 export const event = async <M extends Payload, C, E>(
   handler: EventHandlerFactory<M, C, E>,
-  event: MessageOptions<string, Payload>,
-  payload?: Payload,
+  event: Message<keyof E & string, Payload>,
   port?: number
 ): Promise<Message<keyof C & string, Payload> | undefined> => {
   const { data } = await axios.post<
     Payload,
     AxiosResponse<Message<keyof C & string, Payload> | undefined>
-  >(url(eventHandlerPath(handler, event.name), port), payload);
+  >(url(eventHandlerPath(handler, event.name), port), event.data);
   return data;
 };
 

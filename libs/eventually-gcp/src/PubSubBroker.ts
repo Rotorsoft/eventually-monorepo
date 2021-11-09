@@ -68,7 +68,7 @@ export const PubSubBroker = (): Broker => {
         return `${messageId}@${event.name}`;
       } catch (error) {
         log().error(error);
-        if (t) t.resumePublishing(orderingKey);
+        t && t.resumePublishing(orderingKey);
       }
     },
 

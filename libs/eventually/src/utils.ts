@@ -1,11 +1,12 @@
 import * as joi from "joi";
 import {
   Command,
+  CommandHandler,
   CommandHandlerFactory,
+  EventHandler,
   EventHandlerFactory,
   Message,
   MessageHandler,
-  MessageOptions,
   Payload,
   Reducible,
   ReducibleFactory,
@@ -19,12 +20,12 @@ import {
  * @returns The bound message
  */
 export const bind = <Name extends string, Type extends Payload>(
-  options: MessageOptions<Name, Type>,
+  name: Name,
   data?: Type,
   id?: string,
   expectedVersion?: number
 ): Message<Name, Type> | Command<Name, Type> => ({
-  name: options.name as Name,
+  name,
   data,
   id,
   expectedVersion
@@ -58,6 +59,22 @@ export const eventsOf = <M extends Payload, E>(
       return typeof value === "function" && value.name.startsWith("apply");
     })
     .map((value) => value.name.substr(5));
+};
+
+/**
+ * Extracts messages from handler
+ * @param handler The message handler
+ * @returns array of message names
+ */
+export const messagesOf = <M extends Payload, C, E>(
+  handler: CommandHandler<M, C, E> | EventHandler<M, C, E>
+): string[] => {
+  // eslint-disable-next-line
+  return Object.values<Function>(handler)
+    .filter((value) => {
+      return typeof value === "function" && value.name.startsWith("on");
+    })
+    .map((value) => value.name.substr(2));
 };
 
 /**

@@ -19,7 +19,7 @@ export const log = singleton(function log() {
       details?: any,
       ...params: any[]
     ): void => {
-      if (config().logLevel === LogLevels.trace)
+      config().logLevel === LogLevels.trace &&
         console.log(
           chalk[color](message),
           chalk.gray(JSON.stringify(details || {})),
@@ -27,7 +27,7 @@ export const log = singleton(function log() {
         );
     },
     error: (error: Error): void => {
-      if (config().env !== Environments.test) console.error(error);
+      config().env !== Environments.test && console.error(error);
     },
     info: (
       color: Color,
@@ -35,7 +35,7 @@ export const log = singleton(function log() {
       details?: string,
       ...params: any[]
     ): void => {
-      if (config().logLevel !== LogLevels.error)
+      config().logLevel !== LogLevels.error &&
         console.info(
           chalk[color](message),
           chalk.gray(details || ""),

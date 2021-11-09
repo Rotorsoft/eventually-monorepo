@@ -1,9 +1,10 @@
-import { app, Scopes, store } from "@rotorsoft/eventually";
+import { app, bind, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { command } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Server } from "http";
+import * as schemas from "../accounts.schemas";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
@@ -14,8 +15,19 @@ const chance = new Chance();
 store(PostgresStore("accounts"));
 
 app(new ExpressApp())
-  .withCommands(commands.factory)
-  .withEvents(events.factory)
+  .withSchemas<commands.Commands>({
+    CreateAccount1: schemas.CreateAccount1,
+    CreateAccount2: schemas.CreateAccount2,
+    CreateAccount3: schemas.CreateAccount3,
+    CompleteIntegration: schemas.CompleteIntegration
+  })
+  .withSchemas<events.Events>({
+    AccountCreated: schemas.AccountCreated,
+    Account1Created: schemas.Account1Created,
+    Account2Created: schemas.Account2Created,
+    Account3Created: schemas.Account3Created,
+    IntegrationCompleted: schemas.IntegrationCompleted
+  })
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,
@@ -50,10 +62,7 @@ describe("express", () => {
     // when
     const [result] = await command(
       systems.ExternalSystem1,
-      commands.factory.CreateAccount1,
-      { id: chance.guid() },
-      undefined,
-      undefined,
+      bind("CreateAccount1", { id: chance.guid() }),
       port
     );
 
@@ -64,19 +73,7 @@ describe("express", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      command(
-        systems.ExternalSystem1,
-        commands.factory.CreateAccount1,
-        null,
-        undefined,
-        undefined,
-        port
-      )
+      command(systems.ExternalSystem1, bind("CreateAccount1", null), port)
     ).rejects.toThrowError("Request failed with status code 400");
-  });
-
-  it("should cover IntegrationCompleted", () => {
-    const event = events.factory.IntegrationCompleted();
-    expect(event.scope).toBe(Scopes.public);
   });
 });

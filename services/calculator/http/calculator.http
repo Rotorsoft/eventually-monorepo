@@ -43,7 +43,7 @@ Content-Type: application/json
 {
   "id": 1,
   "stream": "Calculatorcalc1",
-  "version": 31,
+  "version": 44,
   "created": "2020-10-10",
   "name": "DigitPressed",
   "data": { "digit": "1" }

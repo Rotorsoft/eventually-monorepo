@@ -8,8 +8,8 @@ export type Payload = Record<string, unknown>;
 
 /**
  * Message scopes can be
- * - `public` to expose public endpoints (HTTP command and event handlers), and publish events to brokers for async communication
- * - `private` to connect messages synchronously (in-process) - **default**
+ * - `public` to expose public endpoints (HTTP command and event handlers), and publish events to brokers for async communication - **default**
+ * - `private` to connect messages synchronously (in-process)
  */
 export enum Scopes {
   private = "private",
@@ -18,27 +18,17 @@ export enum Scopes {
 
 /**
  * Message options
- * - `scope?` The optional scope of the message
- * - `schema?` The optional payload validation schema
+ * - `scope` public or private
+ * - `schema?` Optional validation schema
  */
-export type MessageOptions<_ extends string, Type extends Payload> = () => {
-  scope?: Scopes;
+export type Options<Type extends Payload> = {
+  scope: Scopes;
   schema?: joi.ObjectSchema<Type>;
 };
 
 /**
- * Dictionaries of message factories keyed by message names
- */
-export type MessageFactory<Messages> = {
-  [Name in keyof Messages]: MessageOptions<
-    Name & string,
-    Messages[Name] & Payload
-  >;
-};
-
-/**
  * Messages have
- * - `name` The bound message name
+ * - `name` Bound message name
  * - `data?` Optional payload
  */
 export type Message<Name extends string, Type extends Payload> = {

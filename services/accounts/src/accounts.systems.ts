@@ -11,9 +11,7 @@ export const ExternalSystem1 = (): ExternalSystem<
   onCreateAccount1: (data) => {
     // here we create the external account 1
     const externalId = uuid.v4();
-    return Promise.resolve([
-      bind(events.factory.Account1Created, { ...data, externalId })
-    ]);
+    return Promise.resolve([bind("Account1Created", { ...data, externalId })]);
   }
 });
 
@@ -25,9 +23,7 @@ export const ExternalSystem2 = (): ExternalSystem<
   onCreateAccount2: (data) => {
     // here we create the external account 2
     const externalId = uuid.v4();
-    return Promise.resolve([
-      bind(events.factory.Account2Created, { ...data, externalId })
-    ]);
+    return Promise.resolve([bind("Account2Created", { ...data, externalId })]);
   }
 });
 
@@ -39,9 +35,7 @@ export const ExternalSystem3 = (): ExternalSystem<
   onCreateAccount3: (data) => {
     // here we create the external account 3
     const externalId = uuid.v4();
-    return Promise.resolve([
-      bind(events.factory.Account3Created, { ...data, externalId })
-    ]);
+    return Promise.resolve([bind("Account3Created", { ...data, externalId })]);
   }
 });
 
@@ -52,6 +46,6 @@ export const ExternalSystem4 = (): ExternalSystem<
   stream: () => "ExternalSystem4",
   onCompleteIntegration: (data) => {
     // here we could send and email
-    return Promise.resolve([bind(events.factory.IntegrationCompleted, data)]);
+    return Promise.resolve([bind("IntegrationCompleted", data)]);
   }
 });

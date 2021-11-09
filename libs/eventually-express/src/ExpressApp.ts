@@ -105,11 +105,12 @@ export class ExpressApp extends AppBase {
       AggregateFactory<Payload, unknown, unknown>
     > = {};
     Object.values(this._handlers.commands)
-      .filter(({ type, handler, command }) => {
-        if (type === "aggregate") aggregates[handler.name] = handler as any;
-        return command().scope === Scopes.public;
+      .filter(({ type, factory, path }) => {
+        type === "aggregate" && (aggregates[factory.name] = factory as any);
+        return path;
       })
-      .map(({ type, handler, command, path }) => {
+      .map(({ type, factory, name, path }) => {
+        const schema = this._options[name].schema;
         this._router.post(
           path,
           async (
@@ -118,20 +119,20 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
-              if (command().schema) {
-                const { error } = command().schema.validate(req.body, {
+              if (schema) {
+                const { error } = schema.validate(req.body, {
                   abortEarly: false
                 });
                 if (error) throw new ValidationError(error);
               }
               const snapshots = await this.command(
-                handler,
+                factory,
                 bind(
-                  command as any,
+                  name,
                   req.body,
                   req.params.id,
                   type === "aggregate" ? +req.headers["if-match"] : undefined
-                )
+                ) as any
               );
               res.setHeader(
                 "ETag",
@@ -164,11 +165,12 @@ export class ExpressApp extends AppBase {
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
     Object.values(this._handlers.events)
-      .filter(({ type, handler, event }) => {
-        if (type === "process-manager") managers[handler.name] = handler as any;
-        return event().scope === Scopes.public;
+      .filter(({ type, factory, path }) => {
+        type === "process-manager" && (managers[factory.name] = factory as any);
+        return path;
       })
-      .map(({ handler, event, path }) => {
+      .map(({ factory, name, path }) => {
+        const schema = this._options[name].schema;
         this._router.post(
           path,
           async (
@@ -178,13 +180,13 @@ export class ExpressApp extends AppBase {
           ) => {
             try {
               const message = broker().decode(req.body);
-              if (event().schema) {
-                const { error } = event().schema.validate(message.data, {
+              if (schema) {
+                const { error } = schema.validate(message.data, {
                   abortEarly: false
                 });
                 if (error) throw new ValidationError(error);
               }
-              const response = await this.event(handler, message as any);
+              const response = await this.event(factory, message as any);
               return res.status(200).send(response);
             } catch (error) {
               next(error);
@@ -233,7 +235,7 @@ export class ExpressApp extends AppBase {
     );
 
     // swagger
-    this._swagger = swagger(this._factories, this._handlers);
+    this._swagger = swagger(this._handlers, this._options);
     this._app.get("/swagger", (req: Request, res: Response) => {
       res.json(this._swagger);
     });

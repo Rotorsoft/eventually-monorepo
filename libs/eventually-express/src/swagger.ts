@@ -1,10 +1,10 @@
 import {
   config,
   eventsOf,
-  Factories,
   getReducible,
   Handlers,
   MessageHandlerFactory,
+  Options,
   Payload,
   reduciblePath,
   Scopes
@@ -37,11 +37,12 @@ const getSecurity = (): Security => {
   }
 };
 
-const getComponents = (
-  factories: Factories,
+export const swagger = (
   handlers: Handlers,
-  security: Security
-): ComponentsSchema => {
+  options: Record<string, Options<Payload>>
+): any => {
+  const pkg = getPackage();
+  const sec = getSecurity();
   const components: ComponentsSchema = {
     parameters: {
       id: {
@@ -76,7 +77,7 @@ const getComponents = (
         schema: { type: "integer", default: 1 }
       }
     },
-    securitySchemes: security.schemes,
+    securitySchemes: sec.schemes,
     schemas: {
       ValidationError: {
         type: "object",
@@ -118,133 +119,40 @@ const getComponents = (
     }
   };
 
-  // all events are in committed shape
-  Object.values(factories.events).map((ef) => {
-    const { swagger } = j2s(
-      joi.object({
-        name: joi.string().required().valid(ef.name),
-        id: joi.number().integer().required(),
-        stream: joi.string().required(),
-        version: joi.number().integer().required(),
-        created: joi.date().required()
-      })
-    );
-    if (ef().schema) swagger.properties.data = j2s(ef().schema).swagger;
-    components.schemas[ef.name] = swagger;
-  });
-
-  // public commands and aggregate models are components
-  Object.values(handlers.commands)
-    .filter(({ command }) => command().scope === Scopes.public)
-    .map(({ handler, command }) => {
-      if (command().schema) {
-        const { swagger } = j2s(command().schema, components);
-        components.schemas[command.name] = swagger;
-      } else {
-        components.schemas[command.name] = { type: "object" };
-      }
-      getReducibleComponent(components, handler);
-    });
-
-  // process manager models are components
-  Object.values(handlers.events).map(({ handler }) => {
-    getReducibleComponent(components, handler);
-  });
-
-  return components;
-};
-
-const getReducibleComponent = (
-  components: ComponentsSchema,
-  handler: MessageHandlerFactory<Payload, unknown, unknown>
-): void => {
-  const reducible = getReducible(handler(null));
-  if (!reducible) return;
-  if (components.schemas[handler.name]) return;
-
-  const { swagger } = j2s(reducible.schema(), components);
-  components.schemas[handler.name] = swagger;
-  components.schemas[handler.name.concat("Snapshot")] = {
-    type: "object",
-    properties: {
-      event: {
-        oneOf: eventsOf(reducible).map((name) => ({
-          $ref: `#/components/schemas/${name}`
-        }))
-      },
-      state: { $ref: `#/components/schemas/${handler.name}` }
-    }
-  };
-};
-
-const getReducibleGetters = (
-  paths: Record<string, any>,
-  handler: MessageHandlerFactory<Payload, unknown, unknown>
-): void => {
-  if (!getReducible(handler(null))) return;
-  const path = reduciblePath(handler as any).replace("/:id", "/{id}");
-  if (paths[path]) return;
-  // GET reducible
-  paths[path] = {
-    parameters: [{ $ref: "#/components/parameters/id" }],
-    get: {
-      tags: [handler.name],
-      summary: `Gets ${handler.name} by id`,
-      responses: {
-        "200": {
-          description: "OK",
-          content: {
-            "application/json": {
-              schema: {
-                $ref: `#/components/schemas/${handler.name}Snapshot`
-              }
-            }
-          }
-        },
-        default: { description: "Internal Server Error" }
-      }
-    }
-  };
-  // GET reducible stream
-  paths[path.concat("/stream")] = {
-    parameters: [{ $ref: "#/components/parameters/id" }],
-    get: {
-      tags: [handler.name],
-      summary: `Gets ${handler.name} stream by id`,
-      responses: {
-        "200": {
-          description: "OK",
-          content: {
-            "application/json": {
-              schema: {
-                type: "array",
-                items: {
+  const getReducibleGetters = (
+    paths: Record<string, any>,
+    handler: MessageHandlerFactory<Payload, unknown, unknown>
+  ): void => {
+    if (!getReducible(handler(null))) return;
+    const path = reduciblePath(handler as any).replace("/:id", "/{id}");
+    if (paths[path]) return;
+    // GET reducible
+    paths[path] = {
+      parameters: [{ $ref: "#/components/parameters/id" }],
+      get: {
+        tags: [handler.name],
+        summary: `Gets ${handler.name} by id`,
+        responses: {
+          "200": {
+            description: "OK",
+            content: {
+              "application/json": {
+                schema: {
                   $ref: `#/components/schemas/${handler.name}Snapshot`
                 }
               }
             }
-          }
-        },
-        default: { description: "Internal Server Error" }
+          },
+          default: { description: "Internal Server Error" }
+        }
       }
-    }
-  };
-};
-
-const getPaths = (
-  handlers: Handlers,
-  security: Security
-): Record<string, any> => {
-  const paths: Record<string, any> = {
-    ["/all"]: {
-      parameters: [
-        { $ref: "#/components/parameters/stream" },
-        { $ref: "#/components/parameters/name" },
-        { $ref: "#/components/parameters/after" },
-        { $ref: "#/components/parameters/limit" }
-      ],
+    };
+    // GET reducible stream
+    paths[path.concat("/stream")] = {
+      parameters: [{ $ref: "#/components/parameters/id" }],
       get: {
-        summary: "Gets ALL stream",
+        tags: [handler.name],
+        summary: `Gets ${handler.name} stream by id`,
         responses: {
           "200": {
             description: "OK",
@@ -252,45 +160,92 @@ const getPaths = (
               "application/json": {
                 schema: {
                   type: "array",
-                  items: j2s(
-                    joi.object({
-                      name: joi.string().required(),
-                      id: joi.number().integer().required(),
-                      stream: joi.string().required(),
-                      version: joi.number().integer().required(),
-                      created: joi.date().required(),
-                      data: joi.object()
-                    })
-                  ).swagger
+                  items: {
+                    $ref: `#/components/schemas/${handler.name}Snapshot`
+                  }
                 }
               }
             }
           },
           default: { description: "Internal Server Error" }
-        },
-        security: security.operations["all"] || [{}]
+        }
       }
-    }
+    };
   };
 
-  Object.values(handlers.commands)
-    .filter(({ command }) => command().scope === Scopes.public)
-    .map(({ handler, command, path }) => {
-      getReducibleGetters(paths, handler);
-      // POST command
-      paths[path.replace("/:id/", "/{id}/")] = {
-        parameters: [{ $ref: "#/components/parameters/id" }],
-        post: {
-          operationId: command.name,
-          tags: [handler.name],
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
-                schema: { $ref: `#/components/schemas/${command.name}` }
-              }
-            }
-          },
+  const getReducibleComponent = (
+    handler: MessageHandlerFactory<Payload, unknown, unknown>
+  ): void => {
+    const reducible = getReducible(handler(null));
+    if (!reducible) return;
+    if (components.schemas[handler.name]) return;
+    const events = eventsOf(reducible);
+
+    // all events are in committed shape
+    events.map((name) => {
+      const { swagger } = j2s(
+        joi.object({
+          name: joi.string().required().valid(name),
+          id: joi.number().integer().required(),
+          stream: joi.string().required(),
+          version: joi.number().integer().required(),
+          created: joi.date().required()
+        })
+      );
+      options[name].schema &&
+        (swagger.properties.data = j2s(options[name].schema).swagger);
+      components.schemas[name] = swagger;
+    });
+
+    // model schema
+    const { swagger } = j2s(reducible.schema(), components);
+    components.schemas[handler.name] = swagger;
+    components.schemas[handler.name.concat("Snapshot")] = {
+      type: "object",
+      properties: {
+        event: {
+          oneOf: events.map((name) => ({
+            $ref: `#/components/schemas/${name}`
+          }))
+        },
+        state: { $ref: `#/components/schemas/${handler.name}` }
+      }
+    };
+  };
+
+  const getComponents = (): ComponentsSchema => {
+    // public commands and aggregate models are components
+    Object.values(handlers.commands)
+      .filter(({ name }) => options[name].scope === Scopes.public)
+      .map(({ factory, name }) => {
+        if (options[name].schema) {
+          const { swagger } = j2s(options[name].schema, components);
+          components.schemas[name] = swagger;
+        } else {
+          components.schemas[name] = { type: "object" };
+        }
+        getReducibleComponent(factory);
+      });
+
+    // process manager models are components
+    Object.values(handlers.events).map(({ factory }) => {
+      getReducibleComponent(factory);
+    });
+
+    return components;
+  };
+
+  const getPaths = (): Record<string, any> => {
+    const paths: Record<string, any> = {
+      ["/all"]: {
+        parameters: [
+          { $ref: "#/components/parameters/stream" },
+          { $ref: "#/components/parameters/name" },
+          { $ref: "#/components/parameters/after" },
+          { $ref: "#/components/parameters/limit" }
+        ],
+        get: {
+          summary: "Gets ALL stream",
           responses: {
             "200": {
               description: "OK",
@@ -298,106 +253,148 @@ const getPaths = (
                 "application/json": {
                   schema: {
                     type: "array",
-                    items: {
-                      $ref: `#/components/schemas/${handler.name}Snapshot`
-                    }
+                    items: j2s(
+                      joi.object({
+                        name: joi.string().required(),
+                        id: joi.number().integer().required(),
+                        stream: joi.string().required(),
+                        version: joi.number().integer().required(),
+                        created: joi.date().required(),
+                        data: joi.object()
+                      })
+                    ).swagger
                   }
-                }
-              }
-            },
-            "400": {
-              description: "Validation Error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ValidationError" }
-                }
-              }
-            },
-            "409": {
-              description: "Concurrency Error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ConcurrencyError" }
                 }
               }
             },
             default: { description: "Internal Server Error" }
           },
-          security: security.operations[command.name] || [{}]
+          security: sec.operations["all"] || [{}]
         }
-      };
-    });
+      }
+    };
 
-  Object.values(handlers.events)
-    .filter(({ event }) => event().scope === Scopes.public)
-    .map(({ handler, event, path }) => {
-      getReducibleGetters(paths, handler);
-      // POST event
-      paths[path] = {
-        post: {
-          operationId: event.name,
-          tags: [handler.name],
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
-                schema: { $ref: `#/components/schemas/${event.name}` }
-              }
-            }
-          },
-          responses: {
-            "200": {
-              description: "OK",
+    Object.values(handlers.commands)
+      .filter(({ path }) => path)
+      .map(({ factory, name, path }) => {
+        getReducibleGetters(paths, factory);
+        // POST command
+        paths[path.replace("/:id/", "/{id}/")] = {
+          parameters: [{ $ref: "#/components/parameters/id" }],
+          post: {
+            operationId: name,
+            tags: [factory.name],
+            requestBody: {
+              required: true,
               content: {
                 "application/json": {
-                  schema: {
-                    type: "object",
-                    properties: {
-                      response: {
-                        type: "object",
-                        properties: {
-                          command: { type: "object" },
-                          id: { type: "string" },
-                          expectedVersion: { type: "integer" }
-                        }
-                      },
-                      state: {
-                        type: "object"
+                  schema: { $ref: `#/components/schemas/${name}` }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "OK",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "array",
+                      items: {
+                        $ref: `#/components/schemas/${factory.name}Snapshot`
                       }
                     }
                   }
                 }
-              }
+              },
+              "400": {
+                description: "Validation Error",
+                content: {
+                  "application/json": {
+                    schema: { $ref: "#/components/schemas/ValidationError" }
+                  }
+                }
+              },
+              "409": {
+                description: "Concurrency Error",
+                content: {
+                  "application/json": {
+                    schema: { $ref: "#/components/schemas/ConcurrencyError" }
+                  }
+                }
+              },
+              default: { description: "Internal Server Error" }
             },
-            "400": {
-              description: "Validation Error",
+            security: sec.operations[name] || [{}]
+          }
+        };
+      });
+
+    Object.values(handlers.events)
+      .filter(({ path }) => path)
+      .map(({ factory, name, path }) => {
+        getReducibleGetters(paths, factory);
+        // POST event
+        paths[path] = {
+          post: {
+            operationId: name,
+            tags: [factory.name],
+            requestBody: {
+              required: true,
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/ValidationError" }
+                  schema: { $ref: `#/components/schemas/${name}` }
                 }
               }
             },
-            "409": {
-              description: "Concurrency Error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ConcurrencyError" }
+            responses: {
+              "200": {
+                description: "OK",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      properties: {
+                        response: {
+                          type: "object",
+                          properties: {
+                            command: { type: "object" },
+                            id: { type: "string" },
+                            expectedVersion: { type: "integer" }
+                          }
+                        },
+                        state: {
+                          type: "object"
+                        }
+                      }
+                    }
+                  }
                 }
-              }
+              },
+              "400": {
+                description: "Validation Error",
+                content: {
+                  "application/json": {
+                    schema: { $ref: "#/components/schemas/ValidationError" }
+                  }
+                }
+              },
+              "409": {
+                description: "Concurrency Error",
+                content: {
+                  "application/json": {
+                    schema: { $ref: "#/components/schemas/ConcurrencyError" }
+                  }
+                }
+              },
+              default: { description: "Internal Server Error" }
             },
-            default: { description: "Internal Server Error" }
-          },
-          security: security.operations[event.name] || [{}]
-        }
-      };
-    });
+            security: sec.operations[name] || [{}]
+          }
+        };
+      });
 
-  return paths;
-};
-
-export const swagger = (factories: Factories, handlers: Handlers): any => {
-  const pkg = getPackage();
-  const sec = getSecurity();
+    return paths;
+  };
 
   return {
     openapi: "3.0.3",
@@ -406,7 +403,7 @@ export const swagger = (factories: Factories, handlers: Handlers): any => {
       version: pkg.version
     },
     servers: [{ url: `${config().host}` }],
-    components: getComponents(factories, handlers, sec),
-    paths: getPaths(handlers, sec)
+    components: getComponents(),
+    paths: getPaths()
   };
 };

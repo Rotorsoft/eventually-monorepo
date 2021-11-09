@@ -1,12 +1,14 @@
+import Joi from "joi";
 import {
   CommandHandlerFactory,
   commandHandlerPath,
   EventHandlerFactory,
   eventHandlerPath,
+  eventsOf,
   getReducible,
   log,
-  MessageFactory,
-  MessageOptions,
+  messagesOf,
+  Options,
   Payload,
   Reducible,
   Scopes
@@ -15,11 +17,9 @@ import { SnapshotStore } from "./interfaces";
 import { InMemorySnapshotStore } from "./__dev__";
 
 export type Factories = {
-  commands: Record<string, MessageOptions<string, Payload>>;
   commandHandlers: {
     [name: string]: CommandHandlerFactory<Payload, unknown, unknown>;
   };
-  events: Record<string, MessageOptions<string, Payload>>;
   eventHandlers: {
     [name: string]: EventHandlerFactory<Payload, unknown, unknown>;
   };
@@ -29,16 +29,16 @@ export type Handlers = {
   commands: {
     [name: string]: {
       type: "aggregate" | "external-system";
-      handler: CommandHandlerFactory<Payload, unknown, unknown>;
-      command: MessageOptions<string, Payload>;
+      name: string;
+      factory: CommandHandlerFactory<Payload, unknown, unknown>;
       path: string;
     };
   };
   events: {
     [path: string]: {
       type: "policy" | "process-manager";
-      handler: EventHandlerFactory<Payload, unknown, unknown>;
-      event: MessageOptions<string, Payload>;
+      name: string;
+      factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
     };
   };
@@ -48,11 +48,15 @@ export type Subscriptions = {
   [name: string]: EventHandlerFactory<Payload, unknown, unknown>[];
 };
 
+type Schemas<M> = {
+  [Key in keyof M & string]: Joi.ObjectSchema<M[Key] & Payload>;
+};
+
 export class Builder {
+  protected readonly _options: Record<string, Options<Payload>> = {};
+
   protected readonly _factories: Factories = {
-    commands: {},
     commandHandlers: {},
-    events: {},
     eventHandlers: {}
   };
 
@@ -66,31 +70,29 @@ export class Builder {
   protected readonly _private_subscriptions: Subscriptions = {};
 
   /**
-   * Registers events factory
-   * @param factory event factory
+   * Registers message schemas
+   * @param schemas Message validation schemas
    */
-  withEvents<E>(factory: MessageFactory<E>): this {
-    Object.entries(factory).map(
-      ([key, value]: [string, MessageOptions<string, Payload>]): void => {
-        if (this._factories.events[key]) throw Error(`Duplicate event ${key}`);
-        this._factories.events[key] = value;
-      }
-    );
+  withSchemas<M>(schemas: Schemas<M>): this {
+    Object.entries(schemas).map(([key, value]): void => {
+      const option = (this._options[key] = this._options[key] || {
+        scope: Scopes.public
+      });
+      option.schema = value as any;
+    });
     return this;
   }
 
   /**
-   * Registers commands factory
-   * @param factory command factory
+   * Registers private messages
    */
-  withCommands<C>(factory: MessageFactory<C>): this {
-    Object.entries(factory).map(
-      ([key, value]: [string, MessageOptions<string, Payload>]): void => {
-        if (this._factories.commands[key])
-          throw Error(`Duplicate command ${key}`);
-        this._factories.commands[key] = value;
-      }
-    );
+  withPrivate<M>(...messages: Array<keyof M & string>): this {
+    messages.map((key): void => {
+      const option = (this._options[key] = this._options[key] || {
+        scope: Scopes.private
+      });
+      option.scope = Scopes.private;
+    });
     return this;
   }
 
@@ -151,66 +153,70 @@ export class Builder {
    */
   build(): unknown | undefined {
     // command handlers
-    Object.values(this._factories.commandHandlers).map((chf) => {
-      const handler = chf(undefined);
+    Object.values(this._factories.commandHandlers).map((factory) => {
+      const handler = factory(undefined);
       const reducible = getReducible(handler);
       reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "aggregate" : "external-system";
-      log().info("white", chf.name, type);
-      Object.values(this._factories.commands).map((cf) => {
-        const command = cf();
-        const path = commandHandlerPath(chf, cf.name);
-        if (Object.keys(handler).includes("on".concat(cf.name))) {
-          this._handlers.commands[cf.name] = {
-            type,
-            handler: chf,
-            command: cf,
-            path
-          };
-          log().info(
-            "blue",
-            `  ${cf.name}`,
-            command.scope === Scopes.public ? `POST ${path}` : chf.name
-          );
-        }
+      log().info("white", factory.name, type);
+      messagesOf(handler).map((name) => {
+        const options = (this._options[name] = this._options[name] || {
+          scope: Scopes.public
+        });
+        const path =
+          options.scope === Scopes.public
+            ? commandHandlerPath(factory, name)
+            : "";
+        this._handlers.commands[name] = {
+          type,
+          name,
+          factory,
+          path
+        };
+        log().info("blue", `  ${name}`, path ? `POST ${path}` : factory.name);
       });
+      reducible &&
+        eventsOf(reducible).map((name) => {
+          this._options[name] = this._options[name] || { scope: Scopes.public };
+        });
     });
 
     // event handlers
-    Object.values(this._factories.eventHandlers).map((ehf) => {
-      const handler = ehf(undefined);
+    Object.values(this._factories.eventHandlers).map((factory) => {
+      const handler = factory(undefined);
       const reducible = getReducible(handler);
       reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "process-manager" : "policy";
-      log().info("white", ehf.name, type);
-      Object.values(this._factories.events).map((ef) => {
-        const event = ef();
-        if (Object.keys(handler).includes("on".concat(ef.name))) {
-          const path = eventHandlerPath(ehf, ef.name);
-          this._handlers.events[path] = {
-            type,
-            handler: ehf,
-            event: ef,
-            path
-          };
-          log().info(
-            "magenta",
-            `  ${ef.name}]`,
-            event.scope === Scopes.public ? `POST ${path}` : ehf.name
-          );
-        }
+      log().info("white", factory.name, type);
+      messagesOf(handler).map((name) => {
+        const options = (this._options[name] = this._options[name] || {
+          scope: Scopes.public
+        });
+        const path =
+          options.scope === Scopes.public
+            ? eventHandlerPath(factory, name)
+            : "";
+        this._handlers.events[name] = {
+          type,
+          name,
+          factory,
+          path
+        };
+        log().info(
+          "magenta",
+          `  ${name}`,
+          path ? `POST ${path}` : factory.name
+        );
       });
     });
 
     // private subscriptions
     Object.values(this._handlers.events)
-      .filter(
-        ({ event }) => (event().scope || Scopes.private) === Scopes.private
-      )
-      .map(({ handler, event }) => {
-        const sub = (this._private_subscriptions[event.name] =
-          this._private_subscriptions[event.name] || []);
-        sub.push(handler);
+      .filter(({ name }) => this._options[name].scope === Scopes.private)
+      .map(({ factory, name }) => {
+        const sub = (this._private_subscriptions[name] =
+          this._private_subscriptions[name] || []);
+        sub.push(factory);
       });
 
     return;

@@ -1,29 +1,45 @@
-import { app, bind, Errors, log, Snapshot } from "@rotorsoft/eventually";
+import {
+  app,
+  bind,
+  CommittedEvent,
+  Errors,
+  log,
+  Payload,
+  Snapshot
+} from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import { commands } from "../calculator.commands";
+import * as schemas from "../calculator.schemas";
+import { Commands } from "../calculator.commands";
 import { Keys, CalculatorModel } from "../calculator.models";
-import { events } from "../calculator.events";
-import { Counter } from "../counter.policy";
+import { Events } from "../calculator.events";
+import { Counter, IgnoredHandler } from "../counter.policy";
 
 const chance = new Chance();
 
 app()
   .withCommandHandlers(Calculator)
-  .withEventHandlers(Counter)
-  .withEvents(events)
-  .withCommands(commands)
+  .withEventHandlers(Counter, IgnoredHandler)
+  .withSchemas<Pick<Commands, "PressKey">>({
+    PressKey: schemas.PressKey
+  })
+  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
+    DigitPressed: schemas.DigitPressed,
+    OperatorPressed: schemas.OperatorPressed
+  })
+  .withPrivate<Commands>("Whatever", "Reset")
+  .withPrivate<Events>("OperatorPressed", "EqualsPressed", "Ignored1")
   .build();
 
 const pressKey = (
   id: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel>[]> =>
-  app().command(Calculator, bind(commands.PressKey, { key }, id));
+  app().command(Calculator, bind("PressKey", { key }, id));
 
 const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
-  app().command(Calculator, bind(commands.Reset, undefined, id));
+  app().command(Calculator, bind("Reset", undefined, id));
 
 describe("in memory app", () => {
   beforeAll(async () => {
@@ -158,7 +174,7 @@ describe("in memory app", () => {
 
       // WHEN
       await expect(
-        app().command(Calculator, bind(commands.PressKey, { key: "1" }, id, -1))
+        app().command(Calculator, bind("PressKey", { key: "1" }, id, -1))
       )
         // THEN
         .rejects.toThrowError(Errors.ConcurrencyError);
@@ -166,10 +182,7 @@ describe("in memory app", () => {
 
     it("should throw validation error", async () => {
       await expect(
-        app().command(
-          Calculator,
-          bind(commands.PressKey, undefined, chance.guid())
-        )
+        app().command(Calculator, bind("PressKey", undefined, chance.guid()))
       ).rejects.toThrowError(Errors.ValidationError);
     });
 
@@ -285,34 +298,44 @@ describe("in memory app", () => {
   });
 
   describe("misc", () => {
+    const event = <E>(
+      name: keyof E & string,
+      stream: string,
+      data?: Payload
+    ): CommittedEvent<keyof E & string, Payload> => ({
+      id: 0,
+      stream,
+      version: 0,
+      created: new Date(),
+      name,
+      data
+    });
+
     it("should cover empty calculator", async () => {
       const test8 = Calculator(chance.guid());
-      await app().event(Counter, {
-        id: 0,
-        stream: test8.stream(),
-        version: 0,
-        created: new Date(),
-        name: "DigitPressed",
-        data: { digit: "0" }
-      });
+      await app().event(
+        Counter,
+        event("DigitPressed", test8.stream(), { digit: "0" })
+      );
       const { state } = await app().load(test8);
       expect(state).toEqual({ result: 0 });
     });
 
-    it("should cover whatever command", () => {
-      const cmd = commands.Whatever();
-      expect(cmd.scope).toBeUndefined();
-    });
-
-    it("should cover event scopes", () => {
-      Object.values(events).map((f) => {
-        const e = f();
-        expect(e.scope).toEqual(e.scope);
-      });
-    });
-
     it("should cover initialized log", () => {
       expect(log()).toBeDefined();
+    });
+
+    it("should cover ignored handler", async () => {
+      const r1 = await app().event(
+        IgnoredHandler,
+        event("Ignored1", "ignored")
+      );
+      const r2 = await app().event(
+        IgnoredHandler,
+        event("Ignored2", "ignored")
+      );
+      expect(r1.response).toBeUndefined();
+      expect(r2.state).toBeUndefined();
     });
   });
 });

@@ -17,16 +17,10 @@ type E = {
   test3: { value: string };
 };
 
-const factory = {
-  test1: () => ({}),
-  test2: () => ({}),
-  test3: () => ({})
-};
-
 const event = (
   name: keyof E,
   data?: Payload
-): Message<keyof E & string, Payload> => bind(factory[name], data);
+): Message<keyof E & string, Payload> => bind(name, data);
 
 describe("PostgresStore", () => {
   beforeAll(async () => {

@@ -10,7 +10,7 @@ export const IntegrateAccount1 = (): Policy<
 > => ({
   onAccountCreated: (event) => {
     // we don't have much to do here, just return the command to external system 1
-    return Promise.resolve(bind(commands.factory.CreateAccount1, event.data));
+    return Promise.resolve(bind("CreateAccount1", event.data));
   }
 });
 
@@ -20,7 +20,7 @@ export const IntegrateAccount2 = (): Policy<
 > => ({
   onAccountCreated: (event) => {
     // we don't have much to do here, just return the command to external system 2
-    return Promise.resolve(bind(commands.factory.CreateAccount2, event.data));
+    return Promise.resolve(bind("CreateAccount2", event.data));
   }
 });
 
@@ -30,9 +30,7 @@ export const IntegrateAccount3 = (): Policy<
 > => ({
   onAccount2Created: (event) => {
     // we don't have much to do here, just return the command to external system 3
-    return Promise.resolve(
-      bind(commands.factory.CreateAccount3, { id: event.data.id })
-    );
+    return Promise.resolve(bind("CreateAccount3", { id: event.data.id }));
   }
 });
 
@@ -50,14 +48,14 @@ export const WaitForAllAndComplete: ProcessManagerFactory<
   onAccount1Created: (event, data) => {
     // make sure all accounts are created
     if (data.account3)
-      return Promise.resolve(bind(commands.factory.CompleteIntegration, data));
+      return Promise.resolve(bind("CompleteIntegration", data));
   },
 
   onAccount3Created: (event, data) => {
     // make sure all accounts are created
     if (data.account1)
       return Promise.resolve(
-        bind(commands.factory.CompleteIntegration, { id: event.data.id })
+        bind("CompleteIntegration", { id: event.data.id })
       );
   },
 

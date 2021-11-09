@@ -3,13 +3,20 @@ import { ExpressApp } from "@rotorsoft/eventually-express";
 import { get } from "@rotorsoft/eventually-test";
 import { Server } from "http";
 import { Calculator } from "../calculator.aggregate";
-import { commands } from "../calculator.commands";
-import { events } from "../calculator.events";
+import * as schemas from "../calculator.schemas";
+import { Commands } from "../calculator.commands";
+import { Events } from "../calculator.events";
 
 app(new ExpressApp())
-  .withEvents(events)
-  .withCommands(commands)
+  .withSchemas<Pick<Commands, "PressKey">>({
+    PressKey: schemas.PressKey
+  })
+  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
+    DigitPressed: schemas.DigitPressed,
+    OperatorPressed: schemas.OperatorPressed
+  })
   .withCommandHandlers(Calculator);
+
 let server: Server;
 
 jest.spyOn(store(), "query").mockRejectedValue("Error");

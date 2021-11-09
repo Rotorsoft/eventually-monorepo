@@ -16,19 +16,38 @@ jest.mock("../accounts.systems.ts", () => {
 
 import { app, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
+import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
+import * as schemas from "../accounts.schemas";
 
 const chance = new Chance();
 
 store(PostgresStore("sad".concat(chance.guid()).replace(/-/g, "")));
 
 app()
-  .withCommands(commands.factory)
-  .withEvents(events.factory)
+  .withSchemas<commands.Commands>({
+    CreateAccount1: schemas.CreateAccount1,
+    CreateAccount2: schemas.CreateAccount2,
+    CreateAccount3: schemas.CreateAccount3,
+    CompleteIntegration: schemas.CompleteIntegration
+  })
+  .withSchemas<events.Events>({
+    AccountCreated: schemas.AccountCreated,
+    Account1Created: schemas.Account1Created,
+    Account2Created: schemas.Account2Created,
+    Account3Created: schemas.Account3Created,
+    IntegrationCompleted: schemas.IntegrationCompleted
+  })
+  .withPrivate<events.Events>(
+    "Account1Created",
+    "Account2Created",
+    "Account3Created",
+    "AccountCreated"
+  )
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,
@@ -69,6 +88,7 @@ describe("sad path", () => {
     const t = trigger(chance.guid());
 
     await app().event(policies.IntegrateAccount1, t);
+    await sleep(100);
 
     const spyCommit = jest.spyOn(store(), "commit");
     await expect(app().event(policies.IntegrateAccount2, t)).rejects.toThrow(

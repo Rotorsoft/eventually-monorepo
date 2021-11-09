@@ -104,12 +104,11 @@ export abstract class AppBase extends Builder implements Reader {
           return { event, state };
         });
 
-        if (count > reducible.snapshot?.threshold) {
-          await this.getSnapshotStore(reducible).upsert(
+        count > reducible.snapshot?.threshold &&
+          (await this.getSnapshotStore(reducible).upsert(
             streamable.stream(),
             snapshots[snapshots.length - 1]
-          );
-        }
+          ));
 
         return snapshots;
       } else {
@@ -128,13 +127,11 @@ export abstract class AppBase extends Builder implements Reader {
     await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
       Object.values(this._handlers.events)
-        .filter(({ event }) => event().scope === Scopes.public)
-        .map(({ handler, event }) => {
+        .filter(({ path }) => path)
+        .map(({ factory, name }) => {
           return broker()
-            .subscribe(handler, event.name)
-            .then(() =>
-              this.log.info("red", `${handler.name} <<< ${event.name}`)
-            );
+            .subscribe(factory, name)
+            .then(() => this.log.info("red", `${factory.name} <<< ${name}`));
         })
     );
   }
@@ -161,8 +158,8 @@ export abstract class AppBase extends Builder implements Reader {
   ): Promise<Snapshot<M>[]> {
     this.log.trace(
       "blue",
-      `\n>>> ${command.name} ${command.id} ${
-        command.expectedVersion ? ` @${command.expectedVersion}` : ""
+      `\n>>> ${factory.name} ${command.name} ${command.id ? command.id : ""} ${
+        command.expectedVersion ? `@${command.expectedVersion}` : ""
       }`,
       command.data
     );
@@ -191,7 +188,7 @@ export abstract class AppBase extends Builder implements Reader {
   }> {
     this.log.trace(
       "magenta",
-      `\n>>> ${event.name} ${factory.name}`,
+      `\n>>> ${factory.name} ${event.name}`,
       event.data
     );
     const handler = factory(event);
@@ -200,10 +197,10 @@ export abstract class AppBase extends Builder implements Reader {
       response = await (handler as any)["on".concat(event.name)](event, state);
       if (response) {
         // handle commands synchronously
-        const { handler } = this._handlers.commands[response.name];
-        await this.command(handler as CommandHandlerFactory<M, C, E>, response);
+        const { factory } = this._handlers.commands[response.name];
+        await this.command(factory as CommandHandlerFactory<M, C, E>, response);
       }
-      return [bind(this._factories.events[event.name], event.data)];
+      return [bind(event.name, event.data)];
     });
     return { response, state };
   }
@@ -234,7 +231,7 @@ export abstract class AppBase extends Builder implements Reader {
         event = e;
         state = (reducible as any)["apply".concat(e.name)](state, e);
         count++;
-        if (callback) callback({ event, state });
+        callback && callback({ event, state });
       },
       { stream: reducible.stream(), after: event?.id }
     );

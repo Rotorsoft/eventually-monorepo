@@ -1,23 +1,36 @@
 process.env.PORT = "3006";
 
-import { app } from "@rotorsoft/eventually";
+import { app, bind, Snapshot } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { command, load, sleep, stream } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import { commands } from "../calculator.commands";
-import { events } from "../calculator.events";
+import { Commands } from "../calculator.commands";
+import { Events } from "../calculator.events";
 import { Counter } from "../counter.policy";
+import * as schemas from "../calculator.schemas";
+import { CalculatorModel, Keys } from "../calculator.models";
 
 const chance = new Chance();
 const port = +process.env.PORT;
 
 app(new ExpressApp())
-  .withEvents(events)
-  .withCommands(commands)
+  .withSchemas<Pick<Commands, "PressKey">>({
+    PressKey: schemas.PressKey
+  })
+  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
+    DigitPressed: schemas.DigitPressed,
+    OperatorPressed: schemas.OperatorPressed
+  })
   .withCommandHandlers(Calculator)
   .withEventHandlers(Counter)
   .build();
+
+const pressKey = (
+  id: string,
+  key: Keys
+): Promise<Snapshot<CalculatorModel>[]> =>
+  command(Calculator, bind("PressKey", { key }, id), port);
 
 describe("express app", () => {
   beforeAll(async () => {
@@ -32,59 +45,17 @@ describe("express app", () => {
     it("should compute correctly", async () => {
       const id = chance.guid();
 
-      await command(
-        Calculator,
-        commands.PressKey,
-        { key: "1" },
-        id,
-        undefined,
-        port
-      );
+      await pressKey(id, "1");
       await sleep(100);
-      await command(
-        Calculator,
-        commands.PressKey,
-        { key: "+" },
-        id,
-        undefined,
-        port
-      );
+      await pressKey(id, "+");
       await sleep(100);
-      await command(
-        Calculator,
-        commands.PressKey,
-        { key: "2" },
-        id,
-        undefined,
-        port
-      );
+      await pressKey(id, "2");
       await sleep(100);
-      await command(
-        Calculator,
-        commands.PressKey,
-        { key: "." },
-        id,
-        undefined,
-        port
-      );
+      await pressKey(id, ".");
       await sleep(100);
-      await command(
-        Calculator,
-        commands.PressKey,
-        { key: "3" },
-        id,
-        undefined,
-        port
-      );
+      await pressKey(id, "3");
       await sleep(100);
-      await command(
-        Calculator,
-        commands.PressKey,
-        { key: "=" },
-        id,
-        undefined,
-        port
-      );
+      await pressKey(id, "=");
       await sleep(100);
 
       const { state } = await load(Calculator, id, port);

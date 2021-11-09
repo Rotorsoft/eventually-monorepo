@@ -1,19 +1,25 @@
-import { app, broker, store } from "@rotorsoft/eventually";
+import { app, bind, broker, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { command } from "@rotorsoft/eventually-test";
 import { Server } from "http";
 import { Calculator } from "../calculator.aggregate";
-import { commands } from "../calculator.commands";
-import { events } from "../calculator.events";
+import { Commands } from "../calculator.commands";
+import { Events } from "../calculator.events";
+import * as schemas from "../calculator.schemas";
 
 store(PostgresStore("calculator"));
 const _broker = broker();
 jest.spyOn(_broker, "publish").mockRejectedValue("publish error");
 
 const _app = app(new ExpressApp())
-  .withEvents(events)
-  .withCommands(commands)
+  .withSchemas<Pick<Commands, "PressKey">>({
+    PressKey: schemas.PressKey
+  })
+  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
+    DigitPressed: schemas.DigitPressed,
+    OperatorPressed: schemas.OperatorPressed
+  })
   .withCommandHandlers(Calculator) as ExpressApp;
 let server: Server;
 
@@ -36,14 +42,7 @@ describe("express app", () => {
   describe("errors", () => {
     it("should throw internal error on stream", async () => {
       await expect(
-        command(
-          Calculator,
-          commands.PressKey,
-          { key: "1" },
-          "test5",
-          undefined,
-          3002
-        )
+        command(Calculator, bind("PressKey", { key: "1" }, "test5"), 3002)
       ).rejects.toThrow("Request failed with status code 500");
       expect(logerror).toHaveBeenCalledWith("publish error");
     });
