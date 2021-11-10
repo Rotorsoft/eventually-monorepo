@@ -1,6 +1,9 @@
 @host = http://localhost:3000
 ###
 
+GET {{host}}/stats
+###
+
 GET {{host}}/calculator/calc1
 ###
 GET {{host}}/calculator/calc1/stream

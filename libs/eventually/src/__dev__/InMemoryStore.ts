@@ -1,8 +1,14 @@
 import { Store } from "../interfaces";
-import { AllQuery, CommittedEvent, Message, Payload } from "../types";
+import {
+  AllQuery,
+  CommittedEvent,
+  Message,
+  Payload,
+  StoreStat
+} from "../types";
 
 export const InMemoryStore = (): Store => {
-  const _events: any[] = [];
+  const _events: CommittedEvent<string, Payload>[] = [];
 
   return {
     init: (): Promise<void> => {
@@ -60,6 +66,23 @@ export const InMemoryStore = (): Store => {
       callback && (await callback(committed));
 
       return committed;
+    },
+
+    stats: (): Promise<StoreStat[]> => {
+      const stats: Record<string, StoreStat> = {};
+      _events.map((e) => {
+        const stat: StoreStat = (stats[e.name] = stats[e.name] || {
+          name: e.name,
+          count: 0
+        });
+        stat.count++;
+        stat.streamCount++; // just an approximation for testing
+        stat.firstId = stat.firstId || e.id;
+        stat.lastId = e.id;
+        stat.firstCreated = stat.firstCreated || e.created;
+        stat.lastCreated = e.created;
+      });
+      return Promise.resolve(Object.values(stats));
     }
   };
 };

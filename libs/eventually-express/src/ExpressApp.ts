@@ -12,7 +12,7 @@ import {
   ProcessManagerFactory,
   ReducibleFactory,
   reduciblePath,
-  Scopes,
+  store,
   ValidationError
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -32,6 +32,21 @@ export class ExpressApp extends AppBase {
   private _router = Router();
   private _server: Server;
   private _swagger: any;
+
+  private _buildStatsRoute(): void {
+    this._router.get(
+      "/stats",
+      async (req: Request, res: Response, next: NextFunction) => {
+        try {
+          const stats = await store().stats();
+          return res.status(200).send(stats);
+        } catch (error) {
+          next(error);
+        }
+      }
+    );
+    this.log.info("green", "Stats", "GET /stats");
+  }
 
   private _buildAllStreamRoute(): void {
     this._router.get(
@@ -214,6 +229,7 @@ export class ExpressApp extends AppBase {
     this._buildCommandHandlers();
     this._buildEventHandlers();
     this._buildAllStreamRoute();
+    this._buildStatsRoute();
 
     this._app.set("trust proxy", true);
     this._app.use(cors());

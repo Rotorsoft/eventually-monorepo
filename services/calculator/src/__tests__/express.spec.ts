@@ -260,5 +260,10 @@ describe("express app", () => {
       const swagger = await get("/swagger");
       expect(swagger.status).toBe(200);
     });
+
+    it("should get store stats", async () => {
+      const stats = await get("/stats");
+      expect(stats.status).toBe(200);
+    });
   });
 });

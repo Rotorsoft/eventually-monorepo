@@ -7,7 +7,8 @@ import {
   Options,
   Payload,
   reduciblePath,
-  Scopes
+  Scopes,
+  StoreStat
 } from "@rotorsoft/eventually";
 import * as fs from "fs";
 import * as joi from "joi";
@@ -237,6 +238,37 @@ export const swagger = (
 
   const getPaths = (): Record<string, any> => {
     const paths: Record<string, any> = {
+      ["/stats"]: {
+        get: {
+          summary: "Gets store stats",
+          responses: {
+            "200": {
+              description: "OK",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: j2s(
+                      joi.object<StoreStat>({
+                        name: joi.string().required(),
+                        count: joi.number().integer().required(),
+                        streamCount: joi.number().integer(),
+                        firstId: joi.number().integer(),
+                        lastId: joi.number().integer(),
+                        firstCreated: joi.date(),
+                        lastCreated: joi.date()
+                      })
+                    ).swagger
+                  }
+                }
+              }
+            },
+            default: { description: "Internal Server Error" }
+          },
+          security: sec.operations["stats"] || [{}]
+        }
+      },
+
       ["/all"]: {
         parameters: [
           { $ref: "#/components/parameters/stream" },

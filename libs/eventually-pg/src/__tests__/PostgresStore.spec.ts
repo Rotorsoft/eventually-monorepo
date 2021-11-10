@@ -103,4 +103,9 @@ describe("PostgresStore", () => {
     await db.query((e) => events.push(e), { limit: 5 });
     expect(events.length).toBe(5);
   });
+
+  it("should get store stats", async () => {
+    const stats = await db.stats();
+    expect(stats).toBeDefined();
+  });
 });

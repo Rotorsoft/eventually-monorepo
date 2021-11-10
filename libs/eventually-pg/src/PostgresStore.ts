@@ -5,7 +5,8 @@ import {
   log,
   Message,
   Payload,
-  Store
+  Store,
+  StoreStat
 } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { config } from "./config";
@@ -129,6 +130,25 @@ export const PostgresStore = (table: string): Store => {
       } finally {
         client.release();
       }
+    },
+
+    stats: async (): Promise<StoreStat[]> => {
+      const sql = `SELECT 
+          name, 
+          MIN(id) as firstId, 
+          MAX(id) as lastId, 
+          MIN(created) as firstCreated, 
+          MAX(created) as lastCreated, 
+          COUNT(*) as count,
+          COUNT(DISTINCT stream) streamCount
+        FROM 
+          ${table}
+        GROUP BY 
+          name
+        ORDER BY 
+              2, 3 DESC`;
+
+      return (await pool.query<StoreStat>(sql)).rows;
     }
   };
 };

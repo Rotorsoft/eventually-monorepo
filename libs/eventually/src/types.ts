@@ -203,3 +203,16 @@ export type CommandHandler<M extends Payload, C, E> =
 export type EventHandler<M extends Payload, C, E> =
   | ProcessManager<M, C, E>
   | Policy<C, E>;
+
+/**
+ * Store stats
+ */
+export type StoreStat = {
+  name: string;
+  count: number;
+  streamCount?: number;
+  firstId?: number;
+  lastId?: number;
+  firstCreated?: Date;
+  lastCreated?: Date;
+};

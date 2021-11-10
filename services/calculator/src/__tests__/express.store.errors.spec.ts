@@ -20,6 +20,7 @@ app(new ExpressApp())
 let server: Server;
 
 jest.spyOn(store(), "query").mockRejectedValue("Error");
+jest.spyOn(store(), "stats").mockRejectedValue("Error");
 
 describe("express app", () => {
   beforeAll(async () => {
@@ -42,6 +43,10 @@ describe("express app", () => {
 
     it("should throw internal error on aggregate", async () => {
       await expect(get("/calculator/test", 3001)).rejects.toThrowError("500");
+    });
+
+    it("should throw internal error on stats", async () => {
+      await expect(get("/stats", 3001)).rejects.toThrowError("500");
     });
   });
 });

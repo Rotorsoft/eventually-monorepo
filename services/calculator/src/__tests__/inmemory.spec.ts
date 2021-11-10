@@ -5,7 +5,8 @@ import {
   Errors,
   log,
   Payload,
-  Snapshot
+  Snapshot,
+  store
 } from "@rotorsoft/eventually";
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
@@ -336,6 +337,11 @@ describe("in memory app", () => {
       );
       expect(r1.response).toBeUndefined();
       expect(r2.state).toBeUndefined();
+    });
+
+    it("should get store stats", async () => {
+      const stats = await store().stats();
+      expect(stats).toBeDefined();
     });
   });
 });

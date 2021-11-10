@@ -4,7 +4,8 @@ import {
   CommittedEvent,
   Message,
   Payload,
-  Snapshot
+  Snapshot,
+  StoreStat
 } from "./types";
 
 /**
@@ -74,6 +75,11 @@ export interface Store {
     expectedVersion?: number,
     callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
   ) => Promise<CommittedEvent<string, Payload>[]>;
+
+  /**
+   * Gets store stats
+   */
+  stats: () => Promise<StoreStat[]>;
 }
 
 export interface SnapshotStore {
