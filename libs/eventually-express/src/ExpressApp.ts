@@ -119,12 +119,9 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.commands)
-      .filter(({ type, factory, path }) => {
+    Object.values(this._endpoints.commands).map(
+      ({ type, factory, name, path }) => {
         type === "aggregate" && (aggregates[factory.name] = factory as any);
-        return path;
-      })
-      .map(({ type, factory, name, path }) => {
         const schema = this._options[name].schema;
         this._router.post(
           path,
@@ -141,7 +138,6 @@ export class ExpressApp extends AppBase {
                 if (error) throw new ValidationError(error);
               }
               const snapshots = await this.command(
-                factory,
                 bind(
                   name,
                   req.body,
@@ -159,7 +155,8 @@ export class ExpressApp extends AppBase {
             }
           }
         );
-      });
+      }
+    );
 
     Object.values(aggregates).map((aggregate) => {
       this.log.info("green", aggregate.name);
@@ -179,12 +176,9 @@ export class ExpressApp extends AppBase {
       string,
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._handlers.events)
-      .filter(({ type, factory, path }) => {
+    Object.values(this._endpoints.events).map(
+      ({ type, factory, name, path }) => {
         type === "process-manager" && (managers[factory.name] = factory as any);
-        return path;
-      })
-      .map(({ factory, name, path }) => {
         const schema = this._options[name].schema;
         this._router.post(
           path,
@@ -208,7 +202,8 @@ export class ExpressApp extends AppBase {
             }
           }
         );
-      });
+      }
+    );
 
     Object.values(managers).map((manager) => {
       this.log.info("green", manager.name);
@@ -251,7 +246,7 @@ export class ExpressApp extends AppBase {
     );
 
     // swagger
-    this._swagger = swagger(this._handlers, this._options);
+    this._swagger = swagger(this._endpoints, this._options);
     this._app.get("/swagger", (req: Request, res: Response) => {
       res.json(this._swagger);
     });

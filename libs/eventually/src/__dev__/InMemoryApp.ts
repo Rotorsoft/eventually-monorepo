@@ -3,7 +3,6 @@ import { AppBase } from "../app";
 import { config } from "../config";
 import {
   Command,
-  CommandHandlerFactory,
   CommittedEvent,
   EventHandlerFactory,
   Message,
@@ -26,11 +25,10 @@ export class InMemoryApp extends AppBase {
   }
 
   async command<M extends Payload, C, E>(
-    handler: CommandHandlerFactory<M, C, E>,
     command: Command<keyof C & string, Payload>
   ): Promise<Snapshot<M>[]> {
     validate(command.data, this._options[command.name].schema);
-    const snapshots = await super.command(handler, command);
+    const snapshots = await super.command<M, C, E>(command);
     snapshots.map(({ event }) => {
       return validate(event.data, this._options[event.name].schema);
     });

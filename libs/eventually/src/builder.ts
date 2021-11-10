@@ -25,7 +25,7 @@ export type Factories = {
   };
 };
 
-export type Handlers = {
+export type Endpoints = {
   commands: {
     [name: string]: {
       type: "aggregate" | "external-system";
@@ -35,7 +35,7 @@ export type Handlers = {
     };
   };
   events: {
-    [path: string]: {
+    [name: string]: {
       type: "policy" | "process-manager";
       name: string;
       factory: EventHandlerFactory<Payload, unknown, unknown>;
@@ -54,20 +54,20 @@ type Schemas<M> = {
 
 export class Builder {
   protected readonly _options: Record<string, Options<Payload>> = {};
-
   protected readonly _factories: Factories = {
     commandHandlers: {},
     eventHandlers: {}
   };
-
-  protected readonly _handlers: Handlers = {
+  protected readonly _endpoints: Endpoints = {
     commands: {},
     events: {}
   };
-
   protected readonly _snapshotStores: Record<string, SnapshotStore> = {};
-
-  protected readonly _private_subscriptions: Subscriptions = {};
+  protected readonly _commandHandlerFactories: Record<
+    string,
+    CommandHandlerFactory<Payload, unknown, unknown>
+  > = {};
+  protected readonly _privateSubs: Subscriptions = {};
 
   /**
    * Registers message schemas
@@ -167,12 +167,14 @@ export class Builder {
           options.scope === Scopes.public
             ? commandHandlerPath(factory, name)
             : "";
-        this._handlers.commands[name] = {
-          type,
-          name,
-          factory,
-          path
-        };
+        path &&
+          (this._endpoints.commands[path] = {
+            type,
+            name,
+            factory,
+            path
+          });
+        this._commandHandlerFactories[name] = factory;
         log().info("blue", `  ${name}`, path ? `POST ${path}` : factory.name);
       });
       reducible &&
@@ -196,12 +198,18 @@ export class Builder {
           options.scope === Scopes.public
             ? eventHandlerPath(factory, name)
             : "";
-        this._handlers.events[name] = {
-          type,
-          name,
-          factory,
-          path
-        };
+        if (path)
+          this._endpoints.events[path] = {
+            type,
+            name,
+            factory,
+            path
+          };
+        else {
+          // cache private subscriptions
+          const sub = (this._privateSubs[name] = this._privateSubs[name] || []);
+          sub.push(factory);
+        }
         log().info(
           "magenta",
           `  ${name}`,
@@ -209,15 +217,6 @@ export class Builder {
         );
       });
     });
-
-    // private subscriptions
-    Object.values(this._handlers.events)
-      .filter(({ name }) => this._options[name].scope === Scopes.private)
-      .map(({ factory, name }) => {
-        const sub = (this._private_subscriptions[name] =
-          this._private_subscriptions[name] || []);
-        sub.push(factory);
-      });
 
     return;
   }

@@ -2,7 +2,7 @@ import {
   config,
   eventsOf,
   getReducible,
-  Handlers,
+  Endpoints,
   MessageHandlerFactory,
   Options,
   Payload,
@@ -39,7 +39,7 @@ const getSecurity = (): Security => {
 };
 
 export const swagger = (
-  handlers: Handlers,
+  endpoints: Endpoints,
   options: Record<string, Options<Payload>>
 ): any => {
   const pkg = getPackage();
@@ -216,7 +216,7 @@ export const swagger = (
 
   const getComponents = (): ComponentsSchema => {
     // public commands and aggregate models are components
-    Object.values(handlers.commands)
+    Object.values(endpoints.commands)
       .filter(({ name }) => options[name].scope === Scopes.public)
       .map(({ factory, name }) => {
         if (options[name].schema) {
@@ -229,7 +229,7 @@ export const swagger = (
       });
 
     // process manager models are components
-    Object.values(handlers.events).map(({ factory }) => {
+    Object.values(endpoints.events).map(({ factory }) => {
       getReducibleComponent(factory);
     });
 
@@ -306,7 +306,7 @@ export const swagger = (
       }
     };
 
-    Object.values(handlers.commands)
+    Object.values(endpoints.commands)
       .filter(({ path }) => path)
       .map(({ factory, name, path }) => {
         getReducibleGetters(paths, factory);
@@ -361,7 +361,7 @@ export const swagger = (
         };
       });
 
-    Object.values(handlers.events)
+    Object.values(endpoints.events)
       .filter(({ path }) => path)
       .map(({ factory, name, path }) => {
         getReducibleGetters(paths, factory);

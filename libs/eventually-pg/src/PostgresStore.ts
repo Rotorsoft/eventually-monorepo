@@ -117,7 +117,7 @@ export const PostgresStore = (table: string): Store => {
           })
         );
 
-        if (callback) await callback(committed);
+        callback && (await callback(committed));
 
         await client.query("COMMIT").catch((error) => {
           log().error(error);

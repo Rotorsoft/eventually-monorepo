@@ -37,10 +37,10 @@ const pressKey = (
   id: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel>[]> =>
-  app().command(Calculator, bind("PressKey", { key }, id));
+  app().command(bind("PressKey", { key }, id));
 
 const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
-  app().command(Calculator, bind("Reset", undefined, id));
+  app().command(bind("Reset", undefined, id));
 
 describe("in memory app", () => {
   beforeAll(async () => {
@@ -174,16 +174,14 @@ describe("in memory app", () => {
       await pressKey(id, "1");
 
       // WHEN
-      await expect(
-        app().command(Calculator, bind("PressKey", { key: "1" }, id, -1))
-      )
+      await expect(app().command(bind("PressKey", { key: "1" }, id, -1)))
         // THEN
         .rejects.toThrowError(Errors.ConcurrencyError);
     });
 
     it("should throw validation error", async () => {
       await expect(
-        app().command(Calculator, bind("PressKey", undefined, chance.guid()))
+        app().command(bind("PressKey", undefined, chance.guid()))
       ).rejects.toThrowError(Errors.ValidationError);
     });
 

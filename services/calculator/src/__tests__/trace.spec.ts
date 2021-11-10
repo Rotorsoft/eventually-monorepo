@@ -33,7 +33,7 @@ describe("in memory app", () => {
     it("should compute correctly", async () => {
       const id = chance.guid();
 
-      await app().command(Calculator, bind("PressKey", { key: "1" }, id));
+      await app().command(bind("PressKey", { key: "1" }, id));
 
       const { state } = await app().load(Calculator(id));
       expect(state).toEqual({

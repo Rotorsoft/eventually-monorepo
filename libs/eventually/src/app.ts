@@ -12,7 +12,6 @@ import {
   Message,
   MessageHandler,
   Payload,
-  PolicyFactory,
   Reducible,
   Scopes,
   Snapshot
@@ -48,19 +47,27 @@ export abstract class AppBase extends Builder implements Reader {
   private async _publish<C, E>(
     events: CommittedEvent<keyof E & string, Payload>[]
   ): Promise<void> {
-    // private subscriptions are invoked synchronously (in-process)
+    // private events are invoked synchronously (in-process)
     await Promise.all(
-      events.map((e) => {
-        const private_sub = this._private_subscriptions[e.name];
-        if (private_sub) {
-          return Promise.all(
-            private_sub.map((f: PolicyFactory<C, E>) => this.event(f, e))
-          );
-        }
-      })
+      events
+        .filter(({ name }) => this._options[name].scope === Scopes.private)
+        .map((e) => {
+          const sub = this._privateSubs[e.name];
+          if (sub)
+            return Promise.all(
+              sub.map((f: EventHandlerFactory<Payload, C, E>) =>
+                this.event(f, e)
+              )
+            );
+        })
     );
-    // public subscriptions are delegated to the broker
-    await Promise.all(events.map((e) => broker().publish(e)));
+    // public events are published by the broker
+    const published = await Promise.all(
+      events
+        .filter(({ name }) => this._options[name].scope === Scopes.public)
+        .map((e) => broker().publish(e))
+    );
+    published.length && this.log.trace("red", "Published", published);
   }
 
   /**
@@ -126,7 +133,7 @@ export abstract class AppBase extends Builder implements Reader {
     await store().init();
     await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
-      Object.values(this._handlers.events)
+      Object.values(this._endpoints.events)
         .filter(({ path }) => path)
         .map(({ factory, name }) => {
           return broker()
@@ -148,14 +155,15 @@ export abstract class AppBase extends Builder implements Reader {
 
   /**
    * Handles command
-   * @param factory the command handler factory
    * @param command the command message
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    factory: CommandHandlerFactory<M, C, E>,
     command: Command<keyof C & string, Payload>
   ): Promise<Snapshot<M>[]> {
+    const factory = this._commandHandlerFactories[
+      command.name
+    ] as CommandHandlerFactory<M, C, E>;
     this.log.trace(
       "blue",
       `\n>>> ${factory.name} ${command.name} ${command.id ? command.id : ""} ${
@@ -195,11 +203,8 @@ export abstract class AppBase extends Builder implements Reader {
     let response: Command<keyof C & string, Payload> | undefined;
     const [{ state }] = await this._handle(handler, async (state: M) => {
       response = await (handler as any)["on".concat(event.name)](event, state);
-      if (response) {
-        // handle commands synchronously
-        const { factory } = this._handlers.commands[response.name];
-        await this.command(factory as CommandHandlerFactory<M, C, E>, response);
-      }
+      // handle commands synchronously
+      response && (await this.command<M, C, E>(response));
       return [bind(event.name, event.data)];
     });
     return { response, state };
