@@ -41,7 +41,7 @@ export const Calculator = (
     factory: PostgresSnapshotStore,
     threshold: 2
   },
-  stream: () => `Calculator${id}`,
+  stream: () => `Calculator-${id}`,
 
   schema: () => schemas.CalculatorModel,
 
@@ -81,6 +81,8 @@ export const Calculator = (
     result: 0
   }),
 
+  applyIgnored3: (model) => model,
+
   onPressKey: async (data, state) => {
     if (data.key === SYMBOLS[0]) {
       return Promise.resolve([bind("DotPressed")]);
@@ -95,5 +97,6 @@ export const Calculator = (
       : [bind("OperatorPressed", { operator: data.key as Operators })];
   },
 
-  onReset: async () => Promise.resolve([bind("Cleared")])
+  onReset: async () =>
+    Promise.resolve([bind("Cleared"), bind("Ignored3"), bind("Cleared")])
 });

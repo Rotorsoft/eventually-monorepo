@@ -44,8 +44,10 @@ export type Endpoints = {
   };
 };
 
-export type Subscriptions = {
-  [name: string]: EventHandlerFactory<Payload, unknown, unknown>[];
+type MessageMetadata = {
+  options: Options<Payload>;
+  commandHandlerFactory?: CommandHandlerFactory<Payload, unknown, unknown>;
+  subscriptions: EventHandlerFactory<Payload, unknown, unknown>[];
 };
 
 type Schemas<M> = {
@@ -53,21 +55,23 @@ type Schemas<M> = {
 };
 
 export class Builder {
-  protected readonly _options: Record<string, Options<Payload>> = {};
+  protected readonly _snapshotStores: Record<string, SnapshotStore> = {};
   protected readonly _factories: Factories = {
     commandHandlers: {},
     eventHandlers: {}
   };
-  protected readonly _endpoints: Endpoints = {
+  readonly endpoints: Endpoints = {
     commands: {},
     events: {}
   };
-  protected readonly _snapshotStores: Record<string, SnapshotStore> = {};
-  protected readonly _commandHandlerFactories: Record<
-    string,
-    CommandHandlerFactory<Payload, unknown, unknown>
-  > = {};
-  protected readonly _privateSubs: Subscriptions = {};
+  readonly messages: Record<string, MessageMetadata> = {};
+
+  private msg(name: string): MessageMetadata {
+    return (this.messages[name] = this.messages[name] || {
+      options: { scope: Scopes.public },
+      subscriptions: []
+    });
+  }
 
   /**
    * Registers message schemas
@@ -75,10 +79,7 @@ export class Builder {
    */
   withSchemas<M>(schemas: Schemas<M>): this {
     Object.entries(schemas).map(([key, value]): void => {
-      const option = (this._options[key] = this._options[key] || {
-        scope: Scopes.public
-      });
-      option.schema = value as any;
+      this.msg(key).options.schema = value as any;
     });
     return this;
   }
@@ -88,10 +89,7 @@ export class Builder {
    */
   withPrivate<M>(...messages: Array<keyof M & string>): this {
     messages.map((key): void => {
-      const option = (this._options[key] = this._options[key] || {
-        scope: Scopes.private
-      });
-      option.scope = Scopes.private;
+      this.msg(key).options.scope = Scopes.private;
     });
     return this;
   }
@@ -160,27 +158,22 @@ export class Builder {
       const type = reducible ? "aggregate" : "external-system";
       log().info("white", factory.name, type);
       messagesOf(handler).map((name) => {
-        const options = (this._options[name] = this._options[name] || {
-          scope: Scopes.public
-        });
+        const msg = this.msg(name);
+        msg.commandHandlerFactory = factory;
         const path =
-          options.scope === Scopes.public
+          msg.options.scope === Scopes.public
             ? commandHandlerPath(factory, name)
             : "";
         path &&
-          (this._endpoints.commands[path] = {
+          (this.endpoints.commands[path] = {
             type,
             name,
             factory,
             path
           });
-        this._commandHandlerFactories[name] = factory;
         log().info("blue", `  ${name}`, path ? `POST ${path}` : factory.name);
       });
-      reducible &&
-        eventsOf(reducible).map((name) => {
-          this._options[name] = this._options[name] || { scope: Scopes.public };
-        });
+      reducible && eventsOf(reducible).map((name) => this.msg(name));
     });
 
     // event handlers
@@ -191,25 +184,19 @@ export class Builder {
       const type = reducible ? "process-manager" : "policy";
       log().info("white", factory.name, type);
       messagesOf(handler).map((name) => {
-        const options = (this._options[name] = this._options[name] || {
-          scope: Scopes.public
-        });
+        const msg = this.msg(name);
+        msg.subscriptions.push(factory);
         const path =
-          options.scope === Scopes.public
+          msg.options.scope === Scopes.public
             ? eventHandlerPath(factory, name)
             : "";
-        if (path)
-          this._endpoints.events[path] = {
+        path &&
+          (this.endpoints.events[path] = {
             type,
             name,
             factory,
             path
-          };
-        else {
-          // cache private subscriptions
-          const sub = (this._privateSubs[name] = this._privateSubs[name] || []);
-          sub.push(factory);
-        }
+          });
         log().info(
           "magenta",
           `  ${name}`,

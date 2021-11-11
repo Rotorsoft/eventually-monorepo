@@ -119,10 +119,10 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._endpoints.commands).map(
+    Object.values(this.endpoints.commands).map(
       ({ type, factory, name, path }) => {
         type === "aggregate" && (aggregates[factory.name] = factory as any);
-        const schema = this._options[name].schema;
+        const schema = this.messages[name].options.schema;
         this._router.post(
           path,
           async (
@@ -176,10 +176,10 @@ export class ExpressApp extends AppBase {
       string,
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this._endpoints.events).map(
+    Object.values(this.endpoints.events).map(
       ({ type, factory, name, path }) => {
         type === "process-manager" && (managers[factory.name] = factory as any);
-        const schema = this._options[name].schema;
+        const schema = this.messages[name].options.schema;
         this._router.post(
           path,
           async (
@@ -246,7 +246,7 @@ export class ExpressApp extends AppBase {
     );
 
     // swagger
-    this._swagger = swagger(this._endpoints, this._options);
+    this._swagger = swagger(this);
     this._app.get("/swagger", (req: Request, res: Response) => {
       res.json(this._swagger);
     });

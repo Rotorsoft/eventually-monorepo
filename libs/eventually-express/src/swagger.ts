@@ -1,13 +1,11 @@
 import {
+  Builder,
   config,
   eventsOf,
   getReducible,
-  Endpoints,
   MessageHandlerFactory,
-  Options,
   Payload,
   reduciblePath,
-  Scopes,
   StoreStat
 } from "@rotorsoft/eventually";
 import * as fs from "fs";
@@ -38,10 +36,7 @@ const getSecurity = (): Security => {
   }
 };
 
-export const swagger = (
-  endpoints: Endpoints,
-  options: Record<string, Options<Payload>>
-): any => {
+export const swagger = (app: Builder): any => {
   const pkg = getPackage();
   const sec = getSecurity();
   const components: ComponentsSchema = {
@@ -193,8 +188,8 @@ export const swagger = (
           created: joi.date().required()
         })
       );
-      options[name].schema &&
-        (swagger.properties.data = j2s(options[name].schema).swagger);
+      const schema = app.messages[name].options.schema;
+      schema && (swagger.properties.data = j2s(schema).swagger);
       components.schemas[name] = swagger;
     });
 
@@ -215,21 +210,18 @@ export const swagger = (
   };
 
   const getComponents = (): ComponentsSchema => {
-    // public commands and aggregate models are components
-    Object.values(endpoints.commands)
-      .filter(({ name }) => options[name].scope === Scopes.public)
-      .map(({ factory, name }) => {
-        if (options[name].schema) {
-          const { swagger } = j2s(options[name].schema, components);
-          components.schemas[name] = swagger;
-        } else {
-          components.schemas[name] = { type: "object" };
-        }
-        getReducibleComponent(factory);
-      });
+    Object.values(app.endpoints.commands).map(({ factory, name }) => {
+      const schema = app.messages[name].options.schema;
+      if (schema) {
+        const { swagger } = j2s(schema, components);
+        components.schemas[name] = swagger;
+      } else {
+        components.schemas[name] = { type: "object" };
+      }
+      getReducibleComponent(factory);
+    });
 
-    // process manager models are components
-    Object.values(endpoints.events).map(({ factory }) => {
+    Object.values(app.endpoints.events).map(({ factory }) => {
       getReducibleComponent(factory);
     });
 
@@ -306,7 +298,7 @@ export const swagger = (
       }
     };
 
-    Object.values(endpoints.commands)
+    Object.values(app.endpoints.commands)
       .filter(({ path }) => path)
       .map(({ factory, name, path }) => {
         getReducibleGetters(paths, factory);
@@ -361,7 +353,7 @@ export const swagger = (
         };
       });
 
-    Object.values(endpoints.events)
+    Object.values(app.endpoints.events)
       .filter(({ path }) => path)
       .map(({ factory, name, path }) => {
         getReducibleGetters(paths, factory);

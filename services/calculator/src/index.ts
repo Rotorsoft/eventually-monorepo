@@ -23,7 +23,7 @@ expressApp
     OperatorPressed: schemas.OperatorPressed
   })
   .withPrivate<Commands>("Whatever")
-  .withPrivate<Events>("OperatorPressed")
+  .withPrivate<Events>("OperatorPressed", "Ignored1", "Ignored3")
   .withCommandHandlers(Calculator)
   .withEventHandlers(Counter);
 

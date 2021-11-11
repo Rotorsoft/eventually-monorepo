@@ -69,6 +69,7 @@ export const PubSubBroker = (): Broker => {
       } catch (error) {
         log().error(error);
         t && t.resumePublishing(orderingKey);
+        return error.message;
       }
     },
 

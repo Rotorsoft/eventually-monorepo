@@ -1,6 +1,7 @@
 import {
   app,
   bind,
+  broker,
   CommittedEvent,
   Errors,
   log,
@@ -30,7 +31,12 @@ app()
     OperatorPressed: schemas.OperatorPressed
   })
   .withPrivate<Commands>("Whatever", "Reset")
-  .withPrivate<Events>("OperatorPressed", "EqualsPressed", "Ignored1")
+  .withPrivate<Events>(
+    "OperatorPressed",
+    "EqualsPressed",
+    "Ignored1",
+    "Ignored3"
+  )
   .build();
 
 const pressKey = (
@@ -44,6 +50,7 @@ const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
 
 describe("in memory app", () => {
   beforeAll(async () => {
+    jest.clearAllMocks();
     await app().listen();
   });
 
@@ -189,6 +196,14 @@ describe("in memory app", () => {
       await expect(pressKey(chance.guid(), "=")).rejects.toThrowError(
         "Don't have an operator"
       );
+    });
+
+    it("should publish public events only", async () => {
+      const id = chance.guid();
+      const publishSpy = jest.spyOn(broker(), "publish");
+      const snapshots = await reset(id);
+      expect(snapshots.length).toBe(3);
+      expect(publishSpy).toHaveBeenCalledTimes(2);
     });
   });
 

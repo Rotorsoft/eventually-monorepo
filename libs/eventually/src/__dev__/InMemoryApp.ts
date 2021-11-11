@@ -27,10 +27,10 @@ export class InMemoryApp extends AppBase {
   async command<M extends Payload, C, E>(
     command: Command<keyof C & string, Payload>
   ): Promise<Snapshot<M>[]> {
-    validate(command.data, this._options[command.name].schema);
+    validate(command.data, this.messages[command.name].options.schema);
     const snapshots = await super.command<M, C, E>(command);
     snapshots.map(({ event }) => {
-      return validate(event.data, this._options[event.name].schema);
+      return validate(event.data, this.messages[event.name].options.schema);
     });
     return snapshots;
   }
@@ -42,7 +42,7 @@ export class InMemoryApp extends AppBase {
     response: Message<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
-    validate(event.data, this._options[event.name].schema);
+    validate(event.data, this.messages[event.name].options.schema);
     return super.event(factory, event);
   }
 }

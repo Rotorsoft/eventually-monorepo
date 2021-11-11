@@ -47,25 +47,22 @@ export abstract class AppBase extends Builder implements Reader {
   private async _publish<C, E>(
     events: CommittedEvent<keyof E & string, Payload>[]
   ): Promise<void> {
-    // private events are invoked synchronously (in-process)
-    await Promise.all(
-      events
-        .filter(({ name }) => this._options[name].scope === Scopes.private)
-        .map((e) => {
-          const sub = this._privateSubs[e.name];
-          if (sub)
-            return Promise.all(
-              sub.map((f: EventHandlerFactory<Payload, C, E>) =>
-                this.event(f, e)
-              )
-            );
-        })
-    );
-    // public events are published by the broker
     const published = await Promise.all(
-      events
-        .filter(({ name }) => this._options[name].scope === Scopes.public)
-        .map((e) => broker().publish(e))
+      events.map(async (e) => {
+        const msg = this.messages[e.name];
+        if (msg.options.scope === Scopes.private) {
+          // private events are invoked synchronously (in-process)
+          await Promise.all(
+            msg.subscriptions.map((f: EventHandlerFactory<Payload, C, E>) =>
+              this.event(f, e)
+            )
+          );
+          return `[${e.name}]`;
+        } else {
+          // public events are published by the broker
+          return broker().publish(e);
+        }
+      })
     );
     published.length && this.log.trace("red", "Published", published);
   }
@@ -103,11 +100,17 @@ export abstract class AppBase extends Builder implements Reader {
         const snapshots = committed.map((event) => {
           this.log.trace(
             "gray",
-            `   ... committed ${event.name} @ ${event.version} - `,
+            `   ... ${streamable.stream()} committed ${event.name} @ ${
+              event.version
+            }`,
             event.data
           );
           state = (reducible as any)["apply".concat(event.name)](state, event);
-          this.log.trace("gray", `   === @ ${event.version}`, state);
+          this.log.trace(
+            "gray",
+            `   === ${JSON.stringify(state)}`,
+            ` @ ${event.version}`
+          );
           return { event, state };
         });
 
@@ -126,14 +129,14 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Initializes application store and subscribes policy handlers to public event topics
+   * Initializes application store and subscribes policy handlers to public events
    * Concrete implementations provide the listening framework
    */
   async listen(): Promise<void> {
     await store().init();
     await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
-      Object.values(this._endpoints.events)
+      Object.values(this.endpoints.events)
         .filter(({ path }) => path)
         .map(({ factory, name }) => {
           return broker()
@@ -161,9 +164,8 @@ export abstract class AppBase extends Builder implements Reader {
   async command<M extends Payload, C, E>(
     command: Command<keyof C & string, Payload>
   ): Promise<Snapshot<M>[]> {
-    const factory = this._commandHandlerFactories[
-      command.name
-    ] as CommandHandlerFactory<M, C, E>;
+    const factory = this.messages[command.name]
+      .commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace(
       "blue",
       `\n>>> ${factory.name} ${command.name} ${command.id ? command.id : ""} ${

@@ -23,11 +23,11 @@ const policy = async (
       return bind(
         "Reset",
         undefined,
-        event.stream.substr("Calculator".length),
+        event.stream.substr("Calculator-".length),
         event.version
       );
   } else {
-    const id = event.stream.substr("Calculator".length);
+    const id = event.stream.substr("Calculator-".length);
     const { state } = await app().load(Calculator(id));
     if (
       (state.left || "").length >= threshold ||
@@ -37,14 +37,17 @@ const policy = async (
   }
 };
 
-export type CounterEvents = Omit<Events, "Cleared" | "Ignored1" | "Ignored2">;
+export type CounterEvents = Omit<
+  Events,
+  "Cleared" | "Ignored1" | "Ignored2" | "Ignored3"
+>;
 
 export const Counter: ProcessManagerFactory<
   CounterState,
   Commands,
   CounterEvents
 > = (event) => ({
-  stream: () => `Counter${event.stream}`,
+  stream: () => `Counter-${event.stream}`,
   schema: () => schemas.CounterState,
   init: (): CounterState => ({ count: 0 }),
   snapshot: {

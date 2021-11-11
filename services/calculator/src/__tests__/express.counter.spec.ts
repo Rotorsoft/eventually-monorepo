@@ -68,9 +68,13 @@ describe("express app", () => {
       const calc_snapshots = await stream(Calculator, id, { port });
       expect(calc_snapshots.length).toEqual(6);
 
-      const count_snapshots = await stream(Counter, `CounterCalculator${id}`, {
-        port
-      });
+      const count_snapshots = await stream(
+        Counter,
+        `Counter-Calculator-${id}`,
+        {
+          port
+        }
+      );
       expect(count_snapshots.length).toEqual(6);
     });
   });
