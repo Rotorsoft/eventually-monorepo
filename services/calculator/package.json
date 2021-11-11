@@ -25,7 +25,7 @@
     "joi": "^17.4.2"
   },
   "devDependencies": {
-    "@rotorsoft/eventually-test": "workspace:^2.1.0",
+    "@rotorsoft/eventually-test": "workspace:^2.1.1",
     "@types/chance": "^1",
     "chance": "^1.1.8",
     "ts-node-dev": "^1.1.8",
