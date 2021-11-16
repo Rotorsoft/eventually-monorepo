@@ -2,6 +2,7 @@ import Joi from "joi";
 import {
   CommandHandlerFactory,
   commandHandlerPath,
+  config,
   EventHandlerFactory,
   eventHandlerPath,
   eventsOf,
@@ -11,7 +12,8 @@ import {
   Options,
   Payload,
   Reducible,
-  Scopes
+  Scopes,
+  Topic
 } from ".";
 import { SnapshotStore } from "./interfaces";
 import { InMemorySnapshotStore } from "./__dev__";
@@ -34,20 +36,24 @@ export type Endpoints = {
       path: string;
     };
   };
-  events: {
+  eventHandlers: {
     [name: string]: {
       type: "policy" | "process-manager";
-      name: string;
       factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
+      topics: Record<string, Topic>;
     };
   };
 };
 
-type MessageMetadata = {
+export type MessageMetadata = {
+  name: string;
   options: Options<Payload>;
   commandHandlerFactory?: CommandHandlerFactory<Payload, unknown, unknown>;
-  subscriptions: EventHandlerFactory<Payload, unknown, unknown>[];
+  eventHandlerFactories: Record<
+    string,
+    EventHandlerFactory<Payload, unknown, unknown>
+  >;
 };
 
 type Schemas<M> = {
@@ -62,15 +68,28 @@ export class Builder {
   };
   readonly endpoints: Endpoints = {
     commands: {},
-    events: {}
+    eventHandlers: {}
   };
   readonly messages: Record<string, MessageMetadata> = {};
 
-  private msg(name: string): MessageMetadata {
+  private _msg(name: string): MessageMetadata {
     return (this.messages[name] = this.messages[name] || {
+      name,
       options: { scope: Scopes.public },
-      subscriptions: []
+      eventHandlerFactories: {}
     });
+  }
+
+  /**
+   * Gets configured topic or uses default service name ordered by event id
+   */
+  protected _getTopic(message: MessageMetadata): Topic {
+    return (
+      this.messages[message.name].options.topic || {
+        name: config().service,
+        orderingKey: "id"
+      }
+    );
   }
 
   /**
@@ -79,7 +98,17 @@ export class Builder {
    */
   withSchemas<M>(schemas: Schemas<M>): this {
     Object.entries(schemas).map(([key, value]): void => {
-      this.msg(key).options.schema = value as any;
+      this._msg(key).options.schema = value as any;
+    });
+    return this;
+  }
+
+  /**
+   * Registers public messages with topics
+   */
+  withTopic<M>(topic: Topic, ...messages: Array<keyof M & string>): this {
+    messages.map((key): void => {
+      this._msg(key).options.topic = topic;
     });
     return this;
   }
@@ -89,7 +118,7 @@ export class Builder {
    */
   withPrivate<M>(...messages: Array<keyof M & string>): this {
     messages.map((key): void => {
-      this.msg(key).options.scope = Scopes.private;
+      this._msg(key).options.scope = Scopes.private;
     });
     return this;
   }
@@ -158,7 +187,7 @@ export class Builder {
       const type = reducible ? "aggregate" : "external-system";
       log().info("white", factory.name, type);
       messagesOf(handler).map((name) => {
-        const msg = this.msg(name);
+        const msg = this._msg(name);
         msg.commandHandlerFactory = factory;
         const path =
           msg.options.scope === Scopes.public
@@ -173,7 +202,7 @@ export class Builder {
           });
         log().info("blue", `  ${name}`, path ? `POST ${path}` : factory.name);
       });
-      reducible && eventsOf(reducible).map((name) => this.msg(name));
+      reducible && eventsOf(reducible).map((name) => this._msg(name));
     });
 
     // event handlers
@@ -183,25 +212,21 @@ export class Builder {
       reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "process-manager" : "policy";
       log().info("white", factory.name, type);
+      const path = eventHandlerPath(factory);
+      this.endpoints.eventHandlers[path] = {
+        type,
+        factory,
+        path,
+        topics: {} as Record<string, Topic>
+      };
       messagesOf(handler).map((name) => {
-        const msg = this.msg(name);
-        msg.subscriptions.push(factory);
-        const path =
-          msg.options.scope === Scopes.public
-            ? eventHandlerPath(factory, name)
-            : "";
-        path &&
-          (this.endpoints.events[path] = {
-            type,
-            name,
-            factory,
-            path
-          });
-        log().info(
-          "magenta",
-          `  ${name}`,
-          path ? `POST ${path}` : factory.name
-        );
+        const msg = this._msg(name);
+        msg.eventHandlerFactories[path] = factory;
+        if (msg.options.scope === Scopes.public) {
+          const topic = this._getTopic(msg);
+          this.endpoints.eventHandlers[path].topics[topic.name] = topic;
+          log().info("magenta", `  ${name}`, `POST ${path}`);
+        }
       });
     });
 

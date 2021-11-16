@@ -125,13 +125,11 @@ export const commandHandlerPath = <M extends Payload, C, E>(
 /**
  * Normalizes event handler paths
  * @param handler event handler factory
- * @param name event name
  * @returns normalized path
  */
 export const eventHandlerPath = <M extends Payload, C, E>(
-  handler: EventHandlerFactory<M, C, E>,
-  name: string
-): string => "/".concat(decamelize(handler.name), "/", decamelize(name));
+  handler: EventHandlerFactory<M, C, E>
+): string => "/".concat(decamelize(handler.name));
 
 export enum Errors {
   ValidationError = "Validation Error",

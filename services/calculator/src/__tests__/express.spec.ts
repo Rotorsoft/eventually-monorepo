@@ -202,10 +202,18 @@ describe("express app", () => {
             id: 1,
             stream: chance.guid(),
             version: 1,
-            created: new Date()
+            created: new Date(),
+            name: "DigitPressed"
           })
         )
       ).rejects.toThrowError("Request failed with status code 400");
+    });
+
+    it("should return nothing but OK", async () => {
+      const response = await event(StatelessCounter, {
+        data: { name: "IgnoreThis" }
+      } as any);
+      expect(response).toBe("Ignored IgnoreThis");
     });
   });
 

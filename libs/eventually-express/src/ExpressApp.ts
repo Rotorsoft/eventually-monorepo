@@ -176,10 +176,9 @@ export class ExpressApp extends AppBase {
       string,
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this.endpoints.events).map(
-      ({ type, factory, name, path }) => {
+    Object.values(this.endpoints.eventHandlers).map(
+      ({ type, factory, path }) => {
         type === "process-manager" && (managers[factory.name] = factory as any);
-        const schema = this.messages[name].options.schema;
         this._router.post(
           path,
           async (
@@ -189,14 +188,20 @@ export class ExpressApp extends AppBase {
           ) => {
             try {
               const message = broker().decode(req.body);
-              if (schema) {
-                const { error } = schema.validate(message.data, {
-                  abortEarly: false
-                });
-                if (error) throw new ValidationError(error);
+              const meta = this.messages[message.name];
+              if (meta && meta.eventHandlerFactories[path]) {
+                const schema = meta.options.schema;
+                if (schema) {
+                  const { error } = schema.validate(message.data, {
+                    abortEarly: false
+                  });
+                  if (error) throw new ValidationError(error);
+                }
+                const response = await this.event(factory, message as any);
+                return res.status(200).send(response);
               }
-              const response = await this.event(factory, message as any);
-              return res.status(200).send(response);
+              // ignore events not handled by this handler
+              return res.send(`Ignored ${message.name}`);
             } catch (error) {
               next(error);
             }

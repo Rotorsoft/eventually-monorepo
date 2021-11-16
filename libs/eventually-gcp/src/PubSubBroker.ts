@@ -1,11 +1,10 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
 import {
   Broker,
-  eventHandlerPath,
   CommittedEvent,
   log,
   Payload,
-  EventHandlerFactory
+  Topic
 } from "@rotorsoft/eventually";
 import { config } from "./config";
 
@@ -21,10 +20,9 @@ type Message = {
 const pubsub = new PubSub(
   config.gcp.project ? { projectId: config.gcp.project } : {}
 );
-const orderingKey = "id";
 const topics: { [name: string]: GcpTopic } = {};
 
-const topic = async (name: string): Promise<GcpTopic> => {
+const getTopic = async (name: string): Promise<GcpTopic> => {
   let topic = topics[name];
   if (!topic) {
     topic = new GcpTopic(pubsub, name);
@@ -38,37 +36,36 @@ const topic = async (name: string): Promise<GcpTopic> => {
 export const PubSubBroker = (): Broker => {
   return {
     subscribe: async (
-      handler: EventHandlerFactory<Payload, unknown, unknown>,
-      name: string
+      name: string,
+      url: string,
+      topic: Topic
     ): Promise<void> => {
-      const url = `${config.host}${eventHandlerPath(handler, name)}`;
-      const sub = (await topic(name)).subscription(
-        handler.name.concat(".", name)
-      );
+      const sub = (await getTopic(topic.name)).subscription(name);
       const [exists] = await sub.exists();
       if (!exists)
         await sub.create({
           pushEndpoint: url,
-          enableMessageOrdering: true
+          enableMessageOrdering: !!topic.orderingKey
         });
       else if (sub.metadata?.pushConfig?.pushEndpoint !== url)
         await sub.modifyPushConfig({ pushEndpoint: url });
     },
 
     publish: async (
-      event: CommittedEvent<string, Payload>
+      event: CommittedEvent<string, Payload>,
+      topic: Topic
     ): Promise<string> => {
       let t: GcpTopic;
       try {
-        t = await topic(event.name);
+        t = await getTopic(event.name);
         const [messageId] = await t.publishMessage({
           data: Buffer.from(JSON.stringify(event)),
-          orderingKey
+          orderingKey: topic.orderingKey
         });
         return `${messageId}@${event.name}`;
       } catch (error) {
         log().error(error);
-        t && t.resumePublishing(orderingKey);
+        t && t.resumePublishing(topic.orderingKey);
         return error.message;
       }
     },

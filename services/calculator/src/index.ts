@@ -22,6 +22,7 @@ expressApp
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
+  .withTopic<Events>({ name: "mytopic" }, "DigitPressed", "DotPressed")
   .withPrivate<Commands>("Whatever")
   .withPrivate<Events>("OperatorPressed", "Ignored1", "Ignored3")
   .withCommandHandlers(Calculator)

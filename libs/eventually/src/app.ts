@@ -1,4 +1,5 @@
 import { Builder } from "./builder";
+import { config } from "./config";
 import { Broker, Store } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
@@ -16,7 +17,7 @@ import {
   Scopes,
   Snapshot
 } from "./types";
-import { bind, getReducible, getStreamable } from "./utils";
+import { bind, eventHandlerPath, getReducible, getStreamable } from "./utils";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
@@ -53,14 +54,15 @@ export abstract class AppBase extends Builder implements Reader {
         if (msg.options.scope === Scopes.private) {
           // private events are invoked synchronously (in-process)
           await Promise.all(
-            msg.subscriptions.map((f: EventHandlerFactory<Payload, C, E>) =>
-              this.event(f, e)
+            Object.values(msg.eventHandlerFactories).map(
+              (factory: EventHandlerFactory<Payload, C, E>) =>
+                this.event(factory, e)
             )
           );
           return `[${e.name}]`;
         } else {
           // public events are published by the broker
-          return broker().publish(e);
+          return broker().publish(e, this._getTopic(msg));
         }
       })
     );
@@ -129,20 +131,22 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Initializes application store and subscribes policy handlers to public events
+   * Initializes application store and subscribes event handler endpoints
    * Concrete implementations provide the listening framework
    */
   async listen(): Promise<void> {
     await store().init();
     await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
     await Promise.all(
-      Object.values(this.endpoints.events)
-        .filter(({ path }) => path)
-        .map(({ factory, name }) => {
+      Object.values(this.endpoints.eventHandlers).map(({ factory, topics }) => {
+        return Object.values(topics).map((topic) => {
+          const url = `${config().host}${eventHandlerPath(factory)}`;
+          const sub = `${topic.name}-${config().service}.${factory.name}`;
           return broker()
-            .subscribe(factory, name)
-            .then(() => this.log.info("red", `${factory.name} <<< ${name}`));
-        })
+            .subscribe(sub, url, topic)
+            .then(() => this.log.info("red", `${sub} >>> ${url}`));
+        });
+      })
     );
   }
 
@@ -236,7 +240,8 @@ export abstract class AppBase extends Builder implements Reader {
     await store().query(
       (e) => {
         event = e;
-        state = (reducible as any)["apply".concat(e.name)](state, e);
+        const apply = (reducible as any)["apply".concat(e.name)];
+        state = apply && apply(state, e);
         count++;
         callback && callback({ event, state });
       },

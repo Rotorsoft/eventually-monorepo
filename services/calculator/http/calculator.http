@@ -10,9 +10,9 @@ GET {{host}}/calculator/calc1/stream
 ###
 
 
-GET {{host}}/counter/CounterCalculatorcalc1
+GET {{host}}/counter/Counter-Calculator-calc1
 ###
-GET {{host}}/counter/CounterCalculatorcalc1/stream
+GET {{host}}/counter/Counter-Calculator-calc1/stream
 ###
 
 POST {{host}}/calculator/calc1/press-key
@@ -40,7 +40,7 @@ Content-Type: application/json
 
 GET {{host}}/calculator/calc1
 ###
-POST {{host}}/counter/digit-pressed
+POST {{host}}/counter
 Content-Type: application/json
 
 {

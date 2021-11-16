@@ -1,8 +1,19 @@
 import * as dotenv from "dotenv";
 import * as joi from "joi";
 import { singleton } from "./singleton";
+import * as fs from "fs";
 
 dotenv.config();
+
+type Package = {
+  name: string;
+  version: string;
+};
+
+const getPackage = (): Package => {
+  const pkg = fs.readFileSync("package.json");
+  return JSON.parse(pkg.toString()) as unknown as Package;
+};
 
 export enum Environments {
   development = "development",
@@ -22,6 +33,8 @@ export interface Config {
   host: string;
   port: number;
   logLevel: LogLevels;
+  service: string;
+  version: string;
 }
 
 export const extend = <S extends Record<string, any>, T extends Config>(
@@ -37,12 +50,18 @@ export const extend = <S extends Record<string, any>, T extends Config>(
 const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
 export const config = singleton(function config() {
+  const pkg = getPackage();
+  const parts = pkg.name.split("/");
+  const service = parts[parts.length - 1];
+
   return extend(
     {
       env: (NODE_ENV as Environments) || Environments.development,
       host: HOST || "http://localhost",
       port: Number.parseInt(PORT || "3000"),
-      logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error
+      logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error,
+      service,
+      version: pkg.version
     },
     joi.object<Config>({
       env: joi
@@ -54,7 +73,9 @@ export const config = singleton(function config() {
       logLevel: joi
         .string()
         .required()
-        .valid(...Object.keys(LogLevels))
+        .valid(...Object.keys(LogLevels)),
+      service: joi.string().required(),
+      version: joi.string().required()
     })
   );
 });

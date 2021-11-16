@@ -10,8 +10,9 @@ export const InMemoryBroker = (): Broker => {
       event: CommittedEvent<keyof E & string, Payload>
     ): Promise<string> => {
       const msg = app().messages[event.name];
-      msg.subscriptions.map((f: EventHandlerFactory<Payload, C, E>) =>
-        setTimeout(() => app().event(f, event), 10)
+      Object.values(msg.eventHandlerFactories).map(
+        (factory: EventHandlerFactory<Payload, C, E>) =>
+          setTimeout(() => app().event(factory, event), 10)
       );
       return Promise.resolve(event.name);
     },

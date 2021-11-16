@@ -30,6 +30,7 @@ app()
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
+  .withTopic<Events>({ name: "mytopic" }, "DigitPressed", "DotPressed")
   .withPrivate<Commands>("Whatever", "Reset")
   .withPrivate<Events>(
     "OperatorPressed",

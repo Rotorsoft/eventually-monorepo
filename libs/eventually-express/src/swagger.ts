@@ -4,6 +4,7 @@ import {
   eventsOf,
   getReducible,
   MessageHandlerFactory,
+  messagesOf,
   Payload,
   reduciblePath,
   StoreStat
@@ -12,19 +13,9 @@ import * as fs from "fs";
 import * as joi from "joi";
 import j2s, { ComponentsSchema } from "joi-to-swagger";
 
-type Package = {
-  name: string;
-  version: string;
-};
-
 type Security = {
   schemes: Record<string, any>;
   operations: Record<string, Array<any>>;
-};
-
-const getPackage = (): Package => {
-  const pkg = fs.readFileSync("package.json");
-  return JSON.parse(pkg.toString()) as unknown as Package;
 };
 
 const getSecurity = (): Security => {
@@ -190,18 +181,22 @@ export const swagger = (app: Builder): any => {
       };
     });
 
-    Object.values(app.endpoints.events).map(({ factory, name, path }) => {
+    Object.values(app.endpoints.eventHandlers).map(({ factory, path }) => {
       getReducibleComponent(factory);
       getReducibleGetters(paths, factory);
       paths[path] = {
         post: {
-          operationId: name,
+          operationId: factory.name,
           tags: [factory.name],
           requestBody: {
             required: true,
             content: {
               "application/json": {
-                schema: { $ref: `#/components/schemas/${name}` }
+                schema: {
+                  oneOf: messagesOf(factory(undefined)).map((name) => ({
+                    $ref: `#/components/schemas/${name}`
+                  }))
+                }
               }
             }
           },
@@ -247,13 +242,12 @@ export const swagger = (app: Builder): any => {
             },
             default: { description: "Internal Server Error" }
           },
-          security: sec.operations[name] || [{}]
+          security: sec.operations[factory.name] || [{}]
         }
       };
     });
   };
 
-  const { name, version } = getPackage();
   const sec = getSecurity();
   const components: ComponentsSchema = {
     parameters: {
@@ -404,8 +398,8 @@ export const swagger = (app: Builder): any => {
   return {
     openapi: "3.0.3",
     info: {
-      title: name,
-      version: version
+      title: config().service,
+      version: config().version
     },
     servers: [{ url: `${config().host}` }],
     components,

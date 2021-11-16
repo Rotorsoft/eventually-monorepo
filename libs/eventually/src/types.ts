@@ -17,13 +17,23 @@ export enum Scopes {
 }
 
 /**
+ * Topics to pub/sub public messages
+ */
+export type Topic = {
+  name: string;
+  orderingKey?: string;
+};
+
+/**
  * Message options
  * - `scope` public or private
  * - `schema?` Optional validation schema
+ * - `topic?` Optional pub/sub topic options
  */
 export type Options<Type extends Payload> = {
   scope: Scopes;
   schema?: joi.ObjectSchema<Type>;
+  topic?: Topic;
 };
 
 /**

@@ -1,11 +1,11 @@
 import {
   AllQuery,
-  EventHandlerFactory,
   CommittedEvent,
   Message,
   Payload,
   Snapshot,
-  StoreStat
+  StoreStat,
+  Topic
 } from "./types";
 
 /**
@@ -13,21 +13,23 @@ import {
  */
 export interface Broker {
   /**
-   * Subscribes public event handler to topic
-   * @param handler event handler factory
-   * @param name the event name
+   * Subscribes url to topic
+   * @param name the subscription name
+   * @param url the url
+   * @param topic the topic
    */
-  subscribe(
-    handler: EventHandlerFactory<Payload, unknown, unknown>,
-    name: string
-  ): Promise<void>;
+  subscribe(name: string, url: string, topic: Topic): Promise<void>;
 
   /**
    * Publishes event to topic
    * @param event committed event
+   * @param topic the topic
    * @returns the message id
    */
-  publish: (event: CommittedEvent<string, Payload>) => Promise<string>;
+  publish: (
+    event: CommittedEvent<string, Payload>,
+    topic: Topic
+  ) => Promise<string>;
 
   /**
    * Decodes pushed messages
