@@ -57,7 +57,7 @@ export const PubSubBroker = (): Broker => {
     ): Promise<string> => {
       let t: GcpTopic;
       try {
-        t = await getTopic(event.name);
+        t = await getTopic(topic.name);
         const [messageId] = await t.publishMessage({
           data: Buffer.from(JSON.stringify(event)),
           orderingKey: topic.orderingKey
