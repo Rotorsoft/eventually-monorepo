@@ -88,6 +88,7 @@ Public messages are used for integrations with other micro-services by exposing 
 
 - Public schemas are usually bigger and more stable
 - Public events are published to the message broker with `at-least-once` delivery guarantees and are expected to be eventually consumed by either pub/sub or polling patterns
+- Event handlers handling public events are subscribed to a producer service topic by default
 
 Private messages are limited to the boundaries of the micro-service
 
@@ -100,17 +101,21 @@ command -> `{{ system1 -> [[ private-event1 -> policy1 -> private-command1 -> ag
 
 public-event1 -> `{{ policy2 -> private-command2 -> system2 -> [[ private-event2 ]] }}`
 
+> A micro-service can have any number of message handling layers, but we try to keep it under two when possible
+
+A producer service usually exposes a public command handling interface targetting aggregates or systems and produces events. A consumer service exposes a public event handling interface (subscribed to a producer) and targets policies or process managers. Any number of internal (synchronous) middle layers can be added following the same event->command->event sequence, but it's not recommended if we want to build a loosely coupled system.
+
 ## Routing conventions (using REST protocol by default)
 
 Public message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling:
 
-| Artifact        | Handler                                     | Getters                                                                |
-| --------------- | ------------------------------------------- | ---------------------------------------------------------------------- |
-| Aggregate       | `POST /aggregate-type/:stream/command-name` | `GET /aggregate-type/:stream`<br/>`GET /aggregate-type/:stream/stream` |
-| Process Manager | `POST /manager-type/event-name`             | `GET /manager-type/:stream`<br/>`GET /manager-type/:stream/stream`     |
-| External System | `POST /system-type/command-name`            | `GET /all?stream=system-type`                                          |
-| Policy          | `POST /policy-type/event-name`              | `N/A`                                                                  |
-| All Stream      | `N/A`                                       | `GET /all?[stream=stream-type]&[name=event-name]&[after=-1]&[limit=1]` |
+| Artifact        | Handler                         | Getters                                                                  |
+| --------------- | ------------------------------- | ------------------------------------------------------------------------ |
+| Aggregate       | `POST /aggregate/:id/command`   | `GET /aggregate/:id`<br/>`GET /aggregate/:id/stream`                     |
+| Process Manager | `POST /process-manager`         | `GET /process-manager/:stream`<br/>`GET /process-manager/:stream/stream` |
+| External System | `POST /external-system/command` | `GET /all?stream=external-system`                                        |
+| Policy          | `POST /policy`                  | `N/A`                                                                    |
+| All Stream      | `N/A`                           | `GET /all?[stream=stream]&[name=event]&[after=-1]&[limit=1]`             |
 
 ## Testing your code
 
