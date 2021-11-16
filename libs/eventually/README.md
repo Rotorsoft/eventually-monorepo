@@ -95,13 +95,11 @@ Private messages are limited to the boundaries of the micro-service
 - Private messages get delivered synchronously (in-process) inside a single transaction context
 - Private schemas are usually smaller and can change more frequently
 
-The sequence below shows two `{{ applications }}` exchanging a public event triggered by an internal private flow within a `[[ transaction ]]` context:
+The diagram below shows a few patterns we can use to build services
 
-command -> `{{ system1 -> [[ private-event1 -> policy1 -> private-command1 -> aggregate1 -> public-event1 ]] }}` ->
+![Service Patterns](./assets/patterns.jpg)
 
-public-event1 -> `{{ policy2 -> private-command2 -> system2 -> [[ private-event2 ]] }}`
-
-> A micro-service can have any number of message handling layers, but we try to keep it under two when possible
+> A micro-service can have any number of message handling layers, but we try to keep it around two when possible
 
 A producer service usually exposes a public command handling interface targetting aggregates or systems and produces events. A consumer service exposes a public event handling interface (subscribed to a producer) and targets policies or process managers. Any number of internal (synchronous) middle layers can be added following the same event->command->event sequence, but it's not recommended if we want to build a loosely coupled system.
 
