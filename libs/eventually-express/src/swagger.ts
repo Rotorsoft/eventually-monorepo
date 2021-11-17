@@ -6,6 +6,7 @@ import {
   MessageHandlerFactory,
   messagesOf,
   Payload,
+  Reducible,
   reduciblePath,
   StoreStat
 } from "@rotorsoft/eventually";
@@ -108,10 +109,10 @@ export const swagger = (app: Builder): any => {
 
   const getReducibleComponent = (
     handler: MessageHandlerFactory<Payload, unknown, unknown>
-  ): void => {
+  ): Reducible<Payload, unknown> => {
     const reducible = getReducible(handler(null));
     if (!reducible) return;
-    if (components.schemas[handler.name]) return;
+    if (components.schemas[handler.name]) return reducible;
     const { swagger } = j2s(reducible.schema(), components);
     components.schemas[handler.name] = swagger;
     components.schemas[handler.name.concat("Snapshot")] = {
@@ -125,14 +126,15 @@ export const swagger = (app: Builder): any => {
         state: { $ref: `#/components/schemas/${handler.name}` }
       }
     };
+    return reducible;
   };
 
   const getPaths = (): void => {
     Object.values(app.endpoints.commands).map(({ factory, name, path }) => {
-      getReducibleComponent(factory);
+      const reducible = getReducibleComponent(factory);
       getReducibleGetters(paths, factory);
       paths[path.replace("/:id/", "/{id}/")] = {
-        parameters: [{ $ref: "#/components/parameters/id" }],
+        parameters: reducible ? [{ $ref: "#/components/parameters/id" }] : [],
         post: {
           operationId: name,
           tags: [factory.name],
@@ -151,9 +153,11 @@ export const swagger = (app: Builder): any => {
                 "application/json": {
                   schema: {
                     type: "array",
-                    items: {
-                      $ref: `#/components/schemas/${factory.name}Snapshot`
-                    }
+                    items: reducible
+                      ? {
+                          $ref: `#/components/schemas/${factory.name}Snapshot`
+                        }
+                      : {}
                   }
                 }
               }
