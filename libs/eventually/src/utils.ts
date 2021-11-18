@@ -53,12 +53,11 @@ export const decamelize = (value: string): string =>
 export const eventsOf = <M extends Payload, E>(
   reducible: Reducible<M, E>
 ): string[] => {
-  // eslint-disable-next-line
-  return Object.values<Function>(reducible)
-    .filter((value) => {
-      return typeof value === "function" && value.name.startsWith("apply");
+  return Object.entries(reducible)
+    .filter(([key, value]) => {
+      return typeof value === "function" && key.startsWith("apply");
     })
-    .map((value) => value.name.substr(5));
+    .map(([key]) => key.substr(5));
 };
 
 /**
@@ -69,12 +68,11 @@ export const eventsOf = <M extends Payload, E>(
 export const messagesOf = <M extends Payload, C, E>(
   handler: CommandHandler<M, C, E> | EventHandler<M, C, E>
 ): string[] => {
-  // eslint-disable-next-line
-  return Object.values<Function>(handler)
-    .filter((value) => {
-      return typeof value === "function" && value.name.startsWith("on");
+  return Object.entries(handler)
+    .filter(([key, value]) => {
+      return typeof value === "function" && key.startsWith("on");
     })
-    .map((value) => value.name.substr(2));
+    .map(([key]) => key.substr(2));
 };
 
 /**
