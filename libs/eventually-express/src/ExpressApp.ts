@@ -33,6 +33,10 @@ export class ExpressApp extends AppBase {
   private _server: Server;
   private _swagger: any;
 
+  public getSwagger(): any {
+    return this._swagger;
+  }
+
   private _buildStatsRoute(): void {
     this._router.get(
       "/stats",
@@ -225,30 +229,17 @@ export class ExpressApp extends AppBase {
 
   build(): express.Express {
     super.build();
-
     this._buildCommandHandlers();
     this._buildEventHandlers();
     this._buildAllStreamRoute();
     this._buildStatsRoute();
 
+    // TODO: use helmet?
     this._app.set("trust proxy", true);
     this._app.use(cors());
     this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json());
     this._app.use(this._router);
-    this._app.use(
-      // eslint-disable-next-line
-      (error: Error, req: Request, res: Response, next: NextFunction) => {
-        this.log.error(error);
-        // eslint-disable-next-line
-        const { message, stack, ...other } = error;
-        if (message === Errors.ValidationError)
-          res.status(400).send({ message, ...other });
-        else if (message === Errors.ConcurrencyError)
-          res.status(409).send({ message, ...other });
-        else res.status(500).send({ message });
-      }
-    );
 
     // swagger
     this._swagger = swagger(this);
@@ -269,6 +260,21 @@ export class ExpressApp extends AppBase {
    * @param silent flag to skip express listening when using cloud functions
    */
   async listen(silent = false): Promise<void> {
+    // ensure catch-all is last handler
+    this._app.use(
+      // eslint-disable-next-line
+      (error: Error, req: Request, res: Response, next: NextFunction) => {
+        this.log.error(error);
+        // eslint-disable-next-line
+        const { message, stack, ...other } = error;
+        if (message === Errors.ValidationError)
+          res.status(400).send({ message, ...other });
+        else if (message === Errors.ConcurrencyError)
+          res.status(409).send({ message, ...other });
+        else res.status(500).send({ message });
+      }
+    );
+
     await super.listen();
     if (silent) this.log.info("white", "Config", undefined, config());
     else
