@@ -349,7 +349,7 @@ describe("in memory app", () => {
         IgnoredHandler,
         event("Ignored2", "ignored")
       );
-      expect(r1.response).toBeUndefined();
+      expect(r1.command).toBeUndefined();
       expect(r2.state).toBeUndefined();
     });
 

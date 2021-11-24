@@ -216,7 +216,7 @@ export abstract class AppBase extends Builder implements Reader {
     factory: EventHandlerFactory<M, C, E>,
     event: CommittedEvent<keyof E & string, Payload>
   ): Promise<{
-    response: Command<keyof C & string, Payload> | undefined;
+    command: Command<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
     this.log.trace(
@@ -226,14 +226,14 @@ export abstract class AppBase extends Builder implements Reader {
     );
     this._validate(event);
     const handler = factory(event);
-    let response: Command<keyof C & string, Payload> | undefined;
+    let command: Command<keyof C & string, Payload> | undefined;
     const [{ state }] = await this._handle(handler, async (state: M) => {
-      response = await (handler as any)["on".concat(event.name)](event, state);
+      command = await (handler as any)["on".concat(event.name)](event, state);
       // handle commands synchronously
-      response && (await this.command<M, C, E>(response));
+      command && (await this.command<M, C, E>(command));
       return [bind(event.name, event.data)];
     });
-    return { response, state };
+    return { command, state };
   }
 
   /**
