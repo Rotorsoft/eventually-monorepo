@@ -10,6 +10,6 @@ export * from "./types";
 export * from "./utils";
 export * from "./builder";
 
-export const app = singleton(function app(app?: AppBase) {
-  return app || new InMemoryApp();
+export const app = singleton(function app<T extends AppBase = InMemoryApp>(app?: T) : T {
+  return app || new InMemoryApp() as T;
 });
