@@ -52,7 +52,7 @@ export abstract class AppBase extends Builder implements Reader {
     const meta = this.messages[message.name];
     if (!meta)
       throw Error(
-        `Message "${message.name}" metadata not found. Please register this message with the application.`
+        `Message metadata not found. Please register "${message.name}" with the application builder.`
       );
 
     const schema = meta.options.schema;
