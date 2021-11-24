@@ -20,7 +20,7 @@ const _app = app(new ExpressApp())
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
-  .withCommandHandlers(Calculator) as ExpressApp;
+  .withCommandHandlers(Calculator);
 let server: Server;
 
 const logerror = jest.spyOn(_app.log, "error");

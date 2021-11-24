@@ -7,7 +7,7 @@ import * as schemas from "../calculator.schemas";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
 
-app(new ExpressApp())
+const exapp = app(new ExpressApp())
   .withSchemas<Pick<Commands, "PressKey">>({
     PressKey: schemas.PressKey
   })
@@ -24,8 +24,8 @@ jest.spyOn(store(), "stats").mockRejectedValue("Error");
 
 describe("express app", () => {
   beforeAll(async () => {
-    const express = (app() as ExpressApp).build();
-    await (app() as ExpressApp).listen(true);
+    const express = exapp.build();
+    await exapp.listen(true);
     server = express.listen(3001, () => {
       return;
     });
