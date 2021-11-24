@@ -49,7 +49,13 @@ export abstract class AppBase extends Builder implements Reader {
    * Validates message payloads
    */
   private _validate(message: Message<string, Payload>): void {
-    const schema = this.messages[message.name].options.schema;
+    const meta = this.messages[message.name];
+    if (!meta)
+      throw Error(
+        `Message "${message.name}" metadata not found. Please register this message with the application.`
+      );
+
+    const schema = meta.options.schema;
     if (schema) {
       const { error } = schema.validate(message.data, { abortEarly: false });
       if (error) throw new ValidationError(error);
