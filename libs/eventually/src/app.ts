@@ -17,7 +17,13 @@ import {
   Scopes,
   Snapshot
 } from "./types";
-import { bind, eventHandlerPath, getReducible, getStreamable } from "./utils";
+import {
+  bind,
+  eventHandlerPath,
+  getReducible,
+  getStreamable,
+  ValidationError
+} from "./utils";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
@@ -38,6 +44,17 @@ interface Reader {
  */
 export abstract class AppBase extends Builder implements Reader {
   public readonly log = log();
+
+  /**
+   * Validates message payloads
+   */
+  private _validate(message: Message<string, Payload>): void {
+    const schema = this.messages[message.name].options.schema;
+    if (schema) {
+      const { error } = schema.validate(message.data, { abortEarly: false });
+      if (error) throw new ValidationError(error);
+    }
+  }
 
   /**
    * Publishes committed events inside commit transaction to ensure "at-least-once" delivery
@@ -91,6 +108,7 @@ export abstract class AppBase extends Builder implements Reader {
       ? await this.load(reducible)
       : { state: undefined, count: 0 };
     const events = await callback(state);
+    events.map((event) => this._validate(event));
     if (streamable) {
       const committed = await store().commit(
         streamable.stream(),
@@ -177,6 +195,7 @@ export abstract class AppBase extends Builder implements Reader {
       }`,
       command.data
     );
+    this._validate(command);
     const handler = factory(command.id);
     return await this._handle(
       handler,
@@ -205,6 +224,7 @@ export abstract class AppBase extends Builder implements Reader {
       `\n>>> ${factory.name} ${event.name}`,
       event.data
     );
+    this._validate(event);
     const handler = factory(event);
     let response: Command<keyof C & string, Payload> | undefined;
     const [{ state }] = await this._handle(handler, async (state: M) => {

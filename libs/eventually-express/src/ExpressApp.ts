@@ -12,8 +12,7 @@ import {
   ProcessManagerFactory,
   ReducibleFactory,
   reduciblePath,
-  store,
-  ValidationError
+  store
 } from "@rotorsoft/eventually";
 import cors from "cors";
 import express, {
@@ -126,7 +125,6 @@ export class ExpressApp extends AppBase {
     Object.values(this.endpoints.commands).map(
       ({ type, factory, name, path }) => {
         type === "aggregate" && (aggregates[factory.name] = factory as any);
-        const schema = this.messages[name].options.schema;
         this._router.post(
           path,
           async (
@@ -135,12 +133,6 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
-              if (schema) {
-                const { error } = schema.validate(req.body, {
-                  abortEarly: false
-                });
-                if (error) throw new ValidationError(error);
-              }
               const snapshots = await this.command(
                 bind(
                   name,
@@ -194,13 +186,6 @@ export class ExpressApp extends AppBase {
               const message = broker().decode(req.body);
               const meta = this.messages[message.name];
               if (meta && meta.eventHandlerFactories[path]) {
-                const schema = meta.options.schema;
-                if (schema) {
-                  const { error } = schema.validate(message.data, {
-                    abortEarly: false
-                  });
-                  if (error) throw new ValidationError(error);
-                }
                 const response = await this.event(factory, message as any);
                 return res.status(200).send(response);
               }
