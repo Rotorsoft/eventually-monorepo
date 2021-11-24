@@ -20,7 +20,7 @@
   "scripts": {},
   "dependencies": {
     "@google-cloud/pubsub": "^2.17.0",
-    "@rotorsoft/eventually": "workspace:^3.2.3",
+    "@rotorsoft/eventually": "workspace:^3.2.4",
     "joi": "^17.4.2"
   },
   "devDependencies": {
