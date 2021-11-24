@@ -1,28 +1,36 @@
 import { app } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
-import { Commands } from "./accounts.commands";
-import { Events } from "./accounts.events";
+import * as commands from "./accounts.commands";
+import * as events from "./accounts.events";
 import * as policies from "./accounts.policies";
 import * as systems from "./accounts.systems";
 import * as schemas from "./accounts.schemas";
 
-
 app(new ExpressApp())
-  .withSchemas<Commands>({
+  .withSchemas<commands.Commands>({
     CreateAccount1: schemas.CreateAccount1,
     CreateAccount2: schemas.CreateAccount2,
     CreateAccount3: schemas.CreateAccount3,
     CompleteIntegration: schemas.CompleteIntegration
   })
-  .withSchemas<Events>({
+  .withSchemas<events.Events>({
     AccountCreated: schemas.AccountCreated,
     Account1Created: schemas.Account1Created,
     Account2Created: schemas.Account2Created,
     Account3Created: schemas.Account3Created,
     IntegrationCompleted: schemas.IntegrationCompleted
   })
-  .withPrivate<Commands>("CreateAccount1", "CreateAccount2", "CreateAccount3", "CompleteIntegration")
-  .withPrivate<Events>("Account1Created", "Account2Created", "Account3Created")
+  .withPrivate<commands.Commands>(
+    "CreateAccount1",
+    "CreateAccount2",
+    "CreateAccount3",
+    "CompleteIntegration"
+  )
+  .withPrivate<events.Events>(
+    "Account1Created",
+    "Account2Created",
+    "Account3Created"
+  )
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,

@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-gcp",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Eventually Framework GCP Services",
   "author": {
     "name": "rotorsoft",
@@ -20,7 +20,7 @@
   "scripts": {},
   "dependencies": {
     "@google-cloud/pubsub": "^2.17.0",
-    "@rotorsoft/eventually": "workspace:^3.2.1",
+    "@rotorsoft/eventually": "workspace:^3.2.2",
     "joi": "^17.4.2"
   },
   "devDependencies": {

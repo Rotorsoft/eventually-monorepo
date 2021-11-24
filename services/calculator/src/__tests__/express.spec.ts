@@ -19,7 +19,8 @@ import { StatelessCounter } from "../counter.policy";
 
 const chance = new Chance();
 
-app(new ExpressApp())
+const expressApp = new ExpressApp();
+app(expressApp)
   .withSchemas<Pick<Commands, "PressKey">>({
     PressKey: schemas.PressKey
   })
@@ -272,6 +273,11 @@ describe("express app", () => {
     it("should get store stats", async () => {
       const stats = await get("/stats");
       expect(stats.status).toBe(200);
+    });
+
+    it("should get swagger prop", async () => {
+      const swagger = expressApp.getSwagger();
+      expect(swagger).toBeDefined();
     });
   });
 });
