@@ -141,10 +141,11 @@ export class ExpressApp extends AppBase {
                   type === "aggregate" ? +req.headers["if-match"] : undefined
                 ) as any
               );
-              res.setHeader(
-                "ETag",
-                snapshots[snapshots.length - 1].event.version
-              );
+              snapshots.length &&
+                res.setHeader(
+                  "ETag",
+                  snapshots[snapshots.length - 1].event.version
+                );
               return res.status(200).send(snapshots);
             } catch (error) {
               next(error);

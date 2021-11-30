@@ -4,4 +4,5 @@ export type Commands = {
   PressKey: { key: Keys };
   Reset: undefined;
   Whatever: undefined;
+  Forget: undefined;
 };

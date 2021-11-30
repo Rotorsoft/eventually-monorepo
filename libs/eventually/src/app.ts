@@ -52,7 +52,7 @@ export abstract class AppBase extends Builder implements Reader {
     const meta = this.messages[message.name];
     if (!meta)
       throw Error(
-        `Message metadata not found. Please register "${message.name}" with the application builder.`
+        `Message metadata not found. Please register "${message.name}" with the application builder`
       );
 
     const schema = meta.options.schema;
@@ -192,8 +192,11 @@ export abstract class AppBase extends Builder implements Reader {
   async command<M extends Payload, C, E>(
     command: Command<keyof C & string, Payload>
   ): Promise<Snapshot<M>[]> {
-    const factory = this.messages[command.name]
-      .commandHandlerFactory as CommandHandlerFactory<M, C, E>;
+    const msg = this.messages[command.name];
+    if (!msg || !msg.commandHandlerFactory)
+      throw Error(`Invalid command "${command.name}"`);
+
+    const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace(
       "blue",
       `\n>>> ${factory.name} ${command.name} ${command.id ? command.id : ""} ${
