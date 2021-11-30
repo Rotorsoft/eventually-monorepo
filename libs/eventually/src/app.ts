@@ -1,4 +1,3 @@
-import { CommittedEventMetadata } from ".";
 import { Builder } from "./builder";
 import { config } from "./config";
 import { Broker, Store } from "./interfaces";
@@ -9,6 +8,7 @@ import {
   Command,
   CommandHandlerFactory,
   CommittedEvent,
+  CommittedEventMetadata,
   EventHandlerFactory,
   Getter,
   Message,
