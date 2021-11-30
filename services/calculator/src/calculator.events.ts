@@ -9,4 +9,5 @@ export type Events = {
   Ignored1: undefined;
   Ignored2: undefined;
   Ignored3: undefined;
+  Forgotten: undefined;
 };

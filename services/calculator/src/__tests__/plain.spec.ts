@@ -1,3 +1,4 @@
+process.env.NODE_ENV = "production";
 process.env.LOG_LEVEL = "trace";
 
 import { app, bind } from "@rotorsoft/eventually";
@@ -20,7 +21,7 @@ app()
   })
   .build();
 
-describe("trace in test mode", () => {
+describe("trace in prod mode", () => {
   beforeAll(async () => {
     await app().listen();
   });
@@ -30,7 +31,7 @@ describe("trace in test mode", () => {
   });
 
   describe("calculator", () => {
-    it("should compute correctly", async () => {
+    it("should trace in plain mode", async () => {
       const id = chance.guid();
 
       await app().command(bind("PressKey", { key: "1" }, id));

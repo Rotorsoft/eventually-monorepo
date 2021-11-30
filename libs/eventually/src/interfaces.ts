@@ -69,7 +69,7 @@ export interface Store {
    * @param events array of uncommitted events
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
    * @param callback optional callback to handle committed events before closing the transaction
-   * @param causation optional causation event
+   * @param causation optional causation path
    * @returns array of committed events
    */
   commit: (
@@ -77,7 +77,7 @@ export interface Store {
     events: Message<string, Payload>[],
     expectedVersion?: number,
     callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>,
-    causation?: CommittedEvent<string, Payload>
+    causation?: string
   ) => Promise<CommittedEvent<string, Payload>[]>;
 
   /**

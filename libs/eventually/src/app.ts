@@ -52,7 +52,7 @@ export abstract class AppBase extends Builder implements Reader {
     const meta = this.messages[message.name];
     if (!meta)
       throw Error(
-        `Message metadata not found. Please register "${message.name}" with the application builder.`
+        `Message metadata not found. Please register "${message.name}" with the application builder`
       );
 
     const schema = meta.options.schema;
@@ -107,7 +107,7 @@ export abstract class AppBase extends Builder implements Reader {
     publishCallback?: (
       events: CommittedEvent<keyof E & string, Payload>[]
     ) => Promise<void>,
-    causation?: CommittedEvent<string, Payload>
+    causation?: string
   ): Promise<Snapshot<M>[]> {
     const streamable = getStreamable(handler);
     const reducible = getReducible(handler);
@@ -189,22 +189,22 @@ export abstract class AppBase extends Builder implements Reader {
   /**
    * Handles command
    * @param command the command message
-   * @param causation the optional causation event
+   * @param causation the optional causation path
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
     command: Command<keyof C & string, Payload>,
-    causation?: CommittedEvent<string, Payload>
+    causation?: string
   ): Promise<Snapshot<M>[]> {
-    const factory = this.messages[command.name]
-      .commandHandlerFactory as CommandHandlerFactory<M, C, E>;
-    this.log.trace(
-      "blue",
-      `\n>>> ${factory.name} ${command.name} ${command.id ? command.id : ""} ${
-        command.expectedVersion ? `@${command.expectedVersion}` : ""
-      }`,
-      command.data
-    );
+    const msg = this.messages[command.name];
+    if (!msg || !msg.commandHandlerFactory)
+      throw Error(`Invalid command "${command.name}"`);
+
+    const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
+    const cause = `${command.name} ${command.id ? command.id : ""} ${
+      command.expectedVersion ? `@${command.expectedVersion}` : ""
+    }`;
+    this.log.trace("blue", `\n>>> ${factory.name} ${cause}`, command.data);
     this._validate(command);
     const handler = factory(command.id);
     return await this._handle(
@@ -213,7 +213,7 @@ export abstract class AppBase extends Builder implements Reader {
         (handler as any)["on".concat(command.name)](command.data, state),
       command.expectedVersion,
       this._publish.bind(this),
-      causation
+      `${causation ? `${causation} -> ` : ""}${cause}`
     );
   }
 
@@ -230,20 +230,23 @@ export abstract class AppBase extends Builder implements Reader {
     command: Command<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
-    this.log.trace(
-      "magenta",
-      `\n>>> ${factory.name} ${event.name}`,
-      event.data
-    );
+    const cause = `${event.stream} ${event.name} ${event.id}`;
+    this.log.trace("magenta", `\n>>> ${factory.name} ${cause}`, event.data);
     this._validate(event);
     const handler = factory(event);
     let command: Command<keyof C & string, Payload> | undefined;
-    const [{ state }] = await this._handle(handler, async (state: M) => {
-      command = await (handler as any)["on".concat(event.name)](event, state);
-      // handle commands synchronously
-      command && (await this.command<M, C, E>(command, event));
-      return [bind(event.name, event.data)];
-    });
+    const [{ state }] = await this._handle(
+      handler,
+      async (state: M) => {
+        command = await (handler as any)["on".concat(event.name)](event, state);
+        // handle commands synchronously
+        command && (await this.command<M, C, E>(command, cause));
+        return [bind(event.name, event.data)];
+      },
+      undefined,
+      undefined,
+      cause
+    );
     return { command, state };
   }
 
