@@ -1,8 +1,8 @@
-import { CommittedEventMetadata } from "..";
 import { Store } from "../interfaces";
 import {
   AllQuery,
   CommittedEvent,
+  CommittedEventMetadata,
   Message,
   Payload,
   StoreStat

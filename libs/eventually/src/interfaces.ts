@@ -1,7 +1,7 @@
-import { CommittedEventMetadata } from ".";
 import {
   AllQuery,
   CommittedEvent,
+  CommittedEventMetadata,
   Message,
   Payload,
   Snapshot,
