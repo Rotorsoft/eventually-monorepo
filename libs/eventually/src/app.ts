@@ -106,7 +106,8 @@ export abstract class AppBase extends Builder implements Reader {
     expectedVersion?: number,
     publishCallback?: (
       events: CommittedEvent<keyof E & string, Payload>[]
-    ) => Promise<void>
+    ) => Promise<void>,
+    causation?: CommittedEvent<string, Payload>
   ): Promise<Snapshot<M>[]> {
     const streamable = getStreamable(handler);
     const reducible = getReducible(handler);
@@ -120,7 +121,8 @@ export abstract class AppBase extends Builder implements Reader {
         streamable.stream(),
         events,
         expectedVersion,
-        publishCallback
+        publishCallback,
+        causation
       );
       if (reducible) {
         const snapshots = committed.map((event) => {
@@ -187,10 +189,12 @@ export abstract class AppBase extends Builder implements Reader {
   /**
    * Handles command
    * @param command the command message
+   * @param causation the optional causation event
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    command: Command<keyof C & string, Payload>
+    command: Command<keyof C & string, Payload>,
+    causation?: CommittedEvent<string, Payload>
   ): Promise<Snapshot<M>[]> {
     const factory = this.messages[command.name]
       .commandHandlerFactory as CommandHandlerFactory<M, C, E>;
@@ -208,7 +212,8 @@ export abstract class AppBase extends Builder implements Reader {
       (state: M) =>
         (handler as any)["on".concat(command.name)](command.data, state),
       command.expectedVersion,
-      this._publish.bind(this)
+      this._publish.bind(this),
+      causation
     );
   }
 
@@ -236,7 +241,7 @@ export abstract class AppBase extends Builder implements Reader {
     const [{ state }] = await this._handle(handler, async (state: M) => {
       command = await (handler as any)["on".concat(event.name)](event, state);
       // handle commands synchronously
-      command && (await this.command<M, C, E>(command));
+      command && (await this.command<M, C, E>(command, event));
       return [bind(event.name, event.data)];
     });
     return { command, state };

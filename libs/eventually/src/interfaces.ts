@@ -69,13 +69,15 @@ export interface Store {
    * @param events array of uncommitted events
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
    * @param callback optional callback to handle committed events before closing the transaction
+   * @param causation optional causation event
    * @returns array of committed events
    */
   commit: (
     stream: string,
     events: Message<string, Payload>[],
     expectedVersion?: number,
-    callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+    callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>,
+    causation?: CommittedEvent<string, Payload>
   ) => Promise<CommittedEvent<string, Payload>[]>;
 
   /**

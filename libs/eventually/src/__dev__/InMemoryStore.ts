@@ -42,7 +42,8 @@ export const InMemoryStore = (): Store => {
       stream: string,
       events: Message<string, Payload>[],
       expectedVersion?: number,
-      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>,
+      causation?: CommittedEvent<string, Payload>
     ): Promise<CommittedEvent<string, Payload>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
@@ -50,18 +51,21 @@ export const InMemoryStore = (): Store => {
 
       let version = aggregate.length;
       const committed = events.map(({ name, data }) => {
-        const committed = {
+        const committed: CommittedEvent<string, Payload> = {
           id: _events.length,
           stream,
           version,
           created: new Date(),
           name,
-          data
+          data,
+          causation: causation
+            ? `${causation.stream}:${causation.id}`
+            : undefined
         };
         _events.push(committed);
         version++;
         return committed;
-      }) as CommittedEvent<string, Payload>[];
+      });
 
       callback && (await callback(committed));
 

@@ -67,6 +67,7 @@ export type Command<Name extends string, Type extends Payload> = Message<
  * - `created` The date-time of creation
  * - `name` The unique name of the event
  * - `data?` The optional payload
+ * - `causation?` The optional causation event (stream:id)
  */
 export type CommittedEvent<Name extends string, Type extends Payload> = {
   readonly id: number;
@@ -75,6 +76,7 @@ export type CommittedEvent<Name extends string, Type extends Payload> = {
   readonly created: Date;
   readonly name: Name;
   readonly data?: Type;
+  readonly causation?: string;
 };
 
 /**
