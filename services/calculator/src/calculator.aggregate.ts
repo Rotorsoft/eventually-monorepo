@@ -34,8 +34,8 @@ export const Calculator = (
   id: string
 ): Aggregate<
   CalculatorModel,
-  Omit<Commands, "Whatever">,
-  Omit<Events, "Ignored1" | "Ignored2">
+  Omit<Commands, "Whatever" | "Forget">,
+  Omit<Events, "Ignored1" | "Ignored2" | "Forgotten">
 > => ({
   snapshot: {
     factory: PostgresSnapshotStore,

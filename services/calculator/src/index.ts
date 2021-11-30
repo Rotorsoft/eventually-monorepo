@@ -13,7 +13,7 @@ broker(
   config().host.startsWith("http://localhost") ? undefined : PubSubBroker()
 );
 
-const expressApp = app(new ExpressApp()) as ExpressApp;
+const expressApp = app(new ExpressApp());
 expressApp
   .withSchemas<Pick<Commands, "PressKey">>({
     PressKey: schemas.PressKey

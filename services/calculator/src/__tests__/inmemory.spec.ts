@@ -12,6 +12,7 @@ import {
 import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
+import { Forget } from "../forget.system";
 import * as schemas from "../calculator.schemas";
 import { Commands } from "../calculator.commands";
 import { Keys, CalculatorModel } from "../calculator.models";
@@ -21,7 +22,7 @@ import { Counter, IgnoredHandler } from "../counter.policy";
 const chance = new Chance();
 
 app()
-  .withCommandHandlers(Calculator)
+  .withCommandHandlers(Calculator, Forget)
   .withEventHandlers(Counter, IgnoredHandler)
   .withSchemas<Pick<Commands, "PressKey">>({
     PressKey: schemas.PressKey
@@ -356,6 +357,22 @@ describe("in memory app", () => {
     it("should get store stats", async () => {
       const stats = await store().stats();
       expect(stats).toBeDefined();
+    });
+
+    it("should throw invalid command error", async () => {
+      await expect(app().command(bind("Forget2"))).rejects.toThrow(
+        'Invalid command "Forget2"'
+      );
+    });
+
+    it("should throw message metadata not found error", async () => {
+      const id = chance.guid();
+      await app().command(bind("Whatever", undefined, id));
+      await expect(
+        app().command(bind("Forget", undefined, id))
+      ).rejects.toThrow(
+        'Message metadata not found. Please register "Forgotten" with the application builder'
+      );
     });
   });
 });

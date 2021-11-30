@@ -1,3 +1,4 @@
+import { CommittedEventMetadata } from "..";
 import { Store } from "../interfaces";
 import {
   AllQuery,
@@ -41,9 +42,9 @@ export const InMemoryStore = (): Store => {
     commit: async (
       stream: string,
       events: Message<string, Payload>[],
+      metadata: CommittedEventMetadata,
       expectedVersion?: number,
-      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>,
-      causation?: CommittedEvent<string, Payload>
+      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
     ): Promise<CommittedEvent<string, Payload>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
@@ -58,9 +59,7 @@ export const InMemoryStore = (): Store => {
           created: new Date(),
           name,
           data,
-          causation: causation
-            ? `${causation.stream}:${causation.id}`
-            : undefined
+          metadata
         };
         _events.push(committed);
         version++;
