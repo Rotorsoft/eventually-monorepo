@@ -164,11 +164,14 @@ export abstract class AppBase extends Builder implements Reader {
     await Promise.all(
       Object.values(this.endpoints.eventHandlers).map(({ factory, topics }) => {
         return Object.values(topics).map((topic) => {
-          const url = `${config().host}${eventHandlerPath(factory)}`;
-          const sub = `${topic.name}-${config().service}.${factory.name}`;
-          return broker()
-            .subscribe(sub, url, topic)
-            .then(() => this.log.info("red", `${sub} >>> ${url}`));
+          if (topic.name !== config().service) {
+            // only subscribe to external topics
+            const url = `${config().host}${eventHandlerPath(factory)}`;
+            const sub = `${topic.name}-${config().service}.${factory.name}`;
+            return broker()
+              .subscribe(sub, url, topic)
+              .then(() => this.log.info("red", `${sub} >>> ${url}`));
+          }
         });
       })
     );
