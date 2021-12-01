@@ -8,6 +8,7 @@ import {
   Command,
   CommandHandlerFactory,
   CommittedEvent,
+  CommittedEventMetadata,
   EventHandlerFactory,
   Getter,
   Message,
@@ -103,6 +104,7 @@ export abstract class AppBase extends Builder implements Reader {
   private async _handle<M extends Payload, C, E>(
     handler: MessageHandler<M, C, E>,
     callback: (state: M) => Promise<Message<string, Payload>[]>,
+    metadata: CommittedEventMetadata,
     expectedVersion?: number,
     publishCallback?: (
       events: CommittedEvent<keyof E & string, Payload>[]
@@ -119,6 +121,7 @@ export abstract class AppBase extends Builder implements Reader {
       const committed = await store().commit(
         streamable.stream(),
         events,
+        metadata,
         expectedVersion,
         publishCallback
       );
@@ -189,31 +192,36 @@ export abstract class AppBase extends Builder implements Reader {
 
   /**
    * Handles command
-   * @param command the command message
+   * @param command command message
+   * @param metadata optional metadata to track causation
    * @returns array of snapshots produced by this command
    */
   async command<M extends Payload, C, E>(
-    command: Command<keyof C & string, Payload>
+    command: Command<keyof C & string, Payload>,
+    metadata?: CommittedEventMetadata
   ): Promise<Snapshot<M>[]> {
-    const msg = this.messages[command.name];
+    const { name, id, expectedVersion, data } = command;
+    const msg = this.messages[name];
     if (!msg || !msg.commandHandlerFactory)
-      throw Error(`Invalid command "${command.name}"`);
+      throw Error(`Invalid command "${name}"`);
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace(
       "blue",
-      `\n>>> ${factory.name} ${command.name} ${command.id ? command.id : ""} ${
-        command.expectedVersion ? `@${command.expectedVersion}` : ""
-      }`,
-      command.data
+      `\n>>> ${factory.name} ${name} ${id || ""} 
+    ${expectedVersion ? `@${expectedVersion}` : ""}`,
+      data
     );
+
     this._validate(command);
-    const handler = factory(command.id);
+    const handler = factory(id);
+    const meta: CommittedEventMetadata = metadata || { causation: {} };
+    meta.causation.command = { name, id, expectedVersion };
     return await this._handle(
       handler,
-      (state: M) =>
-        (handler as any)["on".concat(command.name)](command.data, state),
-      command.expectedVersion,
+      (state: M) => (handler as any)["on".concat(name)](data, state),
+      meta,
+      expectedVersion,
       this._publish.bind(this)
     );
   }
@@ -231,20 +239,29 @@ export abstract class AppBase extends Builder implements Reader {
     command: Command<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
+    const { name, stream, id, data } = event;
     this.log.trace(
       "magenta",
-      `\n>>> ${factory.name} ${event.name}`,
-      event.data
+      `\n>>> ${factory.name} ${stream} ${name} ${id}`,
+      data
     );
+
     this._validate(event);
     const handler = factory(event);
+    const meta: CommittedEventMetadata = {
+      causation: { event: { name, stream, id } }
+    };
     let command: Command<keyof C & string, Payload> | undefined;
-    const [{ state }] = await this._handle(handler, async (state: M) => {
-      command = await (handler as any)["on".concat(event.name)](event, state);
-      // handle commands synchronously
-      command && (await this.command<M, C, E>(command));
-      return [bind(event.name, event.data)];
-    });
+    const [{ state }] = await this._handle(
+      handler,
+      async (state: M) => {
+        command = await (handler as any)["on".concat(event.name)](event, state);
+        // handle commands synchronously
+        command && (await this.command<M, C, E>(command, meta));
+        return [bind(event.name, event.data)];
+      },
+      meta
+    );
     return { command, state };
   }
 

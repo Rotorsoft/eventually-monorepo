@@ -1,6 +1,7 @@
 import {
   AllQuery,
   CommittedEvent,
+  CommittedEventMetadata,
   ConcurrencyError,
   log,
   Message,
@@ -19,9 +20,12 @@ CREATE TABLE IF NOT EXISTS public.${table}
     data json,
     stream character varying(100) COLLATE pg_catalog."default" NOT NULL,
     version int NOT NULL,
-    created timestamp without time zone DEFAULT now()
+    created timestamp without time zone DEFAULT now(),
+    metadata json
 ) TABLESPACE pg_default;
-ALTER TABLE public.${table} OWNER to postgres;
+
+ALTER TABLE public.${table}
+ADD COLUMN IF NOT EXISTS metadata json;
 
 CREATE UNIQUE INDEX IF NOT EXISTS stream_ix
     ON public.${table} USING btree
@@ -40,6 +44,7 @@ type Event = {
   stream: string;
   version: number;
   created: Date;
+  metadata: any;
 };
 
 export const PostgresStore = (table: string): Store => {
@@ -90,6 +95,7 @@ export const PostgresStore = (table: string): Store => {
     commit: async (
       stream: string,
       events: Message<string, Payload>[],
+      metadata: CommittedEventMetadata,
       expectedVersion?: number,
       callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
     ): Promise<CommittedEvent<string, Payload>[]> => {
@@ -109,9 +115,9 @@ export const PostgresStore = (table: string): Store => {
           events.map(async ({ name, data }) => {
             version++;
             const committed = await client.query<Event>(
-              `INSERT INTO ${table}(name, data, stream, version)
-          VALUES($1, $2, $3, $4) RETURNING *`,
-              [name, data, stream, version]
+              `INSERT INTO ${table}(name, data, stream, version, metadata)
+          VALUES($1, $2, $3, $4, $5) RETURNING *`,
+              [name, data, stream, version, metadata]
             );
             return committed.rows[0] as CommittedEvent<string, Payload>;
           })

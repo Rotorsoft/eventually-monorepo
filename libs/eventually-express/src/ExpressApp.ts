@@ -133,12 +133,13 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
+              const ifMatch = req.headers["if-match"] || undefined;
               const snapshots = await this.command(
                 bind(
                   name,
                   req.body,
                   req.params.id,
-                  type === "aggregate" ? +req.headers["if-match"] : undefined
+                  type === "aggregate" && ifMatch ? +ifMatch : undefined
                 ) as any
               );
               snapshots.length &&

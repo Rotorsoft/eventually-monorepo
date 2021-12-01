@@ -48,8 +48,8 @@ describe("Mocked", () => {
         return;
       }
     }));
-    await expect(db2.commit("stream", [bind("test", {})])).rejects.toThrowError(
-      Errors.ConcurrencyError
-    );
+    await expect(
+      db2.commit("stream", [bind("test", {})], { causation: {} })
+    ).rejects.toThrowError(Errors.ConcurrencyError);
   });
 });

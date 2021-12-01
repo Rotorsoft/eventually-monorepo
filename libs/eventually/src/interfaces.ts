@@ -1,6 +1,7 @@
 import {
   AllQuery,
   CommittedEvent,
+  CommittedEventMetadata,
   Message,
   Payload,
   Snapshot,
@@ -67,6 +68,7 @@ export interface Store {
    * Commits message into stream of aggregate id
    * @param stream stream name
    * @param events array of uncommitted events
+   * @param metadata metadata
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
    * @param callback optional callback to handle committed events before closing the transaction
    * @returns array of committed events
@@ -74,6 +76,7 @@ export interface Store {
   commit: (
     stream: string,
     events: Message<string, Payload>[],
+    metadata: CommittedEventMetadata,
     expectedVersion?: number,
     callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
   ) => Promise<CommittedEvent<string, Payload>[]>;

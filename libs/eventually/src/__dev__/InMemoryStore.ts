@@ -2,6 +2,7 @@ import { Store } from "../interfaces";
 import {
   AllQuery,
   CommittedEvent,
+  CommittedEventMetadata,
   Message,
   Payload,
   StoreStat
@@ -41,6 +42,7 @@ export const InMemoryStore = (): Store => {
     commit: async (
       stream: string,
       events: Message<string, Payload>[],
+      metadata: CommittedEventMetadata,
       expectedVersion?: number,
       callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
     ): Promise<CommittedEvent<string, Payload>[]> => {
@@ -50,18 +52,19 @@ export const InMemoryStore = (): Store => {
 
       let version = aggregate.length;
       const committed = events.map(({ name, data }) => {
-        const committed = {
+        const committed: CommittedEvent<string, Payload> = {
           id: _events.length,
           stream,
           version,
           created: new Date(),
           name,
-          data
+          data,
+          metadata
         };
         _events.push(committed);
         version++;
         return committed;
-      }) as CommittedEvent<string, Payload>[];
+      });
 
       callback && (await callback(committed));
 

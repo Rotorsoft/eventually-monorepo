@@ -60,13 +60,32 @@ export type Command<Name extends string, Type extends Payload> = Message<
 };
 
 /**
+ * Committed event metadata
+ */
+export type CommittedEventMetadata = {
+  causation: {
+    command?: {
+      name: string;
+      id?: string;
+      expectedVersion?: number;
+    };
+    event?: {
+      name: string;
+      stream: string;
+      id: number;
+    };
+  };
+};
+
+/**
  * Committed events have:
- * - `id` The index of the event in the "all" stream
- * - `stream` The unique name of the reducible stream
- * - `version` The unique sequence number within the stream
- * - `created` The date-time of creation
- * - `name` The unique name of the event
- * - `data?` The optional payload
+ * - `id` Event index in the "all" stream
+ * - `stream` Reducible stream name
+ * - `version` Unique sequence number within the stream
+ * - `created` Date-Time of creation
+ * - `name` Event name
+ * - `data?` Otional payload
+ * - `metadata?` Optional metadata
  */
 export type CommittedEvent<Name extends string, Type extends Payload> = {
   readonly id: number;
@@ -75,6 +94,7 @@ export type CommittedEvent<Name extends string, Type extends Payload> = {
   readonly created: Date;
   readonly name: Name;
   readonly data?: Type;
+  readonly metadata?: CommittedEventMetadata;
 };
 
 /**

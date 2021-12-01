@@ -26,11 +26,11 @@ describe("PostgresStore", () => {
   beforeAll(async () => {
     await db.init();
     await db.init();
-    await db.commit(a1, [event("test1", { value: "1" })]);
-    await db.commit(a1, [event("test1", { value: "2" })]);
-    await db.commit(a2, [event("test2", { value: "3" })]);
-    await db.commit(a3, [event("test1", { value: "4" })]);
-    await db.commit(a1, [event("test2", { value: "5" })]);
+    await db.commit(a1, [event("test1", { value: "1" })], { causation: {} });
+    await db.commit(a1, [event("test1", { value: "2" })], { causation: {} });
+    await db.commit(a2, [event("test2", { value: "3" })], { causation: {} });
+    await db.commit(a3, [event("test1", { value: "4" })], { causation: {} });
+    await db.commit(a1, [event("test2", { value: "5" })], { causation: {} });
     await db.commit(
       a1,
       [
@@ -38,6 +38,7 @@ describe("PostgresStore", () => {
         event("test3", { value: "2" }),
         event("test3", { value: "3" })
       ],
+      { causation: {} },
       undefined,
       () => Promise.resolve()
     );
@@ -78,9 +79,9 @@ describe("PostgresStore", () => {
   });
 
   it("should throw concurrency error", async () => {
-    await expect(db.commit(a1, [event("test2")], 1)).rejects.toThrowError(
-      "Concurrency Error"
-    );
+    await expect(
+      db.commit(a1, [event("test2")], { causation: {} }, 1)
+    ).rejects.toThrowError("Concurrency Error");
   });
 
   it("should read stream with after", async () => {
