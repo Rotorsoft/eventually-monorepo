@@ -255,10 +255,10 @@ export abstract class AppBase extends Builder implements Reader {
     const [{ state }] = await this._handle(
       handler,
       async (state: M) => {
-        command = await (handler as any)["on".concat(event.name)](event, state);
+        command = await (handler as any)["on".concat(name)](event, state);
         // handle commands synchronously
         command && (await this.command<M, C, E>(command, meta));
-        return [bind(event.name, event.data)];
+        return [bind(name, data)];
       },
       meta
     );

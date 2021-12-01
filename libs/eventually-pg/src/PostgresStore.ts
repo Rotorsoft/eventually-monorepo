@@ -131,6 +131,7 @@ export const PostgresStore = (table: string): Store => {
         });
         return committed;
       } catch (error) {
+        log().error(error);
         await client.query("ROLLBACK");
         throw error;
       } finally {
