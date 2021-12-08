@@ -64,6 +64,7 @@ export const swagger = (app: Builder): any => {
     paths[path] = {
       parameters: [{ $ref: "#/components/parameters/id" }],
       get: {
+        operationId: `get${handler.name}ById`,
         tags: [handler.name],
         summary: `Gets ${handler.name} by id`,
         responses: {
@@ -85,6 +86,7 @@ export const swagger = (app: Builder): any => {
     paths[path.concat("/stream")] = {
       parameters: [{ $ref: "#/components/parameters/id" }],
       get: {
+        operationId: `get${handler.name}StreamById`,
         tags: [handler.name],
         summary: `Gets ${handler.name} stream by id`,
         responses: {
@@ -331,6 +333,7 @@ export const swagger = (app: Builder): any => {
   const paths: Record<string, any> = {
     ["/stats"]: {
       get: {
+        operationId: "getStats",
         summary: "Gets store stats",
         responses: {
           "200": {
@@ -368,6 +371,7 @@ export const swagger = (app: Builder): any => {
         { $ref: "#/components/parameters/limit" }
       ],
       get: {
+        operationId: "getAll",
         summary: "Gets ALL stream",
         responses: {
           "200": {
