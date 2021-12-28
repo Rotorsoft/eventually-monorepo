@@ -146,14 +146,13 @@ export const PostgresStore = (table: string): Store => {
           MAX(id) as lastId, 
           MIN(created) as firstCreated, 
           MAX(created) as lastCreated, 
-          COUNT(*) as count,
-          COUNT(DISTINCT stream) streamCount
+          COUNT(*) as count
         FROM 
           ${table}
         GROUP BY 
           name
         ORDER BY 
-              2, 3 DESC`;
+          5 DESC`;
 
       return (await pool.query<StoreStat>(sql)).rows;
     }

@@ -346,7 +346,6 @@ export const swagger = (app: Builder): any => {
                     joi.object<StoreStat>({
                       name: joi.string().required(),
                       count: joi.number().integer().required(),
-                      streamCount: joi.number().integer(),
                       firstId: joi.number().integer(),
                       lastId: joi.number().integer(),
                       firstCreated: joi.date(),

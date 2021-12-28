@@ -240,7 +240,6 @@ export type EventHandler<M extends Payload, C, E> =
 export type StoreStat = {
   name: string;
   count: number;
-  streamCount?: number;
   firstId?: number;
   lastId?: number;
   firstCreated?: Date;

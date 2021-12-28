@@ -79,7 +79,6 @@ export const InMemoryStore = (): Store => {
           count: 0
         });
         stat.count++;
-        stat.streamCount++; // just an approximation for testing
         stat.firstId = stat.firstId || e.id;
         stat.lastId = e.id;
         stat.firstCreated = stat.firstCreated || e.created;
