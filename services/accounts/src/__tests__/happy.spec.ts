@@ -67,7 +67,7 @@ describe("happy path", () => {
 
     // when
     await app().event(policies.IntegrateAccount2, t);
-    await sleep(100);
+    await sleep(1000);
 
     // then
     const [seed] = (
@@ -90,11 +90,11 @@ describe("happy path", () => {
 
     // given
     await app().event(policies.IntegrateAccount2, t);
-    await sleep(100);
+    await sleep(1000);
 
     // when
     await app().event(policies.IntegrateAccount1, t);
-    await sleep(100);
+    await sleep(1000);
 
     // then
     const [seed] = (

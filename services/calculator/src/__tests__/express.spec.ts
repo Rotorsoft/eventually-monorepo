@@ -1,5 +1,9 @@
 import { app, bind, Snapshot } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
+import {
+  ExpressApp,
+  BearerMiddleware,
+  GcpGatewayMiddleware
+} from "@rotorsoft/eventually-express";
 import {
   command,
   event,
@@ -32,7 +36,7 @@ app(expressApp)
   .withPrivate<Events>("OperatorPressed")
   .withCommandHandlers(Calculator)
   .withEventHandlers(StatelessCounter)
-  .build();
+  .build([BearerMiddleware, GcpGatewayMiddleware]);
 
 const pressKey = (
   id: string,
@@ -88,12 +92,15 @@ describe("express app", () => {
       await pressKey(id, "3");
       await pressKey(id, "=");
 
-      const { state } = await load(Calculator, id);
+      const { state, event } = await load(Calculator, id);
       expect(state).toEqual({
         left: "-1",
         operator: "/",
         result: -1
       });
+      expect(event.metadata.causation.command.actor.name).toEqual(
+        "gcp-gateway-actor"
+      );
 
       const snapshots = await stream(Calculator, id);
       expect(snapshots.length).toBe(9);

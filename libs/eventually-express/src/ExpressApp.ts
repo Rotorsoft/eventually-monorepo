@@ -1,4 +1,5 @@
 import {
+  Actor,
   AggregateFactory,
   AllQuery,
   AppBase,
@@ -18,6 +19,7 @@ import cors from "cors";
 import express, {
   NextFunction,
   Request,
+  RequestHandler,
   Response,
   Router,
   urlencoded
@@ -37,17 +39,14 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildStatsRoute(): void {
-    this._router.get(
-      "/stats",
-      async (req: Request, res: Response, next: NextFunction) => {
-        try {
-          const stats = await store().stats();
-          return res.status(200).send(stats);
-        } catch (error) {
-          next(error);
-        }
+    this._router.get("/stats", async (_, res: Response, next: NextFunction) => {
+      try {
+        const stats = await store().stats();
+        return res.status(200).send(stats);
+      } catch (error) {
+        next(error);
       }
-    );
+    });
     this.log.info("green", "Stats", "GET /stats");
   }
 
@@ -128,7 +127,9 @@ export class ExpressApp extends AppBase {
         this._router.post(
           path,
           async (
-            req: Request<{ id: string }, any, Payload>,
+            req: Request<{ id: string }, any, Payload, never> & {
+              actor?: Actor;
+            },
             res: Response,
             next: NextFunction
           ) => {
@@ -139,8 +140,9 @@ export class ExpressApp extends AppBase {
                   name,
                   req.body,
                   req.params.id,
-                  type === "aggregate" && ifMatch ? +ifMatch : undefined
-                ) as any
+                  type === "aggregate" && ifMatch ? +ifMatch : undefined,
+                  req.actor
+                )
               );
               snapshots.length &&
                 res.setHeader(
@@ -214,7 +216,7 @@ export class ExpressApp extends AppBase {
     });
   }
 
-  build(): express.Express {
+  build(middleware?: RequestHandler[]): express.Express {
     super.build();
     this._buildCommandHandlers();
     this._buildEventHandlers();
@@ -226,6 +228,7 @@ export class ExpressApp extends AppBase {
     this._app.use(cors());
     this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json());
+    middleware && this._app.use(middleware);
     this._app.use(this._router);
 
     // swagger
@@ -250,7 +253,7 @@ export class ExpressApp extends AppBase {
     // ensure catch-all is last handler
     this._app.use(
       // eslint-disable-next-line
-      (error: Error, req: Request, res: Response, next: NextFunction) => {
+      (error: Error, _: Request, res: Response, __: NextFunction) => {
         this.log.error(error);
         // eslint-disable-next-line
         const { message, stack, ...other } = error;

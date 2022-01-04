@@ -1,4 +1,5 @@
 import {
+  Actor,
   app,
   bind,
   broker,
@@ -50,13 +51,14 @@ const pressKey = (
 const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
   app().command(bind("Reset", undefined, id));
 
-describe("in memory app", () => {
+describe("in memory", () => {
   beforeAll(async () => {
     jest.clearAllMocks();
     await app().listen();
   });
 
   afterAll(async () => {
+    app().log.trace("green", "Closing in memory app");
     await app().close();
   });
 
@@ -164,7 +166,7 @@ describe("in memory app", () => {
       await pressKey(id, ".");
       await pressKey(id, "2");
 
-      // WH, id)EN
+      // WHEN
       await pressKey(id, "=");
 
       // THEN
@@ -173,6 +175,21 @@ describe("in memory app", () => {
         left: "0.3",
         operator: "+",
         result: 0.3
+      });
+    });
+
+    it("should record metadata with actor", async () => {
+      const id = chance.guid();
+      const actor: Actor = { name: "the-actor", roles: [] };
+      const command = bind("PressKey", { key: "1" }, id, -1, actor);
+
+      // WHEN
+      await app().command(command);
+
+      // THEN
+      const snap = await app().load(Calculator(id));
+      expect(snap.event.metadata).toEqual({
+        causation: { command }
       });
     });
 

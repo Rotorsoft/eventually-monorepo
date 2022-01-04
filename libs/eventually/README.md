@@ -2,18 +2,19 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
-This project aims at exploring practical ideas around building reactive web services. Our goal is to provide a simple recipe grounded on well known methodologies, patterns, and tools.
+This project aims at exploring practical ideas around building reactive services. Our goal is to provide a simple recipe grounded on well known methodologies, patterns, and tools.
 
 ## Methodologies, Patterns, and Tools
 
 - [Domain Driven Design](https://martinfowler.com/bliki/DomainDrivenDesign.html) - DDD
+- [The Reactive Manifesto](https://www.reactivemanifesto.org/)
 - [Event Storming](https://www.eventstorming.com/)
 - [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
 - [Command Query Responsibility Segregation](https://martinfowler.com/bliki/CQRS.html) - CQRS
+- [Test Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) - TDD
 - [TypeScript Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
 - [Yarn 2 Zero Installs](https://yarnpkg.com/features/zero-installs)- [Yarn 2 Plug'n'Play](https://yarnpkg.com/features/pnp)
 - [Yarn 2 Workspaces](https://yarnpkg.com/features/workspaces) - Monorepo Structure
-- [Test Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) - TDD
 
 ## Logical Model
 

@@ -47,9 +47,20 @@ export type Message<Name extends string, Type extends Payload> = {
 };
 
 /**
+ * Actors invoke public commands
+ * - `name` Actor name
+ * - `roles` Actor roles
+ */
+export type Actor = {
+  name: string;
+  roles: string[];
+};
+
+/**
  * Commands are messages with optional target arguments
  * - `id?` Target aggregate id
  * - `expectedVersion?` Target aggregate expected version
+ * - `actor?` Actor invoking this command
  */
 export type Command<Name extends string, Type extends Payload> = Message<
   Name,
@@ -57,6 +68,7 @@ export type Command<Name extends string, Type extends Payload> = Message<
 > & {
   readonly id?: string;
   readonly expectedVersion?: number;
+  readonly actor?: Actor;
 };
 
 /**
@@ -64,11 +76,7 @@ export type Command<Name extends string, Type extends Payload> = Message<
  */
 export type CommittedEventMetadata = {
   causation: {
-    command?: {
-      name: string;
-      id?: string;
-      expectedVersion?: number;
-    };
+    command?: Command<string, Payload>;
     event?: {
       name: string;
       stream: string;
