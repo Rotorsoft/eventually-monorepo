@@ -1,22 +1,26 @@
 import { Actor } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
-export const BearerMiddleware = (
-  req: Request & { actor?: Actor },
-  _: Response,
-  next: NextFunction
-): void => {
-  // TODO: extract actor from bearer token
-  req.actor = { name: "bearer-actor", roles: [] };
-  next && next();
-};
+const USERINFO_HEADER = "X-Apigateway-Api-Userinfo";
+interface UserInfo {
+  sub: string;
+  claims: string[];
+}
 
 export const GcpGatewayMiddleware = (
   req: Request & { actor?: Actor },
   _: Response,
   next: NextFunction
 ): void => {
-  // TODO: extract actor from gcp headers
-  req.actor = { name: "gcp-gateway-actor", roles: [] };
-  next && next();
+  const encodedUserInfo = req.get(USERINFO_HEADER);
+  if (encodedUserInfo) {
+    const userInfo = JSON.parse(
+      Buffer.from(encodedUserInfo, "base64").toString("utf-8")
+    ) as UserInfo;
+    req.actor = {
+      name: userInfo.sub,
+      roles: userInfo.claims
+    };
+  }
+  next();
 };
