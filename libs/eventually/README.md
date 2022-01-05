@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
-This project aims at exploring practical ideas around building reactive services. Our goal is to provide a simple recipe grounded on well known methodologies, patterns, and tools.
+This project aims at exploring practical ideas around building reactive microservices. Our goal is to provide a simple recipe grounded on well known methodologies, patterns, and tools.
 
 ## Methodologies, Patterns, and Tools
 

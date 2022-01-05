@@ -41,7 +41,10 @@ const pressKey = (
   id: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel>[]> =>
-  command(Calculator, bind("PressKey", { key }, id));
+  command(Calculator, bind("PressKey", { key }, id), undefined, {
+    "X-Apigateway-Api-Userinfo":
+      "eyJzdWIiOiJhY3Rvci1uYW1lIiwicm9sZXMiOlsiYWRtaW4iXSwiZW1haWwiOiJhY3RvckBlbWFpbC5jb20ifQ=="
+  });
 
 const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
   command(Calculator, bind("Reset", undefined, id));
@@ -97,7 +100,10 @@ describe("express app", () => {
         operator: "/",
         result: -1
       });
-      expect(event.metadata.causation.command.actor).toBeUndefined();
+      expect(event.metadata.causation.command.actor).toEqual({
+        name: "actor-name",
+        roles: ["admin"]
+      });
 
       const snapshots = await stream(Calculator, id);
       expect(snapshots.length).toBe(9);

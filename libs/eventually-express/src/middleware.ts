@@ -2,9 +2,15 @@ import { Actor } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
 const USERINFO_HEADER = "X-Apigateway-Api-Userinfo";
+
+/**
+ * Sample UserInfo interface
+ * Other scenarios will require a custom middleware implementation
+ */
 interface UserInfo {
+  email: string;
   sub: string;
-  claims: string[];
+  roles: string[];
 }
 
 export const GcpGatewayMiddleware = (
@@ -19,7 +25,7 @@ export const GcpGatewayMiddleware = (
     ) as UserInfo;
     req.actor = {
       name: userInfo.sub,
-      roles: userInfo.claims
+      roles: userInfo.roles
     };
   }
   next();
