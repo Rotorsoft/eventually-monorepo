@@ -83,7 +83,7 @@ export abstract class AppBase extends Builder implements Reader {
                 this.event(factory, e)
             )
           );
-          return `[${e.name}]`;
+          return `*${e.name}`;
         } else {
           // public events are published by the broker
           return broker().publish(e, this._getTopic(msg));
@@ -94,38 +94,38 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Handles reducible storage
-   * @param handler the message handler
-   * @param callback the concrete message handling
-   * @param expectedVersion optional reducible expected version
-   * @param publishCallback optional callback to publish events with "at-least-once" delivery guarantees
-   * @returns the reduced snapshots
+   * Generic message handler
+   * @param handler Message handler
+   * @param callback Concrete message handling callback
+   * @param metadata Message metadata
+   * @param publishCallback Optional callback to publish events with "at-least-once" delivery guarantees
+   * @returns Reduced snapshots
    */
   private async _handle<M extends Payload, C, E>(
     handler: MessageHandler<M, C, E>,
     callback: (state: M) => Promise<Message<string, Payload>[]>,
     metadata: CommittedEventMetadata,
-    expectedVersion?: number,
     publishCallback?: (
       events: CommittedEvent<keyof E & string, Payload>[]
     ) => Promise<void>
   ): Promise<Snapshot<M>[]> {
     const streamable = getStreamable(handler);
     const reducible = getReducible(handler);
-    let { state, count } = reducible // eslint-disable-line prefer-const
+    const snapshot = reducible
       ? await this.load(reducible)
-      : { state: undefined, count: 0 };
-    const events = await callback(state);
+      : { event: undefined, count: 0 };
+    const events = await callback(snapshot.state);
     events.map((event) => this._validate(event));
     if (streamable) {
       const committed = await store().commit(
         streamable.stream(),
         events,
         metadata,
-        expectedVersion,
+        metadata.causation.command?.expectedVersion,
         publishCallback
       );
       if (reducible) {
+        let state = snapshot.state;
         const snapshots = committed.map((event) => {
           this.log.trace(
             "gray",
@@ -143,7 +143,7 @@ export abstract class AppBase extends Builder implements Reader {
           return { event, state };
         });
 
-        count > reducible.snapshot?.threshold &&
+        snapshot.count > reducible.snapshot?.threshold &&
           (await this.getSnapshotStore(reducible).upsert(
             streamable.stream(),
             snapshots[snapshots.length - 1]
@@ -200,28 +200,28 @@ export abstract class AppBase extends Builder implements Reader {
     command: Command<keyof C & string, Payload>,
     metadata?: CommittedEventMetadata
   ): Promise<Snapshot<M>[]> {
-    const { name, id, expectedVersion, data } = command;
+    const { actor, name, id, data } = command;
     const msg = this.messages[name];
     if (!msg || !msg.commandHandlerFactory)
       throw Error(`Invalid command "${name}"`);
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
-    this.log.trace(
-      "blue",
-      `\n>>> ${factory.name} ${name} ${id || ""} 
-    ${expectedVersion ? `@${expectedVersion}` : ""}`,
-      data
-    );
+    this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
 
     this._validate(command);
     const handler = factory(id);
-    const meta: CommittedEventMetadata = metadata || { causation: {} };
-    meta.causation.command = { name, id, expectedVersion };
     return await this._handle(
       handler,
-      (state: M) => (handler as any)["on".concat(name)](data, state),
-      meta,
-      expectedVersion,
+      (state: M) => (handler as any)["on".concat(name)](data, state, actor),
+      {
+        ...metadata,
+        ...{
+          causation: {
+            ...metadata?.causation,
+            ...{ command }
+          }
+        }
+      },
       this._publish.bind(this)
     );
   }
@@ -240,11 +240,7 @@ export abstract class AppBase extends Builder implements Reader {
     state?: M;
   }> {
     const { name, stream, id, data } = event;
-    this.log.trace(
-      "magenta",
-      `\n>>> ${factory.name} ${stream} ${name} ${id}`,
-      data
-    );
+    this.log.trace("magenta", `\n>>> ${factory.name}`, event);
 
     this._validate(event);
     const handler = factory(event);

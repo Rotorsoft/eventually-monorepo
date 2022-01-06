@@ -23,19 +23,18 @@ export const get = (path: string, port?: number): Promise<AxiosResponse<any>> =>
 export const command = async <M extends Payload, C, E>(
   handler: CommandHandlerFactory<M, C, E>,
   command: Command<keyof C & string, Payload>,
-  port?: number
+  port?: number,
+  headers: Record<string, string> = {}
 ): Promise<Snapshot<M>[]> => {
+  command.expectedVersion &&
+    (headers["If-Match"] = command.expectedVersion.toString());
   const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
     url(
       commandHandlerPath(handler, command.name).replace(":id", command.id),
       port
     ),
     command.data || {},
-    {
-      headers: command.expectedVersion
-        ? { "If-Match": command.expectedVersion.toString() }
-        : {}
-    }
+    { headers }
   );
   return data;
 };

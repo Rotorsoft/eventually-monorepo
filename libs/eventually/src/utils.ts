@@ -1,5 +1,6 @@
 import * as joi from "joi";
 import {
+  Actor,
   Command,
   CommandHandler,
   CommandHandlerFactory,
@@ -14,21 +15,26 @@ import {
 } from "./types";
 
 /**
- * Binds messages to options and payloads
- * @param options The message options
- * @param data The message payload
+ * Binds message arguments
+ * @param name Message name
+ * @param data Optional message payload
+ * @param id Optional aggregate id when binding commands
+ * @param expectedVersion Optional aggregate expected version when binding commands
+ * @param actor Optional actor when binding external commands
  * @returns The bound message
  */
 export const bind = <Name extends string, Type extends Payload>(
   name: Name,
   data?: Type,
   id?: string,
-  expectedVersion?: number
+  expectedVersion?: number,
+  actor?: Actor
 ): Message<Name, Type> | Command<Name, Type> => ({
   name,
   data,
   id,
-  expectedVersion
+  expectedVersion,
+  actor
 });
 
 /**
