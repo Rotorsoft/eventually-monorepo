@@ -73,8 +73,11 @@ export type Command<Name extends string, Type extends Payload> = Message<
 
 /**
  * Committed event metadata
+ * - `correlation` Id that correlates message flows across time and systems
+ * - `causation` The direct cause of the event
  */
 export type CommittedEventMetadata = {
+  correlation: string;
   causation: {
     command?: Command<string, Payload>;
     event?: {

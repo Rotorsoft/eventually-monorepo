@@ -188,9 +188,8 @@ describe("in memory", () => {
 
       // THEN
       const snap = await app().load(Calculator(id));
-      expect(snap.event.metadata).toEqual({
-        causation: { command }
-      });
+      expect(snap.event.metadata.correlation.length).toEqual(24);
+      expect(snap.event.metadata.causation).toEqual({ command });
     });
 
     it("should throw concurrency error", async () => {

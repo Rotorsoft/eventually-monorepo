@@ -26,11 +26,26 @@ describe("PostgresStore", () => {
   beforeAll(async () => {
     await db.init();
     await db.init();
-    await db.commit(a1, [event("test1", { value: "1" })], { causation: {} });
-    await db.commit(a1, [event("test1", { value: "2" })], { causation: {} });
-    await db.commit(a2, [event("test2", { value: "3" })], { causation: {} });
-    await db.commit(a3, [event("test1", { value: "4" })], { causation: {} });
-    await db.commit(a1, [event("test2", { value: "5" })], { causation: {} });
+    await db.commit(a1, [event("test1", { value: "1" })], {
+      correlation: "",
+      causation: {}
+    });
+    await db.commit(a1, [event("test1", { value: "2" })], {
+      correlation: "",
+      causation: {}
+    });
+    await db.commit(a2, [event("test2", { value: "3" })], {
+      correlation: "",
+      causation: {}
+    });
+    await db.commit(a3, [event("test1", { value: "4" })], {
+      correlation: "",
+      causation: {}
+    });
+    await db.commit(a1, [event("test2", { value: "5" })], {
+      correlation: "",
+      causation: {}
+    });
     await db.commit(
       a1,
       [
@@ -38,7 +53,7 @@ describe("PostgresStore", () => {
         event("test3", { value: "2" }),
         event("test3", { value: "3" })
       ],
-      { causation: {} },
+      { correlation: "", causation: {} },
       undefined,
       () => Promise.resolve()
     );
@@ -80,7 +95,7 @@ describe("PostgresStore", () => {
 
   it("should throw concurrency error", async () => {
     await expect(
-      db.commit(a1, [event("test2")], { causation: {} }, 1)
+      db.commit(a1, [event("test2")], { correlation: "", causation: {} }, 1)
     ).rejects.toThrowError("Concurrency Error");
   });
 

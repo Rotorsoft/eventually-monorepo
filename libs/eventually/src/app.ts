@@ -23,6 +23,7 @@ import {
   eventHandlerPath,
   getReducible,
   getStreamable,
+  randomId,
   ValidationError
 } from "./utils";
 import { InMemoryBroker, InMemoryStore } from "./__dev__";
@@ -50,13 +51,13 @@ export abstract class AppBase extends Builder implements Reader {
    * Validates message payloads
    */
   private _validate(message: Message<string, Payload>): void {
-    const meta = this.messages[message.name];
-    if (!meta)
+    const metadata = this.messages[message.name];
+    if (!metadata)
       throw Error(
         `Message metadata not found. Please register "${message.name}" with the application builder`
       );
 
-    const schema = meta.options.schema;
+    const schema = metadata.options.schema;
     if (schema) {
       const { error } = schema.validate(message.data, { abortEarly: false });
       if (error) throw new ValidationError(error);
@@ -207,19 +208,16 @@ export abstract class AppBase extends Builder implements Reader {
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
-
     this._validate(command);
     const handler = factory(id);
     return await this._handle(
       handler,
       (state: M) => (handler as any)["on".concat(name)](data, state, actor),
       {
-        ...metadata,
-        ...{
-          causation: {
-            ...metadata?.causation,
-            ...{ command }
-          }
+        correlation: metadata?.correlation || randomId(),
+        causation: {
+          ...metadata?.causation,
+          ...{ command }
         }
       },
       this._publish.bind(this)
@@ -239,12 +237,12 @@ export abstract class AppBase extends Builder implements Reader {
     command: Command<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
-    const { name, stream, id, data } = event;
     this.log.trace("magenta", `\n>>> ${factory.name}`, event);
-
     this._validate(event);
     const handler = factory(event);
-    const meta: CommittedEventMetadata = {
+    const { name, stream, id, data } = event;
+    const metadata: CommittedEventMetadata = {
+      correlation: event.metadata?.correlation || randomId(),
       causation: { event: { name, stream, id } }
     };
     let command: Command<keyof C & string, Payload> | undefined;
@@ -253,10 +251,10 @@ export abstract class AppBase extends Builder implements Reader {
       async (state: M) => {
         command = await (handler as any)["on".concat(name)](event, state);
         // handle commands synchronously
-        command && (await this.command<M, C, E>(command, meta));
+        command && (await this.command<M, C, E>(command, metadata));
         return [bind(name, data)];
       },
-      meta
+      metadata
     );
     return { command, state };
   }
