@@ -35,6 +35,7 @@ export interface Config {
   logLevel: LogLevels;
   service: string;
   version: string;
+  defaultTopic: string;
 }
 
 export const extend = <S extends Record<string, any>, T extends Config>(
@@ -51,8 +52,10 @@ const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
 export const config = singleton(function config() {
   const pkg = getPackage();
-  const parts = pkg.name.split("/");
-  const service = parts[parts.length - 1];
+  const nameParts = pkg.name.split("/");
+  const service = nameParts[nameParts.length - 1];
+  const versionParts = pkg.version.split(".");
+  const majorVersion = versionParts.length ? versionParts[0] : "0";
 
   return extend(
     {
@@ -61,7 +64,10 @@ export const config = singleton(function config() {
       port: Number.parseInt(PORT || "3000"),
       logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error,
       service,
-      version: pkg.version
+      version: pkg.version,
+      defaultTopic: service.concat(
+        ["0", "1"].includes(majorVersion) ? "" : "-v".concat(majorVersion)
+      )
     },
     joi.object<Config>({
       env: joi
@@ -75,7 +81,8 @@ export const config = singleton(function config() {
         .required()
         .valid(...Object.keys(LogLevels)),
       service: joi.string().required(),
-      version: joi.string().required()
+      version: joi.string().required(),
+      defaultTopic: joi.string().required()
     })
   );
 });

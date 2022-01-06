@@ -86,7 +86,7 @@ export class Builder {
   protected _getTopic(message: MessageMetadata): Topic {
     return (
       this.messages[message.name].options.topic || {
-        name: config().service,
+        name: config().defaultTopic,
         orderingKey: "id"
       }
     );
