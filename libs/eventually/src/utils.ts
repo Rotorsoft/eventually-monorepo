@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import * as joi from "joi";
 import {
   Actor,
@@ -50,6 +51,21 @@ export const decamelize = (value: string): string =>
       "$1-$2"
     )
     .toLowerCase();
+
+/**
+ * Generates a random id
+ * @returns random id
+ */
+const ALPHABET =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+const ID_SIZE = 24;
+const cryptoBuffer = Buffer.allocUnsafe(ID_SIZE * 128);
+export const randomId = (): string => {
+  crypto.randomFillSync(cryptoBuffer);
+  let id = "";
+  for (let i = 0; i < ID_SIZE; i++) id += ALPHABET[cryptoBuffer[i] & 63];
+  return id;
+};
 
 /**
  * Extracts events from reducible
