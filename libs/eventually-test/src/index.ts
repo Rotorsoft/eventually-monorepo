@@ -47,7 +47,7 @@ export const event = async <M extends Payload, C, E>(
   const { data } = await axios.post<
     Payload,
     AxiosResponse<Message<keyof C & string, Payload> | undefined>
-  >(url(eventHandlerPath(handler), port), event.data);
+  >(url(eventHandlerPath(handler), port), event);
   return data;
 };
 

@@ -1,4 +1,4 @@
-import { app, bind, Snapshot } from "@rotorsoft/eventually";
+import { app, bind, Message, Payload, Snapshot } from "@rotorsoft/eventually";
 import {
   ExpressApp,
   GcpGatewayMiddleware
@@ -191,7 +191,7 @@ describe("express app", () => {
       const snapshots = await pressKey(chance.guid(), "1");
       const response = await event(
         StatelessCounter,
-        bind("DigitPressed", snapshots[0].event)
+        snapshots[0].event as Message<"DigitPressed", Payload>
       );
       expect(response).toStrictEqual({});
     });
@@ -200,7 +200,7 @@ describe("express app", () => {
       const snapshots = await pressKey(chance.guid(), ".");
       const response = await event(
         StatelessCounter,
-        bind("DotPressed", snapshots[0].event)
+        snapshots[0].event as Message<"DotPressed", Payload>
       );
       expect(response).toStrictEqual({});
     });
@@ -222,7 +222,7 @@ describe("express app", () => {
 
     it("should return nothing but OK", async () => {
       const response = await event(StatelessCounter, {
-        data: { name: "IgnoreThis" }
+        name: "IgnoreThis"
       } as any);
       expect(response).toBe("Ignored IgnoreThis");
     });
