@@ -2,14 +2,14 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
-This project aims at exploring practical ideas around building reactive microservices. Our goal is to provide a simple recipe grounded on well known methodologies, patterns, and tools.
+This project aims at exploring practical ideas around building reactive microservices. Our goal is to provide simple recipes grounded on well known methodologies, patterns, and tools.
 
 ## Methodologies, Patterns, and Tools
 
 - [Domain Driven Design](https://martinfowler.com/bliki/DomainDrivenDesign.html) - DDD
 - [The Reactive Manifesto](https://www.reactivemanifesto.org/)
 - [Event Storming](https://www.eventstorming.com/)
-- [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
+- [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html) - ES
 - [Command Query Responsibility Segregation](https://martinfowler.com/bliki/CQRS.html) - CQRS
 - [Test Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) - TDD
 - [TypeScript Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
@@ -18,11 +18,11 @@ This project aims at exploring practical ideas around building reactive microser
 
 ## Logical Model
 
-Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear business models” as the drivers of implementations - [source code should be seen as a side effect](https://www.lambdabytes.io/posts/selearning/). The deeper we can track these models within the implementation the better.
+Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear business models” as the drivers of implementations - [source code should be seen as a side effect](https://www.lambdabytes.io/posts/selearning/). **The deeper we can track these models within the implementation the better**.
 
 > Tackle complexity early by understanding the domain
 
-Event Sourcing is a practical methodology used to model business processes. The nice thing about it is how easiliy models get tranferred to source code by 1-to-1 mappings of DDD artifacts to the common working patterns of any reactive system:
+[Event Storming](https://www.eventstorming.com/) is a business process modeling methodology that plays very nicely with the other tools we recommend here (DDD, ES, CQRS). We find it extremely easy to learn by both the technical and business communities, and the final models can usually get tranferred to source code by straightforward one-to-one mappings to DDD artifacts and the working patterns of reactive systems as shown below:
 
 ![Logical Model](./assets/flow.png)
 
@@ -30,9 +30,9 @@ Event Sourcing is a practical methodology used to model business processes. The 
 
 This project is trying to answer the following questions:
 
-- **Future Proof Single Source of Truth** - The “append-only” nature of event sourcing is an old and battle tested concept. The replayability aspect of it guarantees full auditability, integrability, and testability.
+- **Future Proof Single Source of Truth** - The “append-only” nature of event sourced systems is an old and battle tested concept. The replayability aspect of it guarantees full auditability, integrability, and testability.
 
-- **Transparent Model-To-Implementation Process** - Focus on transferring business models to code with minimal technical load. A “convention over configuration” philosophy removes tedious technical decision making from the process.
+- **Transparent Model-To-Implementation Process** - Focus on transferring business models to code with minimal technical load. A “convention over configuration” philosophy removes tedious decision making from the process.
 
 - **Ability to Swap Platform Services** - Abstractions before frameworks, protocols, or any other platform services.
 
