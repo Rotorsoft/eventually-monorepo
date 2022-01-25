@@ -7,6 +7,6 @@ GET {{host}}/all?after=10
 ###
 GET {{host}}/all?after=10&limit=3 
 ###
-GET {{host}}/all?name=DigitPressed&limit=2 
+GET {{host}}/all?names=DigitPressed&names=OperatorPressed&limit=10 
 ###
 GET {{host}}/all?name=OperatorPressed&after=2&limit=5 

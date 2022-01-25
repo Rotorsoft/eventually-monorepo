@@ -229,9 +229,9 @@ describe("express app", () => {
   });
 
   describe("all stream", () => {
-    beforeAll(async () => {
-      const id = chance.guid();
+    const id = chance.guid();
 
+    beforeAll(async () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
       await pressKey(id, "2");
@@ -246,10 +246,22 @@ describe("express app", () => {
     });
 
     it("should read stream by name", async () => {
-      const stream = await read({ name: "DigitPressed", limit: 3 });
+      const stream = await read({ names: ["DigitPressed"], limit: 3 });
       expect(stream[0].name).toBe("DigitPressed");
       expect(stream.length).toBeGreaterThanOrEqual(3);
       stream.map((evt) => expect(evt.name).toBe("DigitPressed"));
+    });
+
+    it("should read stream by names", async () => {
+      const stream = await read({
+        stream: `Calculator-${id}`,
+        names: ["DigitPressed", "DotPressed"],
+        limit: 8
+      });
+      expect(stream.length).toBe(4);
+      stream.map((evt) =>
+        expect(["DigitPressed", "DotPressed"]).toContain(evt.name)
+      );
     });
 
     it("should read stream with after", async () => {
@@ -269,7 +281,7 @@ describe("express app", () => {
     });
 
     it("should return an empty stream", async () => {
-      const stream = await read({ name: chance.guid() });
+      const stream = await read({ names: [chance.guid()] });
       expect(stream.length).toBe(0);
     });
   });

@@ -243,7 +243,7 @@ describe("in memory", () => {
 
       // WHEN
       await pressKey(id, "3");
-      await sleep(100);
+      await sleep(500);
 
       // THEN
       const { event, state } = await app().load(Calculator(id));
@@ -296,7 +296,7 @@ describe("in memory", () => {
     });
 
     it("should read stream by name", async () => {
-      const stream = await app().query({ name: "DigitPressed", limit: 3 });
+      const stream = await app().query({ names: ["DigitPressed"], limit: 3 });
       expect(stream[0].name).toBe("DigitPressed");
       expect(stream.length).toBeGreaterThanOrEqual(3);
       stream.map((evt) => expect(evt.name).toBe("DigitPressed"));
@@ -324,7 +324,7 @@ describe("in memory", () => {
     });
 
     it("should return an empty stream", async () => {
-      const stream = await app().query({ name: chance.guid() });
+      const stream = await app().query({ names: [chance.guid()] });
       expect(stream.length).toBe(0);
     });
   });

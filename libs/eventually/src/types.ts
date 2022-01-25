@@ -193,7 +193,7 @@ export type ProcessManagerFactory<M extends Payload, C, E> = (
  */
 export type AllQuery = {
   readonly stream?: string;
-  readonly name?: string;
+  readonly names?: string[];
   readonly after?: number;
   readonly limit?: number;
 };

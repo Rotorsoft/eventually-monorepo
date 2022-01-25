@@ -108,7 +108,7 @@ describe("PostgresStore", () => {
 
   it("should read stream by name", async () => {
     const events: CommittedEvent<string, Payload>[] = [];
-    await db.query((e) => events.push(e), { name: "test1", limit: 5 });
+    await db.query((e) => events.push(e), { names: ["test1"], limit: 5 });
     expect(events[0].name).toBe("test1");
     expect(events.length).toBeGreaterThanOrEqual(3);
     events.map((evt) => expect(evt.name).toBe("test1"));

@@ -59,10 +59,10 @@ export class ExpressApp extends AppBase {
         next: NextFunction
       ) => {
         try {
-          const { stream, name, after = -1, limit = 1 } = req.query;
+          const { stream, names, after = -1, limit = 1 } = req.query;
           const result = await this.query({
             stream,
-            name,
+            names: names && (Array.isArray(names) ? names : [names]),
             after: after && +after,
             limit: limit && +limit
           });

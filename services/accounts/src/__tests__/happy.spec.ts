@@ -71,7 +71,7 @@ describe("happy path", () => {
 
     // then
     const [seed] = (
-      await app().query({ name: "Account1Created", after: -1, limit: 100 })
+      await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
     const snapshots = await app().stream(
       policies.WaitForAllAndComplete(seed as any)
@@ -98,7 +98,7 @@ describe("happy path", () => {
 
     // then
     const [seed] = (
-      await app().query({ name: "Account1Created", after: -1, limit: 100 })
+      await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
     const snapshots = await app().stream(
       policies.WaitForAllAndComplete(seed as any)

@@ -69,7 +69,7 @@ export const PostgresStore = (table: string): Store => {
       callback: (event: CommittedEvent<string, Payload>) => void,
       query?: AllQuery
     ): Promise<void> => {
-      const { stream, name, after = -1, limit } = query;
+      const { stream, names, after = -1, limit } = query;
 
       const values: any[] = [after];
       let sql = `SELECT * FROM ${table} WHERE id>$1`;
@@ -77,9 +77,9 @@ export const PostgresStore = (table: string): Store => {
         values.push(stream);
         sql = sql.concat(` AND stream=$${values.length}`);
       }
-      if (name) {
-        values.push(name);
-        sql = sql.concat(` AND name=$${values.length}`);
+      if (names && names.length) {
+        values.push(names);
+        sql = sql.concat(` AND name = ANY($${values.length})`);
       }
       sql = sql.concat(" ORDER BY id");
       if (limit) {

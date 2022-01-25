@@ -270,11 +270,11 @@ export const swagger = (app: Builder): any => {
         description: "Filter by stream name",
         schema: { type: "string" }
       },
-      name: {
+      names: {
         in: "query",
-        name: "name",
-        description: "Filter by event name",
-        schema: { type: "string" }
+        name: "names",
+        description: "Filter by event names",
+        schema: { type: "array", items: { type: "string" } }
       },
       after: {
         in: "query",
@@ -365,7 +365,7 @@ export const swagger = (app: Builder): any => {
     ["/all"]: {
       parameters: [
         { $ref: "#/components/parameters/stream" },
-        { $ref: "#/components/parameters/name" },
+        { $ref: "#/components/parameters/names" },
         { $ref: "#/components/parameters/after" },
         { $ref: "#/components/parameters/limit" }
       ],
