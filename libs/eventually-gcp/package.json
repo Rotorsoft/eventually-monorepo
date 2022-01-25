@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-gcp",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "Eventually Framework GCP Services",
   "author": {
     "name": "rotorsoft",
