@@ -190,12 +190,22 @@ export type ProcessManagerFactory<M extends Payload, C, E> = (
 
 /**
  * Options to query the all stream
+ * - stream? filter by stream
+ * - names? filter by event names
+ * - before? filter events before this id
+ * - after? filter events after this id
+ * - limit? limit the number of events to return
+ * - created_before? filter events created before this date/time
+ * - created_after? filter events created after this date/time
  */
 export type AllQuery = {
   readonly stream?: string;
   readonly names?: string[];
+  readonly before?: number;
   readonly after?: number;
   readonly limit?: number;
+  readonly created_before?: Date;
+  readonly created_after?: Date;
 };
 
 /**

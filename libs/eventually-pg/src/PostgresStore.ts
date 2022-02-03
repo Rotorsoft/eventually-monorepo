@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.${table}
     data json,
     stream character varying(100) COLLATE pg_catalog."default" NOT NULL,
     version int NOT NULL,
-    created timestamp without time zone DEFAULT now(),
+    created timestamptz NOT NULL DEFAULT now(),
     metadata json
 ) TABLESPACE pg_default;
 
@@ -35,6 +35,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS stream_ix
 CREATE INDEX IF NOT EXISTS name_ix
     ON public.${table} USING btree
     (name COLLATE pg_catalog."default" ASC)
+    TABLESPACE pg_default;
+    
+CREATE INDEX IF NOT EXISTS created_id_ix
+    ON public.${table} USING btree
+    (created ASC, id ASC)
     TABLESPACE pg_default;`;
 
 type Event = {
@@ -69,7 +74,15 @@ export const PostgresStore = (table: string): Store => {
       callback: (event: CommittedEvent<string, Payload>) => void,
       query?: AllQuery
     ): Promise<void> => {
-      const { stream, names, after = -1, limit } = query;
+      const {
+        stream,
+        names,
+        before,
+        after = -1,
+        limit,
+        created_before,
+        created_after
+      } = query;
 
       const values: any[] = [after];
       let sql = `SELECT * FROM ${table} WHERE id>$1`;
@@ -80,6 +93,18 @@ export const PostgresStore = (table: string): Store => {
       if (names && names.length) {
         values.push(names);
         sql = sql.concat(` AND name = ANY($${values.length})`);
+      }
+      if (before) {
+        values.push(before);
+        sql = sql.concat(` AND id<$${values.length}`);
+      }
+      if (created_after) {
+        values.push(created_after.toISOString());
+        sql = sql.concat(` AND created>$${values.length}`);
+      }
+      if (created_before) {
+        values.push(created_before.toISOString());
+        sql = sql.concat(` AND created<$${values.length}`);
       }
       sql = sql.concat(" ORDER BY id");
       if (limit) {

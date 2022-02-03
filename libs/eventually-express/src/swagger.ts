@@ -287,6 +287,24 @@ export const swagger = (app: Builder): any => {
         name: "limit",
         description: "Max number of events to query",
         schema: { type: "integer", default: 1 }
+      },
+      before: {
+        in: "query",
+        name: "before",
+        description: "Get all stream before this event id",
+        schema: { type: "integer" }
+      },
+      created_after: {
+        in: "query",
+        name: "created_after",
+        description: "Get all stream created after this date/time",
+        schema: { type: "string", format: "date-time" }
+      },
+      created_before: {
+        in: "query",
+        name: "created_before",
+        description: "Get all stream created before this date/time",
+        schema: { type: "string", format: "date-time" }
       }
     },
     securitySchemes: sec.schemes,
@@ -367,7 +385,10 @@ export const swagger = (app: Builder): any => {
         { $ref: "#/components/parameters/stream" },
         { $ref: "#/components/parameters/names" },
         { $ref: "#/components/parameters/after" },
-        { $ref: "#/components/parameters/limit" }
+        { $ref: "#/components/parameters/limit" },
+        { $ref: "#/components/parameters/before" },
+        { $ref: "#/components/parameters/created_after" },
+        { $ref: "#/components/parameters/created_before" }
       ],
       get: {
         operationId: "getAll",

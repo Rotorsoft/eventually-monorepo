@@ -26,13 +26,24 @@ export const InMemoryStore = (): Store => {
       callback: (event: CommittedEvent<string, Payload>) => void,
       query?: AllQuery
     ): Promise<void> => {
-      const { stream, names, after = -1, limit } = query;
+      const {
+        stream,
+        names,
+        before,
+        after = -1,
+        limit,
+        created_before,
+        created_after
+      } = query;
       let i = after + 1,
         count = 0;
       while (i < _events.length) {
         const e = _events[i++];
         if (stream && e.stream !== stream) continue;
         if (names && !names.includes(e.name)) continue;
+        if (created_after && e.created <= created_after) continue;
+        if (before && e.id >= before) break;
+        if (created_before && e.created >= created_before) break;
         callback(e);
         if (limit && ++count >= limit) break;
       }

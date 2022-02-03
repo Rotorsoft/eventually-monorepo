@@ -59,12 +59,23 @@ export class ExpressApp extends AppBase {
         next: NextFunction
       ) => {
         try {
-          const { stream, names, after = -1, limit = 1 } = req.query;
+          const {
+            stream,
+            names,
+            before,
+            after = -1,
+            limit = 1,
+            created_before,
+            created_after
+          } = req.query;
           const result = await this.query({
             stream,
             names: names && (Array.isArray(names) ? names : [names]),
             after: after && +after,
-            limit: limit && +limit
+            before: before && +before,
+            limit: limit && +limit,
+            created_after: created_after && new Date(created_after),
+            created_before: created_before && new Date(created_before)
           });
           return res.status(200).send(result);
         } catch (error) {
@@ -75,7 +86,7 @@ export class ExpressApp extends AppBase {
     this.log.info(
       "green",
       "All-Stream",
-      "GET /all?[stream=...]&[name=...]&[after=-1]&[limit=1]"
+      "GET /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]"
     );
   }
 

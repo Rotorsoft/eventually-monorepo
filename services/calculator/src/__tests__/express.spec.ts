@@ -230,12 +230,18 @@ describe("express app", () => {
 
   describe("all stream", () => {
     const id = chance.guid();
+    let created_after: Date;
+    let created_before: Date;
 
     beforeAll(async () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
+      created_after = new Date();
+      await sleep(100);
       await pressKey(id, "2");
       await pressKey(id, ".");
+      await sleep(100);
+      created_before = new Date();
       await pressKey(id, "3");
       await pressKey(id, "=");
     });
@@ -284,6 +290,23 @@ describe("express app", () => {
       const stream = await read({ names: [chance.guid()] });
       expect(stream.length).toBe(0);
     });
+
+    it("should read stream with before and after", async () => {
+      const stream = await read({ after: 2, before: 4, limit: 5 });
+      expect(stream[0].id).toBe(3);
+      expect(stream.length).toBe(1);
+    });
+
+    it("should read stream with before and after created", async () => {
+      const stream = await read({
+        stream: Calculator(id).stream(),
+        created_after,
+        created_before,
+        limit: 5
+      });
+      expect(stream[0].version).toBe(2);
+      expect(stream.length).toBe(2);
+    });
   });
 
   describe("swagger", () => {
@@ -297,7 +320,7 @@ describe("express app", () => {
       expect(stats.status).toBe(200);
     });
 
-    it("should get swagger prop", async () => {
+    it("should get swagger prop", () => {
       const swagger = expressApp.getSwagger();
       expect(swagger).toBeDefined();
     });

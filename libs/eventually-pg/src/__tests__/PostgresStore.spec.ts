@@ -10,6 +10,8 @@ const chance = new Chance();
 const a1 = chance.guid();
 const a2 = chance.guid();
 const a3 = chance.guid();
+let created_before: Date;
+let created_after: Date;
 
 type E = {
   test1: { value: string };
@@ -22,6 +24,9 @@ const event = (
   data?: Payload
 ): Message<keyof E & string, Payload> => bind(name, data);
 
+const sleep = (millis: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, millis));
+
 describe("PostgresStore", () => {
   beforeAll(async () => {
     await db.init();
@@ -30,6 +35,9 @@ describe("PostgresStore", () => {
       correlation: "",
       causation: {}
     });
+    created_after = new Date();
+    await sleep(100);
+
     await db.commit(a1, [event("test1", { value: "2" })], {
       correlation: "",
       causation: {}
@@ -42,10 +50,16 @@ describe("PostgresStore", () => {
       correlation: "",
       causation: {}
     });
+
     await db.commit(a1, [event("test2", { value: "5" })], {
       correlation: "",
       causation: {}
     });
+
+    await sleep(100);
+    created_before = new Date();
+    await sleep(100);
+
     await db.commit(
       a1,
       [
@@ -118,6 +132,22 @@ describe("PostgresStore", () => {
     const events: CommittedEvent<string, Payload>[] = [];
     await db.query((e) => events.push(e), { limit: 5 });
     expect(events.length).toBe(5);
+  });
+
+  it("should read stream with before and after", async () => {
+    const events: CommittedEvent<string, Payload>[] = [];
+    await db.query((e) => events.push(e), { after: 2, before: 4 });
+    expect(events.length).toBe(1);
+  });
+
+  it("should read stream with before and after created", async () => {
+    const events: CommittedEvent<string, Payload>[] = [];
+    await db.query((e) => events.push(e), {
+      stream: a1,
+      created_after,
+      created_before
+    });
+    expect(events.length).toBe(2);
   });
 
   it("should get store stats", async () => {
