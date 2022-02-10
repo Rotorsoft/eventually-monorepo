@@ -38,6 +38,10 @@ export const swagger = (app: Builder): any => {
             ? j2s(schema).swagger
             : { type: "object" };
         } else {
+          const data = schema || joi.object().forbidden();
+          const description =
+            data._flags?.description || "No description provided";
+          data._flags.description = undefined;
           components.schemas[name] = j2s(
             joi.object({
               name: joi.string().required().valid(name),
@@ -45,9 +49,10 @@ export const swagger = (app: Builder): any => {
               stream: joi.string().required(),
               version: joi.number().integer().required(),
               created: joi.date().required(),
-              data: schema || joi.object().forbidden()
+              data
             })
           ).swagger;
+          components.schemas[name].description = description;
         }
       }
     );

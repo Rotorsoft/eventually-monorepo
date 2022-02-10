@@ -19,6 +19,9 @@ export const DigitPressed = joi
       .required()
       .valid(...models.DIGITS)
   })
+  .description(
+    "Generated when a **digit** is pressed\n\nThis is and example to use\n* markup language\n* inside descriptions"
+  )
   .required();
 export const OperatorPressed = joi
   .object({
@@ -27,6 +30,7 @@ export const OperatorPressed = joi
       .required()
       .valid(...models.OPERATORS)
   })
+  .description("Generated when operator is pressed")
   .required();
 export const PressKey = joi
   .object({
@@ -37,4 +41,7 @@ export const PressKey = joi
       .max(1)
       .valid(...models.DIGITS, ...models.OPERATORS, ...models.SYMBOLS)
   })
+  .description(
+    "Invoked when user presses a key - either digit, operator, or symbol"
+  )
   .required();
