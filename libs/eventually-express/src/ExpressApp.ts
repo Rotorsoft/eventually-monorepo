@@ -234,7 +234,6 @@ export class ExpressApp extends AppBase {
     this._buildAllStreamRoute();
     this._buildStatsRoute();
 
-    // TODO: use helmet?
     this._app.set("trust proxy", true);
     this._app.use(cors());
     this._app.use(urlencoded({ extended: false }));

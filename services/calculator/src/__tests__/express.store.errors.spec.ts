@@ -1,11 +1,12 @@
-import { app, store } from "@rotorsoft/eventually";
+import { app, store, ValidationError } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { get } from "@rotorsoft/eventually-test";
 import { Server } from "http";
+import * as joi from "joi";
 import { Calculator } from "../calculator.aggregate";
-import * as schemas from "../calculator.schemas";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
+import * as schemas from "../calculator.schemas";
 
 const exapp = app(new ExpressApp())
   .withSchemas<Pick<Commands, "PressKey">>({
@@ -25,6 +26,14 @@ jest.spyOn(store(), "stats").mockRejectedValue("Error");
 describe("express app", () => {
   beforeAll(async () => {
     const express = exapp.build();
+    express.get("/query", (req, res) => {
+      const { error } = joi
+        .object({ test: joi.string().required() })
+        .required()
+        .validate({});
+      if (error) throw new ValidationError(error);
+      res.send("Query results");
+    });
     await exapp.listen(true);
     server = express.listen(3001, () => {
       return;
@@ -47,6 +56,10 @@ describe("express app", () => {
 
     it("should throw internal error on stats", async () => {
       await expect(get("/stats", 3001)).rejects.toThrowError("500");
+    });
+
+    it("should throw validation error", async () => {
+      await expect(get("/query", 3001)).rejects.toThrowError("400");
     });
   });
 });

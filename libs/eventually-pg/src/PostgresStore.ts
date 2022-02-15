@@ -24,6 +24,23 @@ CREATE TABLE IF NOT EXISTS public.${table}
     metadata json
 ) TABLESPACE pg_default;
 
+DO $$
+BEGIN
+  IF EXISTS(
+		select * from information_schema.columns 
+		where table_schema = 'public'
+		and table_name = '${table}'
+		and column_name = 'created'
+		and data_type = 'timestamp without time zone'
+	) THEN
+		alter table public.${table}
+		alter created type timestamptz using created at time zone 'UTC',
+		alter created set not null,
+		alter created set default now();
+	END IF;
+END
+$$;
+
 ALTER TABLE public.${table}
 ADD COLUMN IF NOT EXISTS metadata json;
 
@@ -59,6 +76,7 @@ export const PostgresStore = (table: string): Store => {
     init: async (): Promise<void> => {
       if (!pool) {
         pool = new Pool(config.pg);
+        // TODO: not the best way to start cloud functions!
         await pool.query(create_script(table));
       }
     },
