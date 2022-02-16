@@ -114,7 +114,7 @@ Public message handlers are routed by convention. Getters provide the current st
 | Process Manager | `POST /process-manager`         | `GET /process-manager/:stream`<br/>`GET /process-manager/:stream/stream` |
 | External System | `POST /external-system/command` | `GET /all?stream=external-system`                                        |
 | Policy          | `POST /policy`                  | `N/A`                                                                    |
-| All Stream      | `N/A`                           | `GET /all?[stream=stream]&[name=event]&[after=-1]&[limit=1]`             |
+| All Stream      | `N/A`                           | `GET /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]`             |
 
 ## Testing your code
 

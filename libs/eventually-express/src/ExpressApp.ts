@@ -240,10 +240,8 @@ export class ExpressApp extends AppBase {
     this._app.use(express.json());
     middleware && this._app.use(middleware);
     this._app.use(this._router);
-
-    // swagger
     this._swagger = swagger(this);
-    this._app.get("/swagger", (req: Request, res: Response) => {
+    this._app.get("/swagger", (_, res: Response) => {
       res.json(this._swagger);
     });
     this._app.use(
@@ -251,7 +249,6 @@ export class ExpressApp extends AppBase {
       swaggerUI.serve,
       swaggerUI.setup(this._swagger)
     );
-
     return this._app;
   }
 
@@ -260,6 +257,23 @@ export class ExpressApp extends AppBase {
    * @param silent flag to skip express listening when using cloud functions
    */
   async listen(silent = false): Promise<void> {
+    const { host, port, service, version, env, logLevel } = config();
+    this._app.get("/_health", (_, res: Response) => {
+      res.status(200).json({ status: "OK" });
+    });
+    this._app.get("/", (_, res: Response) => {
+      res.status(200).json({
+        env,
+        service,
+        version,
+        logLevel,
+        mem: process.memoryUsage(),
+        uptime: process.uptime(),
+        swagger: `${host}/swagger-ui`,
+        health: `${host}/_health`
+      });
+    });
+
     // ensure catch-all is last handler
     this._app.use(
       // eslint-disable-next-line
@@ -278,7 +292,7 @@ export class ExpressApp extends AppBase {
     await super.listen();
     if (silent) this.log.info("white", "Config", undefined, config());
     else
-      this._server = this._app.listen(config().port, () => {
+      this._server = this._app.listen(port, () => {
         this.log.info("white", "Express app is listening", undefined, config());
       });
   }
