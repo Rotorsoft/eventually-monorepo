@@ -20,7 +20,7 @@
   "scripts": {},
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^3.2.13",
-    "axios": "^0.22.0"
+    "axios": "^0.26.0"
   },
   "devDependencies": {
     "@types/chance": "^1",

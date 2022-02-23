@@ -174,7 +174,7 @@ export abstract class AppBase extends Builder implements Reader {
             const sub = `${topic.name}-${config().service}.${factory.name}`;
             return broker()
               .subscribe(sub, url, topic)
-              .then(() => this.log.info("red", `${sub} >>> ${url}`));
+              .then(() => this.log.info("bgRed", " SUB ", topic.name, url));
           }
         });
       })

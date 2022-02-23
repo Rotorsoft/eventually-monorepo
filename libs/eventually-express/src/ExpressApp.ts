@@ -47,7 +47,7 @@ export class ExpressApp extends AppBase {
         next(error);
       }
     });
-    this.log.info("green", "Stats", "GET /stats");
+    this.log.info("bgGreen", " GET ", "/stats");
   }
 
   private _buildAllStreamRoute(): void {
@@ -84,9 +84,9 @@ export class ExpressApp extends AppBase {
       }
     );
     this.log.info(
-      "green",
-      "All-Stream",
-      "GET /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]"
+      "bgGreen",
+      " GET ",
+      "/all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]"
     );
   }
 
@@ -170,15 +170,13 @@ export class ExpressApp extends AppBase {
     );
 
     Object.values(aggregates).map((aggregate) => {
-      this.log.info("green", aggregate.name);
-
       const getpath = reduciblePath(aggregate);
       this._buildGetter(aggregate, this.load.bind(this), getpath);
-      this.log.info("green", "  ", `GET ${getpath}`);
+      this.log.info("bgGreen", " GET ", getpath);
 
       const streampath = reduciblePath(aggregate).concat("/stream");
       this._buildGetter(aggregate, this.stream.bind(this), streampath);
-      this.log.info("green", "  ", `GET ${streampath}`);
+      this.log.info("bgGreen", " GET ", streampath);
     });
   }
 
@@ -215,15 +213,13 @@ export class ExpressApp extends AppBase {
     );
 
     Object.values(managers).map((manager) => {
-      this.log.info("green", manager.name);
-
       const getpath = reduciblePath(manager);
       this._buildGetter(manager, this.load.bind(this), getpath, true);
-      this.log.info("green", "  ", `GET ${getpath}`);
+      this.log.info("bgGreen", " GET ", getpath);
 
       const streampath = reduciblePath(manager).concat("/stream");
       this._buildGetter(manager, this.stream.bind(this), streampath, true);
-      this.log.info("green", "  ", `GET ${streampath}`);
+      this.log.info("bgGreen", " GET ", streampath);
     });
   }
 

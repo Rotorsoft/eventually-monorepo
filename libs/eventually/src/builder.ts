@@ -185,7 +185,6 @@ export class Builder {
       const reducible = getReducible(handler);
       reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "aggregate" : "external-system";
-      log().info("white", factory.name, type);
       messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.commandHandlerFactory = factory;
@@ -200,7 +199,7 @@ export class Builder {
             factory,
             path
           });
-        log().info("blue", `  ${name}`, path ? `POST ${path}` : factory.name);
+        log().info("bgBlue", " POST ", path ?? factory.name);
       });
       reducible && eventsOf(reducible).map((name) => this._msg(name));
     });
@@ -211,7 +210,6 @@ export class Builder {
       const reducible = getReducible(handler);
       reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "process-manager" : "policy";
-      log().info("white", factory.name, type);
       const path = eventHandlerPath(factory);
       this.endpoints.eventHandlers[path] = {
         type,
@@ -219,15 +217,21 @@ export class Builder {
         path,
         topics: {} as Record<string, Topic>
       };
-      messagesOf(handler).map((name) => {
+      const events = messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.eventHandlerFactories[path] = factory;
         if (msg.options.scope === Scopes.public) {
           const topic = this._getTopic(msg);
           this.endpoints.eventHandlers[path].topics[topic.name] = topic;
-          log().info("magenta", `  ${name}`, `POST ${path}`);
+          return name;
         }
       });
+      log().info(
+        "bgMagenta",
+        " POST ",
+        path,
+        events.filter((n) => n)
+      );
     });
 
     return;

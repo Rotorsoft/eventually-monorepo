@@ -3,7 +3,18 @@ import { Environments } from ".";
 import { config, LogLevels } from "./config";
 import { singleton } from "./singleton";
 
-type Color = "red" | "green" | "magenta" | "blue" | "white" | "gray";
+type Color =
+  | "red"
+  | "green"
+  | "magenta"
+  | "blue"
+  | "white"
+  | "gray"
+  | "bgRed"
+  | "bgGreen"
+  | "bgMagenta"
+  | "bgBlue"
+  | "bgWhite";
 
 export interface Log {
   trace(color: Color, message: string, ...params: any[]): void;

@@ -80,7 +80,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["husky", "npm:7.0.2"],
             ["jest", "virtual:34a3aac6a8e58ddc6157f2a989d1e16e0c0086a5b9571617edd3211b40fbbbd64c94e579e19657e221447e0beca7c626744d2af492fc0ebe95e7a380acabdac0#npm:27.2.0"],
             ["lint-staged", "npm:11.1.2"],
-            ["prettier", "npm:2.4.1"],
+            ["prettier", "npm:2.5.1"],
             ["ts-jest", "virtual:34a3aac6a8e58ddc6157f2a989d1e16e0c0086a5b9571617edd3211b40fbbbd64c94e579e19657e221447e0beca7c626744d2af492fc0ebe95e7a380acabdac0#npm:27.0.5"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
           ],
@@ -1499,7 +1499,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["express", "npm:4.17.1"],
             ["joi", "npm:17.4.2"],
             ["joi-to-swagger", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:6.0.1"],
-            ["swagger-ui-express", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.1.6"]
+            ["swagger-ui-express", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.3.0"]
           ],
           "linkType": "SOFT",
         }]
@@ -1532,7 +1532,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["husky", "npm:7.0.2"],
             ["jest", "virtual:34a3aac6a8e58ddc6157f2a989d1e16e0c0086a5b9571617edd3211b40fbbbd64c94e579e19657e221447e0beca7c626744d2af492fc0ebe95e7a380acabdac0#npm:27.2.0"],
             ["lint-staged", "npm:11.1.2"],
-            ["prettier", "npm:2.4.1"],
+            ["prettier", "npm:2.5.1"],
             ["ts-jest", "virtual:34a3aac6a8e58ddc6157f2a989d1e16e0c0086a5b9571617edd3211b40fbbbd64c94e579e19657e221447e0beca7c626744d2af492fc0ebe95e7a380acabdac0#npm:27.0.5"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
           ],
@@ -1563,7 +1563,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@types/chance", "npm:1.1.3"],
             ["@types/node", "npm:16.9.2"],
-            ["axios", "npm:0.22.0"],
+            ["axios", "npm:0.26.0"],
             ["chance", "npm:1.1.8"]
           ],
           "linkType": "SOFT",
@@ -2463,11 +2463,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["axios", [
-        ["npm:0.22.0", {
-          "packageLocation": "./.yarn/cache/axios-npm-0.22.0-ed558f7b05-83dc4d02e1.zip/node_modules/axios/",
+        ["npm:0.26.0", {
+          "packageLocation": "./.yarn/cache/axios-npm-0.26.0-ae9d5291c9-d7a8b898f4.zip/node_modules/axios/",
           "packageDependencies": [
-            ["axios", "npm:0.22.0"],
-            ["follow-redirects", "virtual:ed558f7b05c3a636c1ad2d97f901dd0c42b922ef0ba05d49aa3260595e3d01913b69c7d48043293c92c362499c1263e2fbc09546eb72d357a16e9997e9137304#npm:1.14.4"]
+            ["axios", "npm:0.26.0"],
+            ["follow-redirects", "virtual:ae9d5291c97ae0cacb5775381cccfce07fa49ffc443f3fdd7488fb1a1655b5d1c7927e5118e33808de5d3fd89b9e27b3eadf3d56f2cf83b8ab953c0679aed818#npm:1.14.9"]
           ],
           "linkType": "HARD",
         }]
@@ -4035,17 +4035,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["follow-redirects", [
-        ["npm:1.14.4", {
-          "packageLocation": "./.yarn/cache/follow-redirects-npm-1.14.4-19eb02e590-d4ce74cf5c.zip/node_modules/follow-redirects/",
+        ["npm:1.14.9", {
+          "packageLocation": "./.yarn/cache/follow-redirects-npm-1.14.9-522f191631-f5982e0eb4.zip/node_modules/follow-redirects/",
           "packageDependencies": [
-            ["follow-redirects", "npm:1.14.4"]
+            ["follow-redirects", "npm:1.14.9"]
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:ed558f7b05c3a636c1ad2d97f901dd0c42b922ef0ba05d49aa3260595e3d01913b69c7d48043293c92c362499c1263e2fbc09546eb72d357a16e9997e9137304#npm:1.14.4", {
-          "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-048cb2cc81/0/cache/follow-redirects-npm-1.14.4-19eb02e590-d4ce74cf5c.zip/node_modules/follow-redirects/",
+        ["virtual:ae9d5291c97ae0cacb5775381cccfce07fa49ffc443f3fdd7488fb1a1655b5d1c7927e5118e33808de5d3fd89b9e27b3eadf3d56f2cf83b8ab953c0679aed818#npm:1.14.9", {
+          "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-0541b7cf28/0/cache/follow-redirects-npm-1.14.9-522f191631-f5982e0eb4.zip/node_modules/follow-redirects/",
           "packageDependencies": [
-            ["follow-redirects", "virtual:ed558f7b05c3a636c1ad2d97f901dd0c42b922ef0ba05d49aa3260595e3d01913b69c7d48043293c92c362499c1263e2fbc09546eb72d357a16e9997e9137304#npm:1.14.4"],
+            ["follow-redirects", "virtual:ae9d5291c97ae0cacb5775381cccfce07fa49ffc443f3fdd7488fb1a1655b5d1c7927e5118e33808de5d3fd89b9e27b3eadf3d56f2cf83b8ab953c0679aed818#npm:1.14.9"],
             ["debug", null]
           ],
           "packagePeers": [
@@ -6672,10 +6672,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["prettier", [
-        ["npm:2.4.1", {
-          "packageLocation": "./.yarn/cache/prettier-npm-2.4.1-623aac91ee-cc6830588b.zip/node_modules/prettier/",
+        ["npm:2.5.1", {
+          "packageLocation": "./.yarn/cache/prettier-npm-2.5.1-58b195b509-21b9408476.zip/node_modules/prettier/",
           "packageDependencies": [
-            ["prettier", "npm:2.4.1"]
+            ["prettier", "npm:2.5.1"]
           ],
           "linkType": "HARD",
         }]
@@ -7533,29 +7533,29 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["swagger-ui-dist", [
-        ["npm:3.52.5", {
-          "packageLocation": "./.yarn/cache/swagger-ui-dist-npm-3.52.5-c21f4b4952-a8bd28bf47.zip/node_modules/swagger-ui-dist/",
+        ["npm:4.5.2", {
+          "packageLocation": "./.yarn/cache/swagger-ui-dist-npm-4.5.2-43fde122db-327da3c52e.zip/node_modules/swagger-ui-dist/",
           "packageDependencies": [
-            ["swagger-ui-dist", "npm:3.52.5"]
+            ["swagger-ui-dist", "npm:4.5.2"]
           ],
           "linkType": "HARD",
         }]
       ]],
       ["swagger-ui-express", [
-        ["npm:4.1.6", {
-          "packageLocation": "./.yarn/cache/swagger-ui-express-npm-4.1.6-1400f0d081-aff7981294.zip/node_modules/swagger-ui-express/",
+        ["npm:4.3.0", {
+          "packageLocation": "./.yarn/cache/swagger-ui-express-npm-4.3.0-bc0c30982a-8d2e1e5389.zip/node_modules/swagger-ui-express/",
           "packageDependencies": [
-            ["swagger-ui-express", "npm:4.1.6"]
+            ["swagger-ui-express", "npm:4.3.0"]
           ],
           "linkType": "SOFT",
         }],
-        ["virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.1.6", {
-          "packageLocation": "./.yarn/__virtual__/swagger-ui-express-virtual-30043fce81/0/cache/swagger-ui-express-npm-4.1.6-1400f0d081-aff7981294.zip/node_modules/swagger-ui-express/",
+        ["virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.3.0", {
+          "packageLocation": "./.yarn/__virtual__/swagger-ui-express-virtual-f47ae3f375/0/cache/swagger-ui-express-npm-4.3.0-bc0c30982a-8d2e1e5389.zip/node_modules/swagger-ui-express/",
           "packageDependencies": [
-            ["swagger-ui-express", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.1.6"],
+            ["swagger-ui-express", "virtual:929bf128f39071fa23bbdaaa5108582628f441d6a55d416a188dfbc065d19ce4b59bd977a24fbf854879cf81230b1e7dddda486838eb35503a67f3fe63f7240e#npm:4.3.0"],
             ["@types/express", "npm:4.17.13"],
             ["express", "npm:4.17.1"],
-            ["swagger-ui-dist", "npm:3.52.5"]
+            ["swagger-ui-dist", "npm:4.5.2"]
           ],
           "packagePeers": [
             "@types/express",
