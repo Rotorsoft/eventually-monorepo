@@ -4,7 +4,6 @@ import {
   AllQuery,
   AppBase,
   bind,
-  broker,
   CommittedEvent,
   config,
   Errors,
@@ -196,7 +195,7 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
-              const message = broker().decode(req.body);
+              const message = req.body;
               const meta = this.messages[message.name];
               if (meta && meta.eventHandlerFactories[path]) {
                 const response = await this.event(factory, message as any);

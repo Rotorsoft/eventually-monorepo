@@ -1,3 +1,5 @@
+//process.env.LOG_LEVEL = "trace";
+
 jest.mock("../accounts.systems.ts", () => {
   const originalModule = jest.requireActual("../accounts.systems.ts");
   return {
@@ -15,8 +17,6 @@ jest.mock("../accounts.systems.ts", () => {
 });
 
 import { app, store } from "@rotorsoft/eventually";
-import { PostgresStore } from "@rotorsoft/eventually-pg";
-import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -25,8 +25,6 @@ import * as systems from "../accounts.systems";
 import * as schemas from "../accounts.schemas";
 
 const chance = new Chance();
-
-store(PostgresStore("sad".concat(chance.guid()).replace(/-/g, "")));
 
 app()
   .withSchemas<commands.Commands>({
@@ -42,12 +40,6 @@ app()
     Account3Created: schemas.Account3Created,
     IntegrationCompleted: schemas.IntegrationCompleted
   })
-  .withPrivate<events.Events>(
-    "Account1Created",
-    "Account2Created",
-    "Account3Created",
-    "AccountCreated"
-  )
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,
@@ -88,14 +80,12 @@ describe("sad path", () => {
     const t = trigger(chance.guid());
 
     await app().event(policies.IntegrateAccount1, t);
-    await sleep(100);
 
     const spyCommit = jest.spyOn(store(), "commit");
     await expect(app().event(policies.IntegrateAccount2, t)).rejects.toThrow(
       "error completing integration"
     );
 
-    // expect nothing committed
     expect(spyCommit).toHaveBeenCalledTimes(2);
     const sys2 = (
       await app().query({
@@ -112,8 +102,8 @@ describe("sad path", () => {
         stream: systems.ExternalSystem4().stream()
       })
     ).filter((e) => e.data.id === t.data.id);
-    expect(sys2.length).toBe(0);
-    expect(sys3.length).toBe(0);
+    expect(sys2.length).toBe(1);
+    expect(sys3.length).toBe(1);
     expect(sys4.length).toBe(0);
   });
 });

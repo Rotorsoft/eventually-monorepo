@@ -5,7 +5,8 @@
     { "path": "./libs/eventually-express" },
     { "path": "./libs/eventually-pg" },
     { "path": "./libs/eventually-gcp" },
-    { "path": "./services/calculator" }
+    { "path": "./services/calculator" },
+    { "path": "./services/broker" }
   ],
   "files": [],
   "include": [],

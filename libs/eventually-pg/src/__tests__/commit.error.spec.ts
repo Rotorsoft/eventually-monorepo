@@ -5,9 +5,9 @@ import { PostgresStore } from "../PostgresStore";
 const query = (
   sql: string
 ): Promise<QueryResult<CommittedEvent<string, Payload>>> => {
-  if (sql === "COMMIT") {
-    return Promise.reject("commit error");
-  }
+  const commit = sql.indexOf("COMMIT");
+  if (commit > 0) return Promise.reject("mocked commit error");
+
   return Promise.resolve({
     rowCount: 1,
     rows: [

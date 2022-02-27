@@ -2,7 +2,7 @@ process.env.PORT = "3006";
 
 import { app, bind, Snapshot } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
-import { command, load, sleep, stream } from "@rotorsoft/eventually-test";
+import { command, load, stream } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
@@ -46,17 +46,11 @@ describe("express app", () => {
       const id = chance.guid();
 
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "+");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
       await pressKey(id, ".");
-      await sleep(100);
       await pressKey(id, "3");
-      await sleep(100);
       await pressKey(id, "=");
-      await sleep(100);
 
       const { state } = await load(Calculator, id, port);
       expect(state).toEqual({

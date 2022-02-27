@@ -2,7 +2,6 @@ import Joi from "joi";
 import {
   CommandHandlerFactory,
   commandHandlerPath,
-  config,
   EventHandlerFactory,
   eventHandlerPath,
   eventsOf,
@@ -12,8 +11,7 @@ import {
   Options,
   Payload,
   Reducible,
-  Scopes,
-  Topic
+  Snapshot
 } from ".";
 import { SnapshotStore } from "./interfaces";
 import { InMemorySnapshotStore } from "./__dev__";
@@ -41,7 +39,6 @@ export type Endpoints = {
       type: "policy" | "process-manager";
       factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
-      topics: Record<string, Topic>;
     };
   };
 };
@@ -75,21 +72,9 @@ export class Builder {
   private _msg(name: string): MessageMetadata {
     return (this.messages[name] = this.messages[name] || {
       name,
-      options: { scope: Scopes.public },
+      options: {},
       eventHandlerFactories: {}
     });
-  }
-
-  /**
-   * Gets configured topic or uses default service name ordered by event id
-   */
-  protected _getTopic(message: MessageMetadata): Topic {
-    return (
-      this.messages[message.name].options.topic || {
-        name: config().service,
-        orderingKey: "id"
-      }
-    );
   }
 
   /**
@@ -99,26 +84,6 @@ export class Builder {
   withSchemas<M>(schemas: Schemas<M>): this {
     Object.entries(schemas).map(([key, value]): void => {
       this._msg(key).options.schema = value as any;
-    });
-    return this;
-  }
-
-  /**
-   * Registers public messages with topics
-   */
-  withTopic<M>(topic: Topic, ...messages: Array<keyof M & string>): this {
-    messages.map((key): void => {
-      this._msg(key).options.topic = topic;
-    });
-    return this;
-  }
-
-  /**
-   * Registers private messages
-   */
-  withPrivate<M>(...messages: Array<keyof M & string>): this {
-    messages.map((key): void => {
-      this._msg(key).options.scope = Scopes.private;
     });
     return this;
   }
@@ -153,24 +118,31 @@ export class Builder {
     return this;
   }
 
-  protected getSnapshotStore<M extends Payload, E>(
+  private async getSnapshotStore<M extends Payload, E>(
     reducible: Reducible<M, E>
-  ): SnapshotStore | undefined {
-    return (
-      reducible?.snapshot &&
-      this._snapshotStores[
-        reducible.snapshot.factory?.name || InMemorySnapshotStore.name
-      ]
-    );
-  }
-  private registerSnapshotStore<M extends Payload, E>(
-    reducible: Reducible<M, E>
-  ): void {
-    if (reducible?.snapshot) {
-      const factory = reducible.snapshot.factory || InMemorySnapshotStore;
-      this._snapshotStores[factory.name] =
-        this._snapshotStores[factory.name] || factory();
+  ): Promise<SnapshotStore> {
+    const factory = reducible?.snapshot?.factory || InMemorySnapshotStore;
+    let store = this._snapshotStores[factory.name];
+    if (!store) {
+      store = this._snapshotStores[factory.name] = factory();
+      await store.init();
     }
+    return store;
+  }
+
+  protected async readSnapshot<M extends Payload, E>(
+    reducible: Reducible<M, E>
+  ): Promise<Snapshot<M>> {
+    const store = await this.getSnapshotStore(reducible);
+    return await store.read(reducible.stream());
+  }
+
+  protected async upsertSnapshot<M extends Payload, E>(
+    reducible: Reducible<M, E>,
+    snapshot: Snapshot<M>
+  ): Promise<void> {
+    const store = await this.getSnapshotStore(reducible);
+    await store.upsert(reducible.stream(), snapshot);
   }
 
   /**
@@ -183,23 +155,18 @@ export class Builder {
     Object.values(this._factories.commandHandlers).map((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
-      reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "aggregate" : "external-system";
       messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.commandHandlerFactory = factory;
-        const path =
-          msg.options.scope === Scopes.public
-            ? commandHandlerPath(factory, name)
-            : "";
-        path &&
-          (this.endpoints.commands[path] = {
-            type,
-            name,
-            factory,
-            path
-          });
-        log().info("bgBlue", " POST ", path ?? factory.name);
+        const path = commandHandlerPath(factory, name);
+        this.endpoints.commands[path] = {
+          type,
+          name,
+          factory,
+          path
+        };
+        log().info("bgBlue", " POST ", path);
       });
       reducible && eventsOf(reducible).map((name) => this._msg(name));
     });
@@ -208,30 +175,19 @@ export class Builder {
     Object.values(this._factories.eventHandlers).map((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
-      reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "process-manager" : "policy";
       const path = eventHandlerPath(factory);
       this.endpoints.eventHandlers[path] = {
         type,
         factory,
-        path,
-        topics: {} as Record<string, Topic>
+        path
       };
       const events = messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.eventHandlerFactories[path] = factory;
-        if (msg.options.scope === Scopes.public) {
-          const topic = this._getTopic(msg);
-          this.endpoints.eventHandlers[path].topics[topic.name] = topic;
-          return name;
-        }
+        return name;
       });
-      log().info(
-        "bgMagenta",
-        " POST ",
-        path,
-        events.filter((n) => n)
-      );
+      log().info("bgMagenta", " POST ", path, events);
     });
 
     return;

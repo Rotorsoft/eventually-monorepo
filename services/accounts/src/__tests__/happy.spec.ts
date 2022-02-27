@@ -1,6 +1,6 @@
-import { app, store } from "@rotorsoft/eventually";
-import { PostgresStore } from "@rotorsoft/eventually-pg";
-import { sleep } from "@rotorsoft/eventually-test";
+// process.env.LOG_LEVEL = "trace";
+
+import { app } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -9,8 +9,6 @@ import * as systems from "../accounts.systems";
 import * as schemas from "../accounts.schemas";
 
 const chance = new Chance();
-
-store(PostgresStore("happy".concat(chance.guid()).replace(/-/g, "")));
 
 app()
   .withSchemas<commands.Commands>({
@@ -63,11 +61,9 @@ describe("happy path", () => {
 
     // given
     await app().event(policies.IntegrateAccount1, t);
-    await sleep(100);
 
     // when
     await app().event(policies.IntegrateAccount2, t);
-    await sleep(1000);
 
     // then
     const [seed] = (
@@ -90,11 +86,9 @@ describe("happy path", () => {
 
     // given
     await app().event(policies.IntegrateAccount2, t);
-    await sleep(1000);
 
     // when
     await app().event(policies.IntegrateAccount1, t);
-    await sleep(1000);
 
     // then
     const [seed] = (

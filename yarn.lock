@@ -929,13 +929,29 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@rotorsoft/broker@workspace:services/broker":
+  version: 0.0.0-use.local
+  resolution: "@rotorsoft/broker@workspace:services/broker"
+  dependencies:
+    "@rotorsoft/eventually": "workspace:^3.2.14"
+    "@rotorsoft/eventually-pg": "workspace:^3.2.9"
+    "@types/node": ^17.0.21
+    "@types/pg": ^8
+    axios: ^0.26.0
+    pg: ^8.7.3
+    pg-listen: ^1.7.0
+    ts-node-dev: ^1.1.8
+    tsconfig-paths: ^3.12.0
+    typescript: ^4.4.3
+  languageName: unknown
+  linkType: soft
+
 "@rotorsoft/calculator@workspace:services/calculator":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
     "@rotorsoft/eventually": "workspace:^3.2.14"
     "@rotorsoft/eventually-express": "workspace:^3.2.16"
-    "@rotorsoft/eventually-gcp": "workspace:^3.2.7"
     "@rotorsoft/eventually-pg": "workspace:^3.2.9"
     "@rotorsoft/eventually-test": "workspace:^2.2.4"
     "@types/chance": ^1
@@ -964,7 +980,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-gcp@workspace:^3.2.7, @rotorsoft/eventually-gcp@workspace:libs/eventually-gcp":
+"@rotorsoft/eventually-gcp@workspace:libs/eventually-gcp":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-gcp@workspace:libs/eventually-gcp"
   dependencies:
@@ -1275,6 +1291,13 @@ __metadata:
   version: 16.9.2
   resolution: "@types/node@npm:16.9.2"
   checksum: 204aa883bc93a267f43804af8872e538935369ab905d5ca702d2c17a213339f8df974bb95d21e2e714e8f83f669b185d8526f7c4b5d16adbdb5d96d4f2e75fa9
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^17.0.21":
+  version: 17.0.21
+  resolution: "@types/node@npm:17.0.21"
+  checksum: 89dcd2fe82f21d3634266f8384e9c865cf8af49685639fbdbd799bdd1040480fb1e8eeda2d3b9fce41edbe704d2a4be9f427118c4ae872e8d9bb7cbeb3c41a94
   languageName: node
   linkType: hard
 
@@ -5189,10 +5212,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pg-format@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "pg-format@npm:1.0.4"
+  checksum: 159b43ad57d2f963f1072def86080dd2a6dd42c1a86046e388d47b491e00afe795139520eb01c8dffc43ac0243c77b3c4c5882d0ec5f488bb3281f17458b1b3d
+  languageName: node
+  linkType: hard
+
 "pg-int8@npm:1.0.1":
   version: 1.0.1
   resolution: "pg-int8@npm:1.0.1"
   checksum: a1e3a05a69005ddb73e5f324b6b4e689868a447c5fa280b44cd4d04e6916a344ac289e0b8d2695d66e8e89a7fba023affb9e0e94778770ada5df43f003d664c9
+  languageName: node
+  linkType: hard
+
+"pg-listen@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "pg-listen@npm:1.7.0"
+  dependencies:
+    debug: ^4.1.1
+    pg-format: ^1.0.4
+    typed-emitter: ^0.1.0
+  peerDependencies:
+    pg: 7.x || 8.x
+  checksum: 900997272d939f0db073143e9b3d27871997deeb5d5fc5d8118fdc95cdbc2ae072e126290cfdea1b5755c1883332395eb67e93fdcf53a345e5121d063ef537c4
   languageName: node
   linkType: hard
 
@@ -5202,6 +5245,15 @@ __metadata:
   peerDependencies:
     pg: ">=8.0"
   checksum: 50d68bd99a5c7ca32ad93ba97462528d6a8df87c5cf5a0743a3f0946bc57be82a45025e67eb8a6e522ed25316747864e5ce043339577a71f8f430e1364da2727
+  languageName: node
+  linkType: hard
+
+"pg-pool@npm:^3.5.1":
+  version: 3.5.1
+  resolution: "pg-pool@npm:3.5.1"
+  peerDependencies:
+    pg: ">=8.0"
+  checksum: 42833c25f18fee41a1b2d955978f1403e93164762a7e57d3a870429103d302f1899b393ab021bb8144272037eb3f13bdb9f16a4c4afaa3efd3d2c3689738038f
   languageName: node
   linkType: hard
 
@@ -5242,6 +5294,26 @@ __metadata:
     pg-native:
       optional: true
   checksum: 3a17d9a73df9c9f5f99400751144f9d5e8dbe1948ca44f5b5eecb2166ad78cab36d070c2a97438cd3a5d1d083e70af1d3e0aad4554a45fe74b77d98ed4487242
+  languageName: node
+  linkType: hard
+
+"pg@npm:^8.7.3":
+  version: 8.7.3
+  resolution: "pg@npm:8.7.3"
+  dependencies:
+    buffer-writer: 2.0.0
+    packet-reader: 1.0.0
+    pg-connection-string: ^2.5.0
+    pg-pool: ^3.5.1
+    pg-protocol: ^1.5.0
+    pg-types: ^2.1.0
+    pgpass: 1.x
+  peerDependencies:
+    pg-native: ">=2.0.0"
+  peerDependenciesMeta:
+    pg-native:
+      optional: true
+  checksum: d0e7040967779b9ccea16897f099510bcaf6bc86f77a6d8fa7e293c24d8bd2fd2ec46d99d6d1adc9be4cc8f254aa909361346b693088c1ba4501414f7afb2fe3
   languageName: node
   linkType: hard
 
@@ -6438,6 +6510,13 @@ __metadata:
     media-typer: 0.3.0
     mime-types: ~2.1.24
   checksum: 2c8e47675d55f8b4e404bcf529abdf5036c537a04c2b20177bcf78c9e3c1da69da3942b1346e6edb09e823228c0ee656ef0e033765ec39a70d496ef601a0c657
+  languageName: node
+  linkType: hard
+
+"typed-emitter@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "typed-emitter@npm:0.1.0"
+  checksum: b0878795f0443a14cdef7a7b2f87692637230a40dd35ce337f716e1a26f45ea3a929f339c7577afbe6974fcae587397f9b8599ea72ea3647bb5c01d2788633a9
   languageName: node
   linkType: hard
 

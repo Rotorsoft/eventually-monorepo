@@ -68,8 +68,7 @@ describe("PostgresStore", () => {
         event("test3", { value: "3" })
       ],
       { correlation: "", causation: {} },
-      undefined,
-      () => Promise.resolve()
+      undefined
     );
   });
 

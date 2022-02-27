@@ -14,7 +14,7 @@ const chance = new Chance();
 
 store(PostgresStore("accounts"));
 
-app(new ExpressApp())
+const expressApp = app(new ExpressApp())
   .withSchemas<commands.Commands>({
     CreateAccount1: schemas.CreateAccount1,
     CreateAccount2: schemas.CreateAccount2,
@@ -46,8 +46,8 @@ const port = 3005;
 
 describe("express", () => {
   beforeAll(async () => {
-    const express = (app() as ExpressApp).build();
-    await (app() as ExpressApp).listen(true);
+    const express = expressApp.build();
+    await expressApp.listen(true);
     server = express.listen(port, () => {
       return;
     });

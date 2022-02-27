@@ -2,7 +2,6 @@ import {
   Actor,
   app,
   bind,
-  broker,
   CommittedEvent,
   Errors,
   log,
@@ -10,7 +9,6 @@ import {
   Snapshot,
   store
 } from "@rotorsoft/eventually";
-import { sleep } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Forget } from "../forget.system";
@@ -32,14 +30,6 @@ app()
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
-  .withTopic<Events>({ name: "mytopic" }, "DigitPressed", "DotPressed")
-  .withPrivate<Commands>("Whatever", "Reset")
-  .withPrivate<Events>(
-    "OperatorPressed",
-    "EqualsPressed",
-    "Ignored1",
-    "Ignored3"
-  )
   .build();
 
 const pressKey = (
@@ -215,14 +205,6 @@ describe("in memory", () => {
         "Don't have an operator"
       );
     });
-
-    it("should publish public events only", async () => {
-      const id = chance.guid();
-      const publishSpy = jest.spyOn(broker(), "publish");
-      const snapshots = await reset(id);
-      expect(snapshots.length).toBe(3);
-      expect(publishSpy).toHaveBeenCalledTimes(2);
-    });
   });
 
   describe("Counter", () => {
@@ -231,19 +213,13 @@ describe("in memory", () => {
 
       // GIVEN
       await reset(id);
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
       await pressKey(id, ".");
-      await sleep(100);
 
       // WHEN
       await pressKey(id, "3");
-      await sleep(500);
 
       // THEN
       const { event, state } = await app().load(Calculator(id));
@@ -258,19 +234,13 @@ describe("in memory", () => {
 
       // GIVEN
       await reset(id);
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
 
       // WHEN
       await pressKey(id, ".");
-      await sleep(100);
 
       // THEN
       const { state } = await app().load(Calculator(id));
@@ -286,10 +256,8 @@ describe("in memory", () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
       created_after = new Date();
-      await sleep(100);
       await pressKey(id, "2");
       await pressKey(id, ".");
-      await sleep(100);
       created_before = new Date();
       await pressKey(id, "3");
       await pressKey(id, "=");

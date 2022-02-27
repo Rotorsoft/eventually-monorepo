@@ -1,3 +1,4 @@
+import { app } from "..";
 import { Store } from "../interfaces";
 import {
   AllQuery,
@@ -10,6 +11,27 @@ import {
 
 export const InMemoryStore = (): Store => {
   const _events: CommittedEvent<string, Payload>[] = [];
+
+  /**
+   * !!! IMPORTANT !!!
+   * In memory store is used only for unit testing systems
+   * The entire system is configured in memory and all event handlers are automatically subscribed to a single channel
+   * Committed events are automatically published to all policies that are able to handle the events
+   * A broker service should manage subscriptions when using a database as the store or in a distributed deployment
+   * @param committed the committed events
+   */
+  const _notify = async (
+    committed: CommittedEvent<string, Payload>[]
+  ): Promise<void> => {
+    for (const event of committed) {
+      const msg = app().messages[event.name];
+      await Promise.all(
+        Object.values(msg.eventHandlerFactories).map((factory) =>
+          app().event(factory, event as any)
+        )
+      );
+    }
+  };
 
   return {
     init: (): Promise<void> => {
@@ -25,7 +47,7 @@ export const InMemoryStore = (): Store => {
     query: (
       callback: (event: CommittedEvent<string, Payload>) => void,
       query?: AllQuery
-    ): Promise<void> => {
+    ): Promise<number> => {
       const {
         stream,
         names,
@@ -47,7 +69,7 @@ export const InMemoryStore = (): Store => {
         callback(e);
         if (limit && ++count >= limit) break;
       }
-      return Promise.resolve();
+      return Promise.resolve(count);
     },
 
     commit: async (
@@ -55,7 +77,7 @@ export const InMemoryStore = (): Store => {
       events: Message<string, Payload>[],
       metadata: CommittedEventMetadata,
       expectedVersion?: number,
-      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+      notify?: boolean
     ): Promise<CommittedEvent<string, Payload>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
@@ -76,9 +98,7 @@ export const InMemoryStore = (): Store => {
         version++;
         return committed;
       });
-
-      callback && (await callback(committed));
-
+      notify && (await _notify(committed));
       return committed;
     },
 

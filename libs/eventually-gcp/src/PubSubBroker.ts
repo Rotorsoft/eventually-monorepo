@@ -1,14 +1,41 @@
 import { PubSub, Topic as GcpTopic } from "@google-cloud/pubsub";
-import {
-  Broker,
-  CommittedEvent,
-  log,
-  Payload,
-  Topic
-} from "@rotorsoft/eventually";
+import { CommittedEvent, log, Payload } from "@rotorsoft/eventually";
 import { config } from "./config";
 
-type Message = {
+export interface Broker {
+  /**
+   * Subscribes url to topic
+   * @param name the subscription name
+   * @param url the url
+   * @param topic the topic
+   */
+  subscribe(name: string, url: string, topic: Topic): Promise<void>;
+
+  /**
+   * Publishes event to topic
+   * @param event committed event
+   * @param topic the topic
+   * @returns the message id
+   */
+  publish: (
+    event: CommittedEvent<string, Payload>,
+    topic: Topic
+  ) => Promise<string>;
+
+  /**
+   * Decodes pushed messages
+   * @param msg pushed message
+   * @returns committed event in payload
+   */
+  decode: (msg: Payload) => CommittedEvent<string, Payload>;
+}
+
+export type Topic = {
+  name: string;
+  orderingKey?: string;
+};
+
+export type Message = {
   message: {
     data: string;
     messageId: string;

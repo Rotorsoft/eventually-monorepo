@@ -7,33 +7,11 @@ import { SnapshotStore } from ".";
 export type Payload = Record<string, unknown>;
 
 /**
- * Message scopes can be
- * - `public` to expose public endpoints (HTTP command and event handlers), and publish events to brokers for async communication - **default**
- * - `private` to connect messages synchronously (in-process)
- */
-export enum Scopes {
-  private = "private",
-  public = "public"
-}
-
-/**
- * Topics to pub/sub public messages
- */
-export type Topic = {
-  name: string;
-  orderingKey?: string;
-};
-
-/**
  * Message options
- * - `scope` public or private
  * - `schema?` Optional validation schema
- * - `topic?` Optional pub/sub topic options
  */
 export type Options<Type extends Payload> = {
-  scope: Scopes;
   schema?: joi.ObjectSchema<Type>;
-  topic?: Topic;
 };
 
 /**
@@ -54,6 +32,23 @@ export type Message<Name extends string, Type extends Payload> = {
 export type Actor = {
   name: string;
   roles: string[];
+};
+
+/**
+ * Subscriptions connect enpoints to streaming channels using pattern matching rules
+ * - `channel` The name of the channel is the main "all" stream to subscribe to
+ * - `endpoint` The endpoint to push events to - TODO protocols, defaults to http POST
+ * - `match` Pattern matching regex rules
+ *    - streams: to filter by substreams (aggregates, systems, process managers)
+ *    - names: to filter by event names
+ */
+export type Subscription = {
+  channel: string;
+  match: {
+    streams: string;
+    names: string;
+  };
+  endpoint: string;
 };
 
 /**

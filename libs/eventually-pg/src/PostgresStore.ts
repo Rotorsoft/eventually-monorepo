@@ -91,7 +91,7 @@ export const PostgresStore = (table: string): Store => {
     query: async (
       callback: (event: CommittedEvent<string, Payload>) => void,
       query?: AllQuery
-    ): Promise<void> => {
+    ): Promise<number> => {
       const {
         stream,
         names,
@@ -130,17 +130,17 @@ export const PostgresStore = (table: string): Store => {
         sql = sql.concat(` LIMIT $${values.length}`);
       }
 
-      (await pool.query<Event>(sql, values)).rows.map((e) =>
-        callback(e as CommittedEvent<string, Payload>)
-      );
+      const result = await pool.query<Event>(sql, values);
+      result.rows.map((e) => callback(e as CommittedEvent<string, Payload>));
+
+      return result.rowCount;
     },
 
     commit: async (
       stream: string,
       events: Message<string, Payload>[],
       metadata: CommittedEventMetadata,
-      expectedVersion?: number,
-      callback?: (events: CommittedEvent<string, Payload>[]) => Promise<void>
+      expectedVersion?: number
     ): Promise<CommittedEvent<string, Payload>[]> => {
       const client = await pool.connect();
       let version = -1;
@@ -166,12 +166,17 @@ export const PostgresStore = (table: string): Store => {
           })
         );
 
-        callback && (await callback(committed));
-
-        await client.query("COMMIT").catch((error) => {
-          log().error(error);
-          throw new ConcurrencyError(version, events, expectedVersion);
-        });
+        await client
+          .query(
+            `
+            NOTIFY ${table}, '${JSON.stringify(committed[0])}';
+            COMMIT;
+            `
+          )
+          .catch((error) => {
+            log().error(error);
+            throw new ConcurrencyError(version, events, expectedVersion);
+          });
         return committed;
       } catch (error) {
         log().error(error);

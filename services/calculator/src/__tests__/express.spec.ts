@@ -9,7 +9,6 @@ import {
   get,
   load,
   read,
-  sleep,
   stream
 } from "@rotorsoft/eventually-test";
 import { Chance } from "chance";
@@ -31,8 +30,6 @@ app(expressApp)
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
-  .withPrivate<Commands>("Whatever")
-  .withPrivate<Events>("OperatorPressed")
   .withCommandHandlers(Calculator)
   .withEventHandlers(StatelessCounter)
   .build([GcpGatewayMiddleware]);
@@ -169,19 +166,12 @@ describe("express app", () => {
       const id = chance.guid();
 
       await reset(id);
-      await sleep(100);
       await pressKey(id, "+");
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
       await pressKey(id, ".");
-      await sleep(100);
       await pressKey(id, "3");
-      await sleep(100);
 
       const { state } = await load(Calculator, id);
       expect(state).toEqual({ result: 0 });
@@ -237,10 +227,8 @@ describe("express app", () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
       created_after = new Date();
-      await sleep(100);
       await pressKey(id, "2");
       await pressKey(id, ".");
-      await sleep(100);
       created_before = new Date();
       await pressKey(id, "3");
       await pressKey(id, "=");
