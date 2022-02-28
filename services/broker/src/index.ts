@@ -1,41 +1,38 @@
-import cluster from "cluster";
-import { cpus } from "os";
-import { work } from "./pg-listener";
 import { log, Subscription } from "@rotorsoft/eventually";
+import { PostgresStreamListener } from "@rotorsoft/eventually-pg";
+import cluster from "cluster";
+import * as fs from "fs";
+import { cpus } from "os";
+import { pump } from "./pump";
+import { Channels } from "./types";
 
-// TODO get this from config
-const subscriptions: Subscription[] = [
-  {
-    channel: "calculator",
-    match: {
-      streams: "^Calculator-.+$",
-      names: "^DigitPressed|DotPressed|EqualsPressed$"
-    },
-    endpoint: `http://localhost:3000/counter`
-  },
-  {
-    channel: "calculator",
-    match: {
-      streams: "^Calculator-.+$",
-      names: "^DigitPressed|DotPressed|EqualsPressed$"
-    },
-    endpoint: `http://localhost:3000/stateless-counter`
-  }
-];
+const getChannels = (): Channels => {
+  const channels = fs.readFileSync("./channels.json");
+  return JSON.parse(channels.toString()) as unknown as Channels;
+};
 
-if (cluster.isWorker) void work();
-else {
+if (cluster.isWorker) {
+  const sub: Subscription = JSON.parse(
+    process.env.SUBSCRIPTION
+  ) as Subscription;
+  // TODO config other listeners
+  if (sub) void PostgresStreamListener(sub, pump);
+} else {
   const cores = cpus().length;
-  const subs: Record<number, Subscription> = {};
+  const workers: Record<number, Subscription> = {};
 
   log().info("green", `Broker started with ${cores} cores`);
-  for (const sub of subscriptions) {
-    const worker = cluster.fork({ SUBSCRIPTION: JSON.stringify(sub) });
-    subs[worker.id] = sub;
-  }
+  const channels = getChannels();
+  Object.entries(channels).map(([name, channel]) => {
+    channel.subscriptions.map((sub) => {
+      sub.channel = name;
+      const worker = cluster.fork({ SUBSCRIPTION: JSON.stringify(sub) });
+      workers[worker.id] = sub;
+    });
+  });
   cluster.on("exit", (worker, code, signal) => {
-    const sub = subs[worker.id];
-    delete subs[worker.id];
+    const sub = workers[worker.id];
+    delete workers[worker.id];
     if (signal) {
       log().info(
         "red",
@@ -47,7 +44,7 @@ else {
         `Worker ${worker.process.pid} exited with error code: ${code}. Reloading...`
       );
       const new_worker = cluster.fork({ SUBSCRIPTION: JSON.stringify(sub) });
-      subs[new_worker.id] = sub;
+      workers[new_worker.id] = sub;
     }
   });
 }

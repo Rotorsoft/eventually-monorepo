@@ -52,6 +52,25 @@ export type Subscription = {
 };
 
 /**
+ * Subscription callback signature triggered by commits to event streams
+ */
+export type TriggerCallback = (
+  trigger: CommittedEvent<string, Payload>,
+  channel: string,
+  endpoint: string,
+  streams: RegExp,
+  names: RegExp
+) => Promise<void>;
+
+/**
+ * Stream listeners listen for stream notifications to trigger integrations
+ */
+export type StreamListener = (
+  subscription: Subscription,
+  callback: TriggerCallback
+) => Promise<void>;
+
+/**
  * Commands are messages with optional target arguments
  * - `id?` Target aggregate id
  * - `expectedVersion?` Target aggregate expected version

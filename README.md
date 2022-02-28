@@ -4,17 +4,15 @@
 ![CodeQL Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master)
 
-Reactive TypeScript Micro-Service Framework
+> *This is the entry point to the **Eventually Monorepo** and related documentation. Follow ![Eventually Framework](./libs/eventually/README.md) for framework details.*
 
-- Yarn 2 monorepo with workspaces and TS project references
-- `/libs` - with frameworks and shared libraries
-- `/services` - with micro services
+Eventually Micro-Services Monorepo is based on Yarn2 monorepos and TypeScript project references:
 
-A `/services/calculator` sample service is provided as a template. We recommend using a similar project structure for consistency.
+- `/libs` - framework and shared libraries
+- `/services` - micro services
 
-Our recipe starts from an Event Storming Model. First, aggregate models, messages, and validation schemas, then aggregates and policies.
-
-Follow TDD practices and aim for 100% code coverage.
+`./services/calculator` is provided as a sample service template. We recommend using a similar project structure for consistency and building from
+an "Event Storming Model" as the starting point.
 
 ```bash
 ./src
@@ -30,17 +28,19 @@ Follow TDD practices and aim for 100% code coverage.
   index.ts
 ```
 
-The pictures below show the event storming model of the calculator service and how we transfer this model into a standard project structure:
+## Calculator Event Storming Model
 
 ![Calculator Model](./assets/calculator.png)
 
+## Calculator Service Project Structure
+
 ![Microservice Structure](./assets/microservice.png)
 
-## Setup
+## Project Setup
 
-Full installation and configuration details can be found [here](https://yarnpkg.com/getting-started)
+Full Yarn2 installation and configuration details can be found [here](https://yarnpkg.com/getting-started)
 
-### Installing Yarn
+### Installing Yarn 2
 
 ```bash
 > npm install -g yarn
@@ -48,7 +48,7 @@ Full installation and configuration details can be found [here](https://yarnpkg.
 > yarn set version berry
 ```
 
-### Using Yarn
+### Using Yarn 2
 
 ```bash
 > yarn --version
@@ -143,7 +143,7 @@ yarnPath: .yarn/releases/yarn-berry.cjs
 
 ### Configuring the Monorepo
 
-- Follow structure of base `package.json`. _Pay attention to "repository" and "workspaces"_
+- Follow structure of base `package.json`. *Pay attention to "repository" and "workspaces"*
 - Internal packages follow standard format, but you can reference other monorepo packages using `workspace:...` prefix like this `"@rotorsoft/eventually": "workspace:^1.0.0"`
 - Follow structure of base `tsconfig.json`. **Update references as you add/remove packages and dependencies**
 - Internal packages inherit from common `tsconfig.base.json`, adding their own `composite` settings like below:
@@ -274,11 +274,11 @@ Add the service entry point `./src/index.ts`
 Write a basic `index.ts` bootstrapping to make sure everything is connected
 
 ```typescript
-import { App } from "@rotorsoft/eventually";
+import { app } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 
-App(new ExpressApp()).build();
-void App().listen();
+app(new ExpressApp()).build();
+void app().listen();
 ```
 
 And finally, run a smoke test
@@ -385,17 +385,6 @@ app(new ExpressApp())
     Account3Created: schemas.Account3Created,
     IntegrationCompleted: schemas.IntegrationCompleted
   })
-  .withPrivate<commands.Commands>(
-    "CreateAccount1",
-    "CreateAccount2",
-    "CreateAccount3",
-    "CompleteIntegration"
-  )
-  .withPrivate<events.Events>(
-    "Account1Created",
-    "Account2Created",
-    "Account3Created"
-  )
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,

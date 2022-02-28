@@ -936,10 +936,7 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^3.2.14"
     "@rotorsoft/eventually-pg": "workspace:^3.2.9"
     "@types/node": ^17.0.21
-    "@types/pg": ^8
     axios: ^0.26.0
-    pg: ^8.7.3
-    pg-listen: ^1.7.0
     ts-node-dev: ^1.1.8
     tsconfig-paths: ^3.12.0
     typescript: ^4.4.3
@@ -1022,6 +1019,7 @@ __metadata:
     chance: ^1.1.8
     joi: ^17.4.2
     pg: ^8.7.1
+    pg-listen: ^1.7.0
   languageName: unknown
   linkType: soft
 
@@ -5248,15 +5246,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-pool@npm:^3.5.1":
-  version: 3.5.1
-  resolution: "pg-pool@npm:3.5.1"
-  peerDependencies:
-    pg: ">=8.0"
-  checksum: 42833c25f18fee41a1b2d955978f1403e93164762a7e57d3a870429103d302f1899b393ab021bb8144272037eb3f13bdb9f16a4c4afaa3efd3d2c3689738038f
-  languageName: node
-  linkType: hard
-
 "pg-protocol@npm:*, pg-protocol@npm:^1.5.0":
   version: 1.5.0
   resolution: "pg-protocol@npm:1.5.0"
@@ -5294,26 +5283,6 @@ __metadata:
     pg-native:
       optional: true
   checksum: 3a17d9a73df9c9f5f99400751144f9d5e8dbe1948ca44f5b5eecb2166ad78cab36d070c2a97438cd3a5d1d083e70af1d3e0aad4554a45fe74b77d98ed4487242
-  languageName: node
-  linkType: hard
-
-"pg@npm:^8.7.3":
-  version: 8.7.3
-  resolution: "pg@npm:8.7.3"
-  dependencies:
-    buffer-writer: 2.0.0
-    packet-reader: 1.0.0
-    pg-connection-string: ^2.5.0
-    pg-pool: ^3.5.1
-    pg-protocol: ^1.5.0
-    pg-types: ^2.1.0
-    pgpass: 1.x
-  peerDependencies:
-    pg-native: ">=2.0.0"
-  peerDependenciesMeta:
-    pg-native:
-      optional: true
-  checksum: d0e7040967779b9ccea16897f099510bcaf6bc86f77a6d8fa7e293c24d8bd2fd2ec46d99d6d1adc9be4cc8f254aa909361346b693088c1ba4501414f7afb2fe3
   languageName: node
   linkType: hard
 

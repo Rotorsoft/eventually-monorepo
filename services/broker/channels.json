@@ -1,0 +1,20 @@
+{
+  "calculator": {
+    "subscriptions": [
+      {
+        "endpoint": "http://localhost:3000/counter",
+        "match": {
+          "streams": "^Calculator-.+$",
+          "names": "^DigitPressed|DotPressed|EqualsPressed$"
+        }
+      },
+      {
+        "endpoint": "http://localhost:3000/stateless-counter",
+        "match": {
+          "streams": "^Calculator-.+$",
+          "names": "^DigitPressed|DotPressed|EqualsPressed$"
+        }
+      }
+    ]
+  }
+}

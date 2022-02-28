@@ -21,7 +21,8 @@
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^3.2.14",
     "joi": "^17.4.2",
-    "pg": "^8.7.1"
+    "pg": "^8.7.1",
+    "pg-listen": "^1.7.0"
   },
   "devDependencies": {
     "@types/chance": "^1",

@@ -1,4 +1,10 @@
-import { CommittedEvent, log, Payload, store } from "@rotorsoft/eventually";
+import {
+  CommittedEvent,
+  log,
+  Payload,
+  store,
+  TriggerCallback
+} from "@rotorsoft/eventually";
 import axios from "axios";
 
 const BATCH_SIZE = 100;
@@ -9,6 +15,16 @@ type Response = {
   status: number;
   statusText: string;
 };
+
+type Stats = {
+  trigger: { id: number; name: string };
+  after: number;
+  last: number;
+  batches: number;
+  total: number;
+  events: Record<string, { count: number; response: Record<number, number> }>;
+};
+
 const post = async (
   event: CommittedEvent<string, Payload>,
   endpoint: string,
@@ -23,16 +39,15 @@ const post = async (
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const { status, statusText } = error.response;
-        // TODO retry logic on connection errors (400 range?)
-        // TODO make this an option of the subscription?
-        if (status === 409) return { status, statusText }; // ignore concurrency errors
+        return { status, statusText };
       } else {
         log().error(error);
-        return { status: 500, statusText: error.message };
+        // TODO: check network errors to return 503 or 500
+        return { status: 503, statusText: error.message };
       }
     }
   }
-  return { status: 404, statusText: "Not Matched" };
+  return { status: 204, statusText: "Not Matched" };
 };
 
 /**
@@ -43,7 +58,7 @@ const post = async (
  * @param streams streams regex to match
  * @param names names regex to match
  */
-export const pump = async (
+export const pump: TriggerCallback = async (
   trigger: CommittedEvent<string, Payload>,
   channel: string,
   endpoint: string,
@@ -51,14 +66,7 @@ export const pump = async (
   names: RegExp
 ): Promise<void> => {
   let count = BATCH_SIZE;
-  const stats: {
-    trigger: { id: number; name: string };
-    after: number;
-    last: number;
-    batches: number;
-    total: number;
-    events: Record<string, { count: number; response: Record<number, number> }>;
-  } = {
+  const stats: Stats = {
     trigger: { id: trigger.id, name: trigger.name },
     after: watermark,
     last: watermark,
@@ -75,15 +83,27 @@ export const pump = async (
     });
     for (const e of events) {
       const response = await post(e, endpoint, streams, names);
+      const { status } = response;
+
       stats.total++;
       const event = (stats.events[e.name] = stats.events[e.name] || {
         count: 0,
         response: {}
       });
       event.count++;
-      event.response[response.status] =
-        (event.response[response.status] || 0) + 1;
-      if (response.status >= 500) break;
+      event.response[status] = (event.response[status] || 0) + 1;
+
+      if ([429, 503, 504].includes(status)) {
+        // TODO: handle retries - how to trigger again with backoff
+        // 429 - Too Many Requests
+        // 503 - Service Unavailable
+        // 504 - Gateway Timeout
+        break;
+      } else if (status === 409) {
+        // concurrency error - ignore by default - TODO: by sub config?
+      } else if (![200, 204].includes(status)) break; // break on errors
+
+      // update watermark
       watermark = stats.last = e.id;
     }
   }
