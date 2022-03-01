@@ -4,15 +4,14 @@
 ![CodeQL Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master)
 
-> *This is the entry point to the **Eventually Monorepo** and related documentation. Follow ![Eventually Framework](./libs/eventually/README.md) for framework details.*
+> This is the entry point to **Eventually Monorepo** and project related documentation. ![Eventually Framework](./libs/eventually/README.md) describes framework details.
 
-Eventually Micro-Services Monorepo is based on Yarn2 monorepos and TypeScript project references:
+This project is based on Yarn2 monorepos and TypeScript project references:
 
 - `/libs` - framework and shared libraries
 - `/services` - micro services
 
-`./services/calculator` is provided as a sample service template. We recommend using a similar project structure for consistency and building from
-an "Event Storming Model" as the starting point.
+`./services/calculator` is provided as a sample service template. We recommend using a similar project structure for consistency.
 
 ```bash
 ./src

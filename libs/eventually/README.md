@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
-This project aims at exploring practical ideas around building reactive microservices. Our goal is to provide a simple recipe grounded on well known methodologies, patterns, and tools.
+This project aims at exploring practical ideas around building reactive microservices. Our goal is to provide a simple recipe for general business applications grounded on well known methodologies, patterns, and tools. Here we will test these old concepts and make some assumptions based on our own experiences with real systems, but be aware this in no way tries to cover all possible use cases.
 
 ## Methodologies, Patterns, and Tools
 
@@ -79,27 +79,28 @@ From a technical perspective, reactive microservices encapsulate a small number 
     </tr>
 </table>
 
-> `Aggregates` define the consistency boundaries of business entities while `Process Managers` can expand those boundaries across many aggregates or systems.
+> - `Aggregates` define the consistency boundaries of business entities
+> - `Process Managers` can expand those boundaries across many aggregates or systems
 
 ## Composing complex systems from small reactive micro-services
 
-The biggest question we usually face when implementing real micro-service based systems is "how to move information among services?". There are several well-known integration patterns available but in general we can divide services into "producers" and "consumers" of information. Producers are "upstream" of consumers (or consumers are "downstream" of producers). Since services are separated by network boundaries, this information gets transferred via network "messages" and there are two basic ways to accomplish this - "synchronously" or "asynchronously".
+The biggest question we usually face when implementing real micro-service based systems is "how to move information around services?". There are several well-known integration patterns available but in general we can divide services into "producers" and "consumers" of information. Producers are "upstream" of consumers (or consumers "downstream" of producers). Since services are separated by network boundaries, this information gets transferred via network "messages" and there are basically two ways to accomplish this - "synchronously" or "asynchronously".
 
-As system architects we need to decide how information flows from service to service in order to accomplish a specific business goal. We need to understand the tradeoffs when choosing synchronous vs. asynchronous messaging as well as consider message contracts and what happens when these change over time. There are no right or wrong answers here but we will try to provide some basic rules based on simple conventions and practical principles.
+As system architects we need to decide how information flows from service to service in order to accomplish a specific business goal. We need to understand the tradeoffs when choosing synchronous vs. asynchronous messaging styles as well as consider message contracts and what happens when these change over time. There are no right or wrong answers here but we will try to provide some basic rules based on simple conventions and practical principles.
 
 - There are only two types of messages (according to DDD)
   - **Commands**: Imperative actions invoked by human or machine actors. Can be rejected when business invariants are not met
   - **Events**: Represent interesting "things" that already happened in the system (named in past tense). Used to communicate these "things" to the rest of the system
 - Commands are synchronous (request/reply patterns) and Events asynchronous (pub/sub patterns)
 - Events are transferred by message brokers with `at-least-once` delivery guarantees. Events are expected to be eventually consumed by downstream services "subscribed" to event streams.
-- Producers and Consumers don't need to know about each other (fully decoupled system). A broker service will sit at a higher abstraction level to deal with channel subscriptions and communications.
-- We use "Event Sourcing" to persist all events produced by producer services as streams.
+- Producers and Consumers don't need to know about each other (in a fully decoupled system). A broker service will sit at a higher abstraction level to deal with channel subscriptions and communications.
+- We use "Event Sourcing" to persist all produced events as consumable streams.
 - Asynchronous business flows can be designed by connecting consumers with producers via event subscriptions
 - Synchronous flows are also possible (querying read only projections are a common use case) but not recommended in general
 
 ### Integration Patterns
 
-![Service Patterns](./assets/patterns.jpg)
+![Service Patterns](./assets/patterns.png)
 
 ## Routing conventions (using REST protocol by default)
 
