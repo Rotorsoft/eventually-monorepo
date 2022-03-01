@@ -1,6 +1,8 @@
-import { CommittedEvent, Payload, Message, bind } from "@rotorsoft/eventually";
+import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { Chance } from "chance";
-import { PostgresStore } from "..";
+import { Pool } from "pg";
+import { PostgresStore, config } from "..";
+import { event, sleep } from "./utils";
 
 const table = "test";
 
@@ -13,22 +15,12 @@ const a3 = chance.guid();
 let created_before: Date;
 let created_after: Date;
 
-type E = {
-  test1: { value: string };
-  test2: { value: string };
-  test3: { value: string };
-};
-
-const event = (
-  name: keyof E,
-  data?: Payload
-): Message<keyof E & string, Payload> => bind(name, data);
-
-const sleep = (millis: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, millis));
-
 describe("PostgresStore", () => {
+  let pool: Pool;
+
   beforeAll(async () => {
+    pool = new Pool(config.pg);
+    await pool.query(`DROP TABLE IF EXISTS ${table};`);
     await db.init();
     await db.init();
     await db.commit(a1, [event("test1", { value: "1" })], {
@@ -36,7 +28,7 @@ describe("PostgresStore", () => {
       causation: {}
     });
     created_after = new Date();
-    await sleep(100);
+    await sleep(1000);
 
     await db.commit(a1, [event("test1", { value: "2" })], {
       correlation: "",
@@ -56,9 +48,9 @@ describe("PostgresStore", () => {
       causation: {}
     });
 
-    await sleep(100);
+    await sleep(1000);
     created_before = new Date();
-    await sleep(100);
+    await sleep(1000);
 
     await db.commit(
       a1,
@@ -73,6 +65,7 @@ describe("PostgresStore", () => {
   });
 
   afterAll(async () => {
+    await pool.end();
     await db.close();
     await db.close();
   });

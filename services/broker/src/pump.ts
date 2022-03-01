@@ -16,12 +16,10 @@ type Response = {
 };
 
 type Stats = {
-  trigger: { position: number; reason: "commit" | "retry" };
   after: number;
-  last: number;
   batches: number;
   total: number;
-  events: Record<string, { count: number; response: Record<number, number> }>;
+  events: Record<string, Record<number, number>>;
 };
 
 const post = async (
@@ -63,9 +61,7 @@ export const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
 
   let count = BATCH_SIZE;
   const stats: Stats = {
-    trigger,
     after: sub.position,
-    last: sub.position,
     batches: 0,
     total: 0,
     events: {}
@@ -82,12 +78,8 @@ export const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
       const { status } = response;
 
       stats.total++;
-      const event = (stats.events[e.name] = stats.events[e.name] || {
-        count: 0,
-        response: {}
-      });
-      event.count++;
-      event.response[status] = (event.response[status] || 0) + 1;
+      const event = (stats.events[e.name] = stats.events[e.name] || {});
+      event[status] = (event[status] || 0) + 1;
 
       if ([429, 503, 504].includes(status)) {
         // TODO: handle retries - how to trigger again with backoff
@@ -96,18 +88,19 @@ export const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
         // 504 - Gateway Timeout
         break;
       } else if (status === 409) {
-        // concurrency error - ignore by default - TODO: by sub config?
+        // concurrency error - ignore by default
+        // TODO: make this configurable by subscription?
       } else if (![200, 204].includes(status)) break; // break on errors
 
       // update position
       await subscriptions().commit(sub.id, e.id);
-      sub.position = stats.last = e.id;
+      sub.position = e.id;
     }
   }
   log().info(
     "blue",
-    sub.id,
-    `${sub.channel} -> ${sub.endpoint}`,
-    JSON.stringify(stats)
+    `[${process.pid}] pump ${sub.id}`,
+    `${trigger.reason}@${trigger.position} after=${stats.after} total=${stats.total} batches=${stats.batches}`,
+    stats.events
   );
 };
