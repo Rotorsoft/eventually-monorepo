@@ -8,7 +8,6 @@ import {
   getReducible,
   log,
   messagesOf,
-  Options,
   Payload,
   Reducible,
   Snapshot
@@ -45,7 +44,7 @@ export type Endpoints = {
 
 export type MessageMetadata = {
   name: string;
-  options: Options<Payload>;
+  schema?: Joi.ObjectSchema<Payload>;
   commandHandlerFactory?: CommandHandlerFactory<Payload, unknown, unknown>;
   eventHandlerFactories: Record<
     string,
@@ -72,7 +71,6 @@ export class Builder {
   private _msg(name: string): MessageMetadata {
     return (this.messages[name] = this.messages[name] || {
       name,
-      options: {},
       eventHandlerFactories: {}
     });
   }
@@ -83,7 +81,7 @@ export class Builder {
    */
   withSchemas<M>(schemas: Schemas<M>): this {
     Object.entries(schemas).map(([key, value]): void => {
-      this._msg(key).options.schema = value as any;
+      this._msg(key).schema = value as any;
     });
     return this;
   }

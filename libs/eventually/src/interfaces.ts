@@ -1,3 +1,4 @@
+import { Subscription } from ".";
 import {
   AllQuery,
   CommittedEvent,
@@ -80,4 +81,28 @@ export interface SnapshotStore {
     stream: string,
     data: Snapshot<M>
   ) => Promise<void>;
+}
+
+export interface SubscriptionStore {
+  /**
+   * Store initializer
+   */
+  init: () => Promise<void>;
+
+  /**
+   * Store closer
+   */
+  close: () => Promise<void>;
+
+  /**
+   * Loads subscriptions from store
+   */
+  load: () => Promise<Subscription[]>;
+
+  /**
+   * Commits a new position
+   * @param id subscription id
+   * @param position new position
+   */
+  commit: (id: string, position: number) => Promise<void>;
 }

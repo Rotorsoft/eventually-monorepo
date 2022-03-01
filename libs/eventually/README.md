@@ -119,3 +119,8 @@ Message handlers are routed by convention. Getters provide the current state of 
 We group unit tests inside `__tests__` folders. Tests should mainly focus on testing business logic and follow this basic pattern:
 
 - `given` [messages] `when` [message] `expect` [state]
+
+## Version 3 Breaking Changes
+
+- Removed messages scopes (public/private) and `.withPrivate` builder option. TODO - reasons
+- Decoupled `broker` from framework and removed `.withTopic` from builder. **Services should be agnostic of system integrations**. A new `./services/broker` service was added as an implementation template for this higher level responsibility.

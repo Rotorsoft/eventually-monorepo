@@ -1,5 +1,5 @@
 import { Builder } from "./builder";
-import { Store } from "./interfaces";
+import { Store, SubscriptionStore } from "./interfaces";
 import { log } from "./log";
 import { singleton } from "./singleton";
 import {
@@ -23,10 +23,16 @@ import {
   randomId,
   ValidationError
 } from "./utils";
-import { InMemoryStore } from "./__dev__";
+import { InMemoryStore, InMemorySubscriptionStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
+});
+
+export const subscriptions = singleton(function subscriptions(
+  store?: SubscriptionStore
+) {
+  return store || InMemorySubscriptionStore();
 });
 
 interface Reader {
@@ -50,9 +56,10 @@ export abstract class AppBase extends Builder implements Reader {
         `Message metadata not found. Please register "${message.name}" with the application builder`
       );
 
-    const schema = metadata.options.schema;
-    if (schema) {
-      const { error } = schema.validate(message.data, { abortEarly: false });
+    if (metadata.schema) {
+      const { error } = metadata.schema.validate(message.data, {
+        abortEarly: false
+      });
       if (error) throw new ValidationError(error);
     }
   }

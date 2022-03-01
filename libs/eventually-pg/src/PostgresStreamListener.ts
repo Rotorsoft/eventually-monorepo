@@ -13,8 +13,6 @@ export const PostgresStreamListener = async (
   callback: TriggerCallback
 ): Promise<void> => {
   let pumping = false;
-  const streams = RegExp(sub.match.streams);
-  const names = RegExp(sub.match.names);
 
   store(PostgresStore(sub.channel));
   await store().init();
@@ -23,7 +21,7 @@ export const PostgresStreamListener = async (
   process.on("exit", () => {
     log().info(
       "red",
-      `exit ${process.pid}`,
+      `[${process.pid}] exit ${sub.id}`,
       `${sub.channel} -> ${sub.endpoint}`
     );
     void subscriber.close();
@@ -38,7 +36,7 @@ export const PostgresStreamListener = async (
   subscriber.notifications.on(sub.channel, async (event): Promise<void> => {
     if (!pumping) {
       pumping = true;
-      await callback(event, sub.channel, sub.endpoint, streams, names);
+      await callback({ position: event.id, reason: "commit" }, sub);
       pumping = false;
     }
   });
@@ -47,7 +45,7 @@ export const PostgresStreamListener = async (
     await subscriber.listenTo(sub.channel);
     log().info(
       "green",
-      `connect ${process.pid}`,
+      `[${process.pid}] connect ${sub.id}`,
       `${sub.channel} -> ${sub.endpoint}`
     );
   });

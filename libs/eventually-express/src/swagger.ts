@@ -31,8 +31,7 @@ const getSecurity = (): Security => {
 export const swagger = (app: Builder): any => {
   const getSchemas = (): void => {
     Object.entries(app.messages).map(
-      ([name, { options, commandHandlerFactory }]) => {
-        const schema = options.schema;
+      ([name, { schema, commandHandlerFactory }]) => {
         if (commandHandlerFactory) {
           components.schemas[name] = schema
             ? j2s(schema).swagger

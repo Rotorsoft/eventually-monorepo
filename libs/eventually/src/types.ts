@@ -7,14 +7,6 @@ import { SnapshotStore } from ".";
 export type Payload = Record<string, unknown>;
 
 /**
- * Message options
- * - `schema?` Optional validation schema
- */
-export type Options<Type extends Payload> = {
-  schema?: joi.ObjectSchema<Type>;
-};
-
-/**
  * Messages have
  * - `name` Bound message name
  * - `data?` Optional payload
@@ -36,30 +28,29 @@ export type Actor = {
 
 /**
  * Subscriptions connect enpoints to streaming channels using pattern matching rules
- * - `channel` The name of the channel is the main "all" stream to subscribe to
+ * - `id` The subscription unique id
+ * - `channel` The name of the channel - main "all" stream to subscribe to
  * - `endpoint` The endpoint to push events to - TODO protocols, defaults to http POST
- * - `match` Pattern matching regex rules
- *    - streams: to filter by substreams (aggregates, systems, process managers)
- *    - names: to filter by event names
+ * - `streams`: regex rules to filter by substreams (aggregates, systems, process managers)
+ * - `names`: regex rules to filter by event names
+ * - `position?` The position in the stream - last acked id
  */
 export type Subscription = {
+  id: string;
+  active: boolean;
   channel: string;
-  match: {
-    streams: string;
-    names: string;
-  };
+  streams: string;
+  names: string;
   endpoint: string;
+  position?: number;
 };
 
 /**
- * Subscription callback signature triggered by commits to event streams
+ * Subscription callback signature triggered by commits to event streams or retries
  */
 export type TriggerCallback = (
-  trigger: CommittedEvent<string, Payload>,
-  channel: string,
-  endpoint: string,
-  streams: RegExp,
-  names: RegExp
+  trigger: { position: number; reason: "commit" | "retry" },
+  subscription: Subscription
 ) => Promise<void>;
 
 /**

@@ -3,13 +3,12 @@ import {
   log,
   Payload,
   store,
+  subscriptions,
   TriggerCallback
 } from "@rotorsoft/eventually";
 import axios from "axios";
 
 const BATCH_SIZE = 100;
-// TODO store watermarks in db (redis?)
-let watermark = -1;
 
 type Response = {
   status: number;
@@ -17,7 +16,7 @@ type Response = {
 };
 
 type Stats = {
-  trigger: { id: number; name: string };
+  trigger: { position: number; reason: "commit" | "retry" };
   after: number;
   last: number;
   batches: number;
@@ -58,18 +57,15 @@ const post = async (
  * @param streams streams regex to match
  * @param names names regex to match
  */
-export const pump: TriggerCallback = async (
-  trigger: CommittedEvent<string, Payload>,
-  channel: string,
-  endpoint: string,
-  streams: RegExp,
-  names: RegExp
-): Promise<void> => {
+export const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
+  const streams = RegExp(sub.streams);
+  const names = RegExp(sub.names);
+
   let count = BATCH_SIZE;
   const stats: Stats = {
-    trigger: { id: trigger.id, name: trigger.name },
-    after: watermark,
-    last: watermark,
+    trigger,
+    after: sub.position,
+    last: sub.position,
     batches: 0,
     total: 0,
     events: {}
@@ -78,11 +74,11 @@ export const pump: TriggerCallback = async (
     stats.batches++;
     const events: CommittedEvent<string, Payload>[] = [];
     count = await store().query((e) => events.push(e), {
-      after: watermark,
+      after: sub.position,
       limit: BATCH_SIZE
     });
     for (const e of events) {
-      const response = await post(e, endpoint, streams, names);
+      const response = await post(e, sub.endpoint, streams, names);
       const { status } = response;
 
       stats.total++;
@@ -103,9 +99,15 @@ export const pump: TriggerCallback = async (
         // concurrency error - ignore by default - TODO: by sub config?
       } else if (![200, 204].includes(status)) break; // break on errors
 
-      // update watermark
-      watermark = stats.last = e.id;
+      // update position
+      await subscriptions().commit(sub.id, e.id);
+      sub.position = stats.last = e.id;
     }
   }
-  log().info("blue", `${channel} -> ${endpoint}`, JSON.stringify(stats));
+  log().info(
+    "blue",
+    sub.id,
+    `${sub.channel} -> ${sub.endpoint}`,
+    JSON.stringify(stats)
+  );
 };
