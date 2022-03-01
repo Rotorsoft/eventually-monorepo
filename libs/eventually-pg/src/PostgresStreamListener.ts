@@ -2,6 +2,7 @@ import {
   log,
   store,
   Subscription,
+  subscriptions,
   TriggerCallback
 } from "@rotorsoft/eventually";
 import createSubscriber from "pg-listen";
@@ -16,6 +17,7 @@ export const PostgresStreamListener = async (
 
   store(PostgresStore(sub.channel));
   await store().init();
+  await subscriptions().init();
   const subscriber = createSubscriber(config.pg);
 
   process.on("exit", () => {
@@ -26,6 +28,7 @@ export const PostgresStreamListener = async (
     );
     void subscriber.close();
     void store().close();
+    void subscriptions().close();
   });
 
   subscriber.events.on("error", (error) => {
@@ -46,7 +49,8 @@ export const PostgresStreamListener = async (
     log().info(
       "green",
       `[${process.pid}] connect ${sub.id}`,
-      `${sub.channel} -> ${sub.endpoint}`
+      `${sub.channel} -> ${sub.endpoint}`,
+      `@ ${sub.position}`
     );
   });
 };
