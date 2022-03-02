@@ -12,7 +12,7 @@ import { PostgresStore } from "./PostgresStore";
 export const PostgresStreamListener = async (
   sub: Subscription,
   callback: TriggerCallback
-): Promise<void> => {
+): Promise<() => Promise<void>> => {
   let pumping = false;
 
   store(PostgresStore(sub.channel));
@@ -20,15 +20,19 @@ export const PostgresStreamListener = async (
   await subscriptions().init();
   const subscriber = createSubscriber(config.pg);
 
-  process.on("exit", () => {
+  const close = async (): Promise<void> => {
+    await subscriber.close();
+    await subscriptions().close();
+    await store().close();
+  };
+
+  process.on("exit", async () => {
     log().info(
       "red",
       `[${process.pid}] exit ${sub.id}`,
       `${sub.channel} -> ${sub.endpoint}`
     );
-    void subscriber.close();
-    void store().close();
-    void subscriptions().close();
+    await close();
   });
 
   subscriber.events.on("error", (error) => {
@@ -53,4 +57,6 @@ export const PostgresStreamListener = async (
       `@ ${sub.position}`
     );
   });
+
+  return close;
 };

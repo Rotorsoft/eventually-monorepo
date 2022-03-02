@@ -24,27 +24,21 @@ type Stats = {
 
 const post = async (
   event: CommittedEvent<string, Payload>,
-  endpoint: string,
-  streams: RegExp,
-  names: RegExp
+  endpoint: string
 ): Promise<Response> => {
-  if (streams.test(event.stream) && names.test(event.name)) {
-    try {
-      const response = await axios.post(endpoint, event);
-      const { status, statusText } = response;
+  try {
+    const { status, statusText } = await axios.post(endpoint, event);
+    return { status, statusText };
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const { status, statusText } = error.response;
       return { status, statusText };
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const { status, statusText } = error.response;
-        return { status, statusText };
-      } else {
-        log().error(error);
-        // TODO: check network errors to return 503 or 500
-        return { status: 503, statusText: error.message };
-      }
+    } else {
+      log().error(error);
+      // TODO: check network errors to return 503 or 500
+      return { status: 503, statusText: error.message };
     }
   }
-  return { status: 204, statusText: "Not Matched" };
 };
 
 /**
@@ -74,7 +68,10 @@ export const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
       limit: BATCH_SIZE
     });
     for (const e of events) {
-      const response = await post(e, sub.endpoint, streams, names);
+      const response =
+        streams.test(e.stream) && names.test(e.name)
+          ? await post(e, sub.endpoint)
+          : { status: 204, statusText: "Not Matched" };
       const { status } = response;
 
       stats.total++;
@@ -82,10 +79,16 @@ export const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
       event[status] = (event[status] || 0) + 1;
 
       if ([429, 503, 504].includes(status)) {
-        // TODO: handle retries - how to trigger again with backoff
         // 429 - Too Many Requests
         // 503 - Service Unavailable
         // 504 - Gateway Timeout
+        const retries = (trigger.retries || 0) + 1;
+        if (retries <= 3)
+          setTimeout(
+            () =>
+              pump({ position: sub.position, reason: "retry", retries }, sub),
+            5000 * retries
+          );
         break;
       } else if (status === 409) {
         // concurrency error - ignore by default

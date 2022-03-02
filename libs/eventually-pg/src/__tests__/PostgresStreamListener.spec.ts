@@ -1,4 +1,9 @@
-import { store, Subscription, TriggerCallback } from "@rotorsoft/eventually";
+import {
+  store,
+  Subscription,
+  subscriptions,
+  TriggerCallback
+} from "@rotorsoft/eventually";
 import {
   PostgresStore,
   PostgresSubscriptionStore,
@@ -6,25 +11,27 @@ import {
 } from "..";
 import { event, sleep } from "./utils";
 
+const channel = "test_channel";
+
 const sub: Subscription = {
   id: "id1",
-  channel: "test",
+  channel,
   streams: "",
   names: "",
   endpoint: "",
   active: true
 };
-const db = PostgresSubscriptionStore();
+
+store(PostgresStore(channel));
+subscriptions(PostgresSubscriptionStore());
 
 describe("PostgresSubscriptionStore", () => {
   beforeAll(async () => {
-    store(PostgresStore("test"));
     await store().init();
-    await db.init();
   });
 
   afterAll(async () => {
-    await db.close();
+    await store().close();
   });
 
   it("should trigger subscription", async () => {
@@ -33,12 +40,13 @@ describe("PostgresSubscriptionStore", () => {
       pumped = true;
       return Promise.resolve();
     };
-    await PostgresStreamListener(sub, pump);
-    await store().commit("stream", [event("test3", { value: "1" })], {
+    const close = await PostgresStreamListener(sub, pump);
+    await store().commit("aggregate1", [event("test3", { value: "1" })], {
       correlation: "",
       causation: {}
     });
     await sleep(1000);
     expect(pumped).toBeTruthy();
+    await close();
   });
 });

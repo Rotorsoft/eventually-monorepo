@@ -49,7 +49,7 @@ export type Subscription = {
  * Subscription callback signature triggered by commits to event streams or retries
  */
 export type TriggerCallback = (
-  trigger: { position: number; reason: "commit" | "retry" },
+  trigger: { position: number; reason: "commit" | "retry"; retries?: number },
   subscription: Subscription
 ) => Promise<void>;
 
