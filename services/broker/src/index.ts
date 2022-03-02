@@ -1,4 +1,5 @@
-import { Subscription, subscriptions } from "@rotorsoft/eventually";
+import { app, Subscription, subscriptions } from "@rotorsoft/eventually";
+import { ExpressApp } from "@rotorsoft/eventually-express";
 import {
   PostgresStreamListener,
   PostgresSubscriptionStore
@@ -15,4 +16,9 @@ if (cluster.isWorker) {
   ) as Subscription;
   // TODO config other listeners
   void PostgresStreamListener(sub, pump);
-} else void start();
+} else {
+  void start().then(() => {
+    app(new ExpressApp()).build();
+    void app().listen();
+  });
+}

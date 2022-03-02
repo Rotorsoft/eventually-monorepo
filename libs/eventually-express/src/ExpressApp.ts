@@ -226,8 +226,15 @@ export class ExpressApp extends AppBase {
     super.build();
     this._buildCommandHandlers();
     this._buildEventHandlers();
-    this._buildAllStreamRoute();
-    this._buildStatsRoute();
+    if (
+      Object.keys(this.endpoints.commands).length ||
+      Object.values(this.endpoints.eventHandlers).filter(
+        (eh) => eh.type === "process-manager"
+      ).length
+    ) {
+      this._buildAllStreamRoute();
+      this._buildStatsRoute();
+    }
 
     this._app.set("trust proxy", true);
     this._app.use(cors());

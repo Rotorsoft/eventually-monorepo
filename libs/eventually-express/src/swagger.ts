@@ -352,8 +352,15 @@ export const swagger = (app: Builder): any => {
       }
     }
   };
-  const paths: Record<string, any> = {
-    ["/stats"]: {
+  const paths: Record<string, any> = {};
+
+  if (
+    Object.keys(app.endpoints.commands).length ||
+    Object.values(app.endpoints.eventHandlers).filter(
+      (eh) => eh.type === "process-manager"
+    ).length
+  ) {
+    paths["/stats"] = {
       get: {
         operationId: "getStats",
         summary: "Gets store stats",
@@ -382,9 +389,9 @@ export const swagger = (app: Builder): any => {
         },
         security: sec.operations["stats"] || [{}]
       }
-    },
+    };
 
-    ["/all"]: {
+    paths["/all"] = {
       parameters: [
         { $ref: "#/components/parameters/stream" },
         { $ref: "#/components/parameters/names" },
@@ -422,8 +429,8 @@ export const swagger = (app: Builder): any => {
         },
         security: sec.operations["all"] || [{}]
       }
-    }
-  };
+    };
+  }
   getSchemas();
   getPaths();
 

@@ -1464,6 +1464,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@rotorsoft/broker", "workspace:services/broker"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
+            ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
             ["@types/node", "npm:17.0.21"],
             ["axios", "npm:0.26.0"],

@@ -29,7 +29,7 @@ const plain = (
   details?: any,
   ...params: any[]
 ): void => {
-  console.log(message, JSON.stringify(details || {}), JSON.stringify(params));
+  console.log({ severity: "INFO", message, details, params });
 };
 
 const trace = (
@@ -55,7 +55,7 @@ const info = (
 };
 
 const error = (error: Error): void => {
-  console.error(JSON.stringify(error));
+  console.error({ severity: "ERROR", message: error.message });
 };
 
 const nolog = (): void => {

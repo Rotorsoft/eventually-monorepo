@@ -31,8 +31,12 @@ const post = async (
     return { status, statusText };
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      const { status, statusText } = error.response;
-      return { status, statusText };
+      if (error.response) {
+        const { status, statusText } = error.response;
+        return { status, statusText };
+      }
+      log().error(error);
+      return { status: 503, statusText: error.code };
     } else {
       log().error(error);
       // TODO: check network errors to return 503 or 500
@@ -49,61 +53,70 @@ const post = async (
  * @param streams streams regex to match
  * @param names names regex to match
  */
+
+let pumping = false;
 export const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
-  const streams = RegExp(sub.streams);
-  const names = RegExp(sub.names);
+  if (pumping) return;
+  pumping = true;
 
-  let count = BATCH_SIZE;
-  const stats: Stats = {
-    after: sub.position,
-    batches: 0,
-    total: 0,
-    events: {}
-  };
-  while (count === BATCH_SIZE) {
-    stats.batches++;
-    const events: CommittedEvent<string, Payload>[] = [];
-    count = await store().query((e) => events.push(e), {
+  try {
+    const streams = RegExp(sub.streams);
+    const names = RegExp(sub.names);
+
+    let count = BATCH_SIZE;
+    const stats: Stats = {
       after: sub.position,
-      limit: BATCH_SIZE
-    });
-    for (const e of events) {
-      const response =
-        streams.test(e.stream) && names.test(e.name)
-          ? await post(e, sub.endpoint)
-          : { status: 204, statusText: "Not Matched" };
-      const { status } = response;
+      batches: 0,
+      total: 0,
+      events: {}
+    };
+    while (count === BATCH_SIZE) {
+      stats.batches++;
+      const events: CommittedEvent<string, Payload>[] = [];
+      count = await store().query((e) => events.push(e), {
+        after: sub.position,
+        limit: BATCH_SIZE
+      });
+      for (const e of events) {
+        const response =
+          streams.test(e.stream) && names.test(e.name)
+            ? await post(e, sub.endpoint)
+            : { status: 204, statusText: "Not Matched" };
+        const { status } = response;
 
-      stats.total++;
-      const event = (stats.events[e.name] = stats.events[e.name] || {});
-      event[status] = (event[status] || 0) + 1;
+        stats.total++;
+        const event = (stats.events[e.name] = stats.events[e.name] || {});
+        event[status] = (event[status] || 0) + 1;
 
-      if ([429, 503, 504].includes(status)) {
-        // 429 - Too Many Requests
-        // 503 - Service Unavailable
-        // 504 - Gateway Timeout
-        const retries = (trigger.retries || 0) + 1;
-        if (retries <= 3)
-          setTimeout(
-            () =>
-              pump({ position: sub.position, reason: "retry", retries }, sub),
-            5000 * retries
-          );
-        break;
-      } else if (status === 409) {
-        // concurrency error - ignore by default
-        // TODO: make this configurable by subscription?
-      } else if (![200, 204].includes(status)) break; // break on errors
+        if ([429, 503, 504].includes(status)) {
+          // 429 - Too Many Requests
+          // 503 - Service Unavailable
+          // 504 - Gateway Timeout
+          const retries = (trigger.retries || 0) + 1;
+          if (retries <= 3)
+            setTimeout(
+              () =>
+                pump({ position: sub.position, reason: "retry", retries }, sub),
+              5000 * retries
+            );
+          break;
+        } else if (status === 409) {
+          // concurrency error - ignore by default
+          // TODO: make this configurable by subscription?
+        } else if (![200, 204].includes(status)) break; // break on errors
 
-      // update position
-      await subscriptions().commit(sub.id, e.id);
-      sub.position = e.id;
+        // update position
+        await subscriptions().commit(sub.id, e.id);
+        sub.position = e.id;
+      }
     }
+    log().info(
+      "blue",
+      `[${process.pid}] pump ${sub.id}`,
+      `${trigger.reason}@${trigger.position} after=${stats.after} total=${stats.total} batches=${stats.batches}`,
+      stats.events
+    );
+  } finally {
+    pumping = false;
   }
-  log().info(
-    "blue",
-    `[${process.pid}] pump ${sub.id}`,
-    `${trigger.reason}@${trigger.position} after=${stats.after} total=${stats.total} batches=${stats.batches}`,
-    stats.events
-  );
 };

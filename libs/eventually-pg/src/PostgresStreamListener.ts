@@ -13,8 +13,6 @@ export const PostgresStreamListener = async (
   sub: Subscription,
   callback: TriggerCallback
 ): Promise<() => Promise<void>> => {
-  let pumping = false;
-
   store(PostgresStore(sub.channel));
   await store().init();
   await subscriptions().init();
@@ -41,11 +39,7 @@ export const PostgresStreamListener = async (
   });
 
   subscriber.notifications.on(sub.channel, async (event): Promise<void> => {
-    if (!pumping) {
-      pumping = true;
-      await callback({ position: event.id, reason: "commit" }, sub);
-      pumping = false;
-    }
+    await callback({ position: event.id, reason: "commit" }, sub);
   });
 
   void subscriber.connect().then(async () => {

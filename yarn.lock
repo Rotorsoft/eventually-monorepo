@@ -934,6 +934,7 @@ __metadata:
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
     "@rotorsoft/eventually": "workspace:^3.2.14"
+    "@rotorsoft/eventually-express": "workspace:^3.2.16"
     "@rotorsoft/eventually-pg": "workspace:^3.2.9"
     "@types/node": ^17.0.21
     axios: ^0.26.0

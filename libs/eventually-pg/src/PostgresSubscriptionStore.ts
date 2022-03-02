@@ -6,7 +6,7 @@ import { config } from "./config";
 select * from public.subscriptions;
 
 insert into subscriptions(id, channel, streams, names, endpoint) 
-values('stateless-counter1', 'calculator', '^Calculator-.+$', '^DigitPressed|DotPressed|EqualsPressed$', 'http://localhost:3000/stateless-counter');	
+values('counter1', 'calculator', '^Calculator-.+$', '^DigitPressed|DotPressed|EqualsPressed$', 'http://localhost:3000/counter');	
 
 update subscriptions set active=false where id='stateless-counter1';
 */
