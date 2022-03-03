@@ -15,14 +15,11 @@ if [[ ! -d "${target}" ]]; then
     exit 1
 fi; 
 
-echo ">>> building project..."
-yarn build
-
 version=$(npm view @rotorsoft/${lib} version)
-echo ">>> publishing ${lib} version ${version} ..."
-yarn "${target}" npm publish --access public
+echo ">>> tagging ${lib} to version ${version} ..."
+&& git add . \
+&& git commit -m "tagging ${target} with ${lib}@${version}" \
+&& git tag "${lib}@${version}" \
+&& git push origin master
 
-if [ $? -eq 0 ]; then
-    echo ">>> DONE!"
-fi
-
+echo ">>> DONE!"
