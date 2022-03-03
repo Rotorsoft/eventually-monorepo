@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-test",
-  "version": "2.2.4",
+  "version": "3.0.0",
   "description": "Eventually Framework Testing Services",
   "author": {
     "name": "rotorsoft",
@@ -19,7 +19,7 @@
   ],
   "scripts": {},
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^3.2.14",
+    "@rotorsoft/eventually": "workspace:^4.0.0",
     "axios": "^0.26.0"
   },
   "devDependencies": {
