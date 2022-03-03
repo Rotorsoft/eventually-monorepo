@@ -18,10 +18,12 @@ fi;
 echo ">>> building project..."
 yarn build
 
-version=$(npm view @rotorsoft/${lib} version)
-echo ">>> publishing ${lib} version ${version} ..."
-yarn "${target}" npm publish --access public
+version=$(npm pkg get version -w ${target})
+lastpublished=$(npm view @rotorsoft/${lib} version)
 
+echo ">>> last published version ${lastpublished}"
+echo ">>> publishing ${version} ..."
+yarn "${target}" npm publish --access public
 if [ $? -eq 0 ]; then
     echo ">>> DONE!"
 fi
