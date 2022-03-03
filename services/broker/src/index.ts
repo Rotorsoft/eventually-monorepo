@@ -17,8 +17,11 @@ if (cluster.isWorker) {
   // TODO config other listeners
   void PostgresStreamListener(sub, pump);
 } else {
-  void start().then(() => {
-    app(new ExpressApp()).build();
+  void start().then((workers) => {
+    const express = app(new ExpressApp()).build();
+    express.get("/subscriptions", (_, res) => {
+      res.json(Object.values(workers));
+    });
     void app().listen();
   });
 }

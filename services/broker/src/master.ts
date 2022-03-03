@@ -2,7 +2,7 @@ import { log, Subscription, subscriptions } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { cpus } from "os";
 
-export const start = async (): Promise<void> => {
+export const start = async (): Promise<Record<number, Subscription>> => {
   const cores = cpus().length;
   const workers: Record<number, Subscription> = {};
 
@@ -33,4 +33,6 @@ export const start = async (): Promise<void> => {
       workers[new_worker.id] = sub;
     }
   });
+
+  return workers;
 };
