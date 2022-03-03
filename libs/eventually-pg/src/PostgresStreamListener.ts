@@ -1,6 +1,7 @@
 import {
   log,
   store,
+  StreamListener,
   Subscription,
   subscriptions,
   TriggerCallback
@@ -9,7 +10,7 @@ import createSubscriber from "pg-listen";
 import { config } from "./config";
 import { PostgresStore } from "./PostgresStore";
 
-export const PostgresStreamListener = async (
+export const PostgresStreamListener: StreamListener = async (
   sub: Subscription,
   callback: TriggerCallback
 ): Promise<() => Promise<void>> => {

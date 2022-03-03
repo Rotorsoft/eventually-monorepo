@@ -1467,7 +1467,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
             ["@types/node", "npm:17.0.21"],
-            ["axios", "npm:0.26.0"],
             ["ts-node-dev", "virtual:f6da0aaee2891b94eb550f3895fb35ffea6568777566e3eb91a8c836dfc9cad0215e73d6b56de69246f6d0eec6903c698f87087da62b1abbd25567f4d749d72b#npm:1.1.8"],
             ["tsconfig-paths", "npm:3.12.0"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
@@ -1516,6 +1515,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/express", "npm:4.17.13"],
             ["@types/node", "npm:16.9.2"],
             ["@types/swagger-ui-express", "npm:4.1.3"],
+            ["axios", "npm:0.26.0"],
             ["cors", "npm:2.8.5"],
             ["express", "npm:4.17.1"],
             ["joi", "npm:17.4.2"],

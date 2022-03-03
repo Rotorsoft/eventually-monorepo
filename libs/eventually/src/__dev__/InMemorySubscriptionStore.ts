@@ -4,11 +4,15 @@ import { Subscription } from "../types";
 export const InMemorySubscriptionStore = (): SubscriptionStore => {
   return {
     init: (): Promise<void> => {
-      return;
+      throw Error("Not Implemented");
+    },
+
+    listen: (): Promise<void> => {
+      throw Error("Not Implemented");
     },
 
     close: (): Promise<void> => {
-      return;
+      throw Error("Not Implemented");
     },
 
     load: (): Promise<Subscription[]> => {

@@ -1,5 +1,10 @@
-import { Subscription, SubscriptionStore } from "@rotorsoft/eventually";
+import {
+  Subscription,
+  SubscriptionStore,
+  TriggerCallback
+} from "@rotorsoft/eventually";
 import { Pool } from "pg";
+import { PostgresStreamListener } from "./PostgresStreamListener";
 import { config } from "./config";
 
 /*
@@ -35,6 +40,14 @@ export const PostgresSubscriptionStore = (
         pool = new Pool(config.pg);
         await pool.query(create_script(table));
       }
+    },
+
+    listen: (
+      subscription: Subscription,
+      callback: TriggerCallback
+    ): Promise<void> => {
+      void PostgresStreamListener(subscription, callback);
+      return;
     },
 
     close: async () => {

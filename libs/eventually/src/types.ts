@@ -59,7 +59,7 @@ export type TriggerCallback = (
 export type StreamListener = (
   subscription: Subscription,
   callback: TriggerCallback
-) => Promise<void>;
+) => Promise<() => Promise<void>>;
 
 /**
  * Commands are messages with optional target arguments

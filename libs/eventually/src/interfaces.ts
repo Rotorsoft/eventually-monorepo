@@ -1,4 +1,3 @@
-import { Subscription } from ".";
 import {
   AllQuery,
   CommittedEvent,
@@ -6,7 +5,9 @@ import {
   Message,
   Payload,
   Snapshot,
-  StoreStat
+  StoreStat,
+  Subscription,
+  TriggerCallback
 } from "./types";
 
 /**
@@ -88,6 +89,14 @@ export interface SubscriptionStore {
    * Store initializer
    */
   init: () => Promise<void>;
+
+  /**
+   * Starts subscription listener
+   */
+  listen: (
+    subscription: Subscription,
+    callback: TriggerCallback
+  ) => Promise<void>;
 
   /**
    * Store closer

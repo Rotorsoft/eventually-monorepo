@@ -1,7 +1,5 @@
 import { Builder } from "./builder";
-import { Store, SubscriptionStore } from "./interfaces";
 import { log } from "./log";
-import { singleton } from "./singleton";
 import {
   AllQuery,
   Command,
@@ -21,19 +19,9 @@ import {
   getReducible,
   getStreamable,
   randomId,
+  store,
   ValidationError
 } from "./utils";
-import { InMemoryStore, InMemorySubscriptionStore } from "./__dev__";
-
-export const store = singleton(function store(store?: Store) {
-  return store || InMemoryStore();
-});
-
-export const subscriptions = singleton(function subscriptions(
-  store?: SubscriptionStore
-) {
-  return store || InMemorySubscriptionStore();
-});
 
 interface Reader {
   load: Getter;

@@ -1,5 +1,10 @@
+import cluster from "cluster";
 import * as crypto from "crypto";
 import * as joi from "joi";
+import { cpus } from "os";
+import { Store, SubscriptionStore } from "./interfaces";
+import { log } from "./log";
+import { singleton } from "./singleton";
 import {
   Actor,
   Command,
@@ -14,6 +19,11 @@ import {
   ReducibleFactory,
   Streamable
 } from "./types";
+import { InMemoryStore, InMemorySubscriptionStore } from "./__dev__";
+
+export const store = singleton(function store(store?: Store) {
+  return store || InMemoryStore();
+});
 
 /**
  * Binds message arguments
@@ -173,3 +183,40 @@ export class ConcurrencyError extends Error {
     super(Errors.ConcurrencyError);
   }
 }
+
+export const subscriptions = singleton(function subscriptions(
+  store?: SubscriptionStore
+) {
+  return store || InMemorySubscriptionStore();
+});
+
+export const fork = <T extends Payload>(args: T[]): void => {
+  const cores = cpus().length;
+  const running: Record<number, T> = {};
+
+  log().info("green", `Cluster started with ${cores} cores`);
+
+  try {
+    args.map((arg) => {
+      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
+      running[id] = arg;
+    });
+  } catch (error) {
+    log().error(error);
+  }
+
+  cluster.on("exit", (worker, code, signal) => {
+    const arg = running[worker.id];
+    delete running[worker.id];
+    if (signal)
+      log().info("red", `[${worker.process.pid}] killed by signal: ${signal}`);
+    else if (code) {
+      log().info(
+        "red",
+        `[${worker.process.pid}] exit with error code: ${code}. reloading...`
+      );
+      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
+      running[id] = arg;
+    }
+  });
+};
