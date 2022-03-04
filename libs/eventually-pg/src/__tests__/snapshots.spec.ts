@@ -4,10 +4,9 @@ import { PostgresSnapshotStore } from "..";
 import { config } from "../config";
 
 const table = "snapshots_test";
-
 const db = PostgresSnapshotStore(table);
 
-describe("PostgresSnapshotStore", () => {
+describe("snapshots", () => {
   const event: CommittedEvent<string, Payload> = {
     name: "testEvent",
     data: { value: "testValue" }

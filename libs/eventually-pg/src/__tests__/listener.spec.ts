@@ -22,16 +22,16 @@ const sub: Subscription = {
   active: true
 };
 
-store(PostgresStore(channel));
+const db = store(PostgresStore(channel));
 subscriptions(PostgresSubscriptionStore());
 
-describe("PostgresSubscriptionStore", () => {
+describe("listener", () => {
   beforeAll(async () => {
-    await store().init();
+    await db.init();
   });
 
   afterAll(async () => {
-    await store().close();
+    await db.close();
   });
 
   it("should trigger subscription", async () => {
@@ -41,11 +41,11 @@ describe("PostgresSubscriptionStore", () => {
       return Promise.resolve();
     };
     const close = await PostgresStreamListener(sub, pump);
-    await store().commit("aggregate1", [event("test3", { value: "1" })], {
+    await db.commit("aggregate1", [event("test3", { value: "1" })], {
       correlation: "",
       causation: {}
     });
-    await sleep(1000);
+    await sleep(500);
     expect(pumped).toBeTruthy();
     await close();
   });

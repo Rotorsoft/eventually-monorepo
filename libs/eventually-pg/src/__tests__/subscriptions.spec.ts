@@ -3,27 +3,25 @@ import { PostgresSubscriptionStore, config } from "..";
 
 const table = "subscriptions_test";
 const seed = `
+truncate table ${table};
 insert into ${table}(id, channel, streams, names, endpoint) values('id1', 'calculator', '^Calculator-.+$', '.*', 'http://localhost:3000/counter');	
 insert into ${table}(id, channel, streams, names, endpoint) values('id2', 'calculator', '^Calculator-.+$', '.*', 'http://localhost:3000/counter');	
 `;
 
 const db = PostgresSubscriptionStore(table);
+const pool = new Pool(config.pg);
 
-describe("PostgresSubscriptionStore", () => {
-  let pool: Pool;
-
+describe("subscriptions", () => {
   beforeAll(async () => {
-    pool = new Pool(config.pg);
-    await pool.query(`DROP TABLE IF EXISTS ${table};`);
     await db.init();
     await db.init();
     await pool.query(seed);
   });
 
   afterAll(async () => {
+    await db.close();
+    await db.close();
     await pool.end();
-    await db.close();
-    await db.close();
   });
 
   it("should load subscriptions", async () => {
