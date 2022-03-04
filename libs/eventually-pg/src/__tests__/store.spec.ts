@@ -3,7 +3,7 @@ import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";
 
-const table = "test";
+const table = "store_test";
 const db = PostgresStore(table);
 
 const chance = new Chance();

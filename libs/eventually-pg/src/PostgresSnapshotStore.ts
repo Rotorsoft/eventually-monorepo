@@ -7,8 +7,7 @@ CREATE TABLE IF NOT EXISTS public.${table}
 (
   stream character varying(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY,
   data json
-) TABLESPACE pg_default;
-ALTER TABLE public.${table} OWNER to postgres;`;
+) TABLESPACE pg_default;`;
 
 export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
   let pool: Pool;

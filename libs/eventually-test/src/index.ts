@@ -56,10 +56,17 @@ export const load = async <M extends Payload, C, E>(
   id: string,
   port?: number
 ): Promise<Snapshot<M>> => {
-  const { data } = await axios.get<any, AxiosResponse<Snapshot<M>>>(
-    url(reduciblePath(reducible).replace(":id", id), port)
-  );
-  return data;
+  try {
+    const response = await axios.get<any, AxiosResponse<Snapshot<M>>>(
+      url(reduciblePath(reducible).replace(":id", id), port)
+    );
+    if (response.status === 200) return response.data;
+    console.log(response);
+    throw Error(response.statusText);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 };
 
 export const stream = async <M extends Payload, C, E>(
@@ -70,28 +77,42 @@ export const stream = async <M extends Payload, C, E>(
     useSnapshots?: boolean;
   } = { useSnapshots: false }
 ): Promise<Snapshot<M>[]> => {
-  const { data } = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
-    url(
-      reduciblePath(reducible)
-        .replace(":id", id)
-        .concat(`/stream${options.useSnapshots ? "?useSnapshots=true" : ""}`),
-      options.port
-    )
-  );
-  return data;
+  try {
+    const response = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
+      url(
+        reduciblePath(reducible)
+          .replace(":id", id)
+          .concat(`/stream${options.useSnapshots ? "?useSnapshots=true" : ""}`),
+        options.port
+      )
+    );
+    if (response.status === 200) return response.data;
+    console.log(response);
+    throw Error(response.statusText);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 };
 
 export const read = async (
   query: AllQuery = { after: -1, limit: 1 },
   port?: number
 ): Promise<CommittedEvent<string, Payload>[]> => {
-  const { data } = await axios.get<
-    any,
-    AxiosResponse<CommittedEvent<string, Payload>[]>
-  >(url("/all", port), {
-    params: query
-  });
-  return data;
+  try {
+    const response = await axios.get<
+      any,
+      AxiosResponse<CommittedEvent<string, Payload>[]>
+    >(url("/all", port), {
+      params: query
+    });
+    if (response.status === 200) return response.data;
+    console.log(response);
+    throw Error(response.statusText);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 };
 
 export const sleep = (millis: number): Promise<void> =>

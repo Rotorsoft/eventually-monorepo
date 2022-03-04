@@ -115,8 +115,8 @@ export const broker = (): {
       }
       log().info(
         "blue",
-        `[${process.pid}] pump ${sub.id}`,
-        `${trigger.reason}@${trigger.position} after=${stats.after} total=${stats.total} batches=${stats.batches}`,
+        `[${process.pid}] pump ${sub.id} ${trigger.reason}@${trigger.position}`,
+        `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
         stats.events
       );
     } finally {
@@ -128,6 +128,7 @@ export const broker = (): {
     master: async (): Promise<void> => {
       await subscriptions().init();
       const args = await subscriptions().load();
+      // TODO: refresh workers on subscription changes - triggered by db?
       fork(args);
       const express = app(new ExpressApp()).build();
       express.get("/subscriptions", async (_, res) => {

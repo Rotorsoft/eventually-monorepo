@@ -917,7 +917,6 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:libs/eventually"
     "@rotorsoft/eventually-express": "workspace:libs/eventually-express"
-    "@rotorsoft/eventually-pg": "workspace:libs/eventually-pg"
     "@rotorsoft/eventually-test": "workspace:libs/eventually-test"
     "@types/chance": ^1
     "@types/uuid": ^8
@@ -949,7 +948,6 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4.0.1"
     "@rotorsoft/eventually-express": "workspace:^4.0.1"
-    "@rotorsoft/eventually-pg": "workspace:^4.0.1"
     "@rotorsoft/eventually-test": "workspace:^3.0.0"
     "@types/chance": ^1
     chance: ^1.1.8

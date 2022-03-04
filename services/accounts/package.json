@@ -20,7 +20,6 @@
   "dependencies": {
     "@rotorsoft/eventually": "workspace:libs/eventually",
     "@rotorsoft/eventually-express": "workspace:libs/eventually-express",
-    "@rotorsoft/eventually-pg": "workspace:libs/eventually-pg",
     "joi": "^17.4.2",
     "uuid": "^8.3.2"
   },
