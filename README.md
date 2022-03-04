@@ -4,7 +4,7 @@
 ![CodeQL Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master)
 
-> This is the entry point to **Eventually Monorepo** and project related documentation. ![Eventually Framework](./libs/eventually/README.md) describes framework details.
+> This is the entry point to **Eventually Monorepo** and project related documentation. [Eventually Framework](./libs/eventually/README.md) describes framework details.
 
 This project is based on Yarn2 monorepos and TypeScript project references:
 
