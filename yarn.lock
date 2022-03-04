@@ -1026,7 +1026,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-test@workspace:libs/eventually-test"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.1"
+    "@rotorsoft/eventually": "workspace:^4"
     "@types/chance": ^1
     "@types/node": ^16.9.2
     axios: ^0.26.0
@@ -1034,7 +1034,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually@workspace:^4.0.1, @rotorsoft/eventually@workspace:libs/eventually":
+"@rotorsoft/eventually@workspace:^4, @rotorsoft/eventually@workspace:^4.0.1, @rotorsoft/eventually@workspace:libs/eventually":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:
