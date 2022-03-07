@@ -78,11 +78,10 @@ export const PostgresStore = (table: string): Store => {
   let pool: Pool;
 
   return {
-    init: async (): Promise<void> => {
+    init: async (seed = true): Promise<void> => {
       if (!pool) {
         pool = new Pool(config.pg);
-        // TODO: not the best way to start cloud functions!
-        await pool.query(create_script(table));
+        seed && (await pool.query(create_script(table)));
       }
     },
 

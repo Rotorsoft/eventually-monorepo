@@ -1,12 +1,13 @@
 import { app, store, ValidationError } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
-import { get } from "@rotorsoft/eventually-test";
+import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Server } from "http";
 import * as joi from "joi";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
 import * as schemas from "../calculator.schemas";
+
+const t = tester(3001);
 
 const exapp = app(new ExpressApp())
   .withSchemas<Pick<Commands, "PressKey">>({
@@ -47,19 +48,19 @@ describe("express app", () => {
 
   describe("errors", () => {
     it("should throw internal error on stream", async () => {
-      await expect(get("/all", 3001)).rejects.toThrowError("500");
+      await expect(t.get("/all")).rejects.toThrowError("500");
     });
 
     it("should throw internal error on aggregate", async () => {
-      await expect(get("/calculator/test", 3001)).rejects.toThrowError("500");
+      await expect(t.get("/calculator/test")).rejects.toThrowError("500");
     });
 
     it("should throw internal error on stats", async () => {
-      await expect(get("/stats", 3001)).rejects.toThrowError("500");
+      await expect(t.get("/stats")).rejects.toThrowError("500");
     });
 
     it("should throw validation error", async () => {
-      await expect(get("/query", 3001)).rejects.toThrowError("400");
+      await expect(t.get("/query")).rejects.toThrowError("400");
     });
   });
 });

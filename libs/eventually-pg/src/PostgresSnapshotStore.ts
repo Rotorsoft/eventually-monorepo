@@ -14,10 +14,10 @@ export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
   table = table || config.pg.snapshotsTable;
 
   return {
-    init: async () => {
+    init: async (seed = true) => {
       if (!pool) {
         pool = new Pool(config.pg);
-        await pool.query(create_script(table));
+        seed && (await pool.query(create_script(table)));
       }
     },
 

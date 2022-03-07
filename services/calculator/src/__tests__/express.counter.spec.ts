@@ -1,8 +1,7 @@
 process.env.PORT = "3006";
 
 import { app, bind, Snapshot } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
-import { command, load, stream } from "@rotorsoft/eventually-test";
+import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
@@ -13,6 +12,7 @@ import { CalculatorModel, Keys } from "../calculator.models";
 
 const chance = new Chance();
 const port = +process.env.PORT;
+const t = tester(port);
 
 app(new ExpressApp())
   .withSchemas<Pick<Commands, "PressKey">>({
@@ -30,7 +30,7 @@ const pressKey = (
   id: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel>[]> =>
-  command(Calculator, bind("PressKey", { key }, id), port);
+  t.command(Calculator, bind("PressKey", { key }, id));
 
 describe("express app", () => {
   beforeAll(async () => {
@@ -52,22 +52,19 @@ describe("express app", () => {
       await pressKey(id, "3");
       await pressKey(id, "=");
 
-      const { state } = await load(Calculator, id, port);
+      const { state } = await t.load(Calculator, id);
       expect(state).toEqual({
         left: "3.3",
         operator: "+",
         result: 3.3
       });
 
-      const calc_snapshots = await stream(Calculator, id, { port });
+      const calc_snapshots = await t.stream(Calculator, id);
       expect(calc_snapshots.length).toEqual(6);
 
-      const count_snapshots = await stream(
+      const count_snapshots = await t.stream(
         Counter,
-        `Counter-Calculator-${id}`,
-        {
-          port
-        }
+        `Counter-Calculator-${id}`
       );
       expect(count_snapshots.length).toEqual(6);
     });

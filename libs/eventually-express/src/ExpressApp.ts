@@ -14,6 +14,7 @@ import {
   reduciblePath,
   store
 } from "@rotorsoft/eventually";
+import cluster from "cluster";
 import cors from "cors";
 import express, {
   NextFunction,
@@ -257,9 +258,11 @@ export class ExpressApp extends AppBase {
   /**
    * Starts listening
    * @param silent flag to skip express listening when using cloud functions
+   * @param port to override port in config
    */
-  async listen(silent = false): Promise<void> {
-    const { host, port, service, version, env, logLevel } = config();
+  async listen(silent = false, port?: number): Promise<void> {
+    const { host, service, version, env, logLevel } = config();
+    port = port || config().port;
     this._app.get("/_health", (_, res: Response) => {
       res.status(200).json({ status: "OK" });
     });
@@ -295,7 +298,13 @@ export class ExpressApp extends AppBase {
     if (silent) this.log.info("white", "Config", undefined, config());
     else
       this._server = this._app.listen(port, () => {
-        this.log.info("white", "Express app is listening", undefined, config());
+        !cluster.isWorker &&
+          this.log.info(
+            "white",
+            "Express app is listening",
+            undefined,
+            config()
+          );
       });
   }
 

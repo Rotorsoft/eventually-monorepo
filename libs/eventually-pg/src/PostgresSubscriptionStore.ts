@@ -65,10 +65,10 @@ export const PostgresSubscriptionStore = (
   table = table || "subscriptions";
 
   return {
-    init: async () => {
+    init: async (seed = false) => {
       if (!pool) {
         pool = new Pool(config.pg);
-        await pool.query(create_script(table));
+        seed && (await pool.query(create_script(table)));
       }
     },
 

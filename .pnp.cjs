@@ -39,10 +39,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         "reference": "workspace:libs/eventually-pg"
       },
       {
-        "name": "@rotorsoft/eventually-test",
-        "reference": "workspace:libs/eventually-test"
-      },
-      {
         "name": "@rotorsoft/accounts",
         "reference": "workspace:services/accounts"
       },
@@ -65,8 +61,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ["@rotorsoft/eventually-express", ["workspace:libs/eventually-express"]],
       ["@rotorsoft/eventually-gcp", ["workspace:libs/eventually-gcp"]],
       ["@rotorsoft/eventually-monorepo", ["workspace:."]],
-      ["@rotorsoft/eventually-pg", ["workspace:libs/eventually-pg"]],
-      ["@rotorsoft/eventually-test", ["workspace:libs/eventually-test"]]
+      ["@rotorsoft/eventually-pg", ["workspace:libs/eventually-pg"]]
     ],
     "fallbackPool": [
     ],
@@ -1445,7 +1440,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/accounts", "workspace:services/accounts"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
-            ["@rotorsoft/eventually-test", "workspace:libs/eventually-test"],
             ["@types/chance", "npm:1.1.3"],
             ["@types/uuid", "npm:8.3.1"],
             ["chance", "npm:1.1.8"],
@@ -1480,7 +1474,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/calculator", "workspace:services/calculator"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
-            ["@rotorsoft/eventually-test", "workspace:libs/eventually-test"],
             ["@types/chance", "npm:1.1.3"],
             ["chance", "npm:1.1.8"],
             ["joi", "npm:17.4.2"],
@@ -1571,20 +1564,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["joi", "npm:17.4.2"],
             ["pg", "virtual:0e6bf918d48a553b0f7e203f79dbd33d8b7b15d366e18d07c87dd174380f009c8b8285bbb5aa2628661cb43c0cfd1758a2c04877f3211ad8547e5e8a1cc59668#npm:8.7.1"],
             ["pg-listen", "virtual:0e6bf918d48a553b0f7e203f79dbd33d8b7b15d366e18d07c87dd174380f009c8b8285bbb5aa2628661cb43c0cfd1758a2c04877f3211ad8547e5e8a1cc59668#npm:1.7.0"]
-          ],
-          "linkType": "SOFT",
-        }]
-      ]],
-      ["@rotorsoft/eventually-test", [
-        ["workspace:libs/eventually-test", {
-          "packageLocation": "./libs/eventually-test/",
-          "packageDependencies": [
-            ["@rotorsoft/eventually-test", "workspace:libs/eventually-test"],
-            ["@rotorsoft/eventually", "workspace:libs/eventually"],
-            ["@types/chance", "npm:1.1.3"],
-            ["@types/node", "npm:16.9.2"],
-            ["axios", "npm:0.26.0"],
-            ["chance", "npm:1.1.8"]
           ],
           "linkType": "SOFT",
         }]

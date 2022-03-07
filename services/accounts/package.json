@@ -24,7 +24,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@rotorsoft/eventually-test": "workspace:libs/eventually-test",
     "@types/chance": "^1",
     "@types/uuid": "^8",
     "chance": "^1.1.8",

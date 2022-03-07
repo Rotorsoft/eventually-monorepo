@@ -17,7 +17,7 @@ export interface Store {
   /**
    * Store initializer
    */
-  init: () => Promise<void>;
+  init: (seed?: boolean) => Promise<void>;
 
   /**
    * Store closer
@@ -62,7 +62,7 @@ export interface SnapshotStore {
   /**
    * Store initializer
    */
-  init: () => Promise<void>;
+  init: (seed?: boolean) => Promise<void>;
 
   /**
    * Store closer
@@ -88,7 +88,7 @@ export interface SubscriptionStore {
   /**
    * Store initializer
    */
-  init: () => Promise<void>;
+  init: (seed?: boolean) => Promise<void>;
 
   /**
    * Starts subscription listener

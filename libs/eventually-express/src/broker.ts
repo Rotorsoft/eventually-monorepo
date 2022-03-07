@@ -12,25 +12,23 @@ import {
 } from "@rotorsoft/eventually";
 import axios from "axios";
 import { ExpressApp } from "./ExpressApp";
+import sseChannel from "./sse-channel";
+import { Broker, Channel, Stats } from "./types";
 
 const BATCH_SIZE = 100;
 
-type Response = {
+export type HttpResponse = {
   status: number;
   statusText: string;
 };
 
-type Stats = {
-  after: number;
-  batches: number;
-  total: number;
-  events: Record<string, Record<number, number>>;
-};
+const isSSE = (sub: Subscription): boolean =>
+  sub.endpoint.trim().toLowerCase().startsWith("sse://");
 
 const post = async (
   event: CommittedEvent<string, Payload>,
   endpoint: string
-): Promise<Response> => {
+): Promise<HttpResponse> => {
   try {
     const { status, statusText } = await axios.post(endpoint, event);
     return { status, statusText };
@@ -50,14 +48,33 @@ const post = async (
   }
 };
 
-export const broker = (): {
-  master: () => Promise<void>;
-  worker: (factory: (table: string) => Store) => Promise<void>;
-} => {
-  // worker global variables
+export const broker = (): Broker => {
+  const channels: Record<string, Channel> = {};
+  const channel = (name: string): Channel => {
+    return (channels[name] = channels[name] || sseChannel());
+  };
+
+  // scoped global variables
   let streams: RegExp,
     names: RegExp,
     pumping = false;
+
+  const emit = async (
+    sub: Subscription,
+    event: CommittedEvent<string, Payload>
+  ): Promise<number> => {
+    if (streams.test(event.stream) && names.test(event.name)) {
+      if (isSSE(sub)) {
+        channel(sub.id).emit(event);
+        return 200;
+      } else {
+        const { status } = await post(event, sub.endpoint);
+        return status;
+      }
+    }
+    // not matched
+    return 204;
+  };
 
   const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
     if (pumping) return;
@@ -79,11 +96,7 @@ export const broker = (): {
           limit: BATCH_SIZE
         });
         for (const e of events) {
-          const response =
-            streams.test(e.stream) && names.test(e.name)
-              ? await post(e, sub.endpoint)
-              : { status: 204, statusText: "Not Matched" };
-          const { status } = response;
+          const status = await emit(sub, e);
 
           stats.total++;
           const event = (stats.events[e.name] = stats.events[e.name] || {});
@@ -120,7 +133,9 @@ export const broker = (): {
       }
       log().info(
         "blue",
-        `[${process.pid}] pump ${sub.id} ${trigger.operation}@${trigger.id}`,
+        `[${process.pid}] pump ${sub.id} ${trigger.operation}${
+          trigger.retries || ""
+        }@${trigger.id}`,
         `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
         stats.events
       );
@@ -131,7 +146,7 @@ export const broker = (): {
 
   return {
     master: async (): Promise<void> => {
-      await subscriptions().init();
+      await subscriptions().init(true);
       const args = await subscriptions().load();
       const refresh = fork(args);
       const sub: Subscription = {
@@ -151,7 +166,8 @@ export const broker = (): {
         const subs = await subscriptions().load();
         res.json(subs);
       });
-      void app().listen();
+      await app().listen();
+      log().info("bgGreen", " GET ", "/subscriptions");
     },
 
     worker: async (factory: (table: string) => Store): Promise<void> => {
@@ -161,7 +177,19 @@ export const broker = (): {
       streams = RegExp(sub.streams);
       names = RegExp(sub.names);
       await store(factory(sub.channel)).init();
+      if (isSSE(sub)) {
+        const port = parseInt(sub.endpoint.substr(6));
+        const expressApp = app(new ExpressApp());
+        const express = expressApp.build();
+        express.get(`/${sub.id}`, (req, res) => {
+          channel(sub.id).open(req, res);
+        });
+        await expressApp.listen(false, port);
+        log().info("bgRed", " GET ", `/${sub.id}`);
+      }
       void subscriptions().listen(sub, pump);
-    }
+    },
+
+    channel
   };
 };

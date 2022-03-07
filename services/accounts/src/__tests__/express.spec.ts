@@ -1,7 +1,5 @@
-import { app, bind, store } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
-import { PostgresStore } from "@rotorsoft/eventually-pg";
-import { command } from "@rotorsoft/eventually-test";
+import { app, bind } from "@rotorsoft/eventually";
+import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Server } from "http";
 import * as schemas from "../accounts.schemas";
@@ -11,8 +9,6 @@ import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
 
 const chance = new Chance();
-
-store(PostgresStore("accounts"));
 
 const expressApp = app(new ExpressApp())
   .withSchemas<commands.Commands>({
@@ -43,6 +39,7 @@ const expressApp = app(new ExpressApp())
 
 let server: Server;
 const port = 3005;
+const t = tester(port);
 
 describe("express", () => {
   beforeAll(async () => {
@@ -60,10 +57,9 @@ describe("express", () => {
 
   it("should complete command", async () => {
     // when
-    const [result] = await command(
+    const [result] = await t.command(
       systems.ExternalSystem1,
-      bind("CreateAccount1", { id: chance.guid() }),
-      port
+      bind("CreateAccount1", { id: chance.guid() })
     );
 
     // then
@@ -73,7 +69,7 @@ describe("express", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      command(systems.ExternalSystem1, bind("CreateAccount1", null), port)
+      t.command(systems.ExternalSystem1, bind("CreateAccount1", null))
     ).rejects.toThrowError("Request failed with status code 400");
   });
 });

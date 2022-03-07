@@ -1,3 +1,0 @@
-# eventually-test
-
-Testing utilities

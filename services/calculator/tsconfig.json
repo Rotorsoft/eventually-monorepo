@@ -10,8 +10,7 @@
     { "path": "../../libs/eventually" },
     { "path": "../../libs/eventually-express" },
     { "path": "../../libs/eventually-pg" },
-    { "path": "../../libs/eventually-gcp" },
-    { "path": "../../libs/eventually-test" }
+    { "path": "../../libs/eventually-gcp" }
   ],
   "include": ["src"],
   "exclude": ["**/__mocks__/**", "**/__tests__/**"]
