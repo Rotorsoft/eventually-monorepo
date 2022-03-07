@@ -932,7 +932,7 @@ __metadata:
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
     "@rotorsoft/eventually": "workspace:^4.0.5"
-    "@rotorsoft/eventually-express": "workspace:^4.0.5"
+    "@rotorsoft/eventually-express": "workspace:^4.0.6"
     "@rotorsoft/eventually-pg": "workspace:^4.0.5"
     "@types/node": ^17.0.21
     ts-node-dev: ^1.1.8
@@ -946,7 +946,7 @@ __metadata:
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
     "@rotorsoft/eventually": "workspace:^4.0.5"
-    "@rotorsoft/eventually-express": "workspace:^4.0.5"
+    "@rotorsoft/eventually-express": "workspace:^4.0.6"
     "@types/chance": ^1
     chance: ^1.1.8
     joi: ^17.4.2
@@ -956,7 +956,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-express@workspace:^4.0.5, @rotorsoft/eventually-express@workspace:libs/eventually-express":
+"@rotorsoft/eventually-express@workspace:^4.0.6, @rotorsoft/eventually-express@workspace:libs/eventually-express":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
   dependencies:

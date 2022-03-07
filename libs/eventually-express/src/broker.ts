@@ -4,6 +4,7 @@ import {
   fork,
   log,
   Payload,
+  singleton,
   Store,
   store,
   Subscription,
@@ -48,7 +49,7 @@ const post = async (
   }
 };
 
-export const broker = (): Broker => {
+const build = (): Broker => {
   const channels: Record<string, Channel> = {};
   const channel = (name: string): Channel => {
     !channels[name] && (channels[name] = sseChannel(name));
@@ -194,3 +195,7 @@ export const broker = (): Broker => {
     channel
   };
 };
+
+export const broker = singleton(function broker() {
+  return build();
+});
