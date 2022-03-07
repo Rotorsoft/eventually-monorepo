@@ -51,7 +51,8 @@ const post = async (
 export const broker = (): Broker => {
   const channels: Record<string, Channel> = {};
   const channel = (name: string): Channel => {
-    return (channels[name] = channels[name] || sseChannel());
+    !channels[name] && (channels[name] = sseChannel(name));
+    return channels[name];
   };
 
   // scoped global variables

@@ -3,7 +3,7 @@ import EventEmitter from "events";
 import { Request, Response } from "express";
 import { Channel } from "./types";
 
-export default (): Channel => {
+export default (name: string): Channel => {
   let opened = false;
   const buffer: CommittedEvent<string, Payload>[] = [];
   const bus = new EventEmitter();
@@ -24,7 +24,7 @@ export default (): Channel => {
         bus.removeAllListeners();
       });
       bus.on("data", (event) => {
-        log().trace("red", `sending event ${event.id}...`);
+        log().trace("red", `${name} sending event ${event.id}...`);
         res.write(`id: ${event.id}\n`);
         res.write(`event: message\n`);
         res.write(`data: ${JSON.stringify(event)}\n\n`);

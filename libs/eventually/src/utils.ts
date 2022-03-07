@@ -191,7 +191,7 @@ export const subscriptions = singleton(function subscriptions(
   return store || InMemorySubscriptionStore();
 });
 
-type Argument = Payload & { id: string };
+type Argument = Payload & { id: string; active: boolean };
 type Refresh = (operation: Operation, arg: Argument) => void;
 
 export const fork = (args: Argument[]): Refresh => {
@@ -201,10 +201,12 @@ export const fork = (args: Argument[]): Refresh => {
   log().info("green", `Cluster started with ${cores} cores`);
 
   try {
-    args.map((arg) => {
-      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
-      running[id] = arg;
-    });
+    args
+      .filter((arg) => arg.active)
+      .map((arg) => {
+        const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
+        running[id] = arg;
+      });
   } catch (error) {
     log().error(error);
   }
@@ -217,7 +219,7 @@ export const fork = (args: Argument[]): Refresh => {
     else if (code)
       log().info("red", `[${worker.process.pid}] exit with code: ${code}`);
     // reload worker
-    if (arg && (code || signal === "SIGINT")) {
+    if (arg && arg.active && (code || signal === "SIGINT")) {
       const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
       running[id] = arg;
     }
@@ -234,7 +236,7 @@ export const fork = (args: Argument[]): Refresh => {
           cluster.workers[id].kill("SIGINT");
         }
       }
-    } else {
+    } else if (arg.active) {
       const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
       running[id] = arg;
     }

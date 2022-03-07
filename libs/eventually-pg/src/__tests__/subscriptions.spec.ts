@@ -13,7 +13,7 @@ const pool = new Pool(config.pg);
 
 describe("subscriptions", () => {
   beforeAll(async () => {
-    await db.init();
+    await db.init(true);
     await db.init();
     await pool.query(seed);
   });
