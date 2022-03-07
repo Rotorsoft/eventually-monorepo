@@ -46,10 +46,20 @@ export type Subscription = {
 };
 
 /**
+ * Trigger payload
+ */
+export type Operation = "INSERT" | "UPDATE" | "DELETE" | "RETRY";
+export type TriggerPayload = {
+  id: string;
+  operation: Operation;
+  retries?: number;
+};
+
+/**
  * Subscription callback signature triggered by commits to event streams or retries
  */
 export type TriggerCallback = (
-  trigger: { position: number; reason: "commit" | "retry"; retries?: number },
+  trigger: TriggerPayload,
   subscription: Subscription
 ) => Promise<void>;
 

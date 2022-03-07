@@ -17,16 +17,46 @@ update subscriptions set active=false where id='stateless-counter1';
 */
 
 const create_script = (table: string): string => `
-CREATE TABLE IF NOT EXISTS public.${table}
+create table if not exists public.${table}
 (
-  id character varying(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY,
-  active boolean NOT NULL default true,
-  channel character varying(100) COLLATE pg_catalog."default" NOT NULL,
-  streams character varying(150) COLLATE pg_catalog."default" NOT NULL,
-  names character varying(250) COLLATE pg_catalog."default" NOT NULL,
-  endpoint character varying(100) COLLATE pg_catalog."default" NOT NULL,
-  position integer NOT NULL default -1
-) TABLESPACE pg_default;`;
+  id character varying(100) not null primary key,
+  active boolean not null default true,
+  channel character varying(100) not null,
+  streams character varying(150) not null,
+  names character varying(250) not null,
+  endpoint character varying(100) not null,
+  position integer not null default -1
+) tablespace pg_default;
+
+create or replace function notify_subscription() returns trigger as
+$trigger$
+declare
+  rec record;
+  payload text;
+begin
+  case TG_OP
+    when 'UPDATE' then rec := NEW;
+    when 'INSERT' then rec := NEW;
+    when 'DELETE' then rec := OLD;
+  end case;
+  payload := json_build_object(
+    'operation',TG_OP,
+    'id',rec.id
+  );
+  perform pg_notify('subscriptions', payload);
+  return rec;
+end;
+$trigger$ language plpgsql;
+
+drop trigger if exists on_subscription_inserted_deleted on public.${table};
+create trigger on_subscription_inserted_deleted after INSERT or DELETE on public.${table} for each row
+execute procedure public.notify_subscription();
+
+drop trigger if exists on_subscription_updated on public.${table};
+create trigger on_subscription_updated after UPDATE on public.${table} for each row
+when ((OLD.streams, OLD.names, OLD.endpoint) is distinct from (NEW.streams, NEW.names, NEW.endpoint) )
+execute procedure public.notify_subscription();
+`;
 
 export const PostgresSubscriptionStore = (
   table?: string
@@ -42,12 +72,11 @@ export const PostgresSubscriptionStore = (
       }
     },
 
-    listen: (
+    listen: async (
       subscription: Subscription,
       callback: TriggerCallback
     ): Promise<void> => {
-      void PostgresStreamListener(subscription, callback);
-      return;
+      await PostgresStreamListener(subscription, callback);
     },
 
     close: async () => {
@@ -57,10 +86,15 @@ export const PostgresSubscriptionStore = (
       }
     },
 
-    load: async (): Promise<Subscription[]> => {
-      const result = await pool.query<Subscription>(
-        `select * from ${table} where active=true`
-      );
+    load: async (id?: string): Promise<Subscription[]> => {
+      const result = id
+        ? await pool.query<Subscription>(
+            `select * from public.${table} where id=$1`,
+            [id]
+          )
+        : await pool.query<Subscription>(
+            `select * from public.${table} where active=true`
+          );
       return result.rows;
     },
 

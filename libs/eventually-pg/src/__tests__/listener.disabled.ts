@@ -20,19 +20,28 @@ const sub: Subscription = {
 subscriptions(PostgresSubscriptionStore("listener_test"));
 
 describe("listener", () => {
+  let closeListener: () => Promise<void>;
+  let pumped = 0;
+
+  const pump: TriggerCallback = () => {
+    pumped++;
+    return Promise.resolve();
+  };
+
+  beforeAll(async () => {
+    closeListener = await PostgresStreamListener(sub, pump);
+  });
+
+  afterAll(async () => {
+    await closeListener();
+  });
+
   it("should trigger subscription", async () => {
-    let pumped = false;
-    const pump: TriggerCallback = () => {
-      pumped = true;
-      return Promise.resolve();
-    };
-    const close = await PostgresStreamListener(sub, pump);
     await store().commit("aggregate1", [event("test3", { value: "1" })], {
       correlation: "",
       causation: {}
     });
-    await sleep(1000);
-    expect(pumped).toBeTruthy();
-    await close();
+    await sleep(2000);
+    expect(pumped).toBeGreaterThan(0);
   });
 });

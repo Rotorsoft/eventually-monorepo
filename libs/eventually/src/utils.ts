@@ -14,6 +14,7 @@ import {
   EventHandlerFactory,
   Message,
   MessageHandler,
+  Operation,
   Payload,
   Reducible,
   ReducibleFactory,
@@ -190,9 +191,12 @@ export const subscriptions = singleton(function subscriptions(
   return store || InMemorySubscriptionStore();
 });
 
-export const fork = <T extends Payload>(args: T[]): void => {
+type Argument = Payload & { id: string };
+type Refresh = (operation: Operation, arg: Argument) => void;
+
+export const fork = (args: Argument[]): Refresh => {
   const cores = cpus().length;
-  const running: Record<number, T> = {};
+  const running: Record<number, Argument> = {};
 
   log().info("green", `Cluster started with ${cores} cores`);
 
@@ -210,13 +214,29 @@ export const fork = <T extends Payload>(args: T[]): void => {
     delete running[worker.id];
     if (signal)
       log().info("red", `[${worker.process.pid}] killed by signal: ${signal}`);
-    else if (code) {
-      log().info(
-        "red",
-        `[${worker.process.pid}] exit with error code: ${code}. reloading...`
-      );
+    else if (code)
+      log().info("red", `[${worker.process.pid}] exit with code: ${code}`);
+    // reload worker
+    if (arg && (code || signal === "SIGINT")) {
       const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
       running[id] = arg;
     }
   });
+
+  return (operation, arg) => {
+    if (operation !== "INSERT") {
+      for (const [key, value] of Object.entries(running)) {
+        const id = parseInt(key);
+        if (value.id === arg.id) {
+          // found!!! update and send signal to restart
+          if (operation === "DELETE") delete running[id];
+          else running[id] = arg;
+          cluster.workers[id].kill("SIGINT");
+        }
+      }
+    } else {
+      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
+      running[id] = arg;
+    }
+  };
 };

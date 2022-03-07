@@ -1,28 +1,24 @@
 import {
   log,
-  store,
   StreamListener,
   Subscription,
   subscriptions,
-  TriggerCallback
+  TriggerCallback,
+  TriggerPayload
 } from "@rotorsoft/eventually";
 import createSubscriber from "pg-listen";
 import { config } from "./config";
-import { PostgresStore } from "./PostgresStore";
 
 export const PostgresStreamListener: StreamListener = async (
   sub: Subscription,
   callback: TriggerCallback
 ): Promise<() => Promise<void>> => {
-  store(PostgresStore(sub.channel));
-  await store().init();
   await subscriptions().init();
   const subscriber = createSubscriber(config.pg);
 
   const close = async (): Promise<void> => {
     await subscriber.close();
     await subscriptions().close();
-    await store().close();
   };
 
   process.on("exit", async () => {
@@ -39,9 +35,12 @@ export const PostgresStreamListener: StreamListener = async (
     process.exit(1);
   });
 
-  subscriber.notifications.on(sub.channel, async (event): Promise<void> => {
-    await callback({ position: event.id, reason: "commit" }, sub);
-  });
+  subscriber.notifications.on(
+    sub.channel,
+    async (payload: TriggerPayload): Promise<void> => {
+      await callback(payload, sub);
+    }
+  );
 
   void subscriber.connect().then(async () => {
     await subscriber.listenTo(sub.channel);

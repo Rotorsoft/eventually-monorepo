@@ -29,6 +29,11 @@ describe("subscriptions", () => {
     expect(result.length).toBe(2);
   });
 
+  it("should load subscription", async () => {
+    const result = await db.load("id2");
+    expect(result.length).toBe(1);
+  });
+
   it("should commit position", async () => {
     await db.commit("id1", 10);
     await db.commit("id2", 10);

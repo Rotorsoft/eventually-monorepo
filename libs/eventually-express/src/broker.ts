@@ -4,6 +4,7 @@ import {
   fork,
   log,
   Payload,
+  Store,
   store,
   Subscription,
   subscriptions,
@@ -51,7 +52,7 @@ const post = async (
 
 export const broker = (): {
   master: () => Promise<void>;
-  worker: () => void;
+  worker: (factory: (table: string) => Store) => Promise<void>;
 } => {
   // worker global variables
   let streams: RegExp,
@@ -97,7 +98,11 @@ export const broker = (): {
               setTimeout(
                 () =>
                   pump(
-                    { position: sub.position, reason: "retry", retries },
+                    {
+                      operation: "RETRY",
+                      id: sub.position.toString(),
+                      retries
+                    },
                     sub
                   ),
                 5000 * retries
@@ -115,7 +120,7 @@ export const broker = (): {
       }
       log().info(
         "blue",
-        `[${process.pid}] pump ${sub.id} ${trigger.reason}@${trigger.position}`,
+        `[${process.pid}] pump ${sub.id} ${trigger.operation}@${trigger.id}`,
         `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
         stats.events
       );
@@ -128,8 +133,19 @@ export const broker = (): {
     master: async (): Promise<void> => {
       await subscriptions().init();
       const args = await subscriptions().load();
-      // TODO: refresh workers on subscription changes - triggered by db?
-      fork(args);
+      const refresh = fork(args);
+      const sub: Subscription = {
+        id: "broker",
+        channel: "subscriptions",
+        streams: "",
+        names: "",
+        endpoint: "",
+        active: true
+      };
+      void subscriptions().listen(sub, async (trigger) => {
+        const [arg] = await subscriptions().load(trigger.id);
+        refresh(trigger.operation, arg);
+      });
       const express = app(new ExpressApp()).build();
       express.get("/subscriptions", async (_, res) => {
         const subs = await subscriptions().load();
@@ -138,13 +154,13 @@ export const broker = (): {
       void app().listen();
     },
 
-    worker: (): void => {
+    worker: async (factory: (table: string) => Store): Promise<void> => {
       const sub: Subscription = JSON.parse(
         process.env.WORKER_ENV
       ) as Subscription;
       streams = RegExp(sub.streams);
       names = RegExp(sub.names);
-      // TODO use sub to config other listeners
+      await store(factory(sub.channel)).init();
       void subscriptions().listen(sub, pump);
     }
   };

@@ -105,8 +105,9 @@ export interface SubscriptionStore {
 
   /**
    * Loads subscriptions from store
+   * @param id optional subscription id
    */
-  load: () => Promise<Subscription[]>;
+  load: (id?: string) => Promise<Subscription[]>;
 
   /**
    * Commits a new position
