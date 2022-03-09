@@ -931,10 +931,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.5"
-    "@rotorsoft/eventually-express": "workspace:^4.0.6"
-    "@rotorsoft/eventually-pg": "workspace:^4.0.5"
-    "@types/node": ^17.0.21
+    "@rotorsoft/eventually": "workspace:^4.0.6"
+    "@rotorsoft/eventually-express": "workspace:^4.0.7"
+    "@rotorsoft/eventually-pg": "workspace:^4.0.6"
+    "@types/node": "*"
     ts-node-dev: ^1.1.8
     tsconfig-paths: ^3.12.0
     typescript: ^4.4.3
@@ -945,8 +945,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.5"
-    "@rotorsoft/eventually-express": "workspace:^4.0.6"
+    "@rotorsoft/eventually": "workspace:^4.0.6"
+    "@rotorsoft/eventually-express": "workspace:^4.0.7"
     "@types/chance": ^1
     chance: ^1.1.8
     joi: ^17.4.2
@@ -956,14 +956,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-express@workspace:^4.0.6, @rotorsoft/eventually-express@workspace:libs/eventually-express":
+"@rotorsoft/eventually-express@workspace:^4.0.7, @rotorsoft/eventually-express@workspace:libs/eventually-express":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.5"
+    "@rotorsoft/eventually": "workspace:^4.0.6"
     "@types/cors": ^2.8.12
     "@types/express": ^4.17.13
-    "@types/node": ^16.9.2
+    "@types/node": "*"
     "@types/swagger-ui-express": ^4
     axios: ^0.26.0
     cors: ^2.8.5
@@ -979,8 +979,8 @@ __metadata:
   resolution: "@rotorsoft/eventually-gcp@workspace:libs/eventually-gcp"
   dependencies:
     "@google-cloud/pubsub": ^2.17.0
-    "@rotorsoft/eventually": "workspace:^4.0.5"
-    "@types/node": ^16.9.2
+    "@rotorsoft/eventually": "workspace:^4.0.6"
+    "@types/node": "*"
     joi: ^17.4.2
   languageName: unknown
   linkType: soft
@@ -990,7 +990,7 @@ __metadata:
   resolution: "@rotorsoft/eventually-monorepo@workspace:."
   dependencies:
     "@types/jest": ^27.0.1
-    "@types/node": ^16.9.1
+    "@types/node": "*"
     "@typescript-eslint/eslint-plugin": ^4.28.3
     "@typescript-eslint/parser": ^4.28.3
     eslint: ^7.30.0
@@ -1005,13 +1005,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-pg@workspace:^4.0.5, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+"@rotorsoft/eventually-pg@workspace:^4.0.6, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.5"
+    "@rotorsoft/eventually": "workspace:^4.0.6"
     "@types/chance": ^1
-    "@types/node": ^16.9.2
+    "@types/node": "*"
     "@types/pg": ^8
     chance: ^1.1.8
     joi: ^17.4.2
@@ -1020,7 +1020,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually@workspace:^4.0.5, @rotorsoft/eventually@workspace:libs/eventually":
+"@rotorsoft/eventually@workspace:^4.0.6, @rotorsoft/eventually@workspace:libs/eventually":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:
@@ -1256,7 +1256,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^16.9.1":
+"@types/node@npm:*":
   version: 16.9.1
   resolution: "@types/node@npm:16.9.1"
   checksum: 41afcf183a22d59323a0199dd7e0f46591247f45fc08a4434edb26d56dc279ae4fdb80f37989ddd7a0f45e3857c4933e6e82057ede09c5a829f77e373e680375
@@ -1267,20 +1267,6 @@ __metadata:
   version: 16.9.6
   resolution: "@types/node@npm:16.9.6"
   checksum: 1c11ff4b58af87ddade05784e90bb5a2fe01f461ce489fdb1428d89e709695a26b0dcbac0520305911f5e4017561416747e544f1b9ec36649ccbfad6ffff4a0a
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^16.9.2":
-  version: 16.9.2
-  resolution: "@types/node@npm:16.9.2"
-  checksum: 204aa883bc93a267f43804af8872e538935369ab905d5ca702d2c17a213339f8df974bb95d21e2e714e8f83f669b185d8526f7c4b5d16adbdb5d96d4f2e75fa9
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^17.0.21":
-  version: 17.0.21
-  resolution: "@types/node@npm:17.0.21"
-  checksum: 89dcd2fe82f21d3634266f8384e9c865cf8af49685639fbdbd799bdd1040480fb1e8eeda2d3b9fce41edbe704d2a4be9f427118c4ae872e8d9bb7cbeb3c41a94
   languageName: node
   linkType: hard
 

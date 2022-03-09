@@ -6,8 +6,7 @@ import {
   Payload,
   Snapshot,
   StoreStat,
-  Subscription,
-  TriggerCallback
+  Subscription
 } from "./types";
 
 /**
@@ -89,14 +88,6 @@ export interface SubscriptionStore {
    * Store initializer
    */
   init: (seed?: boolean) => Promise<void>;
-
-  /**
-   * Starts subscription listener
-   */
-  listen: (
-    subscription: Subscription,
-    callback: TriggerCallback
-  ) => Promise<void>;
 
   /**
    * Store closer

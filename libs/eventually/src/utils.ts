@@ -219,13 +219,14 @@ export const fork = (args: Argument[]): Refresh => {
     else if (code)
       log().info("red", `[${worker.process.pid}] exit with code: ${code}`);
     // reload worker
-    if (arg && arg.active && (code || signal === "SIGINT")) {
+    if (arg && arg.active && (code < 100 || signal === "SIGINT")) {
       const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
       running[id] = arg;
     }
   });
 
   return (operation, arg) => {
+    log().info("magenta", `refreshing ${operation}`, JSON.stringify(arg));
     if (operation !== "INSERT") {
       for (const [key, value] of Object.entries(running)) {
         const id = parseInt(key);
@@ -236,7 +237,8 @@ export const fork = (args: Argument[]): Refresh => {
           cluster.workers[id].kill("SIGINT");
         }
       }
-    } else if (arg.active) {
+    }
+    if (arg.active) {
       const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
       running[id] = arg;
     }

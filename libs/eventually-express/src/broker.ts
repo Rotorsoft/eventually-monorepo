@@ -1,201 +1,165 @@
 import {
   app,
-  CommittedEvent,
+  ChannelResolvers,
   fork,
   log,
-  Payload,
-  singleton,
-  Store,
-  store,
+  PullChannel,
+  PushChannel,
+  StreamListenerFactory,
   Subscription,
   subscriptions,
+  SubscriptionStats,
   TriggerCallback
 } from "@rotorsoft/eventually";
-import axios from "axios";
+import cluster from "cluster";
 import { ExpressApp } from "./ExpressApp";
-import sseChannel from "./sse-channel";
-import { Broker, Channel, Stats } from "./types";
 
 const BATCH_SIZE = 100;
 
-export type HttpResponse = {
-  status: number;
-  statusText: string;
-};
-
-const isSSE = (sub: Subscription): boolean =>
-  sub.endpoint.trim().toLowerCase().startsWith("sse://");
-
-const post = async (
-  event: CommittedEvent<string, Payload>,
-  endpoint: string
-): Promise<HttpResponse> => {
-  try {
-    const { status, statusText } = await axios.post(endpoint, event);
-    return { status, statusText };
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        const { status, statusText } = error.response;
-        return { status, statusText };
-      }
-      log().error(error);
-      return { status: 503, statusText: error.code };
-    } else {
-      log().error(error);
-      // TODO: check network errors to return 503 or 500
-      return { status: 503, statusText: error.message };
-    }
-  }
-};
-
-const build = (): Broker => {
-  const channels: Record<string, Channel> = {};
-  const channel = (name: string): Channel => {
-    !channels[name] && (channels[name] = sseChannel(name));
-    return channels[name];
-  };
-
-  // scoped global variables
-  let streams: RegExp,
-    names: RegExp,
-    pumping = false;
-
-  const emit = async (
-    sub: Subscription,
-    event: CommittedEvent<string, Payload>
-  ): Promise<number> => {
-    if (streams.test(event.stream) && names.test(event.name)) {
-      if (isSSE(sub)) {
-        channel(sub.id).emit(event);
-        return 200;
-      } else {
-        const { status } = await post(event, sub.endpoint);
-        return status;
-      }
-    }
-    // not matched
-    return 204;
-  };
-
-  const pump: TriggerCallback = async (trigger, sub): Promise<void> => {
-    if (pumping) return;
-    pumping = true;
+export const broker = async (
+  subscriptionsListenerFactory: StreamListenerFactory,
+  resolvers: ChannelResolvers
+): Promise<void> => {
+  if (cluster.isWorker) {
+    const sub: Subscription = JSON.parse(
+      process.env.WORKER_ENV
+    ) as Subscription;
+    let pullChannel: PullChannel;
+    let pushChannel: PushChannel;
+    let ssePort: number;
 
     try {
-      let count = BATCH_SIZE;
-      const stats: Stats = {
+      const pullUrl = new URL(sub.channel);
+      const pullFactory = resolvers[pullUrl.protocol]?.pull;
+      if (!pullFactory)
+        throw Error(
+          `Cannot resolve pull channel ${sub.channel} from protocol ${pullUrl.protocol}`
+        );
+      pullChannel = pullFactory(sub.id, pullUrl);
+    } catch (error) {
+      log().error(error);
+      process.exit(100);
+    }
+
+    try {
+      const pushUrl = new URL(sub.endpoint);
+      const pushFactory = resolvers[pushUrl.protocol]?.push;
+      if (!pushFactory)
+        throw Error(`Cannot resolve push channel from ${sub.endpoint}`);
+      pushChannel = pushFactory(sub.id, pushUrl);
+      ssePort =
+        pushUrl.protocol === "sse:" ? parseInt(pushUrl.port) : undefined;
+    } catch (error) {
+      log().error(error);
+      process.exit(100);
+    }
+
+    const streams = RegExp(sub.streams);
+    const names = RegExp(sub.names);
+
+    if (ssePort) {
+      const expressApp = app(new ExpressApp());
+      const express = expressApp.build();
+      express.get(`/${sub.id}`, (req, res) => {
+        pushChannel.init(req, res);
+      });
+      await expressApp.listen(false, ssePort);
+      log().info("bgRed", " GET ", `/${sub.id} @ port ${ssePort}`);
+    }
+
+    let pumping = false;
+    const pump: TriggerCallback = async (trigger): Promise<void> => {
+      if (pumping || !pushChannel) return;
+      pumping = true;
+
+      const stats: SubscriptionStats = {
         after: sub.position,
         batches: 0,
         total: 0,
         events: {}
       };
-      while (count === BATCH_SIZE) {
-        stats.batches++;
-        const events: CommittedEvent<string, Payload>[] = [];
-        count = await store().query((e) => events.push(e), {
-          after: sub.position,
-          limit: BATCH_SIZE
-        });
-        for (const e of events) {
-          const status = await emit(sub, e);
 
-          stats.total++;
-          const event = (stats.events[e.name] = stats.events[e.name] || {});
-          event[status] = (event[status] || 0) + 1;
+      try {
+        let count = BATCH_SIZE;
+        while (count === BATCH_SIZE) {
+          stats.batches++;
+          const events = await pullChannel.pull(sub.position, BATCH_SIZE);
+          count = events.length;
+          for (const e of events) {
+            const { status } =
+              streams.test(e.stream) && names.test(e.name)
+                ? await pushChannel.push(e)
+                : { status: 204 };
+            stats.total++;
+            const event = (stats.events[e.name] = stats.events[e.name] || {});
+            event[status] = (event[status] || 0) + 1;
 
-          if ([429, 503, 504].includes(status)) {
-            // 429 - Too Many Requests
-            // 503 - Service Unavailable
-            // 504 - Gateway Timeout
-            const retries = (trigger.retries || 0) + 1;
-            if (retries <= 3)
-              setTimeout(
-                () =>
-                  pump(
-                    {
+            if ([429, 503, 504].includes(status)) {
+              // 429 - Too Many Requests
+              // 503 - Service Unavailable
+              // 504 - Gateway Timeout
+              const retries = (trigger.retries || 0) + 1;
+              if (retries <= 3)
+                setTimeout(
+                  () =>
+                    pump({
                       operation: "RETRY",
                       id: sub.position.toString(),
                       retries
-                    },
-                    sub
-                  ),
-                5000 * retries
+                    }),
+                  5000 * retries
+                );
+              return;
+            } else if (status === 409) {
+              // consumers (event handlers) should not return concurrency errors
+              // is the reponsibility of the policy to deal with concurrent issues from internal aggregates
+              log().error(
+                Error(
+                  `Consumer endpoint ${sub.endpoint} returned 409 when processing event ${e.id}-${e.name}`
+                )
               );
-            break;
-          } else if (status === 409) {
-            // concurrency error - ignore by default
-            // TODO: make this configurable by subscription?
-          } else if (![200, 204].includes(status)) break; // break on errors
+              return;
+            } else if (![200, 204].includes(status)) return; // stop on errors
 
-          // update position
-          await subscriptions().commit(sub.id, e.id);
-          sub.position = e.id;
+            // update position
+            await subscriptions().commit(sub.id, e.id);
+            sub.position = e.id;
+          }
         }
+      } finally {
+        log().info(
+          "blue",
+          `[${process.pid}] pump ${sub.id} ${trigger.operation}${
+            trigger.retries || ""
+          }@${trigger.id}`,
+          `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
+          stats.events
+        );
+        pumping = false;
       }
-      log().info(
-        "blue",
-        `[${process.pid}] pump ${sub.id} ${trigger.operation}${
-          trigger.retries || ""
-        }@${trigger.id}`,
-        `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
-        stats.events
-      );
-    } finally {
-      pumping = false;
-    }
-  };
+    };
 
-  return {
-    master: async (): Promise<void> => {
-      await subscriptions().init(true);
-      const args = await subscriptions().load();
-      const refresh = fork(args);
-      const sub: Subscription = {
-        id: "broker",
-        channel: "subscriptions",
-        streams: "",
-        names: "",
-        endpoint: "",
-        active: true
-      };
-      void subscriptions().listen(sub, async (trigger) => {
-        const [arg] = await subscriptions().load(trigger.id);
-        refresh(trigger.operation, arg);
-      });
-      const express = app(new ExpressApp()).build();
-      express.get("/subscriptions", async (_, res) => {
-        const subs = await subscriptions().load();
-        res.json(subs);
-      });
-      await app().listen();
-      log().info("bgGreen", " GET ", "/subscriptions");
-    },
-
-    worker: async (factory: (table: string) => Store): Promise<void> => {
-      const sub: Subscription = JSON.parse(
-        process.env.WORKER_ENV
-      ) as Subscription;
-      streams = RegExp(sub.streams);
-      names = RegExp(sub.names);
-      await store(factory(sub.channel)).init();
-      if (isSSE(sub)) {
-        const port = parseInt(sub.endpoint.substr(6));
-        const expressApp = app(new ExpressApp());
-        const express = expressApp.build();
-        express.get(`/${sub.id}`, (req, res) => {
-          channel(sub.id).open(req, res);
-        });
-        await expressApp.listen(false, port);
-        log().info("bgRed", " GET ", `/${sub.id}`);
+    void pump({ operation: "RESTART", id: sub.position.toString() });
+    void pullChannel.listen(pump);
+  } else {
+    await subscriptions().init(true);
+    const args = await subscriptions().load();
+    const refresh = fork(args);
+    const listener = subscriptionsListenerFactory();
+    void listener.listen(
+      "broker",
+      new URL("pg://subscriptions"),
+      async ({ operation, id }) => {
+        const [arg] = await subscriptions().load(id);
+        refresh(operation, arg);
       }
-      void subscriptions().listen(sub, pump);
-    },
-
-    channel
-  };
+    );
+    const express = app(new ExpressApp()).build();
+    express.get("/subscriptions", async (_, res) => {
+      const subs = await subscriptions().load();
+      res.json(subs);
+    });
+    await app().listen();
+    log().info("bgGreen", " GET ", "/subscriptions");
+  }
 };
-
-export const broker = singleton(function broker() {
-  return build();
-});

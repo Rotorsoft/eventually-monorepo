@@ -1459,7 +1459,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@rotorsoft/eventually-express", "workspace:libs/eventually-express"],
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
-            ["@types/node", "npm:17.0.21"],
+            ["@types/node", "npm:16.9.1"],
             ["ts-node-dev", "virtual:f6da0aaee2891b94eb550f3895fb35ffea6568777566e3eb91a8c836dfc9cad0215e73d6b56de69246f6d0eec6903c698f87087da62b1abbd25567f4d749d72b#npm:1.1.8"],
             ["tsconfig-paths", "npm:3.12.0"],
             ["typescript", "patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"]
@@ -1504,7 +1504,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@types/cors", "npm:2.8.12"],
             ["@types/express", "npm:4.17.13"],
-            ["@types/node", "npm:16.9.2"],
+            ["@types/node", "npm:16.9.1"],
             ["@types/swagger-ui-express", "npm:4.1.3"],
             ["axios", "npm:0.26.0"],
             ["cors", "npm:2.8.5"],
@@ -1523,7 +1523,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually-gcp", "workspace:libs/eventually-gcp"],
             ["@google-cloud/pubsub", "npm:2.17.0"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
-            ["@types/node", "npm:16.9.2"],
+            ["@types/node", "npm:16.9.1"],
             ["joi", "npm:17.4.2"]
           ],
           "linkType": "SOFT",
@@ -1558,7 +1558,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rotorsoft/eventually-pg", "workspace:libs/eventually-pg"],
             ["@rotorsoft/eventually", "workspace:libs/eventually"],
             ["@types/chance", "npm:1.1.3"],
-            ["@types/node", "npm:16.9.2"],
+            ["@types/node", "npm:16.9.1"],
             ["@types/pg", "npm:8.6.1"],
             ["chance", "npm:1.1.8"],
             ["joi", "npm:17.4.2"],
@@ -1838,24 +1838,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],
           "linkType": "HARD",
         }],
-        ["npm:16.9.2", {
-          "packageLocation": "./.yarn/cache/@types-node-npm-16.9.2-2c03dc5c05-204aa883bc.zip/node_modules/@types/node/",
-          "packageDependencies": [
-            ["@types/node", "npm:16.9.2"]
-          ],
-          "linkType": "HARD",
-        }],
         ["npm:16.9.6", {
           "packageLocation": "./.yarn/cache/@types-node-npm-16.9.6-c95978d15b-1c11ff4b58.zip/node_modules/@types/node/",
           "packageDependencies": [
             ["@types/node", "npm:16.9.6"]
-          ],
-          "linkType": "HARD",
-        }],
-        ["npm:17.0.21", {
-          "packageLocation": "./.yarn/cache/@types-node-npm-17.0.21-7d68eb6a13-89dcd2fe82.zip/node_modules/@types/node/",
-          "packageDependencies": [
-            ["@types/node", "npm:17.0.21"]
           ],
           "linkType": "HARD",
         }]

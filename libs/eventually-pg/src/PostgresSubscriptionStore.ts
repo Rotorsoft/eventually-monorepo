@@ -1,10 +1,5 @@
-import {
-  Subscription,
-  SubscriptionStore,
-  TriggerCallback
-} from "@rotorsoft/eventually";
+import { Subscription, SubscriptionStore } from "@rotorsoft/eventually";
 import { Pool } from "pg";
-import { PostgresStreamListener } from "./PostgresStreamListener";
 import { config } from "./config";
 
 /*
@@ -72,13 +67,6 @@ export const PostgresSubscriptionStore = (
       }
     },
 
-    listen: async (
-      subscription: Subscription,
-      callback: TriggerCallback
-    ): Promise<void> => {
-      await PostgresStreamListener(subscription, callback);
-    },
-
     close: async () => {
       if (pool) {
         await pool.end();
@@ -99,12 +87,15 @@ export const PostgresSubscriptionStore = (
     },
 
     commit: async (id: string, position: number): Promise<void> => {
-      // TODO: use optimistic concurrency strategy - pass expectedPosition?
-      // TODO: or try leasing strategy?
-      await pool.query(
-        `update public.${table} set position=$2 where id=$1 and position<$2`,
-        [id, position]
-      );
+      /** 
+        TODO: 
+          WARNING!!!: We don't support multiple brokers handling the same subscription store
+          In the future we can use optimistic concurrency or leasing strategies if needed
+      */
+      await pool.query(`update public.${table} set position=$2 where id=$1`, [
+        id,
+        position
+      ]);
     }
   };
 };

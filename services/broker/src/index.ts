@@ -1,11 +1,29 @@
-import { subscriptions } from "@rotorsoft/eventually";
-import { broker } from "@rotorsoft/eventually-express";
+import { ChannelResolvers, subscriptions } from "@rotorsoft/eventually";
 import {
-  PostgresStore,
+  broker,
+  postPushChannel,
+  ssePushChannel
+} from "@rotorsoft/eventually-express";
+import {
+  PostgresPullChannel,
+  PostgresStreamListenerFactory,
   PostgresSubscriptionStore
 } from "@rotorsoft/eventually-pg";
-import cluster from "cluster";
 
 subscriptions(PostgresSubscriptionStore());
+const resolvers: ChannelResolvers = {
+  "pg:": {
+    pull: (id: string, channel: URL) => PostgresPullChannel(id, channel),
+    push: undefined
+  },
+  "http:": {
+    pull: undefined,
+    push: (_, endpoint: URL) => postPushChannel(endpoint)
+  },
+  "sse:": {
+    pull: undefined,
+    push: () => ssePushChannel()
+  }
+};
 
-cluster.isWorker ? void broker().worker(PostgresStore) : void broker().master();
+void broker(PostgresStreamListenerFactory, resolvers);

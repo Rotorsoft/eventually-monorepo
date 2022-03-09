@@ -1,6 +1,9 @@
 import * as joi from "joi";
 import { SnapshotStore } from ".";
 
+//=====================================================================================
+// COMMAND LEVEL
+//=====================================================================================
 /**
  * Message payloads are objects
  */
@@ -25,51 +28,6 @@ export type Actor = {
   name: string;
   roles: string[];
 };
-
-/**
- * Subscriptions connect enpoints to streaming channels using pattern matching rules
- * - `id` The subscription unique id
- * - `channel` The name of the channel - main "all" stream to subscribe to
- * - `endpoint` The endpoint to push events to - TODO protocols, defaults to http POST
- * - `streams`: regex rules to filter by substreams (aggregates, systems, process managers)
- * - `names`: regex rules to filter by event names
- * - `position?` The position in the stream - last acked id
- */
-export type Subscription = {
-  id: string;
-  active: boolean;
-  channel: string;
-  streams: string;
-  names: string;
-  endpoint: string;
-  position?: number;
-};
-
-/**
- * Trigger payload
- */
-export type Operation = "INSERT" | "UPDATE" | "DELETE" | "RETRY";
-export type TriggerPayload = {
-  id: string;
-  operation: Operation;
-  retries?: number;
-};
-
-/**
- * Subscription callback signature triggered by commits to event streams or retries
- */
-export type TriggerCallback = (
-  trigger: TriggerPayload,
-  subscription: Subscription
-) => Promise<void>;
-
-/**
- * Stream listeners listen for stream notifications to trigger integrations
- */
-export type StreamListener = (
-  subscription: Subscription,
-  callback: TriggerCallback
-) => Promise<() => Promise<void>>;
 
 /**
  * Commands are messages with optional target arguments
@@ -204,44 +162,6 @@ export type ProcessManagerFactory<M extends Payload, C, E> = (
 ) => ProcessManager<M, C, E>;
 
 /**
- * Options to query the all stream
- * - stream? filter by stream
- * - names? filter by event names
- * - before? filter events before this id
- * - after? filter events after this id
- * - limit? limit the number of events to return
- * - created_before? filter events created before this date/time
- * - created_after? filter events created after this date/time
- */
-export type AllQuery = {
-  readonly stream?: string;
-  readonly names?: string[];
-  readonly before?: number;
-  readonly after?: number;
-  readonly limit?: number;
-  readonly created_before?: Date;
-  readonly created_after?: Date;
-};
-
-/**
- * Apps are getters of reducibles
- */
-export type Getter = <M extends Payload, E>(
-  reducible: Reducible<M, E>,
-  useSnapshot?: boolean,
-  callback?: (snapshot: Snapshot<M>) => void
-) => Promise<Snapshot<M> | Snapshot<M>[]>;
-
-/**
- * All message handler types
- */
-export type MessageHandler<M extends Payload, C, E> =
-  | Aggregate<M, C, E>
-  | ExternalSystem<C, E>
-  | ProcessManager<M, C, E>
-  | Policy<C, E>;
-
-/**
  * All message handler factory types
  */
 export type MessageHandlerFactory<M extends Payload, C, E> =
@@ -271,6 +191,47 @@ export type EventHandler<M extends Payload, C, E> =
   | Policy<C, E>;
 
 /**
+ * All message handler types
+ */
+export type MessageHandler<M extends Payload, C, E> =
+  | Aggregate<M, C, E>
+  | ExternalSystem<C, E>
+  | ProcessManager<M, C, E>
+  | Policy<C, E>;
+
+//=====================================================================================
+// QUERY LEVEL
+//=====================================================================================
+/**
+ * Options to query the all stream
+ * - stream? filter by stream
+ * - names? filter by event names
+ * - before? filter events before this id
+ * - after? filter events after this id
+ * - limit? limit the number of events to return
+ * - created_before? filter events created before this date/time
+ * - created_after? filter events created after this date/time
+ */
+export type AllQuery = {
+  readonly stream?: string;
+  readonly names?: string[];
+  readonly before?: number;
+  readonly after?: number;
+  readonly limit?: number;
+  readonly created_before?: Date;
+  readonly created_after?: Date;
+};
+
+/**
+ * Apps are getters of reducibles
+ */
+export type Getter = <M extends Payload, E>(
+  reducible: Reducible<M, E>,
+  useSnapshot?: boolean,
+  callback?: (snapshot: Snapshot<M>) => void
+) => Promise<Snapshot<M> | Snapshot<M>[]>;
+
+/**
  * Store stats
  */
 export type StoreStat = {
@@ -281,3 +242,105 @@ export type StoreStat = {
   firstCreated?: Date;
   lastCreated?: Date;
 };
+
+//=====================================================================================
+// INTEGRATION LEVEL
+//=====================================================================================
+/**
+ * Subscriptions connect enpoints to streaming channels using pattern matching rules
+ * - `id` The subscription unique id
+ * - `channel` The source channel url - (example: pg://all = postgres "all" stream)
+ * - `endpoint` The endpoint url - (example: http://localhost:3000 = http post endpoint)
+ * - `streams`: regex rules to filter by substreams (aggregates, systems, process managers)
+ * - `names`: regex rules to filter by event names
+ * - `position` The position in the stream - last acked id
+ */
+export type Subscription = {
+  id: string;
+  active: boolean;
+  channel: string;
+  streams: string;
+  names: string;
+  endpoint: string;
+  position: number;
+};
+
+/**
+ * Trigger payload
+ */
+export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
+export type TriggerPayload = {
+  id: string;
+  operation: Operation;
+  retries?: number;
+};
+
+/**
+ * Subscription trigger callback to signal integration
+ */
+export type TriggerCallback = (trigger: TriggerPayload) => Promise<void>;
+
+/**
+ * Stream listeners listen for stream notifications and trigger integrations
+ */
+export type StreamListenerFactory = () => {
+  listen: (
+    id: string,
+    channel: URL,
+    callback: TriggerCallback
+  ) => Promise<void>;
+  close: () => Promise<void>;
+};
+
+/**
+ * Records integration stats
+ */
+export type SubscriptionStats = {
+  after: number;
+  batches: number;
+  total: number;
+  events: Record<string, Record<number, number>>;
+};
+
+/**
+ * Pull channels pull events from streams
+ */
+export type PullChannel = {
+  listen: (callback: TriggerCallback) => Promise<void>;
+  pull: (
+    position: number,
+    limit: number
+  ) => Promise<CommittedEvent<string, Payload>[]>;
+};
+
+/**
+ * Push channels push events to consumer endpoints
+ */
+export type PushResponse = {
+  status: number;
+  statusText: string;
+};
+export type PushChannel = {
+  init: (...args: any) => void;
+  push: (event: CommittedEvent<string, Payload>) => Promise<PushResponse>;
+};
+
+/**
+ * Channel resolvers by protocol
+ */
+export type ChannelResolver = {
+  pull: (id: string, channel: URL) => PullChannel;
+  push: (id: string, endpoint: URL) => PushChannel;
+};
+
+/**
+ * Maps protocols to resolvers
+ * example: 
+  `
+  "pg:": {
+    pull: (id: string, channel: URL) => PostgresPullChannel(id, channel),
+    push: undefined
+  }
+  `
+ */
+export type ChannelResolvers = Record<string, ChannelResolver>;

@@ -9,6 +9,7 @@ import {
   Snapshot,
   store
 } from "@rotorsoft/eventually";
+import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Forget } from "../forget.system";
@@ -19,6 +20,7 @@ import { Events } from "../calculator.events";
 import { Counter, IgnoredHandler } from "../counter.policy";
 
 const chance = new Chance();
+const t = tester();
 
 app()
   .withCommandHandlers(Calculator, Forget)
@@ -255,10 +257,18 @@ describe("in memory", () => {
     beforeAll(async () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
+
+      await t.sleep(100);
       created_after = new Date();
+      await t.sleep(100);
+
       await pressKey(id, "2");
       await pressKey(id, ".");
+
+      await t.sleep(100);
       created_before = new Date();
+      await t.sleep(100);
+
       await pressKey(id, "3");
       await pressKey(id, "=");
     });

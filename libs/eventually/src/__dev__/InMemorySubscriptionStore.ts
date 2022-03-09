@@ -7,10 +7,6 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
       throw Error("Not Implemented");
     },
 
-    listen: (): Promise<void> => {
-      throw Error("Not Implemented");
-    },
-
     close: (): Promise<void> => {
       throw Error("Not Implemented");
     },
