@@ -1,4 +1,4 @@
-import { log, PushChannel } from "@rotorsoft/eventually";
+import { PushChannel } from "@rotorsoft/eventually";
 import EventEmitter from "events";
 import { Request, Response } from "express";
 
@@ -25,7 +25,6 @@ export const ssePushChannel = (): PushChannel => {
       });
 
       bus.on("data", (event) => {
-        log().trace("red", `${name} sending event ${event.id}...`);
         res.write(`id: ${event.id}\n`);
         res.write(`event: message\n`);
         res.write(`data: ${JSON.stringify(event)}\n\n`);
