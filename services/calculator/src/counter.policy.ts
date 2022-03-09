@@ -23,8 +23,7 @@ const policy = async (
       return bind(
         "Reset",
         undefined,
-        event.stream.substr("Calculator-".length),
-        event.version
+        event.stream.substr("Calculator-".length)
       );
   } else {
     const id = event.stream.substr("Calculator-".length);

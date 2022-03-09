@@ -196,20 +196,16 @@ type Refresh = (operation: Operation, arg: Argument) => void;
 
 export const fork = (args: Argument[]): Refresh => {
   const cores = cpus().length;
-  const running: Record<number, Argument> = {};
+  const running: Record<string, Argument> = {};
 
   log().info("green", `Cluster started with ${cores} cores`);
 
-  try {
-    args
-      .filter((arg) => arg.active)
-      .map((arg) => {
-        const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
-        running[id] = arg;
-      });
-  } catch (error) {
-    log().error(error);
-  }
+  const run = (arg: Argument): void => {
+    if (arg.active) {
+      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
+      running[id] = arg;
+    }
+  };
 
   cluster.on("exit", (worker, code, signal) => {
     const arg = running[worker.id];
@@ -218,29 +214,37 @@ export const fork = (args: Argument[]): Refresh => {
       log().info("red", `[${worker.process.pid}] killed by signal: ${signal}`);
     else if (code)
       log().info("red", `[${worker.process.pid}] exit with code: ${code}`);
-    // reload worker
-    if (arg && arg.active && (code < 100 || signal === "SIGINT")) {
-      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
-      running[id] = arg;
-    }
+    // reload worker when active and interrupted by recoverable runtime errors
+    arg && (code < 100 || signal === "SIGINT") && run(arg);
   });
+
+  try {
+    args.map((arg) => run(arg));
+  } catch (error) {
+    log().error(error);
+  }
 
   return (operation, arg) => {
     log().info("magenta", `refreshing ${operation}`, JSON.stringify(arg));
-    if (operation !== "INSERT") {
-      for (const [key, value] of Object.entries(running)) {
-        const id = parseInt(key);
-        if (value.id === arg.id) {
-          // found!!! update and send signal to restart
-          if (operation === "DELETE") delete running[id];
-          else running[id] = arg;
-          cluster.workers[id].kill("SIGINT");
+    const [workerId] = Object.entries(running)
+      .filter(([, value]) => value.id === arg.id)
+      .map(([id]) => id);
+    switch (operation) {
+      case "INSERT":
+        !workerId && run(arg);
+        break;
+      case "UPDATE":
+        if (workerId) {
+          running[workerId] = arg;
+          cluster.workers[workerId].kill("SIGINT");
         }
-      }
-    }
-    if (arg.active) {
-      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
-      running[id] = arg;
+        break;
+      case "DELETE":
+        if (workerId) {
+          delete running[workerId];
+          cluster.workers[workerId].kill("SIGINT");
+        }
+        break;
     }
   };
 };

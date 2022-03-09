@@ -79,6 +79,7 @@ export const broker = async (
         events: {}
       };
 
+      let retry = false;
       try {
         let count = BATCH_SIZE;
         while (count === BATCH_SIZE) {
@@ -90,52 +91,54 @@ export const broker = async (
               streams.test(e.stream) && names.test(e.name)
                 ? await pushChannel.push(e)
                 : { status: 204 };
+
             stats.total++;
             const event = (stats.events[e.name] = stats.events[e.name] || {});
             event[status] = (event[status] || 0) + 1;
 
-            if ([429, 503, 504].includes(status)) {
-              // 429 - Too Many Requests
-              // 503 - Service Unavailable
-              // 504 - Gateway Timeout
-              const retries = (trigger.retries || 0) + 1;
-              if (retries <= 3)
-                setTimeout(
-                  () =>
-                    pump({
-                      operation: "RETRY",
-                      id: sub.position.toString(),
-                      retries
-                    }),
-                  5000 * retries
+            if ([200, 204].includes(status)) {
+              await subscriptions().commit(sub.id, e.id);
+              sub.position = e.id;
+            } else {
+              if ([429, 503, 504].includes(status)) {
+                // 429 - Too Many Requests
+                // 503 - Service Unavailable
+                // 504 - Gateway Timeout
+                retry = (trigger.retries || 0) < 3;
+              } else if (status === 409) {
+                // consumers (event handlers) should not return concurrency errors
+                // is the reponsibility of the policy to deal with concurrent issues from internal aggregates
+                log().error(
+                  Error(
+                    `Consumer endpoint ${sub.endpoint} returned 409 when processing event ${e.id}-${e.name}`
+                  )
                 );
+              }
               return;
-            } else if (status === 409) {
-              // consumers (event handlers) should not return concurrency errors
-              // is the reponsibility of the policy to deal with concurrent issues from internal aggregates
-              log().error(
-                Error(
-                  `Consumer endpoint ${sub.endpoint} returned 409 when processing event ${e.id}-${e.name}`
-                )
-              );
-              return;
-            } else if (![200, 204].includes(status)) return; // stop on errors
-
-            // update position
-            await subscriptions().commit(sub.id, e.id);
-            sub.position = e.id;
+            }
           }
         }
       } finally {
         log().info(
           "blue",
-          `[${process.pid}] pump ${sub.id} ${trigger.operation}${
+          `[${process.pid}] pumped ${sub.id} ${trigger.operation}${
             trigger.retries || ""
           }@${trigger.id}`,
           `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
           stats.events
         );
         pumping = false;
+        const retries = (trigger.retries || 0) + 1;
+        retry &&
+          setTimeout(
+            () =>
+              pump({
+                operation: "RETRY",
+                id: sub.position.toString(),
+                retries
+              }),
+            5000 * retries
+          );
       }
     };
 

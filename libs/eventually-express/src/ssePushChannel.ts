@@ -5,6 +5,9 @@ import { Request, Response } from "express";
 // TODO: scalability concerns - too many open connections in worker process
 export const ssePushChannel = (): PushChannel => {
   const bus = new EventEmitter();
+  let connected = false;
+  const buffer: any[] = [];
+
   return {
     init: (...args: any) => {
       const req: Request = args[0];
@@ -21,6 +24,7 @@ export const ssePushChannel = (): PushChannel => {
       res.setHeader("Content-Encoding", "none");
 
       req.on("close", () => {
+        connected = false;
         bus.removeAllListeners();
       });
 
@@ -29,9 +33,16 @@ export const ssePushChannel = (): PushChannel => {
         res.write(`event: message\n`);
         res.write(`data: ${JSON.stringify(event)}\n\n`);
       });
+
+      while (buffer.length) {
+        bus.emit(buffer.shift());
+      }
+      connected = true;
     },
+
     push: (event) => {
-      bus.emit("data", event);
+      if (connected) bus.emit("data", event);
+      else buffer.push(event);
       return Promise.resolve({ status: 200, statusText: "OK" });
     }
   };
