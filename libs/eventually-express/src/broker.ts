@@ -68,6 +68,8 @@ export const broker = async (
     }
 
     let pumping = false;
+    let retryTimeout: NodeJS.Timeout;
+
     const pump: TriggerCallback = async (trigger): Promise<void> => {
       if (pumping || !pushChannel) return;
       pumping = true;
@@ -80,6 +82,7 @@ export const broker = async (
       };
 
       let retry = false;
+      clearTimeout(retryTimeout);
       try {
         let count = BATCH_SIZE;
         while (count === BATCH_SIZE) {
@@ -127,10 +130,9 @@ export const broker = async (
           `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
           stats.events
         );
-        pumping = false;
         const retries = (trigger.retries || 0) + 1;
         retry &&
-          setTimeout(
+          (retryTimeout = setTimeout(
             () =>
               pump({
                 operation: "RETRY",
@@ -138,7 +140,8 @@ export const broker = async (
                 retries
               }),
             5000 * retries
-          );
+          ));
+        pumping = false;
       }
     };
 

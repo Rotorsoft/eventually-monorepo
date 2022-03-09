@@ -49,7 +49,7 @@ execute procedure public.notify_subscription();
 
 drop trigger if exists on_subscription_updated on public.${table};
 create trigger on_subscription_updated after UPDATE on public.${table} for each row
-when ((OLD.streams, OLD.names, OLD.endpoint) is distinct from (NEW.streams, NEW.names, NEW.endpoint) )
+when ((OLD.streams, OLD.names, OLD.endpoint, OLD.active) is distinct from (NEW.streams, NEW.names, NEW.endpoint, NEW.active) )
 execute procedure public.notify_subscription();
 `;
 

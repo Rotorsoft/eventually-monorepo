@@ -210,10 +210,7 @@ export const fork = (args: Argument[]): Refresh => {
   cluster.on("exit", (worker, code, signal) => {
     const arg = running[worker.id];
     delete running[worker.id];
-    if (signal)
-      log().info("red", `[${worker.process.pid}] killed by signal: ${signal}`);
-    else if (code)
-      log().info("red", `[${worker.process.pid}] exit with code: ${code}`);
+    log().info("red", `[${worker.process.pid}] exit ${signal || code}`);
     // reload worker when active and interrupted by recoverable runtime errors
     arg && (code < 100 || signal === "SIGINT") && run(arg);
   });
@@ -231,19 +228,17 @@ export const fork = (args: Argument[]): Refresh => {
       .map(([id]) => id);
     switch (operation) {
       case "INSERT":
-        !workerId && run(arg);
+        if (workerId) cluster.workers[workerId].kill("SIGINT");
+        else run(arg);
         break;
       case "UPDATE":
         if (workerId) {
           running[workerId] = arg;
           cluster.workers[workerId].kill("SIGINT");
-        }
+        } else run(arg);
         break;
       case "DELETE":
-        if (workerId) {
-          delete running[workerId];
-          cluster.workers[workerId].kill("SIGINT");
-        }
+        if (workerId) cluster.workers[workerId].kill("SIGTERM");
         break;
     }
   };
