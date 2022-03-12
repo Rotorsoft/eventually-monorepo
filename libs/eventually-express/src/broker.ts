@@ -26,7 +26,6 @@ export const broker = async (
     ) as Subscription;
     let pullChannel: PullChannel;
     let pushChannel: PushChannel;
-    let ssePort: number;
 
     try {
       const pullUrl = new URL(sub.channel);
@@ -47,8 +46,6 @@ export const broker = async (
       if (!pushFactory)
         throw Error(`Cannot resolve push channel from ${sub.endpoint}`);
       pushChannel = pushFactory(sub.id, pushUrl);
-      ssePort =
-        pushUrl.protocol === "sse:" ? parseInt(pushUrl.port) : undefined;
     } catch (error) {
       log().error(error);
       process.exit(100);
@@ -56,16 +53,6 @@ export const broker = async (
 
     const streams = RegExp(sub.streams);
     const names = RegExp(sub.names);
-
-    if (ssePort) {
-      const expressApp = app(new ExpressApp());
-      const express = expressApp.build();
-      express.get(`/${sub.id}`, (req, res) => {
-        pushChannel.init(req, res);
-      });
-      await expressApp.listen(false, ssePort);
-      log().info("bgRed", " GET ", `/${sub.id} @ port ${ssePort}`);
-    }
 
     let pumping = false;
     let retryTimeout: NodeJS.Timeout;

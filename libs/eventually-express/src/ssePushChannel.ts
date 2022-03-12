@@ -1,48 +1,50 @@
-import { PushChannel } from "@rotorsoft/eventually";
-import EventEmitter from "events";
+import { log, PushChannel, randomId } from "@rotorsoft/eventually";
 import { Request, Response } from "express";
+import { Writable } from "stream";
 
-// TODO: scalability concerns - too many open connections in worker process
+// TODO: scalability concerns - how many concurrent connections can a single process handle? process affinity?
+// TODO: this is a naive in-memory buffer implementation, use a persisted queue (redis?) instead
 export const ssePushChannel = (): PushChannel => {
-  const bus = new EventEmitter();
-  let connected = false;
+  const id = randomId();
   const buffer: any[] = [];
+  let stream: Writable;
+
+  const write = (): void => {
+    if (stream) {
+      log().trace("green", `[${id}] sse pushing ${buffer.length} events...`);
+      while (buffer.length) {
+        const e = buffer.shift();
+        stream.write(`id: ${e.id}\n`);
+        stream.write(`event: message\n`);
+        stream.write(`data: ${JSON.stringify(e)}\n\n`);
+      }
+    }
+  };
 
   return {
     init: (...args: any) => {
       const req: Request = args[0];
       const res: Response = args[1];
 
-      req.socket.setTimeout(0);
-      req.socket.setNoDelay(true);
-      req.socket.setKeepAlive(true);
-      res.statusCode = 200;
       res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("X-Accel-Buffering", "no");
-      res.setHeader("Connection", "keep-alive");
-      res.setHeader("Content-Encoding", "none");
+      res.setHeader("Cache-Control", "no-store");
+
+      req.on("error", (error) => {
+        log().error(error);
+      });
 
       req.on("close", () => {
-        connected = false;
-        bus.removeAllListeners();
+        stream = undefined;
       });
 
-      bus.on("data", (event) => {
-        res.write(`id: ${event.id}\n`);
-        res.write(`event: message\n`);
-        res.write(`data: ${JSON.stringify(event)}\n\n`);
-      });
-
-      while (buffer.length) {
-        bus.emit(buffer.shift());
-      }
-      connected = true;
+      stream = res;
+      write();
     },
 
     push: (event) => {
-      if (connected) bus.emit("data", event);
-      else buffer.push(event);
+      log().trace("green", `[${id}] sse push ${event.id}/${buffer.length}`);
+      buffer.push(event);
+      write();
       return Promise.resolve({ status: 200, statusText: "OK" });
     }
   };
