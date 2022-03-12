@@ -28,6 +28,41 @@ import { Server } from "http";
 import * as swaggerUI from "swagger-ui-express";
 import { swagger } from "./swagger";
 
+const redoc = (title: string): string => `<!DOCTYPE html>
+<html>
+  <head>
+    <title>${title}</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <redoc spec-url='/swagger'></redoc>
+    <script src="https://unpkg.com/redoc@latest/bundles/redoc.standalone.js"> </script>
+  </body>
+</html>`;
+
+const rapidoc = (title: string): string => `<!doctype html>
+<html>
+<head>
+  <title>${title}</title>
+  <meta charset="utf-8">
+  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+</head>
+<body>
+  <rapi-doc
+    spec-url="/swagger"
+    theme = "dark"
+  > </rapi-doc>
+</body>
+</html>`;
+
 export class ExpressApp extends AppBase {
   private _app = express();
   private _router = Router();
@@ -250,8 +285,20 @@ export class ExpressApp extends AppBase {
     this._app.use(
       "/swagger-ui",
       swaggerUI.serve,
-      swaggerUI.setup(this._swagger)
+      swaggerUI.setup(this._swagger, {
+        swaggerOptions: {
+          deepLinking: true
+        }
+      })
     );
+    this._app.get("/redoc", (_, res) => {
+      res.type("html");
+      res.send(redoc(config().service));
+    });
+    this._app.get("/rapidoc", (_, res) => {
+      res.type("html");
+      res.send(rapidoc(config().service));
+    });
     return this._app;
   }
 
@@ -261,21 +308,30 @@ export class ExpressApp extends AppBase {
    * @param port to override port in config
    */
   async listen(silent = false, port?: number): Promise<void> {
-    const { host, service, version, env, logLevel } = config();
+    const { service, version, env, logLevel } = config();
     port = port || config().port;
     this._app.get("/_health", (_, res: Response) => {
       res.status(200).json({ status: "OK" });
     });
-    this._app.get("/", (_, res: Response) => {
+    this._app.get("/", (req: Request, res: Response) => {
+      const uptime = process.uptime();
+      const formattedUptime = new Date(uptime * 1000).toISOString();
       res.status(200).json({
         env,
         service,
         version,
         logLevel,
         mem: process.memoryUsage(),
-        uptime: process.uptime(),
-        swagger: `${host}/swagger-ui`,
-        health: `${host}/_health`
+        uptime:
+          uptime < 60 * 60
+            ? formattedUptime.substr(14, 5)
+            : uptime < 24 * 60 * 60
+            ? formattedUptime.substr(11, 8)
+            : formattedUptime,
+        "swagger-ui": "/swagger-ui",
+        redoc: "/redoc",
+        rapidoc: "/rapidoc",
+        health: "/_health"
       });
     });
 

@@ -24,7 +24,10 @@ const getSecurity = (): Security => {
     const sec = fs.readFileSync("security.json");
     return JSON.parse(sec.toString()) as Security;
   } catch {
-    return { schemes: {}, operations: {} };
+    return {
+      schemes: {},
+      operations: {}
+    };
   }
 };
 
@@ -440,7 +443,7 @@ export const swagger = (app: Builder): any => {
       title: config().service,
       version: config().version
     },
-    servers: [{ url: `${config().host}` }],
+    servers: [{ url: "/" }],
     components,
     paths
   };

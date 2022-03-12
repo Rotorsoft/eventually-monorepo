@@ -24,9 +24,9 @@ expressApp
 // make express available to gcloud functions as entry point to app
 export const express = expressApp.build();
 
-process.on("SIGTERM", () => {
-  app().log.info("red", "SIGTERM signal received: closing HTTP server");
-  void app().close();
-});
+// process.on("SIGTERM", () => {
+//   app().log.info("red", "SIGTERM signal received: closing HTTP server");
+//   void app().close();
+// });
 
 void expressApp.listen(config().host.endsWith("cloudfunctions.net/calculator"));
