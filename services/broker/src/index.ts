@@ -1,9 +1,5 @@
 import { ChannelResolvers, subscriptions } from "@rotorsoft/eventually";
-import {
-  broker,
-  postPushChannel,
-  ssePushChannel
-} from "@rotorsoft/eventually-express";
+import { broker, postPushChannel } from "@rotorsoft/eventually-express";
 import {
   PostgresPullChannel,
   PostgresStreamListenerFactory,
@@ -19,10 +15,6 @@ const resolvers: ChannelResolvers = {
   "http:": {
     pull: undefined,
     push: (_, endpoint: URL) => postPushChannel(endpoint)
-  },
-  "sse:": {
-    pull: undefined,
-    push: () => ssePushChannel()
   }
 };
 

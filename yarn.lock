@@ -768,7 +768,7 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4.0.9"
     "@rotorsoft/eventually-express": "workspace:^4.0.13"
-    "@rotorsoft/eventually-pg": "workspace:^4.0.8"
+    "@rotorsoft/eventually-pg": "workspace:^4.0.9"
     "@types/node": "*"
     ts-node-dev: ^1.1.8
     tsconfig-paths: ^3.12.0
@@ -829,7 +829,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-pg@workspace:^4.0.8, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+"@rotorsoft/eventually-pg@workspace:^4.0.9, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
