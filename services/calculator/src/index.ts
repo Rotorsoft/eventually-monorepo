@@ -18,8 +18,13 @@ expressApp
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
-  .withCommandHandlers(Calculator)
-  .withEventHandlers(Counter, StatelessCounter);
+  .withAggregate(Calculator, `Aggregates **calculator** instances`)
+  .withProcessManager(
+    Counter,
+    `Counts keys and *resets* calculator when the
+  number of consecutire key presses without resoulution exceeds some **limit**`
+  )
+  .withEventHandlers(StatelessCounter);
 
 // make express available to gcloud functions as entry point to app
 export const express = expressApp.build();

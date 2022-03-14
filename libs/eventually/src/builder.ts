@@ -1,14 +1,18 @@
 import Joi from "joi";
 import {
+  AggregateFactory,
   CommandHandlerFactory,
   commandHandlerPath,
   EventHandlerFactory,
   eventHandlerPath,
   eventsOf,
+  ExternalSystemFactory,
   getReducible,
   log,
   messagesOf,
   Payload,
+  PolicyFactory,
+  ProcessManagerFactory,
   Reducible,
   Snapshot
 } from ".";
@@ -67,12 +71,33 @@ export class Builder {
     eventHandlers: {}
   };
   readonly messages: Record<string, MessageMetadata> = {};
+  readonly documentation: Record<string, { description: string }> = {};
 
   private _msg(name: string): MessageMetadata {
     return (this.messages[name] = this.messages[name] || {
       name,
       eventHandlerFactories: {}
     });
+  }
+
+  private _registerEventHandlerFactory(
+    factory: EventHandlerFactory<Payload, unknown, unknown>,
+    description?: string
+  ): void {
+    if (this._factories.eventHandlers[factory.name])
+      throw Error(`Duplicate event handler ${factory.name}`);
+    this._factories.eventHandlers[factory.name] = factory;
+    this.documentation[factory.name] = { description };
+  }
+
+  private _registerCommandHandlerFactory(
+    factory: CommandHandlerFactory<Payload, unknown, unknown>,
+    description?: string
+  ): void {
+    if (this._factories.commandHandlers[factory.name])
+      throw Error(`Duplicate command handler ${factory.name}`);
+    this._factories.commandHandlers[factory.name] = factory;
+    this.documentation[factory.name] = { description };
   }
 
   /**
@@ -93,11 +118,33 @@ export class Builder {
   withEventHandlers(
     ...factories: EventHandlerFactory<Payload, unknown, unknown>[]
   ): this {
-    factories.map((f) => {
-      if (this._factories.eventHandlers[f.name])
-        throw Error(`Duplicate event handler ${f.name}`);
-      this._factories.eventHandlers[f.name] = f;
-    });
+    factories.map((f) => this._registerEventHandlerFactory(f));
+    return this;
+  }
+
+  /**
+   * Registers policy factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withPolicy(
+    factory: PolicyFactory<unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerEventHandlerFactory(factory, description);
+    return this;
+  }
+
+  /**
+   * Registers process manager factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withProcessManager(
+    factory: ProcessManagerFactory<Payload, unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerEventHandlerFactory(factory, description);
     return this;
   }
 
@@ -108,11 +155,33 @@ export class Builder {
   withCommandHandlers(
     ...factories: CommandHandlerFactory<Payload, unknown, unknown>[]
   ): this {
-    factories.map((f) => {
-      if (this._factories.commandHandlers[f.name])
-        throw Error(`Duplicate command handler ${f.name}`);
-      this._factories.commandHandlers[f.name] = f;
-    });
+    factories.map((f) => this._registerCommandHandlerFactory(f));
+    return this;
+  }
+
+  /**
+   * Registers aggregate factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withAggregate(
+    factory: AggregateFactory<Payload, unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerCommandHandlerFactory(factory, description);
+    return this;
+  }
+
+  /**
+   * Registers system factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withExternalSystem(
+    factory: ExternalSystemFactory<unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerCommandHandlerFactory(factory, description);
     return this;
   }
 

@@ -73,7 +73,7 @@ export const swagger = (app: Builder): any => {
       get: {
         operationId: `get${handler.name}ById`,
         tags: [handler.name],
-        summary: `Gets ${handler.name} by id`,
+        summary: `Get ${handler.name} by Id`,
         responses: {
           "200": {
             description: "OK",
@@ -95,7 +95,7 @@ export const swagger = (app: Builder): any => {
       get: {
         operationId: `get${handler.name}StreamById`,
         tags: [handler.name],
-        summary: `Gets ${handler.name} stream by id`,
+        summary: `Get ${handler.name} Stream by Id`,
         responses: {
           "200": {
             description: "OK",
@@ -142,11 +142,20 @@ export const swagger = (app: Builder): any => {
     Object.values(app.endpoints.commands).map(({ factory, name, path }) => {
       const reducible = getReducibleComponent(factory);
       getReducibleGetters(paths, factory);
+      tags.push({
+        name: factory.name,
+        description: app.documentation[factory.name].description
+      });
+      const description =
+        components.schemas[name]?.description || `Handles **${name}** Command`;
+      delete components.schemas[name]?.description;
       paths[path.replace("/:id/", "/{id}/")] = {
         parameters: reducible ? [{ $ref: "#/components/parameters/id" }] : [],
         post: {
           operationId: name,
           tags: [factory.name],
+          summary: `on${name}`,
+          description,
           requestBody: {
             required: true,
             content: {
@@ -197,10 +206,15 @@ export const swagger = (app: Builder): any => {
     Object.values(app.endpoints.eventHandlers).map(({ factory, path }) => {
       getReducibleComponent(factory);
       getReducibleGetters(paths, factory);
+      tags.push({
+        name: factory.name,
+        description: app.documentation[factory.name].description
+      });
       paths[path] = {
         post: {
           operationId: factory.name,
           tags: [factory.name],
+          summary: `Handle ${factory.name} Events`,
           requestBody: {
             required: true,
             content: {
@@ -355,6 +369,7 @@ export const swagger = (app: Builder): any => {
       }
     }
   };
+  const tags: { name: string; description: string }[] = [];
   const paths: Record<string, any> = {};
 
   if (
@@ -366,7 +381,7 @@ export const swagger = (app: Builder): any => {
     paths["/stats"] = {
       get: {
         operationId: "getStats",
-        summary: "Gets store stats",
+        summary: "Get Store Stats",
         responses: {
           "200": {
             description: "OK",
@@ -406,7 +421,7 @@ export const swagger = (app: Builder): any => {
       ],
       get: {
         operationId: "getAll",
-        summary: "Gets ALL stream",
+        summary: "Query All Stream",
         responses: {
           "200": {
             description: "OK",
@@ -441,9 +456,11 @@ export const swagger = (app: Builder): any => {
     openapi: "3.0.3",
     info: {
       title: config().service,
-      version: config().version
+      version: config().version,
+      description: config().description
     },
     servers: [{ url: "/" }],
+    tags,
     components,
     paths
   };
