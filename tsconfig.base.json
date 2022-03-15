@@ -11,5 +11,6 @@
     "paths": {
       "@rotorsoft/*": ["libs/*/src"]
     }
-  }
+  },
+  "exclude": ["**/dist/*", "**/__mocks__/**", "**/__tests__/**"]
 }

@@ -150,7 +150,45 @@ export const broker = async (
     const express = app(new ExpressApp()).build();
     express.get("/subscriptions", async (_, res) => {
       const subs = await subscriptions().load();
-      res.json(subs);
+      // TODO: basic admin and monitoring functionality (change/add/remove)
+      res.type("html");
+      res.send(`<!DOCTYPE html>
+      <html>
+        <head>
+          <title>Subscriptions</title>
+          <meta charset="utf-8"/>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            td { border: solid 1px gray; padding: 5px; margin: 0px; }
+          </style>
+        </head>
+        <body>
+          <table>
+            <tr>
+              <th>id</th>
+              <th>channel</th>
+              <th>endpoint</th>
+              <th>streams</th>
+              <th>names</th>
+              <th>position</th>
+            </tr>
+            ${subs.map(
+              (sub) => `<tr>
+              <td>${sub.id}</td>
+              <td>${sub.channel}</td>
+              <td>${sub.endpoint}</td>
+              <td>${sub.streams}</td>
+              <td>${sub.names}</td>
+              <td>${sub.position}</td>
+            </tr>`
+            )}
+          </table>
+        </body>
+      </html>`);
     });
     await app().listen();
     log().info("bgGreen", " GET ", "/subscriptions");

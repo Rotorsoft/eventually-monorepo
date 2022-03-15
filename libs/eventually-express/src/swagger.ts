@@ -154,7 +154,7 @@ export const swagger = (app: Builder): any => {
         post: {
           operationId: name,
           tags: [factory.name],
-          summary: `on${name}`,
+          summary: name,
           description,
           requestBody: {
             required: true,

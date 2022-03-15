@@ -20,17 +20,6 @@ app(new ExpressApp())
     Account3Created: schemas.Account3Created,
     IntegrationCompleted: schemas.IntegrationCompleted
   })
-  .withPrivate<commands.Commands>(
-    "CreateAccount1",
-    "CreateAccount2",
-    "CreateAccount3",
-    "CompleteIntegration"
-  )
-  .withPrivate<events.Events>(
-    "Account1Created",
-    "Account2Created",
-    "Account3Created"
-  )
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,

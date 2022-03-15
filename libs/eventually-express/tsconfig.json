@@ -6,7 +6,5 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "composite": true
   },
-  "references": [{ "path": "../eventually" }],
-  "include": ["src"],
-  "exclude": ["**/__mocks__/**", "**/__tests__/**"]
+  "references": [{ "path": "../eventually" }]
 }
