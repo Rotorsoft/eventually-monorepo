@@ -6,5 +6,5 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "composite": true
   },
-  "references": [{ "path": "../../libs/eventually-broker" }]
+  "references": [{ "path": "../eventually" }, { "path": "../eventually-pg" }]
 }

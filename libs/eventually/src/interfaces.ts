@@ -5,8 +5,7 @@ import {
   Message,
   Payload,
   Snapshot,
-  StoreStat,
-  Subscription
+  StoreStat
 } from "./types";
 
 /**
@@ -81,29 +80,4 @@ export interface SnapshotStore {
     stream: string,
     data: Snapshot<M>
   ) => Promise<void>;
-}
-
-export interface SubscriptionStore {
-  /**
-   * Store initializer
-   */
-  init: (seed?: boolean) => Promise<void>;
-
-  /**
-   * Store closer
-   */
-  close: () => Promise<void>;
-
-  /**
-   * Loads subscriptions from store
-   * @param id optional subscription id
-   */
-  load: (id?: string) => Promise<Subscription[]>;
-
-  /**
-   * Commits a new position
-   * @param id subscription id
-   * @param position new position
-   */
-  commit: (id: string, position: number) => Promise<void>;
 }

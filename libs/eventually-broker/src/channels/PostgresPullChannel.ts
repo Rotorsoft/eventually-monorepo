@@ -1,12 +1,7 @@
-import {
-  CommittedEvent,
-  log,
-  Payload,
-  PullChannel,
-  TriggerCallback
-} from "@rotorsoft/eventually";
-import { PostgresStore } from ".";
-import { PostgresStreamListenerFactory } from "./PostgresStreamListenerFactory";
+import { CommittedEvent, log, Payload } from "@rotorsoft/eventually";
+import { PostgresStore } from "@rotorsoft/eventually-pg";
+import { PostgresStreamListenerFactory } from "../listeners";
+import { PullChannel, TriggerCallback } from "../types";
 
 // TODO: create pub/sub topic listener
 // TODO: create salesforce stream listener

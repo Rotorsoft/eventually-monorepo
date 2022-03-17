@@ -1,6 +1,7 @@
 undecided:
   - "@rotorsoft/eventually-monorepo"
   - "@rotorsoft/eventually"
+  - "@rotorsoft/eventually-broker"
   - "@rotorsoft/eventually-pg"
   - "@rotorsoft/accounts"
   - "@rotorsoft/broker"

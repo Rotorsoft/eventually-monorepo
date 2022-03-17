@@ -1,0 +1,24 @@
+<div class="row mb-2">
+  <div class="col-6">{{>breadcrumb title='Edit'}}</div>
+  <div class="col-6 d-flex justify-content-end">
+    <div class="col-4 mx-2">
+      <input
+        type="text"
+        class="form-control"
+        id="floatingId"
+        placeholder="{{this.id}}"
+        name="deleteId"
+        required
+      />
+    </div>
+    <a href="/delete/{{this.id}}" type="button" class="btn btn-danger align-self-center">
+      <i class="bi bi-trash"></i> Delete</i>
+    </a>
+  </div>
+</div>
+
+{{> alert}}
+
+<form class="row g-3 needs-validation" method="post" action="/edit">
+  {{> sub-form edit=true}}
+</form>

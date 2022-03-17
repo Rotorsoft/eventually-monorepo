@@ -1,10 +1,12 @@
-import { ChannelResolvers, subscriptions } from "@rotorsoft/eventually";
-import { broker, postPushChannel } from "@rotorsoft/eventually-express";
 import {
+  broker,
+  ChannelResolvers,
   PostgresPullChannel,
   PostgresStreamListenerFactory,
-  PostgresSubscriptionStore
-} from "@rotorsoft/eventually-pg";
+  PostgresSubscriptionStore,
+  postPushChannel,
+  subscriptions
+} from "@rotorsoft/eventually-broker";
 
 subscriptions(PostgresSubscriptionStore());
 const resolvers: ChannelResolvers = {

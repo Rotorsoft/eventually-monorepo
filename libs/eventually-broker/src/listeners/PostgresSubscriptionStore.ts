@@ -1,15 +1,6 @@
-import { Subscription, SubscriptionStore } from "@rotorsoft/eventually";
+import { config } from "@rotorsoft/eventually-pg";
 import { Pool } from "pg";
-import { config } from "./config";
-
-/*
-select * from public.subscriptions;
-
-insert into subscriptions(id, channel, streams, names, endpoint) 
-values('counter1', 'calculator', '^Calculator-.+$', '^DigitPressed|DotPressed|EqualsPressed$', 'http://localhost:3000/counter');	
-
-update subscriptions set active=false where id='stateless-counter1';
-*/
+import { Subscription, SubscriptionStore } from "..";
 
 const create_script = (table: string): string => `
 create table if not exists public.${table}
@@ -77,13 +68,71 @@ export const PostgresSubscriptionStore = (
     load: async (id?: string): Promise<Subscription[]> => {
       const result = id
         ? await pool.query<Subscription>(
-            `select * from public.${table} where id=$1`,
+            `select * from public.${table}
+            where id=$1
+            limit 100`,
             [id]
           )
         : await pool.query<Subscription>(
-            `select * from public.${table} where active=true`
+            `select * from public.${table}
+            limit 100`
           );
       return result.rows;
+    },
+
+    search: async (pattern: string): Promise<Subscription[]> => {
+      const result = await pool.query<Subscription>(
+        `select * from public.${table}
+        where
+          id ~* $1
+          or channel ~* $1
+          or endpoint ~* $1
+          or streams ~* $1
+          or names ~* $1
+        limit 100`,
+        [pattern]
+      );
+      return result.rows;
+    },
+
+    create: async ({
+      id,
+      channel,
+      endpoint,
+      streams,
+      names
+    }): Promise<void> => {
+      await pool.query(
+        `insert into public.${table}(id, channel, endpoint, streams, names)
+        values($1, $2, $3, $4, $5)`,
+        [id, channel, endpoint, streams, names]
+      );
+    },
+
+    update: async ({ id, endpoint, streams, names }): Promise<void> => {
+      await pool.query(
+        `update public.${table}
+        set endpoint=$2, streams=$3, names=$4
+        where id=$1`,
+        [id, endpoint, streams, names]
+      );
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await pool.query(
+        `delete from public.${table}
+        where id=$1`,
+        [id]
+      );
+    },
+
+    toggle: async (id: string): Promise<void> => {
+      await pool.query(
+        `update public.${table}
+        set active=not active
+        where id=$1`,
+        [id]
+      );
     },
 
     commit: async (id: string, position: number): Promise<void> => {
@@ -92,10 +141,12 @@ export const PostgresSubscriptionStore = (
           WARNING!!!: We don't support multiple brokers handling the same subscription store
           In the future we can use optimistic concurrency or leasing strategies if needed
       */
-      await pool.query(`update public.${table} set position=$2 where id=$1`, [
-        id,
-        position
-      ]);
+      await pool.query(
+        `update public.${table}
+        set position=$2
+        where id=$1`,
+        [id, position]
+      );
     }
   };
 };

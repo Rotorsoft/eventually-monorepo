@@ -1,6 +1,7 @@
-import { log, PushChannel, randomId } from "@rotorsoft/eventually";
+import { log, randomId } from "@rotorsoft/eventually";
 import { Request, Response } from "express";
 import { Writable } from "stream";
+import { PushChannel } from "../types";
 
 // TODO: scalability concerns - how many concurrent connections can a single process handle? process affinity?
 // TODO: this is a naive in-memory buffer implementation, use a persisted queue (redis?) instead

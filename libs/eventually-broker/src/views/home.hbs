@@ -1,0 +1,53 @@
+<div class="row">
+  <div class="col-6 d-flex">
+    <a href="/add" type="button" class="btn btn-primary align-self-center"><i
+        class="bi bi-plus"
+      ></i>
+      Add</a>
+  </div>
+</div>
+
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th></th>
+      <th scope="col">Id</th>
+      <th scope="col">Channel</th>
+      <th scope="col">Endpoint</th>
+      <th scope="col">Streams</th>
+      <th scope="col">Names</th>
+      <th scope="col" class="text-center">Status</th>
+      <th scope="col" class="text-end">Position</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each rows}}
+      <tr class="{{this.class}}">
+        <th>
+          {{#if this.active}}
+            <a
+              href="/toggle/{{this.id}}"
+              title="Stop"
+              type="button"
+              class="btn btn-sm btn-danger"
+            ><i class="bi bi-stop"></i></a>
+          {{else}}
+            <a
+              href="/toggle/{{this.id}}"
+              title="Start"
+              type="button"
+              class="btn btn-sm btn-success"
+            ><i class="bi bi-play"></i></a>
+          {{/if}}
+        </th>
+        <th scope="row"><a href="/edit/{{this.id}}">{{this.id}}</a></th>
+        <td>{{this.channel}}</td>
+        <td>{{this.endpoint}}</td>
+        <td>{{this.streams}}</td>
+        <td>{{this.names}}</td>
+        <td class="text-center">{{this.status}}</td>
+        <td class="text-end">{{this.position}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

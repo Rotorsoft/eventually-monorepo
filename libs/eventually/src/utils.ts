@@ -1,9 +1,6 @@
-import cluster from "cluster";
 import * as crypto from "crypto";
 import * as joi from "joi";
-import { cpus } from "os";
-import { Store, SubscriptionStore } from "./interfaces";
-import { log } from "./log";
+import { Store } from "./interfaces";
 import { singleton } from "./singleton";
 import {
   Actor,
@@ -14,13 +11,12 @@ import {
   EventHandlerFactory,
   Message,
   MessageHandler,
-  Operation,
   Payload,
   Reducible,
   ReducibleFactory,
   Streamable
 } from "./types";
-import { InMemoryStore, InMemorySubscriptionStore } from "./__dev__";
+import { InMemoryStore } from "./__dev__";
 
 export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
@@ -184,62 +180,3 @@ export class ConcurrencyError extends Error {
     super(Errors.ConcurrencyError);
   }
 }
-
-export const subscriptions = singleton(function subscriptions(
-  store?: SubscriptionStore
-) {
-  return store || InMemorySubscriptionStore();
-});
-
-type Argument = Payload & { id: string; active: boolean };
-type Refresh = (operation: Operation, arg: Argument) => void;
-
-export const fork = (args: Argument[]): Refresh => {
-  const cores = cpus().length;
-  const running: Record<string, Argument> = {};
-
-  log().info("green", `Cluster started with ${cores} cores`);
-
-  const run = (arg: Argument): void => {
-    if (arg.active) {
-      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
-      running[id] = arg;
-    }
-  };
-
-  cluster.on("exit", (worker, code, signal) => {
-    const arg = running[worker.id];
-    delete running[worker.id];
-    log().info("red", `[${worker.process.pid}] exit ${signal || code}`);
-    // reload worker when active and interrupted by recoverable runtime errors
-    arg && (code < 100 || signal === "SIGINT") && run(arg);
-  });
-
-  try {
-    args.map((arg) => run(arg));
-  } catch (error) {
-    log().error(error);
-  }
-
-  return (operation, arg) => {
-    log().info("magenta", `refreshing ${operation}`, JSON.stringify(arg));
-    const [workerId] = Object.entries(running)
-      .filter(([, value]) => value.id === arg.id)
-      .map(([id]) => id);
-    switch (operation) {
-      case "INSERT":
-        if (workerId) cluster.workers[workerId].kill("SIGINT");
-        else run(arg);
-        break;
-      case "UPDATE":
-        if (workerId) {
-          running[workerId] = arg;
-          cluster.workers[workerId].kill("SIGINT");
-        } else run(arg);
-        break;
-      case "DELETE":
-        if (workerId) cluster.workers[workerId].kill("SIGTERM");
-        break;
-    }
-  };
-};

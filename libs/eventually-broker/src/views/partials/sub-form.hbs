@@ -1,0 +1,80 @@
+<div class="col-4">
+  <div class="form-floating mb-3">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingId"
+      placeholder="Id"
+      name="id"
+      value="{{id}}"
+      required
+      {{#if edit}}
+      readonly
+      {{/if}}
+    />
+    <label for="floatingId">Id</label>
+  </div>
+</div>
+<div class="col-4">
+  <div class="form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingChannel"
+      placeholder="Channel"
+      name="channel"
+      value="{{channel}}"
+      required
+      {{#if edit}}
+      readonly
+      {{/if}}
+    />
+    <label for="floatingChannel">Channel</label>
+  </div>
+</div>
+<div class="col-4">
+  <div class="form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingEndpoint"
+      placeholder="Endpoint"
+      name="endpoint"
+      value="{{endpoint}}"
+      required
+    />
+    <label for="floatingEndpoint">Endpoint</label>
+  </div>
+</div>
+<div class="col-6">
+  <div class="form-floating mb-3">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingStreams"
+      placeholder="Streams"
+      name="streams"
+      value="{{streams}}"
+      required
+    />
+    <label for="floatingStreams">Streams</label>
+  </div>
+</div>
+<div class="col-6">
+  <div class="form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingNames"
+      placeholder="Names"
+      name="names"
+      value="{{names}}"
+      required
+    />
+    <label for="floatingNames">Names</label>
+  </div>
+</div>
+
+<div class="col-12 d-grid">
+  <button class="btn btn-primary" type="submit">Submit</button>
+</div>

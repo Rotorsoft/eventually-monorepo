@@ -1,11 +1,7 @@
-import {
-  log,
-  StreamListenerFactory,
-  subscriptions,
-  TriggerPayload
-} from "@rotorsoft/eventually";
+import { log } from "@rotorsoft/eventually";
+import { config } from "@rotorsoft/eventually-pg";
 import createSubscriber from "pg-listen";
-import { config } from "./config";
+import { StreamListenerFactory, subscriptions, TriggerPayload } from "..";
 
 export const PostgresStreamListenerFactory: StreamListenerFactory = () => {
   const subscriber = createSubscriber(config.pg);

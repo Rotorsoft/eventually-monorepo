@@ -1,5 +1,6 @@
+import { config } from "@rotorsoft/eventually-pg";
 import { Pool } from "pg";
-import { PostgresSubscriptionStore, config } from "..";
+import { PostgresSubscriptionStore } from "..";
 
 const table = "subscriptions_test";
 const seed = `

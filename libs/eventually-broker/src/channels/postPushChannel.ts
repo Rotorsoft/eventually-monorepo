@@ -1,5 +1,6 @@
-import { log, PushChannel } from "@rotorsoft/eventually";
+import { log } from "@rotorsoft/eventually";
 import axios from "axios";
+import { PushChannel } from "../types";
 
 export const postPushChannel = (endpoint: URL): PushChannel => {
   return {
