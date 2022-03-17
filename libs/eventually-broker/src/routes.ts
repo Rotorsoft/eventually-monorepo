@@ -1,25 +1,30 @@
 import { log } from "@rotorsoft/eventually";
 import { Router } from "express";
 import joi from "joi";
-import { Subscription, subscriptions } from ".";
+import { Subscription, subscriptions, SubscriptionStats } from ".";
 import { Refresh, State } from "./utils";
 
 const prep = (
   subs: Subscription[],
   state: State
-): (Subscription & { class: string; status: string })[] =>
+): (Subscription & {
+  status: string;
+  error: string;
+  color: string;
+  stats: SubscriptionStats;
+})[] =>
   subs
     .sort((a, b) => (a.active < b.active ? 1 : a.active > b.active ? -1 : 0))
-    .map((sub) => ({
-      class:
-        state.status[sub.id] === "OK"
-          ? "table-success"
-          : sub.active
-          ? "table-danger"
-          : "table-secondary",
-      status: state.status[sub.id] || "",
-      ...sub
-    }));
+    .map((sub) => {
+      const status = state.status[sub.id];
+      return {
+        status: status?.code || "",
+        error: status?.error || "",
+        color: status?.code === "OK" ? "success" : "danger",
+        stats: state.stats ? state.stats[sub.id] : undefined,
+        ...sub
+      };
+    });
 
 const defaultSub = {
   channel: "pg://table_name",
@@ -98,7 +103,14 @@ export const routes = (refresh: Refresh): Router => {
     };
     try {
       const [sub] = await subscriptions().load(id);
-      res.render("edit", sub ? { ...sub } : { ...err });
+      if (sub) {
+        const state = refresh.state();
+        const status = state.status[sub.id];
+        const stats = JSON.stringify(state.stats[sub.id]);
+        res.render("edit", { ...sub, status, stats });
+      } else {
+        res.render("edit", { ...err });
+      }
     } catch (error) {
       log().error(error);
       res.render("edit", { ...err });
@@ -133,14 +145,14 @@ export const routes = (refresh: Refresh): Router => {
     }
   });
 
-  router.get("/delete/:id", async (req, res) => {
+  router.post("/delete/:id", async (req, res) => {
     const id = req.params.id;
     try {
       await subscriptions().delete(id);
+      res.json({ deleted: true });
     } catch (error) {
       log().error(error);
-    } finally {
-      res.redirect("/");
+      res.json({ deleted: false });
     }
   });
 

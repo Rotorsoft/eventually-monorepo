@@ -12,6 +12,7 @@
     <tr>
       <th></th>
       <th scope="col">Id</th>
+      <th></th>
       <th scope="col">Channel</th>
       <th scope="col">Endpoint</th>
       <th scope="col">Streams</th>
@@ -22,32 +23,71 @@
   </thead>
   <tbody>
     {{#each rows}}
-      <tr class="{{this.class}}">
+      <tr>
         <th>
           {{#if this.active}}
             <a
               href="/toggle/{{this.id}}"
               title="Stop"
               type="button"
-              class="btn btn-sm btn-danger"
-            ><i class="bi bi-stop"></i></a>
+              class="btn btn-sm"
+            ><i class="bi bi-stop-circle-fill text-danger"></i></a>
           {{else}}
             <a
               href="/toggle/{{this.id}}"
               title="Start"
               type="button"
-              class="btn btn-sm btn-success"
-            ><i class="bi bi-play"></i></a>
+              class="btn btn-sm"
+            ><i class="bi bi-play-circle-fill text-success"></i></a>
           {{/if}}
         </th>
-        <th scope="row"><a href="/edit/{{this.id}}">{{this.id}}</a></th>
-        <td>{{this.channel}}</td>
-        <td>{{this.endpoint}}</td>
-        <td>{{this.streams}}</td>
-        <td>{{this.names}}</td>
-        <td class="text-center">{{this.status}}</td>
-        <td class="text-end">{{this.position}}</td>
+        <th scope="row">
+          <a href="/edit/{{this.id}}">{{this.id}}</a>
+        </th>
+        <td scope="row">
+          {{#if this.error}}
+            <button
+              type="button"
+              class="btn btn-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#modal-{{this.id}}"
+            ><i class="bi bi-cone-striped text-{{this.color}}"></i>
+            </button>
+          {{/if}}
+        </td>
+        <td><small>{{this.channel}}</small></td>
+        <td><small>{{this.endpoint}}</small></td>
+        <td><small>{{this.streams}}</small></td>
+        <td><small>{{this.names}}</small></td>
+        <td class="text-center"><small>{{this.status}}</small></td>
+        <td class="text-end"><b>{{this.position}}</b></td>
       </tr>
+      {{#if this.error}}
+        <div
+          class="modal fade"
+          id="modal-{{this.id}}"
+          tabindex="-1"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-{{this.color}}">
+                <h5 class="modal-title">Status:
+                  <small>{{this.status}}</small></h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div class="modal-body">
+                {{this.error}}
+              </div>
+            </div>
+          </div>
+        </div>
+      {{/if}}
     {{/each}}
   </tbody>
 </table>

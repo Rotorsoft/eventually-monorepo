@@ -6,10 +6,32 @@ import {
   Subscription,
   subscriptions,
   SubscriptionStats,
-  TriggerCallback
+  TriggerCallback,
+  TriggerPayload
 } from ".";
 
 const BATCH_SIZE = 100;
+
+const emitError = (error: Error): void => {
+  log().error(error);
+  process.send({ error: error.message });
+};
+
+const emitStats = (
+  id: string,
+  trigger: TriggerPayload,
+  stats: SubscriptionStats
+): void => {
+  log().info(
+    "blue",
+    `[${process.pid}] pumped ${id} ${trigger.operation}${
+      trigger.retries || ""
+    }@${trigger.id}`,
+    `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
+    stats.events
+  );
+  process.send({ id, trigger, stats });
+};
 
 export const work = (resolvers: ChannelResolvers): void => {
   const sub: Subscription = JSON.parse(process.env.WORKER_ENV) as Subscription;
@@ -25,7 +47,7 @@ export const work = (resolvers: ChannelResolvers): void => {
       );
     pullChannel = pullFactory(sub.id, pullUrl);
   } catch (error) {
-    log().error(error);
+    emitError(error);
     process.exit(100);
   }
 
@@ -36,7 +58,7 @@ export const work = (resolvers: ChannelResolvers): void => {
       throw Error(`Cannot resolve push channel from ${sub.endpoint}`);
     pushChannel = pushFactory(sub.id, pushUrl);
   } catch (error) {
-    log().error(error);
+    emitError(error);
     process.exit(100);
   }
 
@@ -66,10 +88,10 @@ export const work = (resolvers: ChannelResolvers): void => {
         const events = await pullChannel.pull(sub.position, BATCH_SIZE);
         count = events.length;
         for (const e of events) {
-          const { status } =
+          const { status, statusText } =
             streams.test(e.stream) && names.test(e.name)
               ? await pushChannel.push(e)
-              : { status: 204 };
+              : { status: 204, statusText: "Not Matched" };
 
           stats.total++;
           const event = (stats.events[e.name] = stats.events[e.name] || {});
@@ -93,19 +115,16 @@ export const work = (resolvers: ChannelResolvers): void => {
                 )
               );
             }
+            emitError(Error(`${status} ${statusText}`));
             return;
           }
         }
       }
+    } catch (error) {
+      emitError(error);
+      process.exit(100);
     } finally {
-      log().info(
-        "blue",
-        `[${process.pid}] pumped ${sub.id} ${trigger.operation}${
-          trigger.retries || ""
-        }@${trigger.id}`,
-        `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
-        stats.events
-      );
+      emitStats(sub.id, trigger, stats);
       const retries = (trigger.retries || 0) + 1;
       retry &&
         (retryTimeout = setTimeout(

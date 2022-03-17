@@ -3,6 +3,7 @@
   <div class="col-6 d-flex justify-content-end">
     <div class="col-4 mx-2">
       <input
+        id="deleteId"
         type="text"
         class="form-control"
         id="floatingId"
@@ -11,7 +12,7 @@
         required
       />
     </div>
-    <a href="/delete/{{this.id}}" type="button" class="btn btn-danger align-self-center">
+    <a id="deleteButton" href="#" type="button" class="btn btn-danger align-self-center disabled">
       <i class="bi bi-trash"></i> Delete</i>
     </a>
   </div>
@@ -22,3 +23,36 @@
 <form class="row g-3 needs-validation" method="post" action="/edit">
   {{> sub-form edit=true}}
 </form>
+
+<div class="row my-4">
+  <div class="card" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">{{this.status.code}}</h5>
+      <h6 class="card-subtitle mb-2 text-muted">Last Error: {{this.status.error}}</h6>
+      <p class="card-text text-muted fs-6">
+        {{this.stats}}  
+      </p>
+    </div>
+  </div>
+  <i>TODO: Show status and stats in real time</i>
+</div>
+
+<script>
+  const delId = document.getElementById("deleteId");
+  const delBtn = document.getElementById("deleteButton");
+  delId.onkeyup = (ev) => {
+    const enable = delId.value === '{{this.id}}';
+    enable 
+      ? delBtn.classList.remove("disabled")
+      : delBtn.classList.add("disabled")
+  }
+  delBtn.onclick = () => {
+    fetch("/delete/{{this.id}}", { method: "post" })
+      .then(response => response.json())
+      .then(json => {
+        if(json.deleted) document.location = "/";
+        else delId.value = "";
+      })
+      .catch(()=> delId.value = "")
+  }
+</script>
