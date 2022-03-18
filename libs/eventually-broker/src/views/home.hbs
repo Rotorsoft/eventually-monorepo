@@ -12,7 +12,6 @@
     <tr>
       <th></th>
       <th scope="col">Id</th>
-      <th></th>
       <th scope="col">Channel</th>
       <th scope="col">Endpoint</th>
       <th scope="col">Streams</th>
@@ -23,7 +22,7 @@
   </thead>
   <tbody>
     {{#each rows}}
-      <tr>
+      <tr class="{{#unless this.active}}table-secondary{{/unless}}">
         <th>
           {{#if this.active}}
             <a
@@ -44,50 +43,45 @@
         <th scope="row">
           <a href="/edit/{{this.id}}">{{this.id}}</a>
         </th>
-        <td scope="row">
-          {{#if this.error}}
-            <button
-              type="button"
-              class="btn btn-sm"
-              data-bs-toggle="modal"
-              data-bs-target="#modal-{{this.id}}"
-            ><i class="bi bi-cone-striped text-{{this.color}}"></i>
-            </button>
-          {{/if}}
+        <td>{{this.channel}}</td>
+        <td>{{this.endpoint}}</td>
+        <td>{{this.streams}}</td>
+        <td>{{this.names}}</td>
+        <td id="status-{{this.id}}" class="text-center">
+          <span class="text-{{this.color}}">
+            <i class="bi {{this.icon}}"></i> {{this.status}}
+            <br/> {{this.error}}
+          </span>
         </td>
-        <td><small>{{this.channel}}</small></td>
-        <td><small>{{this.endpoint}}</small></td>
-        <td><small>{{this.streams}}</small></td>
-        <td><small>{{this.names}}</small></td>
-        <td class="text-center"><small>{{this.status}}</small></td>
-        <td class="text-end"><b>{{this.position}}</b></td>
+        <td id="position-{{this.id}}" class="text-end">
+          <span class="text-{{this.color}}">
+            {{this.position}}/<b>{{this.maxTriggerPosition}}</b>
+          </span>
+        </td>
       </tr>
-      {{#if this.error}}
-        <div
-          class="modal fade"
-          id="modal-{{this.id}}"
-          tabindex="-1"
-          aria-hidden="true"
-        >
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header bg-{{this.color}}">
-                <h5 class="modal-title">Status:
-                  <small>{{this.status}}</small></h5>
-                <button
-                  type="button"
-                  class="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div class="modal-body">
-                {{this.error}}
-              </div>
-            </div>
-          </div>
-        </div>
-      {{/if}}
     {{/each}}
   </tbody>
 </table>
+
+<script>
+  const es = new EventSource("/monitor");
+  es.onmessage = ({ data }) => {
+    const { id, color, icon, status, error, position, maxTriggerPosition } = JSON.parse(data);
+    const statusTd = document.getElementById(`status-${id}`);
+    const positionTd = document.getElementById(`position-${id}`);
+    statusTd && (statusTd.innerHTML=`
+      <span class="text-${color}">
+        <i class="bi ${icon}"></i> ${status}
+        <br/> ${error}
+      </span>
+    `);
+    positionTd && (positionTd.innerHTML=`
+      <span class="text-${color}">
+        ${position}/<b>${maxTriggerPosition}</b>
+      </span>
+    `);
+  };
+  es.onerror = (error) => {
+    console.error(error);
+  };
+</script>

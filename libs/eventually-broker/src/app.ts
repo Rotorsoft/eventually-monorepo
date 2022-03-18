@@ -19,16 +19,24 @@ export const app = async (
     new URL("pg://subscriptions"),
     async ({ operation, id }) => {
       const [arg] = await subscriptions().load(id);
-      refresh.refresh(operation, id, arg);
+      refresh(operation, id, arg);
     }
   );
 
   const app = express();
   app.use(express.urlencoded({ extended: false }));
-  app.engine("hbs", engine({ extname: ".hbs" }));
+  app.engine(
+    "hbs",
+    engine({
+      extname: ".hbs",
+      helpers: {
+        json: (context: any) => JSON.stringify(context)
+      }
+    })
+  );
   app.set("view engine", "hbs");
   app.set("views", path.resolve(__dirname, "./views"));
-  app.use(routes(refresh));
+  app.use(routes());
 
   app.listen(config().port, () =>
     log().info("bgGreen", `Broker is listening on port ${config().port}`)

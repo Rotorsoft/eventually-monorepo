@@ -19,13 +19,18 @@ export type Subscription = {
   position: number;
 };
 
+export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
 /**
  * Trigger payload
+ * - `id`: trigger id (record id, event name)
+ * - `operation`: triggering operation
+ * - `position`: optional position in stream
+ * - `retries`: optional retry counter
  */
-export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
 export type TriggerPayload = {
   id: string;
   operation: Operation;
+  position?: number;
   retries?: number;
 };
 
@@ -49,12 +54,37 @@ export type StreamListenerFactory = () => StreamListener;
 
 /**
  * Records integration stats
+ * - `id`: subscription id
+ * - `trigger`: trigger payload
+ * - `position`: last position in stream
+ * - `batches`: number of pulled batches
+ * - `total`: number of pulled events
+ * - `events`: hash of event stats by event name
+ *    - `key`: response code
+ *    - `value`: response count
  */
 export type SubscriptionStats = {
-  after: number;
+  id: string;
+  trigger: TriggerPayload;
+  position: number;
   batches: number;
   total: number;
   events: Record<string, Record<number, number>>;
+};
+
+/**
+ * Subscription view properties
+ */
+export type Props = {
+  id: string;
+  status: string;
+  error: string;
+  color: string;
+  icon: string;
+  position: number;
+  maxTriggerPosition: number;
+  total: number;
+  events: Array<{ name: string; ok: number; ignored: number; errors: number }>;
 };
 
 /**

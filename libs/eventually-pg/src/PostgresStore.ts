@@ -175,7 +175,8 @@ export const PostgresStore = (table: string): Store => {
             `
             NOTIFY ${table}, '${JSON.stringify({
               operation: "INSERT",
-              id: committed[0].id.toString()
+              id: committed[0].name,
+              position: committed[0].id
             })}';
             COMMIT;
             `

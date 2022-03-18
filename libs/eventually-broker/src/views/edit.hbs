@@ -1,7 +1,7 @@
 <div class="row mb-2">
   <div class="col-6">{{>breadcrumb title='Edit'}}</div>
   <div class="col-6 d-flex justify-content-end">
-    <div class="col-4 mx-2">
+    <div class="col-6 mx-2">
       <input
         id="deleteId"
         type="text"
@@ -18,24 +18,14 @@
   </div>
 </div>
 
+<div id="stats" class="row m-5">
+</div>
+
 {{> alert}}
 
-<form class="row g-3 needs-validation" method="post" action="/edit">
+<form class="row my-5" method="post" action="/edit">
   {{> sub-form edit=true}}
 </form>
-
-<div class="row my-4">
-  <div class="card" style="width: 18rem;">
-    <div class="card-body">
-      <h5 class="card-title">{{this.status.code}}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">Last Error: {{this.status.error}}</h6>
-      <p class="card-text text-muted fs-6">
-        {{this.stats}}  
-      </p>
-    </div>
-  </div>
-  <i>TODO: Show status and stats in real time</i>
-</div>
 
 <script>
   const delId = document.getElementById("deleteId");
@@ -55,4 +45,52 @@
       })
       .catch(()=> delId.value = "")
   }
+
+  const statsDiv = document.getElementById("stats");
+  const refresh = (state) => {
+    const color = state.status ? "danger" : "success";
+    const icon = state.status ? "bi-cone-striped" : "bi-check";
+    const events = state.events.map(({ name, ok, errors, ignored }) => {
+      const okSpan = ok ? `<span class="badge bg-success">${ok}</span>` : "";
+      const errorsSpan = errors ? `<span class="badge bg-danger">${errors}</span>` : "";
+      const ignoredSpan = ignored ? `<span class="badge bg-secondary">${ignored}</span>` : ""; 
+      return `
+        <button type="button" class="btn btn-sm position-relative">
+          ${name} 
+          ${okSpan}
+          ${errorsSpan}
+          ${ignoredSpan}
+        </button>
+      `;
+    }).join('');
+
+    statsDiv.innerHTML=
+    `<div class="card border-${color} mb-3">
+      <div class="card-header bg-white text-${color}">
+        <h5 class="card-title">
+          Status: <i class="bi ${icon}"></i> ${state.status}
+        </h5>
+        <small class="card-subtitle text-muted">
+          ${state.error}
+        </small>
+      </div>
+      <div class="card-body">
+        ${events}
+      </div>
+      <div class="card-footer bg-white">
+        Position: ${state.position}/<b>${state.maxTriggerPosition}</b>
+      </div>
+    </div>`
+  }
+
+  const es = new EventSource(`/monitor/{{this.id}}`);
+  es.onmessage = ({ data }) => {
+    const props = JSON.parse(data);
+    refresh(props);
+  };
+  es.onerror = (error) => {
+    console.error(error);
+  };
+
+  refresh({{{json this}}});
 </script>

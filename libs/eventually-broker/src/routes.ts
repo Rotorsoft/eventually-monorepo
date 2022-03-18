@@ -1,30 +1,14 @@
 import { log } from "@rotorsoft/eventually";
 import { Router } from "express";
 import joi from "joi";
-import { Subscription, subscriptions, SubscriptionStats } from ".";
-import { Refresh, State } from "./utils";
+import { Props, Subscription, subscriptions } from ".";
+import { state } from "./state";
+import { props } from "./utils";
 
-const prep = (
-  subs: Subscription[],
-  state: State
-): (Subscription & {
-  status: string;
-  error: string;
-  color: string;
-  stats: SubscriptionStats;
-})[] =>
+const prepare = (subs: Subscription[]): Array<Subscription & Props> =>
   subs
     .sort((a, b) => (a.active < b.active ? 1 : a.active > b.active ? -1 : 0))
-    .map((sub) => {
-      const status = state.status[sub.id];
-      return {
-        status: status?.code || "",
-        error: status?.error || "",
-        color: status?.code === "OK" ? "success" : "danger",
-        stats: state.stats ? state.stats[sub.id] : undefined,
-        ...sub
-      };
-    });
+    .map((sub) => ({ ...sub, ...props(sub) }));
 
 const defaultSub = {
   channel: "pg://table_name",
@@ -43,13 +27,12 @@ const schema = joi
   })
   .required();
 
-export const routes = (refresh: Refresh): Router => {
+export const routes = (): Router => {
   const router = Router();
 
   router.get("/", async (_, res) => {
     const subs = await subscriptions().load();
-    const state = refresh.state();
-    const rows = prep(subs, state);
+    const rows = prepare(subs);
     res.render("home", { rows });
   });
 
@@ -57,8 +40,7 @@ export const routes = (refresh: Refresh): Router => {
     const search = req.body.search;
     if (search) {
       const subs = await subscriptions().search(search);
-      const state = refresh.state();
-      const rows = prep(subs, state);
+      const rows = prepare(subs);
       res.render("home", { rows });
     } else res.redirect("/");
   });
@@ -104,10 +86,7 @@ export const routes = (refresh: Refresh): Router => {
     try {
       const [sub] = await subscriptions().load(id);
       if (sub) {
-        const state = refresh.state();
-        const status = state.status[sub.id];
-        const stats = JSON.stringify(state.stats[sub.id]);
-        res.render("edit", { ...sub, status, stats });
+        res.render("edit", { ...sub, ...props(sub) });
       } else {
         res.render("edit", { ...err });
       }
@@ -165,6 +144,31 @@ export const routes = (refresh: Refresh): Router => {
     } finally {
       res.redirect("/");
     }
+  });
+
+  router.get("/monitor", (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-store");
+    req.on("error", (error) => {
+      log().error(error);
+    });
+    req.on("close", () => {
+      state().allStream(undefined);
+    });
+    state().allStream(res);
+  });
+
+  router.get("/monitor/:id", (req, res) => {
+    const id = req.params.id;
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-store");
+    req.on("error", (error) => {
+      log().error(error);
+    });
+    req.on("close", () => {
+      state().stream(id, undefined);
+    });
+    state().stream(id, res);
   });
 
   return router;

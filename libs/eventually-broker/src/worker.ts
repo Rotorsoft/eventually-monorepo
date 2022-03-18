@@ -6,8 +6,7 @@ import {
   Subscription,
   subscriptions,
   SubscriptionStats,
-  TriggerCallback,
-  TriggerPayload
+  TriggerCallback
 } from ".";
 
 const BATCH_SIZE = 100;
@@ -17,20 +16,16 @@ const emitError = (error: Error): void => {
   process.send({ error: error.message });
 };
 
-const emitStats = (
-  id: string,
-  trigger: TriggerPayload,
-  stats: SubscriptionStats
-): void => {
+const emitStats = (stats: SubscriptionStats): void => {
   log().info(
     "blue",
-    `[${process.pid}] pumped ${id} ${trigger.operation}${
-      trigger.retries || ""
-    }@${trigger.id}`,
-    `after=${stats.after} total=${stats.total} batches=${stats.batches}`,
+    `[${process.pid}] pumped ${stats.id} ${stats.trigger.operation}${
+      stats.trigger.retries || ""
+    }@${stats.trigger.position}`,
+    `at=${stats.position} total=${stats.total} batches=${stats.batches}`,
     stats.events
   );
-  process.send({ id, trigger, stats });
+  process.send({ stats });
 };
 
 export const work = (resolvers: ChannelResolvers): void => {
@@ -73,7 +68,9 @@ export const work = (resolvers: ChannelResolvers): void => {
     pumping = true;
 
     const stats: SubscriptionStats = {
-      after: sub.position,
+      id: sub.id,
+      trigger,
+      position: sub.position,
       batches: 0,
       total: 0,
       events: {}
@@ -99,7 +96,7 @@ export const work = (resolvers: ChannelResolvers): void => {
 
           if ([200, 204].includes(status)) {
             await subscriptions().commit(sub.id, e.id);
-            sub.position = e.id;
+            stats.position = sub.position = e.id;
           } else {
             if ([429, 503, 504].includes(status)) {
               // 429 - Too Many Requests
@@ -124,7 +121,7 @@ export const work = (resolvers: ChannelResolvers): void => {
       emitError(error);
       process.exit(100);
     } finally {
-      emitStats(sub.id, trigger, stats);
+      emitStats(stats);
       const retries = (trigger.retries || 0) + 1;
       retry &&
         (retryTimeout = setTimeout(
