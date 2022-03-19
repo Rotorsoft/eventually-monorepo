@@ -77,7 +77,8 @@ export type SubscriptionStats = {
  */
 export type Props = {
   id: string;
-  status: string;
+  active: boolean;
+  exitStatus: string;
   error: string;
   color: string;
   icon: string;

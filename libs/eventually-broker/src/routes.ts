@@ -7,8 +7,8 @@ import { props } from "./utils";
 
 const prepare = (subs: Subscription[]): Array<Subscription & Props> =>
   subs
-    .sort((a, b) => (a.active < b.active ? 1 : a.active > b.active ? -1 : 0))
-    .map((sub) => ({ ...sub, ...props(sub) }));
+    .map((sub) => ({ ...sub, ...props(sub) }))
+    .sort((a, b) => a.exitStatus.length - b.exitStatus.length);
 
 const defaultSub = {
   channel: "pg://table_name",
@@ -141,9 +141,8 @@ export const routes = (): Router => {
       await subscriptions().toggle(id);
     } catch (error) {
       log().error(error);
-    } finally {
-      res.redirect("/");
     }
+    res.redirect(`/edit/${id}`);
   });
 
   router.get("/monitor", (req, res) => {

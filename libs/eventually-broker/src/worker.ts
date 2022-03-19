@@ -137,6 +137,10 @@ export const work = (resolvers: ChannelResolvers): void => {
     }
   };
 
-  void pump({ operation: "RESTART", id: sub.position.toString() });
+  void pump({
+    operation: "RESTART",
+    id: sub.position.toString(),
+    position: sub.position
+  });
   void pullChannel.listen(pump);
 };

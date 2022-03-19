@@ -6,7 +6,6 @@
         id="deleteId"
         type="text"
         class="form-control"
-        id="floatingId"
         placeholder="{{this.id}}"
         name="deleteId"
         required
@@ -18,7 +17,70 @@
   </div>
 </div>
 
-<div id="stats" class="row m-5">
+<div class="row">
+  <div class="col-3 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingId"
+      placeholder="Id"
+      name="id"
+      value="{{this.id}}"
+      readonly
+    />
+    <label class="px-4" for="floatingId">Id</label>
+  </div>
+  <div class="col-3 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingChannel"
+      placeholder="Channel"
+      name="channel"
+      value="{{this.channel}}"
+      readonly
+    />
+    <label class="px-4" for="floatingChannel">Channel</label>
+  </div>
+  <div class="col-2 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingStatus"
+      placeholder="Status"
+      name="status"
+      value="{{this.exitStatus}}"
+      readonly
+    />
+    <label class="px-4" for="floatingStatus">Status</label>
+  </div>
+  <div class="col-2 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingPosition"
+      placeholder="Position"
+      name="position"
+      value="{{this.position}}"
+      readonly
+    />
+    <label class="px-4" for="floatingPosition">Position</label>
+  </div>
+  <div class="col-2 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingTrigger"
+      placeholder="Trigger"
+      name="trigger"
+      value="{{this.maxTriggerPosition}}"
+      readonly
+    />
+    <label class="px-4" for="floatingTrigger">Stream</label>
+  </div>
+</div>
+
+<div id="stats" class="row mx-1 my-3">
 </div>
 
 {{> alert}}
@@ -46,10 +108,11 @@
       .catch(()=> delId.value = "")
   }
 
+  const statusInput = document.getElementById("floatingStatus");
+  const positionInput = document.getElementById("floatingPosition");
+  const triggerInput = document.getElementById("floatingTrigger");
   const statsDiv = document.getElementById("stats");
   const refresh = (state) => {
-    const color = state.status ? "danger" : "success";
-    const icon = state.status ? "bi-cone-striped" : "bi-check";
     const events = state.events.map(({ name, ok, errors, ignored }) => {
       const okSpan = ok ? `<span class="badge bg-success">${ok}</span>` : "";
       const errorsSpan = errors ? `<span class="badge bg-danger">${errors}</span>` : "";
@@ -64,21 +127,26 @@
       `;
     }).join('');
 
-    statsDiv.innerHTML=
-    `<div class="card border-${color} mb-3">
-      <div class="card-header bg-white text-${color}">
-        <h5 class="card-title">
-          Status: <i class="bi ${icon}"></i> ${state.status}
-        </h5>
-        <small class="card-subtitle text-muted">
-          ${state.error}
-        </small>
+    statusInput.value = state.exitStatus || "Running";
+    positionInput.value = state.position;
+    triggerInput.value = state.maxTriggerPosition;
+
+    const toggleIcon = state.active ? "bi-toggle-on" : "bi-toggle-off";
+    const toggleTitle = state.active ? "Stop" : "Start";
+
+    statsDiv.innerHTML=`
+    <div class="card p-0">
+      <div class="card-header p-2">
+        <h5 class="card-title m-0">
+          <a href="/toggle/${state.id}" title=${toggleTitle}
+            type="button"
+            class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${state.color}"></i>
+          </a>
+          <small class="text-muted">${state.error || state.exitStatus || "Running" }</small>
+        </h5> 
       </div>
       <div class="card-body">
         ${events}
-      </div>
-      <div class="card-footer bg-white">
-        Position: ${state.position}/<b>${state.maxTriggerPosition}</b>
       </div>
     </div>`
   }
@@ -88,6 +156,7 @@
     const props = JSON.parse(data);
     refresh(props);
   };
+  
   es.onerror = (error) => {
     console.error(error);
   };

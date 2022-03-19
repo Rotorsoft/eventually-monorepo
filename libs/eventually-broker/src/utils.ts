@@ -13,13 +13,14 @@ export type Refresh = (
 
 export const mapProps = (
   sub: Subscription,
-  { status, error, stats, maxTriggerPosition }: WorkerStatus
+  { exitStatus, error, stats, maxTriggerPosition }: WorkerStatus
 ): Props => ({
   id: sub.id,
-  status,
+  active: sub.active,
+  exitStatus: sub.active ? exitStatus : "Inactive",
   error,
-  color: !sub.active ? "secondary" : status ? "danger" : "success",
-  icon: status ? "bi-cone-striped" : "bi-check",
+  color: !sub.active ? "secondary" : exitStatus ? "danger" : "success",
+  icon: !sub.active || exitStatus || error ? "bi-cone-striped" : "bi-activity",
   position: stats.position,
   maxTriggerPosition,
   total: stats.total,
@@ -35,7 +36,7 @@ export const mapProps = (
 
 export const props = (sub: Subscription): Props => {
   const s: WorkerStatus = state().get(sub.id) || {
-    status: "",
+    exitStatus: "",
     error: "",
     stats: {
       id: sub.id,
