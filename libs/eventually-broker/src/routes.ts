@@ -17,15 +17,20 @@ const defaultSub = {
   names: ".*"
 };
 
-const schema = joi
-  .object<Subscription>({
-    id: joi.string().trim().required(),
-    channel: joi.string().trim().uri().required(),
-    endpoint: joi.string().trim().uri().required(),
-    streams: joi.string().trim().required(),
-    names: joi.string().trim().required()
+const editSchema = joi
+  .object({
+    endpoint: joi.string().trim().uri(),
+    streams: joi.string().trim(),
+    names: joi.string().trim()
   })
-  .required();
+  .options({ presence: "required" });
+
+const addSchema = editSchema
+  .append({
+    id: joi.string().trim(),
+    channel: joi.string().trim().uri()
+  })
+  .options({ presence: "required" });
 
 export const routes = (): Router => {
   const router = Router();
@@ -50,14 +55,15 @@ export const routes = (): Router => {
   });
 
   router.post("/add", async (req, res) => {
-    const sub: Subscription = req.body;
     try {
-      const { value, error } = schema.validate(sub, { abortEarly: false });
+      const { value, error } = addSchema.validate(req.body, {
+        abortEarly: false
+      });
       if (error) {
         res.render("add", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...sub
+          ...req.body
         });
       } else {
         await subscriptions().create(value);
@@ -72,7 +78,7 @@ export const routes = (): Router => {
       res.render("add", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...sub
+        ...req.body
       });
     }
   });
@@ -96,22 +102,26 @@ export const routes = (): Router => {
     }
   });
 
-  router.post("/edit", async (req, res) => {
-    const sub: Subscription = req.body;
+  router.post("/edit/:id", async (req, res) => {
+    const id = req.params.id;
     try {
-      const { value, error } = schema.validate(sub, { abortEarly: false });
+      const { error } = editSchema.validate(req.body, {
+        abortEarly: false,
+        allowUnknown: true
+      });
       if (error) {
         res.render("edit", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...sub
+          ...req.body
         });
       } else {
-        await subscriptions().update(value);
+        await subscriptions().update(req.body);
         res.render("edit", {
           class: "alert-success",
-          message: `Subscription ${value.id} updated successfully!`,
-          ...value
+          message: `Subscription ${id} updated successfully!`,
+          ...req.body,
+          ...props(req.body)
         });
       }
     } catch (error) {
@@ -119,7 +129,7 @@ export const routes = (): Router => {
       res.render("edit", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...sub
+        ...req.body
       });
     }
   });

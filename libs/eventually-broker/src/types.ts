@@ -52,6 +52,7 @@ export type StreamListener = {
 };
 export type StreamListenerFactory = () => StreamListener;
 
+export type EventStats = { count: number; min: number; max: number };
 /**
  * Records integration stats
  * - `id`: subscription id
@@ -61,7 +62,7 @@ export type StreamListenerFactory = () => StreamListener;
  * - `total`: number of pulled events
  * - `events`: hash of event stats by event name
  *    - `key`: response code
- *    - `value`: response count
+ *    - `value`: response stats (count, min-id, max-id)
  */
 export type SubscriptionStats = {
   id: string;
@@ -69,11 +70,11 @@ export type SubscriptionStats = {
   position: number;
   batches: number;
   total: number;
-  events: Record<string, Record<number, number>>;
+  events: Record<string, Record<number, EventStats>>;
 };
 
 /**
- * Subscription view properties
+ * Subscription view state
  */
 export type Props = {
   id: string;
@@ -85,7 +86,12 @@ export type Props = {
   position: number;
   maxTriggerPosition: number;
   total: number;
-  events: Array<{ name: string; ok: number; ignored: number; errors: number }>;
+  events: Array<{
+    name: string;
+    ok: EventStats;
+    ignored: EventStats;
+    errors: EventStats;
+  }>;
 };
 
 /**

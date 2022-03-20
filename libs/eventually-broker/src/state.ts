@@ -79,28 +79,29 @@ export const state = singleton((): BrokerState => {
       emit(runner);
     },
     stats: (workerId: number, stats: any) => {
-      const cur = stats as SubscriptionStats;
       const runner = running[workerId] as Subscription;
       if (runner) {
-        triggers[runner.channel] = Math.max(
-          triggers[runner.channel] || -1,
-          cur.trigger.position || -1
-        );
-        const _status = status[runner.id];
-        const acc = _status.stats;
+        const cur = stats as SubscriptionStats;
+        status[runner.id].maxTriggerPosition = triggers[runner.channel] =
+          Math.max(triggers[runner.channel] || -1, cur.trigger.position || -1);
+        const acc = status[runner.id].stats;
         acc.trigger = cur.trigger;
         acc.position = cur.position;
         acc.batches += cur.batches;
         acc.total += cur.total;
         Object.entries(cur.events).map(([name, codes]) => {
-          Object.entries(codes).map(([code, count]) => {
-            acc.events[name] = acc.events[name] || {};
-            acc.events[name][parseInt(code)] =
-              (acc.events[name][parseInt(code)] || 0) + count;
-          }, 0);
-        }, 0);
-        _status.maxTriggerPosition = triggers[runner.channel];
-        status[runner.id] = { ..._status, stats: { ...acc } };
+          Object.entries(codes).map(([code, estats]) => {
+            const event = (acc.events[name] = acc.events[name] || {});
+            const stats = (event[parseInt(code)] = event[parseInt(code)] || {
+              count: 0,
+              min: Number.MAX_SAFE_INTEGER,
+              max: -1
+            });
+            stats.count += estats.count;
+            stats.min = Math.min(stats.min, estats.min);
+            stats.max = Math.max(stats.max, estats.max);
+          });
+        });
         emit(runner);
       }
     },

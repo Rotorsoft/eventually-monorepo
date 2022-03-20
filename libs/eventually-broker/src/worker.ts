@@ -92,7 +92,14 @@ export const work = (resolvers: ChannelResolvers): void => {
 
           stats.total++;
           const event = (stats.events[e.name] = stats.events[e.name] || {});
-          event[status] = (event[status] || 0) + 1;
+          const eventStats = (event[status] = event[status] || {
+            count: 0,
+            min: Number.MAX_SAFE_INTEGER,
+            max: -1
+          });
+          eventStats.count++;
+          eventStats.min = Math.min(eventStats.min, e.id);
+          eventStats.max = Math.max(eventStats.max, e.id);
 
           if ([200, 204].includes(status)) {
             await subscriptions().commit(sub.id, e.id);

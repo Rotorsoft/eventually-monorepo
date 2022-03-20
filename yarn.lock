@@ -766,7 +766,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
-    "@rotorsoft/eventually-broker": "workspace:^0.1.4"
+    "@rotorsoft/eventually-broker": "workspace:^0.1.5"
     "@types/node": "*"
     ts-node-dev: ^1.1.8
     tsconfig-paths: ^3.12.0
@@ -789,7 +789,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-broker@workspace:^0.1.4, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
+"@rotorsoft/eventually-broker@workspace:^0.1.5, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-broker@workspace:libs/eventually-broker"
   dependencies:

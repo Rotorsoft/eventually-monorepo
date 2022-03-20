@@ -2,7 +2,7 @@ import { log, Payload } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { cpus } from "os";
 import { state, WorkerStatus } from "./state";
-import { Operation, Props, Subscription } from "./types";
+import { EventStats, Operation, Props, Subscription } from "./types";
 
 export type Argument = Payload & { id: string; active: boolean };
 export type Refresh = (
@@ -30,7 +30,14 @@ export const mapProps = (
     ignored: value[204],
     errors: Object.entries(value)
       .filter(([k]) => k !== "200" && k !== "204")
-      .reduce((p, [, v]) => p + v, 0)
+      .reduce<EventStats>(
+        (p, [, v]) => ({
+          count: p.count + v.count,
+          min: Math.min(p.min, v.min),
+          max: Math.max(p.max, v.max)
+        }),
+        { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 }
+      )
   }))
 });
 

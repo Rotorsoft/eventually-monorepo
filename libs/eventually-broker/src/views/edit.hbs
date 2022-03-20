@@ -1,5 +1,5 @@
 <div class="row mb-2">
-  <div class="col-6">{{>breadcrumb title='Edit'}}</div>
+  <div class="col-6">{{>breadcrumb}}</div>
   <div class="col-6 d-flex justify-content-end">
     <div class="col-6 mx-2">
       <input
@@ -80,12 +80,12 @@
   </div>
 </div>
 
-<div id="stats" class="row mx-1 my-3">
+<div id="stats" class="accordion mx-1 my-3">
 </div>
 
 {{> alert}}
 
-<form class="row my-5" method="post" action="/edit">
+<form class="row my-3" method="post" action="/edit/{{this.id}}">
   {{> sub-form edit=true}}
 </form>
 
@@ -112,19 +112,21 @@
   const positionInput = document.getElementById("floatingPosition");
   const triggerInput = document.getElementById("floatingTrigger");
   const statsDiv = document.getElementById("stats");
+  const renderStats = (stats, color) => stats && stats.count ? `
+    <th class="text-end table-${color}">${stats.count}</th>
+    <td class="text-end table-${color} stat">${stats.min}</td>
+    <td class="text-end table-${color} stat">${stats.max}</td>
+  ` : "<td/><td/><td/>";
   const refresh = (state) => {
     const events = state.events.map(({ name, ok, errors, ignored }) => {
-      const okSpan = ok ? `<span class="badge bg-success">${ok}</span>` : "";
-      const errorsSpan = errors ? `<span class="badge bg-danger">${errors}</span>` : "";
-      const ignoredSpan = ignored ? `<span class="badge bg-secondary">${ignored}</span>` : ""; 
       return `
-        <button type="button" class="btn btn-sm position-relative">
-          ${name} 
-          ${okSpan}
-          ${errorsSpan}
-          ${ignoredSpan}
-        </button>
-      `;
+        <tr>
+          <th>${name}</th>
+          ${renderStats(ok, "success")}
+          ${renderStats(errors, "danger")}
+          ${renderStats(ignored, "secondary")}
+        </tr>
+      `
     }).join('');
 
     statusInput.value = state.exitStatus || "Running";
@@ -146,7 +148,31 @@
         </h5> 
       </div>
       <div class="card-body">
-        ${events}
+        <table class="table align-middle table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Event</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-success">Ok</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-danger">Errors</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-secondary">Ignored</th>
+            </tr>
+            <tr>
+              <th/>
+              <th class="text-end table-success">Count</th>
+              <th class="text-end table-success stat">Min</th>
+              <th class="text-end table-success stat">Max</th>
+              <th class="text-end table-danger">Count</th>
+              <th class="text-end table-danger stat">Min</th>
+              <th class="text-end table-danger stat">Max</th>
+              <th class="text-end table-secondary">Count</th>
+              <th class="text-end table-secondary stat">Min</th>
+              <th class="text-end table-secondary stat">Max</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${events}
+          </tbody>
+        </table>
       </div>
     </div>`
   }

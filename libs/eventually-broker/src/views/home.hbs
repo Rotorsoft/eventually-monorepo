@@ -21,7 +21,7 @@
   <tbody>
     {{#each rows}}
       <tr class="{{#unless this.active}}table-secondary{{/unless}}">
-        <td id="status-{{this.id}}" class="text-center"></td>
+        <td id="status-{{this.id}}"></td>
         <td scope="row">
           <a href="/edit/{{this.id}}">{{this.id}}</a>
         </td>
@@ -44,7 +44,7 @@
       <span class="text-${color}">
         <i class="bi ${icon}"></i>
       </span>
-      <span style="font-size:8px">${position}</span>
+      <span class="stat">${position}</span>
     `);
   };
 

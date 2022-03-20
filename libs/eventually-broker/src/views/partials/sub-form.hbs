@@ -1,4 +1,7 @@
-{{#unless edit}}
+{{#if edit}}
+  <input name="id" type="text" value="{{id}}" hidden />
+  <input name="channel" type="text" value="{{channel}}" hidden />
+{{else}}
   <div class="form-floating mb-3">
     <input
       type="text"
@@ -24,7 +27,7 @@
     />
     <label class="px-4" for="floatingChannel">Channel</label>
   </div>
-{{/unless}}
+{{/if}}
 
 <div class="form-floating mb-3">
   <input
