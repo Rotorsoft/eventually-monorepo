@@ -87,7 +87,7 @@ export const state = singleton((): BrokerState => {
     stats: (workerId: number, stats: SubscriptionStats) => {
       const runner = running[workerId];
       if (runner) {
-        setChannelPosition(runner.channel, runner.position);
+        setChannelPosition(runner.channel, stats.position);
         const acc = status[runner.id].stats;
         acc.trigger = stats.trigger;
         acc.position = stats.position;
