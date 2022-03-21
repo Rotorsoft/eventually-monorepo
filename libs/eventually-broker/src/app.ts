@@ -30,7 +30,8 @@ export const app = async (
     engine({
       extname: ".hbs",
       helpers: {
-        json: (context: any) => JSON.stringify(context)
+        json: (context: any) => JSON.stringify(context),
+        title: () => `${config().description} ${config().version}`
       }
     })
   );
