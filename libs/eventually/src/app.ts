@@ -60,7 +60,7 @@ export abstract class AppBase extends Builder implements Reader {
     const schema = metadata.options.schema;
     if (schema) {
       const { error } = schema.validate(message.data, { abortEarly: false });
-      if (error) throw new ValidationError(error);
+      if (error) throw new ValidationError(error, message);
     }
   }
 
