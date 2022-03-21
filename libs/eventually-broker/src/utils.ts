@@ -1,6 +1,7 @@
 import { log, Payload } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { cpus } from "os";
+import { SubscriptionStats, TriggerPayload } from ".";
 import { state, WorkerStatus } from "./state";
 import { EventStats, Operation, Props, Subscription } from "./types";
 
@@ -13,7 +14,7 @@ export type Refresh = (
 
 export const mapProps = (
   sub: Subscription,
-  { exitStatus, error, stats, maxTriggerPosition }: WorkerStatus
+  { exitStatus, error, stats }: WorkerStatus
 ): Props => ({
   id: sub.id,
   active: sub.active,
@@ -22,7 +23,7 @@ export const mapProps = (
   color: !sub.active ? "secondary" : exitStatus ? "danger" : "success",
   icon: !sub.active || exitStatus || error ? "bi-cone-striped" : "bi-activity",
   position: stats.position,
-  maxTriggerPosition,
+  channelPosition: state().getChannelPosition(sub.channel),
   total: stats.total,
   events: Object.entries(stats.events).map(([key, value]) => ({
     name: key,
@@ -42,7 +43,7 @@ export const mapProps = (
 });
 
 export const props = (sub: Subscription): Props => {
-  const s: WorkerStatus = state().get(sub.id) || {
+  const s: WorkerStatus = state().getWorkerStatus(sub.id) || {
     exitStatus: "",
     error: "",
     stats: {
@@ -52,8 +53,7 @@ export const props = (sub: Subscription): Props => {
       batches: 0,
       total: 0,
       events: {}
-    },
-    maxTriggerPosition: -1
+    }
   };
   return mapProps(sub, s);
 };
@@ -75,10 +75,13 @@ export const fork = (args: Argument[]): Refresh => {
     (
       worker,
       msg: {
+        channel?: string;
+        trigger?: TriggerPayload;
         error?: string;
-        stats?: any;
+        stats?: SubscriptionStats;
       }
     ) => {
+      msg.channel && msg.trigger && state().trigger(msg.channel, msg.trigger);
       msg.error && state().error(worker.id, msg.error);
       msg.stats && state().stats(worker.id, msg.stats);
     }

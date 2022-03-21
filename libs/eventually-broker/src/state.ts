@@ -1,13 +1,12 @@
 import { singleton } from "@rotorsoft/eventually";
 import { Writable } from "stream";
-import { Props, Subscription, SubscriptionStats } from ".";
+import { Props, Subscription, SubscriptionStats, TriggerPayload } from ".";
 import { Argument, mapProps } from "./utils";
 
 export type WorkerStatus = {
   exitStatus: string;
   error: string;
   stats: SubscriptionStats;
-  maxTriggerPosition: number;
 };
 
 const _emit = (stream: Writable, props: Props): void => {
@@ -18,7 +17,9 @@ const _emit = (stream: Writable, props: Props): void => {
 
 export type BrokerState = {
   findWorkerId: (id: string) => number | undefined;
-  get: (id: string) => WorkerStatus | undefined;
+  trigger: (channel: string, trigger: TriggerPayload) => void;
+  getChannelPosition: (channel: string) => number;
+  getWorkerStatus: (id: string) => WorkerStatus | undefined;
   reset: (workerId: number, arg: Argument) => void;
   error: (workerId: number, error: string) => void;
   stats: (workerId: number, stats: any) => void;
@@ -56,7 +57,15 @@ export const state = singleton((): BrokerState => {
 
   return {
     findWorkerId,
-    get: (id: string) => status[id],
+    trigger: (channel: string, trigger: TriggerPayload): void => {
+      triggers[channel] = Math.max(
+        triggers[channel] || -1,
+        trigger.position || -1
+      );
+      console.log(`channel ${channel} @ ${triggers[channel]}`);
+    },
+    getChannelPosition: (channel: string) => triggers[channel] || -1,
+    getWorkerStatus: (id: string) => status[id],
     reset: (workerId: number, arg: Argument) => {
       running[workerId] = arg;
       status[arg.id] = {
@@ -69,8 +78,7 @@ export const state = singleton((): BrokerState => {
           batches: 0,
           position: -1,
           events: {}
-        },
-        maxTriggerPosition: -1
+        }
       };
     },
     error: (workerId: number, error: string) => {
@@ -82,8 +90,6 @@ export const state = singleton((): BrokerState => {
       const runner = running[workerId] as Subscription;
       if (runner) {
         const cur = stats as SubscriptionStats;
-        status[runner.id].maxTriggerPosition = triggers[runner.channel] =
-          Math.max(triggers[runner.channel] || -1, cur.trigger.position || -1);
         const acc = status[runner.id].stats;
         acc.trigger = cur.trigger;
         acc.position = cur.position;

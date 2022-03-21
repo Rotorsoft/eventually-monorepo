@@ -73,7 +73,7 @@
       id="floatingTrigger"
       placeholder="Trigger"
       name="trigger"
-      value="{{this.maxTriggerPosition}}"
+      value="{{this.channelPosition}}"
       readonly
     />
     <label class="px-4" for="floatingTrigger">Stream</label>
@@ -131,7 +131,7 @@
 
     statusInput.value = state.exitStatus || "Running";
     positionInput.value = state.position;
-    triggerInput.value = state.maxTriggerPosition;
+    triggerInput.value = state.channelPosition;
 
     const toggleIcon = state.active ? "bi-toggle-on" : "bi-toggle-off";
     const toggleTitle = state.active ? "Stop" : "Start";

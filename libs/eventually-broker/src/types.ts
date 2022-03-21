@@ -84,7 +84,7 @@ export type Props = {
   color: string;
   icon: string;
   position: number;
-  maxTriggerPosition: number;
+  channelPosition: number;
   total: number;
   events: Array<{
     name: string;

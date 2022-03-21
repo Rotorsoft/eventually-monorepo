@@ -6,10 +6,18 @@ import {
   Subscription,
   subscriptions,
   SubscriptionStats,
-  TriggerCallback
+  TriggerCallback,
+  TriggerPayload
 } from ".";
 
 const BATCH_SIZE = 100;
+
+const triggerLog = (trigger: TriggerPayload): string =>
+  `${trigger.operation}${trigger.retries || ""}@${trigger.position}`;
+
+const emitTrigger = (channel: string, trigger: TriggerPayload): void => {
+  process.send({ channel, trigger });
+};
 
 const emitError = (error: Error): void => {
   log().error(error);
@@ -19,9 +27,7 @@ const emitError = (error: Error): void => {
 const emitStats = (stats: SubscriptionStats): void => {
   log().info(
     "blue",
-    `[${process.pid}] pumped ${stats.id} ${stats.trigger.operation}${
-      stats.trigger.retries || ""
-    }@${stats.trigger.position}`,
+    `[${process.pid}] pumped ${stats.id} ${triggerLog(stats.trigger)}`,
     `at=${stats.position} total=${stats.total} batches=${stats.batches}`,
     stats.events
   );
@@ -66,6 +72,7 @@ export const work = (resolvers: ChannelResolvers): void => {
   const pump: TriggerCallback = async (trigger): Promise<void> => {
     if (pumping || !pushChannel) return;
     pumping = true;
+    emitTrigger(sub.channel, trigger);
 
     const stats: SubscriptionStats = {
       id: sub.id,
@@ -119,13 +126,23 @@ export const work = (resolvers: ChannelResolvers): void => {
                 )
               );
             }
-            emitError(Error(`${status} ${statusText}`));
+            emitError(
+              Error(
+                `${triggerLog(trigger)} event@${
+                  e.id
+                } HTTP ERROR ${status} ${statusText}`
+              )
+            );
             return;
           }
         }
       }
     } catch (error) {
-      emitError(error);
+      emitError(
+        Error(
+          `${triggerLog(trigger)} position@${sub.position} ${error.message}`
+        )
+      );
       process.exit(100);
     } finally {
       emitStats(stats);
@@ -135,8 +152,9 @@ export const work = (resolvers: ChannelResolvers): void => {
           () =>
             pump({
               operation: "RETRY",
-              id: sub.position.toString(),
-              retries
+              id: trigger.id,
+              retries,
+              position: sub.position
             }),
           5000 * retries
         ));
@@ -146,7 +164,7 @@ export const work = (resolvers: ChannelResolvers): void => {
 
   void pump({
     operation: "RESTART",
-    id: sub.position.toString(),
+    id: sub.id,
     position: sub.position
   });
   void pullChannel.listen(pump);
