@@ -15,8 +15,8 @@ const BATCH_SIZE = 100;
 const triggerLog = (trigger: TriggerPayload): string =>
   `${trigger.operation}${trigger.retries || ""}@${trigger.position}`;
 
-const emitTrigger = (channel: string, trigger: TriggerPayload): void => {
-  process.send({ channel, trigger });
+const emitChannelPosition = (channel: string, position: number): void => {
+  process.send({ channel, position });
 };
 
 const emitError = (error: Error): void => {
@@ -72,7 +72,7 @@ export const work = (resolvers: ChannelResolvers): void => {
   const pump: TriggerCallback = async (trigger): Promise<void> => {
     if (pumping || !pushChannel) return;
     pumping = true;
-    emitTrigger(sub.channel, trigger);
+    emitChannelPosition(sub.channel, trigger.position);
 
     const stats: SubscriptionStats = {
       id: sub.id,

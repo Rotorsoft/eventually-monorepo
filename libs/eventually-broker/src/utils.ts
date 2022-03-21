@@ -1,15 +1,14 @@
-import { log, Payload } from "@rotorsoft/eventually";
+import { log } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { cpus } from "os";
-import { SubscriptionStats, TriggerPayload } from ".";
+import { SubscriptionStats } from ".";
 import { state, WorkerStatus } from "./state";
 import { EventStats, Operation, Props, Subscription } from "./types";
 
-export type Argument = Payload & { id: string; active: boolean };
 export type Refresh = (
   operation: Operation,
   id: string,
-  arg?: Argument
+  sub?: Subscription
 ) => void;
 
 export const mapProps = (
@@ -58,15 +57,15 @@ export const props = (sub: Subscription): Props => {
   return mapProps(sub, s);
 };
 
-export const fork = (args: Argument[]): Refresh => {
+export const fork = (subs: Subscription[]): Refresh => {
   const cores = cpus().length;
 
   log().info("green", `Cluster started with ${cores} cores`);
 
-  const run = (arg: Argument): void => {
-    if (arg.active) {
-      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(arg) });
-      state().reset(id, arg);
+  const run = (sub: Subscription): void => {
+    if (sub.active) {
+      const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(sub) });
+      state().reset(id, sub);
     }
   };
 
@@ -76,12 +75,14 @@ export const fork = (args: Argument[]): Refresh => {
       worker,
       msg: {
         channel?: string;
-        trigger?: TriggerPayload;
+        position?: number;
         error?: string;
         stats?: SubscriptionStats;
       }
     ) => {
-      msg.channel && msg.trigger && state().trigger(msg.channel, msg.trigger);
+      msg.channel &&
+        msg.position &&
+        state().setChannelPosition(msg.channel, msg.position);
       msg.error && state().error(worker.id, msg.error);
       msg.stats && state().stats(worker.id, msg.stats);
     }
@@ -94,7 +95,7 @@ export const fork = (args: Argument[]): Refresh => {
     arg && (code < 100 || signal === "SIGINT") && run(arg);
   });
 
-  args.map((arg) => run(arg));
+  subs.map((arg) => run(arg));
 
   return (operation, id, arg) => {
     log().info("magenta", `refreshing ${operation} ${id}`);

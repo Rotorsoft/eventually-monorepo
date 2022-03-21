@@ -1,7 +1,7 @@
 import { singleton } from "@rotorsoft/eventually";
 import { Writable } from "stream";
-import { Props, Subscription, SubscriptionStats, TriggerPayload } from ".";
-import { Argument, mapProps } from "./utils";
+import { Props, Subscription, SubscriptionStats } from ".";
+import { mapProps } from "./utils";
 
 export type WorkerStatus = {
   exitStatus: string;
@@ -17,23 +17,23 @@ const _emit = (stream: Writable, props: Props): void => {
 
 export type BrokerState = {
   findWorkerId: (id: string) => number | undefined;
-  trigger: (channel: string, trigger: TriggerPayload) => void;
+  setChannelPosition: (channel: string, position: number) => void;
   getChannelPosition: (channel: string) => number;
   getWorkerStatus: (id: string) => WorkerStatus | undefined;
-  reset: (workerId: number, arg: Argument) => void;
+  reset: (workerId: number, sub: Subscription) => void;
   error: (workerId: number, error: string) => void;
-  stats: (workerId: number, stats: any) => void;
+  stats: (workerId: number, stats: SubscriptionStats) => void;
   exit: (
     workerId: number,
     code?: number,
     signal?: string
-  ) => Argument | undefined;
+  ) => Subscription | undefined;
   allStream: (stream: Writable) => void;
   stream: (id: string, stream: Writable) => void;
 };
 
 export const state = singleton((): BrokerState => {
-  const running: Record<number, Argument> = {};
+  const running: Record<number, Subscription> = {};
   const status: Record<string, WorkerStatus> = {};
   const triggers: Record<string, number> = {};
   const streams: Record<string, Writable> = {};
@@ -55,24 +55,22 @@ export const state = singleton((): BrokerState => {
     }
   };
 
+  const setChannelPosition = (channel: string, position: number): void => {
+    triggers[channel] = Math.max(triggers[channel] || -1, position || -1);
+  };
+
   return {
     findWorkerId,
-    trigger: (channel: string, trigger: TriggerPayload): void => {
-      triggers[channel] = Math.max(
-        triggers[channel] || -1,
-        trigger.position || -1
-      );
-      console.log(`channel ${channel} @ ${triggers[channel]}`);
-    },
+    setChannelPosition,
     getChannelPosition: (channel: string) => triggers[channel] || -1,
     getWorkerStatus: (id: string) => status[id],
-    reset: (workerId: number, arg: Argument) => {
-      running[workerId] = arg;
-      status[arg.id] = {
+    reset: (workerId: number, sub: Subscription) => {
+      running[workerId] = sub;
+      status[sub.id] = {
         exitStatus: "",
         error: "",
         stats: {
-          id: arg.id,
+          id: sub.id,
           trigger: { id: "", operation: "RESTART" },
           total: 0,
           batches: 0,
@@ -82,20 +80,20 @@ export const state = singleton((): BrokerState => {
       };
     },
     error: (workerId: number, error: string) => {
-      const runner = running[workerId] as Subscription;
+      const runner = running[workerId];
       runner && (status[runner.id].error = error);
       emit(runner);
     },
-    stats: (workerId: number, stats: any) => {
-      const runner = running[workerId] as Subscription;
+    stats: (workerId: number, stats: SubscriptionStats) => {
+      const runner = running[workerId];
       if (runner) {
-        const cur = stats as SubscriptionStats;
+        setChannelPosition(runner.channel, runner.position);
         const acc = status[runner.id].stats;
-        acc.trigger = cur.trigger;
-        acc.position = cur.position;
-        acc.batches += cur.batches;
-        acc.total += cur.total;
-        Object.entries(cur.events).map(([name, codes]) => {
+        acc.trigger = stats.trigger;
+        acc.position = stats.position;
+        acc.batches += stats.batches;
+        acc.total += stats.total;
+        Object.entries(stats.events).map(([name, codes]) => {
           Object.entries(codes).map(([code, estats]) => {
             const event = (acc.events[name] = acc.events[name] || {});
             const stats = (event[parseInt(code)] = event[parseInt(code)] || {
@@ -112,7 +110,7 @@ export const state = singleton((): BrokerState => {
       }
     },
     exit: (workerId: number, code?: number, signal?: string) => {
-      const runner = running[workerId] as Subscription;
+      const runner = running[workerId];
       if (runner) {
         delete running[workerId];
         status[runner.id].exitStatus = signal || `E${code}`;
