@@ -1,6 +1,5 @@
 {{#if edit}}
   <input name="id" type="text" value="{{id}}" hidden />
-  <input name="channel" type="text" value="{{channel}}" hidden />
 {{else}}
   <div class="form-floating mb-3">
     <input
@@ -14,32 +13,49 @@
     />
     <label class="px-4" for="floatingId">Id</label>
   </div>
-
-  <div class="form-floating mb-3">
-    <input
-      type="text"
-      class="form-control"
-      id="floatingChannel"
-      placeholder="Channel"
-      name="channel"
-      value="{{channel}}"
-      required
-    />
-    <label class="px-4" for="floatingChannel">Channel</label>
-  </div>
 {{/if}}
+
+<div class="form-floating mb-3">
+  <select
+    class="form-control"
+    id="floatingProducer"
+    placeholder="Producer"
+    name="producer"
+  >
+    <option value="{{producer}}" selected>{{producer}}</option>
+    {{#each services}}
+      <option value="{{this.id}}">{{this.id}}</option>
+    {{/each}}
+  </select>
+  <label class="px-4" for="floatingProducer">Producer</label>
+</div>
+
+<div class="form-floating mb-3">
+  <select
+    class="form-control"
+    id="floatingConsumer"
+    placeholder="Consumer"
+    name="consumer"
+  >
+    <option value="{{consumer}}" selected>{{consumer}}</option>
+    {{#each services}}
+      <option value="{{this.id}}">{{this.id}}</option>
+    {{/each}}
+  </select>
+  <label class="px-4" for="floatingConsumer">Consumer</label>
+</div>
 
 <div class="form-floating mb-3">
   <input
     type="text"
     class="form-control"
-    id="floatingEndpoint"
-    placeholder="Endpoint"
-    name="endpoint"
-    value="{{endpoint}}"
+    id="floatingPath"
+    placeholder="Path"
+    name="path"
+    value="{{path}}"
     required
   />
-  <label class="px-4" for="floatingEndpoint">Endpoint</label>
+  <label class="px-4" for="floatingPath">Path</label>
 </div>
 
 <div class="form-floating mb-3">

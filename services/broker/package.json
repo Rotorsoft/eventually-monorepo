@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/broker",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Broker Service",
   "author": {
     "name": "rotorsoft",
@@ -18,7 +18,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/eventually-broker": "workspace:^0.1.10"
+    "@rotorsoft/eventually-broker": "workspace:^0.2.0"
   },
   "devDependencies": {
     "@types/node": "*",

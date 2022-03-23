@@ -5,7 +5,7 @@ import { PushChannel } from "../types";
 
 // TODO: scalability concerns - how many concurrent connections can a single process handle? process affinity?
 // TODO: this is a naive in-memory buffer implementation, use a persisted queue (redis?) instead
-export const ssePushChannel = (): PushChannel => {
+export const SsePushChannel = (): PushChannel => {
   const id = randomId();
   const buffer: any[] = [];
   let stream: Writable;

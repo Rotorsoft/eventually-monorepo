@@ -1,0 +1,44 @@
+<div class="row mb-2">
+  <div class="col-6">{{>service-bc}}</div>
+  <div class="col-6 d-flex justify-content-end">
+    <div class="col mx-2">
+      <input
+        id="deleteId"
+        type="text"
+        class="form-control"
+        placeholder="{{this.id}}"
+        name="deleteId"
+        required
+      />
+    </div>
+    <a id="deleteButton" href="#" type="button" class="btn btn-danger align-self-center disabled">
+      <i class="bi bi-trash"></i></i>
+    </a>
+  </div>
+</div>
+
+{{> alert}}
+
+<form class="row my-3" method="post" action="/services/{{this.id}}">
+  {{> service-form edit=true}}
+</form>
+
+<script>
+  const delId = document.getElementById("deleteId");
+  const delBtn = document.getElementById("deleteButton");
+  delId.onkeyup = (ev) => {
+    const enable = delId.value === '{{this.id}}';
+    enable 
+      ? delBtn.classList.remove("disabled")
+      : delBtn.classList.add("disabled")
+  }
+  delBtn.onclick = () => {
+    fetch("/services/{{this.id}}", { method: "delete" })
+      .then(response => response.json())
+      .then(json => {
+        if(json.deleted) document.location = "/services";
+        else delId.value = "";
+      })
+      .catch(()=> delId.value = "")
+  }
+</script>

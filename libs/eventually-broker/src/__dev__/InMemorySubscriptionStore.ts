@@ -1,33 +1,44 @@
 import { SubscriptionStore } from "../interfaces";
-import { Subscription } from "../types";
 
 export const InMemorySubscriptionStore = (): SubscriptionStore => {
   return {
-    init: (): Promise<void> => {
+    init: () => {
       throw Error("Not Implemented");
     },
-    close: (): Promise<void> => {
+    close: () => {
       throw Error("Not Implemented");
     },
-    load: (): Promise<Subscription[]> => {
+    loadServices: () => {
       throw Error("Not Implemented");
     },
-    search: (): Promise<Subscription[]> => {
+    createService: () => {
       throw Error("Not Implemented");
     },
-    create: (): Promise<void> => {
+    updateService: () => {
       throw Error("Not Implemented");
     },
-    update: (): Promise<void> => {
+    deleteService: () => {
       throw Error("Not Implemented");
     },
-    delete: (): Promise<void> => {
+    loadSubscriptions: () => {
       throw Error("Not Implemented");
     },
-    toggle: (): Promise<void> => {
+    searchSubscriptions: () => {
       throw Error("Not Implemented");
     },
-    commit: (): Promise<void> => {
+    createSubscription: () => {
+      throw Error("Not Implemented");
+    },
+    updateSubscription: () => {
+      throw Error("Not Implemented");
+    },
+    deleteSubscription: () => {
+      throw Error("Not Implemented");
+    },
+    toggleSubscription: () => {
+      throw Error("Not Implemented");
+    },
+    commitPosition: () => {
       throw Error("Not Implemented");
     }
   };

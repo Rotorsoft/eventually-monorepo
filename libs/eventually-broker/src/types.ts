@@ -1,10 +1,23 @@
 import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 
 /**
- * Subscriptions connect enpoints to streaming channels using pattern matching rules
+ * Services
+ * - `id` The service unique id
+ * - `channel` The service channel - (example: pg://all = postgres "all" stream)
+ * - `url` The service url - (example: http://localhost:3000)
+ */
+export type Service = {
+  id: string;
+  channel: string;
+  url: string;
+};
+
+/**
+ * Subscriptions connect producer and consumer services using pattern matching rules
  * - `id` The subscription unique id
- * - `channel` The source channel url - (example: pg://all = postgres "all" stream)
- * - `endpoint` The endpoint url - (example: http://localhost:3000 = http post endpoint)
+ * - `producer` The producer service
+ * - `consumer` The consumer service
+ * - `path` The path on the consumer service (appended to url - policy name by convention)
  * - `streams`: regex rules to filter by substreams (aggregates, systems, process managers)
  * - `names`: regex rules to filter by event names
  * - `position` The position in the stream - last acked id
@@ -12,11 +25,26 @@ import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 export type Subscription = {
   id: string;
   active: boolean;
-  channel: string;
+  producer: string;
+  consumer: string;
+  path: string;
   streams: string;
   names: string;
-  endpoint: string;
   position: number;
+};
+
+/**
+ * Worker configuration
+ */
+export type WorkerConfig = {
+  id: string;
+  channel: string;
+  endpoint: string;
+  streams: string;
+  names: string;
+  position: number;
+  producer: string;
+  consumer: string;
 };
 
 export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
@@ -54,7 +82,7 @@ export type StreamListenerFactory = () => StreamListener;
 
 export type EventStats = { count: number; min: number; max: number };
 /**
- * Records integration stats
+ * Records worker stats
  * - `id`: subscription id
  * - `trigger`: trigger payload
  * - `position`: last position in stream
@@ -64,19 +92,18 @@ export type EventStats = { count: number; min: number; max: number };
  *    - `key`: response code
  *    - `value`: response stats (count, min-id, max-id)
  */
-export type SubscriptionStats = {
+export type WorkerStats = {
   id: string;
   trigger: TriggerPayload;
-  position: number;
   batches: number;
   total: number;
   events: Record<string, Record<number, EventStats>>;
 };
 
 /**
- * Subscription view state
+ * Worker view state
  */
-export type Props = {
+export type WorkerViewState = {
   id: string;
   active: boolean;
   exitStatus: string;
@@ -118,21 +145,9 @@ export type PushChannel = {
 };
 
 /**
- * Channel resolvers by protocol
+ * Maps protocols to channel factories
  */
-export type ChannelResolver = {
-  pull: (id: string, channel: URL) => PullChannel;
-  push: (id: string, endpoint: URL) => PushChannel;
+export type ChannelResolvers = {
+  pull: Record<string, (id: string, channel: URL) => PullChannel>;
+  push: Record<string, (id: string, endpoint: URL) => PushChannel>;
 };
-
-/**
- * Maps protocols to resolvers
- * example: 
-  `
-  "pg:": {
-    pull: (id: string, channel: URL) => PostgresPullChannel(id, channel),
-    push: undefined
-  }
-  `
- */
-export type ChannelResolvers = Record<string, ChannelResolver>;

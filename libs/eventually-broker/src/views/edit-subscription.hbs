@@ -1,7 +1,7 @@
 <div class="row mb-2">
-  <div class="col-6">{{>breadcrumb}}</div>
+  <div class="col-6">{{>subscription-bc}}</div>
   <div class="col-6 d-flex justify-content-end">
-    <div class="col-6 mx-2">
+    <div class="col mx-2">
       <input
         id="deleteId"
         type="text"
@@ -12,37 +12,17 @@
       />
     </div>
     <a id="deleteButton" href="#" type="button" class="btn btn-danger align-self-center disabled">
-      <i class="bi bi-trash"></i> Delete</i>
+      <i class="bi bi-trash"></i></i>
     </a>
   </div>
 </div>
 
+<div class="col-12">
+  {{endpoint}}
+</div>
+
 <div class="row">
-  <div class="col-3 form-floating">
-    <input
-      type="text"
-      class="form-control"
-      id="floatingId"
-      placeholder="Id"
-      name="id"
-      value="{{this.id}}"
-      readonly
-    />
-    <label class="px-4" for="floatingId">Id</label>
-  </div>
-  <div class="col-3 form-floating">
-    <input
-      type="text"
-      class="form-control"
-      id="floatingChannel"
-      placeholder="Channel"
-      name="channel"
-      value="{{this.channel}}"
-      readonly
-    />
-    <label class="px-4" for="floatingChannel">Channel</label>
-  </div>
-  <div class="col-2 form-floating">
+  <div class="col-4 form-floating">
     <input
       type="text"
       class="form-control"
@@ -54,7 +34,7 @@
     />
     <label class="px-4" for="floatingStatus">Status</label>
   </div>
-  <div class="col-2 form-floating">
+  <div class="col-4 form-floating">
     <input
       type="text"
       class="form-control"
@@ -66,27 +46,27 @@
     />
     <label class="px-4" for="floatingPosition">Position</label>
   </div>
-  <div class="col-2 form-floating">
+  <div class="col-4 form-floating">
     <input
       type="text"
       class="form-control"
-      id="floatingTrigger"
-      placeholder="Trigger"
-      name="trigger"
+      id="floatingChannelPosition"
+      placeholder="Channel"
+      name="channelPosition"
       value="{{this.channelPosition}}"
       readonly
     />
-    <label class="px-4" for="floatingTrigger">Stream</label>
+    <label class="px-4" for="floatingChannelPosition">Stream</label>
   </div>
 </div>
 
-<div id="stats" class="accordion mx-1 my-3">
+<div id="stats" class="mx-1 my-3">
 </div>
 
 {{> alert}}
 
-<form class="row my-3" method="post" action="/edit/{{this.id}}">
-  {{> sub-form edit=true}}
+<form class="row my-3" method="post" action="/{{this.id}}">
+  {{> subscription-form edit=true}}
 </form>
 
 <script>
@@ -99,7 +79,7 @@
       : delBtn.classList.add("disabled")
   }
   delBtn.onclick = () => {
-    fetch("/delete/{{this.id}}", { method: "post" })
+    fetch("/{{this.id}}", { method: "delete" })
       .then(response => response.json())
       .then(json => {
         if(json.deleted) document.location = "/";
@@ -110,7 +90,7 @@
 
   const statusInput = document.getElementById("floatingStatus");
   const positionInput = document.getElementById("floatingPosition");
-  const triggerInput = document.getElementById("floatingTrigger");
+  const triggerInput = document.getElementById("floatingChannelPosition");
   const statsDiv = document.getElementById("stats");
   const renderStats = (stats, color) => stats && stats.count ? `
     <th class="text-end table-${color}">${stats.count}</th>
@@ -129,7 +109,8 @@
       `
     }).join('');
 
-    statusInput.value = state.exitStatus || "Running";
+    const status = state.exitStatus || (state.active ? "Running" : "Inactive");
+    statusInput.value = status;
     positionInput.value = state.position;
     triggerInput.value = state.channelPosition;
 
@@ -144,7 +125,7 @@
             type="button"
             class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${state.color}"></i>
           </a>
-          <small class="text-muted">${state.error || state.exitStatus || "Running" }</small>
+          <small class="text-muted">${state.error}</small>
         </h5> 
       </div>
       <div class="card-body">

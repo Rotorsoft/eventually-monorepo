@@ -3,9 +3,6 @@ import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { PostgresStreamListenerFactory } from "../listeners";
 import { PullChannel, TriggerCallback } from "../types";
 
-// TODO: create pub/sub topic listener
-// TODO: create salesforce stream listener
-
 export const PostgresPullChannel = (id: string, channel: URL): PullChannel => {
   const store = PostgresStore(channel.hostname);
   const listener = PostgresStreamListenerFactory();

@@ -1,10 +1,11 @@
-import { Subscription } from "./types";
+import { Service, StreamListenerFactory, Subscription } from "./types";
 
 export interface SubscriptionStore {
   /**
    * Store initializer
+   * @returns a stream listener factory for this store
    */
-  init: (seed?: boolean) => Promise<void>;
+  init: (seed?: boolean) => Promise<StreamListenerFactory>;
 
   /**
    * Store closer
@@ -12,45 +13,69 @@ export interface SubscriptionStore {
   close: () => Promise<void>;
 
   /**
+   * Loads services from store
+   * @param id optional service id
+   */
+  loadServices: (id?: string) => Promise<Service[]>;
+
+  /**
+   * Creates a new service
+   * @param service the service
+   */
+  createService: (service: Service) => Promise<void>;
+
+  /**
+   * Updates a service
+   * @param service the service
+   */
+  updateService: (service: Service) => Promise<void>;
+
+  /**
+   * Deletes a service
+   * @param id the service id
+   */
+  deleteService: (id: string) => Promise<void>;
+
+  /**
    * Loads subscriptions from store
    * @param id optional subscription id
    */
-  load: (id?: string) => Promise<Subscription[]>;
+  loadSubscriptions: (id?: string) => Promise<Subscription[]>;
 
   /**
    * Searches subscriptions from store
    * @param pattern search pattern
    */
-  search: (pattern: string) => Promise<Subscription[]>;
+  searchSubscriptions: (pattern: string) => Promise<Subscription[]>;
 
   /**
    * Creates a new subscription
    * @param sub the subscription
    */
-  create: (sub: Subscription) => Promise<void>;
+  createSubscription: (sub: Subscription) => Promise<void>;
 
   /**
    * Updates a subscription
    * @param sub the subscription
    */
-  update: (sub: Subscription) => Promise<void>;
+  updateSubscription: (sub: Subscription) => Promise<void>;
 
   /**
    * Deletes a subscription
    * @param id the subscription id
    */
-  delete: (id: string) => Promise<void>;
+  deleteSubscription: (id: string) => Promise<void>;
 
   /**
    * Toggles a subscription (activation)
    * @param id the subscription id
    */
-  toggle: (id: string) => Promise<void>;
+  toggleSubscription: (id: string) => Promise<void>;
 
   /**
    * Commits a new position
    * @param id subscription id
    * @param position new position
    */
-  commit: (id: string, position: number) => Promise<void>;
+  commitPosition: (id: string, position: number) => Promise<void>;
 }

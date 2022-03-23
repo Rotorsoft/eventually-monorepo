@@ -15,13 +15,30 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
     />
     <style>
-      body { font-family: monospace;} .stat { font-size: 10px;}
+      body { font-family: monospace;} .stat { font-size: 10px;} .counters i
+      {font-size:16px; padding: 3px; } .counters { display: flex; flex-wrap:
+      nowrap; font-size: 10px; } .counters b { padding: 2px; margin:1px;
+      font-size:12px; } .counters span { color:rgb(39, 38, 38); padding: 0px 4px
+      0px 4px; margin:0 1px 0 1px; border-radius: 5px; } .counters .ok { border:
+      solid 1px green; background-color: rgba(125, 160, 125, 0.514);} .counters
+      .errors { border: solid 1px red; background-color: rgba(214, 166, 166,
+      0.514);} .counters .ignored { border:solid 1px rgb(97, 92, 92);
+      background-color: rgba(214, 205, 205, 0.562); color:rgb(110, 106, 106);}
     </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container-fluid">
-        <a class="navbar-brand" href="/">{{title}}</a>
+        <a class="navbar-brand" href="/">
+          <img
+            src="/assets/broker.png"
+            alt=""
+            width="36"
+            height="36"
+            class="d-inline-block align-text-center rounded opacity-75"
+          />
+          {{title}}
+        </a>
         <button
           class="navbar-toggler"
           type="button"
@@ -36,6 +53,10 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
+              <a class="nav-link" href="/">Subscriptions</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/services">Services</a>
             </li>
           </ul>
           <form class="d-flex" method="post" action="/" novalidate>

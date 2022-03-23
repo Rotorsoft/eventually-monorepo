@@ -1,13 +1,28 @@
 import cluster from "cluster";
-import { ChannelResolvers, StreamListenerFactory } from ".";
+import {
+  ChannelResolvers,
+  PostgresPullChannel,
+  HttpPostPushChannel,
+  VoidPullChannel,
+  VoidPushChannel
+} from ".";
 import { app } from "./app";
 import { work } from "./worker";
 
-export const broker = (
-  subscriptionsListenerFactory: StreamListenerFactory,
-  resolvers: ChannelResolvers
-): void => {
+const defaultResolvers: ChannelResolvers = {
+  pull: {
+    "void:": () => VoidPullChannel(),
+    "pg:": (id: string, channel: URL) => PostgresPullChannel(id, channel)
+  },
+  push: {
+    "void:": () => VoidPushChannel(),
+    "http:": (_, endpoint: URL) => HttpPostPushChannel(endpoint),
+    "https:": (_, endpoint: URL) => HttpPostPushChannel(endpoint)
+  }
+};
+
+export const broker = (resolvers?: ChannelResolvers): void => {
   cluster.isWorker
-    ? void work(resolvers)
-    : void app(subscriptionsListenerFactory);
+    ? void work({ ...defaultResolvers, ...resolvers })
+    : void app();
 };

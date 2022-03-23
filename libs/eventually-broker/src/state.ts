@@ -1,128 +1,276 @@
-import { singleton } from "@rotorsoft/eventually";
+import { log, singleton } from "@rotorsoft/eventually";
+import cluster from "cluster";
+import { cpus } from "os";
 import { Writable } from "stream";
-import { Props, Subscription, SubscriptionStats } from ".";
-import { mapProps } from "./utils";
+import {
+  EventStats,
+  Operation,
+  WorkerViewState,
+  Service,
+  Subscription,
+  WorkerStats,
+  WorkerConfig,
+  subscriptions
+} from ".";
 
-export type WorkerStatus = {
+type WorkerStatus = {
+  active: boolean;
+  channel: string;
+  position: number;
   exitStatus: string;
   error: string;
-  stats: SubscriptionStats;
+  stats: WorkerStats;
 };
 
-const _emit = (stream: Writable, props: Props): void => {
-  stream.write(`id: ${props.id}\n`);
-  stream.write(`event: message\n`);
-  stream.write(`data: ${JSON.stringify(props)}\n\n`);
-};
+const resetStatus = (
+  id: string,
+  channel: string,
+  position: number
+): WorkerStatus => ({
+  active: false,
+  channel,
+  position,
+  exitStatus: "",
+  error: "",
+  stats: {
+    id,
+    trigger: { id, operation: "RESTART" },
+    total: 0,
+    batches: 0,
+    events: {}
+  }
+});
 
-export type BrokerState = {
-  findWorkerId: (id: string) => number | undefined;
-  setChannelPosition: (channel: string, position: number) => void;
-  getChannelPosition: (channel: string) => number;
-  getWorkerStatus: (id: string) => WorkerStatus | undefined;
-  reset: (workerId: number, sub: Subscription) => void;
-  error: (workerId: number, error: string) => void;
-  stats: (workerId: number, stats: SubscriptionStats) => void;
-  exit: (
-    workerId: number,
-    code?: number,
-    signal?: string
-  ) => Subscription | undefined;
-  allStream: (stream: Writable) => void;
-  stream: (id: string, stream: Writable) => void;
+type BrokerState = {
+  init: (services: Service[], subs: Subscription[]) => Promise<void>;
+  refreshService: (operation: Operation, id: string) => Promise<void>;
+  refreshSubscription: (operation: Operation, id: string) => Promise<void>;
+  subscribeSSE: (session: string, stream: Writable, id?: string) => void;
+  unsubscribeSSE: (session: string) => void;
+  services: () => Service[];
+  viewState: (id: string) => WorkerViewState;
 };
 
 export const state = singleton((): BrokerState => {
-  const running: Record<number, Subscription> = {};
+  const services: Record<string, Service> = {};
+  const running: Record<number, WorkerConfig> = {};
   const status: Record<string, WorkerStatus> = {};
-  const triggers: Record<string, number> = {};
-  const streams: Record<string, Writable> = {};
-  let allStream: Writable;
+  const channels: Record<string, number> = {};
+  const sse: Record<string, { stream: Writable; id?: string }> = {};
 
-  const findWorkerId = (id: string): number => {
-    const [workerId] = Object.entries(running)
-      .filter(([, value]) => value.id === id)
-      .map(([id]) => parseInt(id));
-    return workerId;
+  const run = async (id: string): Promise<void> => {
+    const [sub] = await subscriptions().loadSubscriptions(id);
+    if (sub) {
+      const { active, position, producer, consumer, path, streams, names } =
+        sub;
+      const ps = services[producer];
+      const cs = services[consumer];
+      const config: WorkerConfig = {
+        id,
+        channel: ps?.channel || "producer not found!",
+        endpoint: cs ? `${cs.url}/${path}` : "consumer not found!",
+        streams,
+        names,
+        position,
+        producer,
+        consumer
+      };
+      if (active && ps && cs) {
+        status[id] = resetStatus(id, config.channel, position);
+        status[id].active = true;
+        const { id: workerId } = cluster.fork({
+          WORKER_ENV: JSON.stringify(config)
+        });
+        running[workerId] = config;
+      } else {
+        status[id] = {
+          ...resetStatus(id, config.channel, position),
+          ...status[id],
+          active: false
+        };
+      }
+      emitSSE(id);
+    }
   };
 
-  const emit = (runner: Subscription): void => {
-    const stream = streams[runner.id];
-    if (allStream || stream) {
-      const props = mapProps(runner, status[runner.id]);
-      allStream && _emit(allStream, props);
-      stream && _emit(stream, props);
+  const viewState = (id: string): WorkerViewState => {
+    const { active, channel, position, stats, exitStatus, error } =
+      status[id] || resetStatus(id, "", -1);
+    return {
+      id,
+      active,
+      exitStatus,
+      error,
+      color: active ? (error ? "danger" : "success") : "secondary",
+      icon: active
+        ? error || exitStatus
+          ? "bi-cone-striped"
+          : "bi-activity"
+        : "",
+      position,
+      channelPosition: channels[channel] || -1,
+      total: stats.total,
+      events: Object.entries(stats.events).map(([key, value]) => ({
+        name: key,
+        ok: value[200],
+        ignored: value[204],
+        errors: Object.entries(value)
+          .filter(([k]) => k !== "200" && k !== "204")
+          .reduce<EventStats>(
+            (p, [, v]) => ({
+              count: p.count + v.count,
+              min: Math.min(p.min, v.min),
+              max: Math.max(p.max, v.max)
+            }),
+            { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 }
+          )
+      }))
+    };
+  };
+
+  const subscribeSSE = (
+    session: string,
+    stream: Writable,
+    id?: string
+  ): void => {
+    sse[session] = { stream, id };
+  };
+
+  const unsubscribeSSE = (session: string): void => {
+    delete sse[session];
+  };
+
+  const emitSSE = (id: string): void => {
+    const found = Object.values(sse).filter(
+      ({ id: subid }) => id === (subid || id)
+    );
+    if (found.length) {
+      const props = viewState(id);
+      found.map(({ stream }) => {
+        stream.write(`id: ${props.id}\n`);
+        stream.write(`event: message\n`);
+        stream.write(`data: ${JSON.stringify(props)}\n\n`);
+      });
     }
   };
 
   const setChannelPosition = (channel: string, position: number): void => {
-    triggers[channel] = Math.max(triggers[channel] || -1, position || -1);
+    channels[channel] = Math.max(channels[channel] || -1, position || -1);
   };
 
-  return {
-    findWorkerId,
-    setChannelPosition,
-    getChannelPosition: (channel: string) => triggers[channel] || -1,
-    getWorkerStatus: (id: string) => status[id],
-    reset: (workerId: number, sub: Subscription) => {
-      running[workerId] = sub;
-      status[sub.id] = {
-        exitStatus: "",
-        error: "",
-        stats: {
-          id: sub.id,
-          trigger: { id: "", operation: "RESTART" },
-          total: 0,
-          batches: 0,
-          position: -1,
-          events: {}
-        }
-      };
-    },
-    error: (workerId: number, error: string) => {
-      const runner = running[workerId];
-      runner && (status[runner.id].error = error);
-      emit(runner);
-    },
-    stats: (workerId: number, stats: SubscriptionStats) => {
-      const runner = running[workerId];
-      if (runner) {
-        setChannelPosition(runner.channel, stats.position);
-        const acc = status[runner.id].stats;
-        acc.trigger = stats.trigger;
-        acc.position = stats.position;
-        acc.batches += stats.batches;
-        acc.total += stats.total;
-        Object.entries(stats.events).map(([name, codes]) => {
-          Object.entries(codes).map(([code, estats]) => {
-            const event = (acc.events[name] = acc.events[name] || {});
-            const stats = (event[parseInt(code)] = event[parseInt(code)] || {
-              count: 0,
-              min: Number.MAX_SAFE_INTEGER,
-              max: -1
-            });
-            stats.count += estats.count;
-            stats.min = Math.min(stats.min, estats.min);
-            stats.max = Math.max(stats.max, estats.max);
+  const error = (workerId: number, error: string, position: number): void => {
+    const runner = running[workerId];
+    if (runner) {
+      status[runner.id].error = error;
+      status[runner.id].position = position;
+      emitSSE(runner.id);
+    }
+  };
+
+  const stats = (
+    workerId: number,
+    stats: WorkerStats,
+    position: number
+  ): void => {
+    const runner = running[workerId];
+    if (runner) {
+      setChannelPosition(runner.channel, position);
+      status[runner.id].position = position;
+      const acc = status[runner.id].stats;
+      acc.trigger = stats.trigger;
+      acc.batches += stats.batches;
+      acc.total += stats.total;
+      Object.entries(stats.events).map(([name, codes]) => {
+        Object.entries(codes).map(([code, estats]) => {
+          const event = (acc.events[name] = acc.events[name] || {});
+          const stats = (event[parseInt(code)] = event[parseInt(code)] || {
+            count: 0,
+            min: Number.MAX_SAFE_INTEGER,
+            max: -1
           });
+          stats.count += estats.count;
+          stats.min = Math.min(stats.min, estats.min);
+          stats.max = Math.max(stats.max, estats.max);
         });
-        emit(runner);
+      });
+      emitSSE(runner.id);
+    }
+  };
+
+  cluster.on(
+    "message",
+    (
+      worker,
+      msg: {
+        position: number;
+        channel?: string;
+        error?: string;
+        stats?: WorkerStats;
+      }
+    ) => {
+      msg.channel && setChannelPosition(msg.channel, msg.position);
+      msg.error && error(worker.id, msg.error, msg.position);
+      msg.stats && stats(worker.id, msg.stats, msg.position);
+    }
+  );
+
+  cluster.on("exit", (worker, code, signal) => {
+    const runner = running[worker.id];
+    if (runner) {
+      log().info(
+        "red",
+        `exit ${runner.id} with ${signal ? signal : `code ${code}`}`
+      );
+      delete running[worker.id];
+      status[runner.id].exitStatus = signal || `E${code}`;
+      // reload worker when active and interrupted by recoverable runtime errors
+      if (code < 100 || signal === "SIGINT") void run(runner.id);
+      emitSSE(runner.id);
+    }
+  });
+
+  return {
+    services: () =>
+      Object.values(services).sort((a, b) =>
+        a.id > b.id ? 1 : a.id < b.id ? -1 : 0
+      ),
+    init: async (servs: Service[], subs: Subscription[]): Promise<void> => {
+      const cores = cpus().length;
+      log().info("green", `Cluster started with ${cores} cores`);
+      servs.map((service) => (services[service.id] = service));
+      await Promise.all(subs.map((sub) => run(sub.id)));
+    },
+    subscribeSSE,
+    unsubscribeSSE,
+    viewState,
+    refreshService: async (operation: Operation, id: string) => {
+      log().info("white", operation, id);
+      const [service] = await subscriptions().loadServices(id);
+      if (service) {
+        switch (operation) {
+          case "INSERT":
+            services[service.id] = service;
+            break;
+          case "UPDATE":
+            Object.entries(running)
+              .filter(
+                ([, value]) => value.producer === id || value.consumer === id
+              )
+              .map(([id]) => cluster.workers[id].kill("SIGINT"));
+            break;
+          case "DELETE":
+            delete services[service.id];
+            break;
+        }
       }
     },
-    exit: (workerId: number, code?: number, signal?: string) => {
-      const runner = running[workerId];
-      if (runner) {
-        delete running[workerId];
-        status[runner.id].exitStatus = signal || `E${code}`;
-        emit(runner);
-      }
-      return runner;
-    },
-    allStream: (stream: Writable) => {
-      allStream = stream;
-    },
-    stream: (id: string, stream: Writable) => {
-      streams[id] = stream;
+    refreshSubscription: async (operation: Operation, id: string) => {
+      log().info("white", operation, id);
+      const [workerId] = Object.entries(running)
+        .filter(([, value]) => value.id === id)
+        .map(([id]) => parseInt(id));
+      if (workerId) cluster.workers[workerId].kill("SIGINT");
+      else if (operation !== "DELETE") await run(id);
     }
   };
 });

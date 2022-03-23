@@ -1,5 +1,12 @@
 <div class="row">
-  <div class="col-6 d-flex">
+  <div class="col-6">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Subscriptions</li>
+      </ol>
+    </nav>
+  </div>
+  <div class="col-6 d-flex justify-content-end">
     <a href="/add" type="button" class="btn btn-primary align-self-center"><i
         class="bi bi-plus"
       ></i>
@@ -10,10 +17,11 @@
 <table class="table align-middle">
   <thead>
     <tr>
-      <th></th>
+      <th>Status</th>
       <th scope="col">Id</th>
-      <th scope="col">Channel</th>
-      <th scope="col">Endpoint</th>
+      <th scope="col">Producer</th>
+      <th scope="col">Consumer</th>
+      <th scope="col">Path</th>
       <th scope="col">Streams</th>
       <th scope="col">Names</th>
     </tr>
@@ -23,10 +31,11 @@
       <tr class="{{#unless this.active}}table-secondary{{/unless}}">
         <td id="status-{{this.id}}"></td>
         <td scope="row">
-          <a href="/edit/{{this.id}}">{{this.id}}</a>
+          <a href="/{{this.id}}">{{this.id}}</a>
         </td>
-        <td>{{this.channel}}</td>
-        <td>{{this.endpoint}}</td>
+        <td>{{this.producer}}</td>
+        <td>{{this.consumer}}</td>
+        <td>{{this.path}}</td>
         <td>{{this.streams}}</td>
         <td>{{this.names}}</td>
       </tr>
@@ -35,16 +44,32 @@
 </table>
 
 <script>
-  const es = new EventSource("/monitor");
+  const es = new EventSource("/monitor-all");
+
+  const badge = (count, cls) => 
+    count > 0 ? `<span class="${cls}">${count}</span>` : "";
 
   const refresh = (state) => {
-    const { id, color, icon, position } = state;
+    const { id, color, icon, position, channelPosition, total, events } = state;
     const statusTd = document.getElementById(`status-${id}`);
+    
+    const a = events.reduce((a,e) => {
+      a.ok += e.ok ? e.ok.count : 0;
+      a.errors += e.errors ? e.errors.count : 0;
+      a.ignored += e.ignored ? e.ignored.count : 0;
+      return a;
+    }, {ok:0, errors:0,ignored:0});
+     
     statusTd && (statusTd.innerHTML=`
-      <span class="text-${color}">
+      <div class="counters text-${color}">
         <i class="bi ${icon}"></i>
-      </span>
-      <span class="stat">${position}</span>
+        ${position < channelPosition ? `<b style='color:silver'>${position}</b><b>/${channelPosition}</b>` : `<b>${position}</b>`}
+      </div>
+      <div class="counters">
+        ${badge(a.ok, "ok")}
+        ${badge(a.errors, "errors")}
+        ${badge(a.ignored, "ignored")}
+      </div>
     `);
   };
 

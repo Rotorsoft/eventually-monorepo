@@ -3,11 +3,11 @@ import {
   ChannelResolvers,
   PullChannel,
   PushChannel,
-  Subscription,
   subscriptions,
-  SubscriptionStats,
+  WorkerStats,
   TriggerCallback,
-  TriggerPayload
+  TriggerPayload,
+  WorkerConfig
 } from ".";
 
 const BATCH_SIZE = 100;
@@ -15,69 +15,72 @@ const BATCH_SIZE = 100;
 const triggerLog = (trigger: TriggerPayload): string =>
   `${trigger.operation}${trigger.retries || ""}@${trigger.position}`;
 
-const emitChannelPosition = (channel: string, position: number): void => {
+const emitChannel = (channel: string, position: number): void => {
   process.send({ channel, position });
 };
 
-const emitError = (error: Error): void => {
-  log().error(error);
-  process.send({ error: error.message });
+const emitError = (error: string, position: number): void => {
+  log().error(Error(error));
+  process.send({ error, position });
 };
 
-const emitStats = (stats: SubscriptionStats): void => {
+const emitStats = (stats: WorkerStats, position: number): void => {
   log().info(
     "blue",
-    `[${process.pid}] pumped ${stats.id} ${triggerLog(stats.trigger)}`,
-    `at=${stats.position} total=${stats.total} batches=${stats.batches}`,
+    `[${process.pid}] ⚡${stats.id} ${triggerLog(stats.trigger)}`,
+    `at=${position} total=${stats.total} batches=${stats.batches}`,
     stats.events
   );
-  process.send({ stats });
+  process.send({ stats, position });
 };
 
 export const work = (resolvers: ChannelResolvers): void => {
-  const sub: Subscription = JSON.parse(process.env.WORKER_ENV) as Subscription;
+  const { id, channel, endpoint, streams, names, position } = JSON.parse(
+    process.env.WORKER_ENV
+  ) as WorkerConfig;
   let pullChannel: PullChannel;
   let pushChannel: PushChannel;
+  log().info("bgGreen", `[${process.pid}]`, `🏃${id} ...`);
 
   try {
-    const pullUrl = new URL(sub.channel);
-    const pullFactory = resolvers[pullUrl.protocol]?.pull;
+    const pullUrl = new URL(channel);
+    const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory)
       throw Error(
-        `Cannot resolve pull channel ${sub.channel} from protocol ${pullUrl.protocol}`
+        `Cannot resolve pull channel ${channel} from protocol ${pullUrl.protocol}`
       );
-    pullChannel = pullFactory(sub.id, pullUrl);
+    pullChannel = pullFactory(id, pullUrl);
   } catch (error) {
-    emitError(error);
+    emitError(error.message, position);
     process.exit(100);
   }
 
   try {
-    const pushUrl = new URL(sub.endpoint);
-    const pushFactory = resolvers[pushUrl.protocol]?.push;
+    const pushUrl = new URL(endpoint);
+    const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory)
-      throw Error(`Cannot resolve push channel from ${sub.endpoint}`);
-    pushChannel = pushFactory(sub.id, pushUrl);
+      throw Error(`Cannot resolve push channel from ${endpoint}`);
+    pushChannel = pushFactory(id, pushUrl);
   } catch (error) {
-    emitError(error);
+    emitError(error.message, position);
     process.exit(100);
   }
 
-  const streams = RegExp(sub.streams);
-  const names = RegExp(sub.names);
+  const streamsRegEx = RegExp(streams);
+  const namesRegEx = RegExp(names);
 
+  let current = position;
   let pumping = false;
   let retryTimeout: NodeJS.Timeout;
 
   const pump: TriggerCallback = async (trigger): Promise<void> => {
     if (pumping || !pushChannel) return;
     pumping = true;
-    emitChannelPosition(sub.channel, trigger.position);
+    emitChannel(channel, trigger.position);
 
-    const stats: SubscriptionStats = {
-      id: sub.id,
+    const stats: WorkerStats = {
+      id,
       trigger,
-      position: sub.position,
       batches: 0,
       total: 0,
       events: {}
@@ -89,11 +92,11 @@ export const work = (resolvers: ChannelResolvers): void => {
       let count = BATCH_SIZE;
       while (count === BATCH_SIZE) {
         stats.batches++;
-        const events = await pullChannel.pull(sub.position, BATCH_SIZE);
+        const events = await pullChannel.pull(current, BATCH_SIZE);
         count = events.length;
         for (const e of events) {
           const { status, statusText } =
-            streams.test(e.stream) && names.test(e.name)
+            streamsRegEx.test(e.stream) && namesRegEx.test(e.name)
               ? await pushChannel.push(e)
               : { status: 204, statusText: "Not Matched" };
 
@@ -109,29 +112,20 @@ export const work = (resolvers: ChannelResolvers): void => {
           eventStats.max = Math.max(eventStats.max, e.id);
 
           if ([200, 204].includes(status)) {
-            await subscriptions().commit(sub.id, e.id);
-            stats.position = sub.position = e.id;
+            await subscriptions().commitPosition(id, e.id);
+            current = e.id;
           } else {
             if ([429, 503, 504].includes(status)) {
               // 429 - Too Many Requests
               // 503 - Service Unavailable
               // 504 - Gateway Timeout
               retry = (trigger.retries || 0) < 3;
-            } else if (status === 409) {
-              // consumers (event handlers) should not return concurrency errors
-              // is the reponsibility of the policy to deal with concurrent issues from internal aggregates
-              log().error(
-                Error(
-                  `Consumer endpoint ${sub.endpoint} returned 409 when processing event ${e.id}-${e.name}`
-                )
-              );
             }
             emitError(
-              Error(
-                `${triggerLog(trigger)} event@${
-                  e.id
-                } HTTP ERROR ${status} ${statusText}`
-              )
+              `${triggerLog(trigger)} event@${
+                e.id
+              } HTTP ERROR ${status} ${statusText}`,
+              current
             );
             return;
           }
@@ -139,13 +133,12 @@ export const work = (resolvers: ChannelResolvers): void => {
       }
     } catch (error) {
       emitError(
-        Error(
-          `${triggerLog(trigger)} position@${sub.position} ${error.message}`
-        )
+        `${triggerLog(trigger)} position@${current} ${error.message}`,
+        current
       );
       process.exit(100);
     } finally {
-      emitStats(stats);
+      emitStats(stats, current);
       const retries = (trigger.retries || 0) + 1;
       retry &&
         (retryTimeout = setTimeout(
@@ -154,7 +147,7 @@ export const work = (resolvers: ChannelResolvers): void => {
               operation: "RETRY",
               id: trigger.id,
               retries,
-              position: sub.position
+              position: current
             }),
           5000 * retries
         ));
@@ -162,10 +155,6 @@ export const work = (resolvers: ChannelResolvers): void => {
     }
   };
 
-  void pump({
-    operation: "RESTART",
-    id: sub.id,
-    position: sub.position
-  });
+  void pump({ operation: "RESTART", id, position });
   void pullChannel.listen(pump);
 };

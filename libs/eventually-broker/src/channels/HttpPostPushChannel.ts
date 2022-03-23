@@ -2,7 +2,7 @@ import { log } from "@rotorsoft/eventually";
 import axios from "axios";
 import { PushChannel } from "../types";
 
-export const postPushChannel = (endpoint: URL): PushChannel => {
+export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
   return {
     init: () => undefined,
     push: async (event) => {
@@ -11,17 +11,15 @@ export const postPushChannel = (endpoint: URL): PushChannel => {
         const { status, statusText } = response;
         return { status, statusText };
       } catch (error) {
+        log().error(error);
         if (axios.isAxiosError(error)) {
           if (error.response) {
             const { status, statusText } = error.response;
             return { status, statusText };
           }
-          log().error(error);
           return { status: 503, statusText: error.code };
-        } else {
-          log().error(error);
-          return { status: 503, statusText: error.message };
         }
+        return { status: 503, statusText: error.message };
       }
     }
   };
