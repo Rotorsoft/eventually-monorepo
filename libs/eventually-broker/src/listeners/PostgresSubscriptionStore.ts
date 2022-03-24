@@ -136,8 +136,9 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
         `select * from public.subscriptions
         where
           id ~* $1
-          or channel ~* $1
-          or url ~* $1
+          or producer ~* $1
+          or consumer ~* $1
+          or path ~* $1
           or streams ~* $1
           or names ~* $1
         limit 100`,
