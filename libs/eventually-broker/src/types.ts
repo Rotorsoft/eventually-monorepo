@@ -33,20 +33,6 @@ export type Subscription = {
   position: number;
 };
 
-/**
- * Worker configuration
- */
-export type WorkerConfig = {
-  id: string;
-  channel: string;
-  endpoint: string;
-  streams: string;
-  names: string;
-  position: number;
-  producer: string;
-  consumer: string;
-};
-
 export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
 /**
  * Trigger payload
@@ -79,47 +65,6 @@ export type StreamListener = {
   close: () => Promise<void>;
 };
 export type StreamListenerFactory = () => StreamListener;
-
-export type EventStats = { count: number; min: number; max: number };
-/**
- * Records worker stats
- * - `id`: subscription id
- * - `trigger`: trigger payload
- * - `position`: last position in stream
- * - `batches`: number of pulled batches
- * - `total`: number of pulled events
- * - `events`: hash of event stats by event name
- *    - `key`: response code
- *    - `value`: response stats (count, min-id, max-id)
- */
-export type WorkerStats = {
-  id: string;
-  trigger: TriggerPayload;
-  batches: number;
-  total: number;
-  events: Record<string, Record<number, EventStats>>;
-};
-
-/**
- * Worker view state
- */
-export type WorkerViewState = {
-  id: string;
-  active: boolean;
-  exitStatus: string;
-  error: string;
-  color: string;
-  icon: string;
-  position: number;
-  channelPosition: number;
-  total: number;
-  events: Array<{
-    name: string;
-    ok: EventStats;
-    ignored: EventStats;
-    errors: EventStats;
-  }>;
-};
 
 /**
  * Pull channels pull events from streams

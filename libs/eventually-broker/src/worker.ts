@@ -4,11 +4,10 @@ import {
   PullChannel,
   PushChannel,
   subscriptions,
-  WorkerStats,
   TriggerCallback,
-  TriggerPayload,
-  WorkerConfig
+  TriggerPayload
 } from ".";
+import { ChannelConfig, SubscriptionStats } from "./state";
 
 const BATCH_SIZE = 100;
 
@@ -24,7 +23,7 @@ const emitError = (error: string, position: number): void => {
   process.send({ error, position });
 };
 
-const emitStats = (stats: WorkerStats, position: number): void => {
+const emitStats = (stats: SubscriptionStats, position: number): void => {
   log().info(
     "blue",
     `[${process.pid}] ⚡${stats.id} ${triggerLog(stats.trigger)}`,
@@ -37,10 +36,9 @@ const emitStats = (stats: WorkerStats, position: number): void => {
 export const work = (resolvers: ChannelResolvers): void => {
   const { id, channel, endpoint, streams, names, position } = JSON.parse(
     process.env.WORKER_ENV
-  ) as WorkerConfig;
+  ) as ChannelConfig;
   let pullChannel: PullChannel;
   let pushChannel: PushChannel;
-  log().info("bgGreen", `[${process.pid}]`, `🏃${id} ...`);
 
   try {
     const pullUrl = new URL(channel);
@@ -78,7 +76,7 @@ export const work = (resolvers: ChannelResolvers): void => {
     pumping = true;
     emitChannel(channel, trigger.position);
 
-    const stats: WorkerStats = {
+    const stats: SubscriptionStats = {
       id,
       trigger,
       batches: 0,

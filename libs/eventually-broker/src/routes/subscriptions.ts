@@ -1,14 +1,14 @@
 import { log, randomId } from "@rotorsoft/eventually";
 import { Router } from "express";
 import joi from "joi";
-import { WorkerViewState, Subscription, subscriptions } from "..";
-import { state } from "../state";
+import { Subscription, subscriptions } from "..";
+import { state, SubscriptionViewModel } from "../state";
 
 export const router = Router();
 
-const rows = (subs: Subscription[]): { rows: WorkerViewState[] } => ({
+const rows = (subs: Subscription[]): { rows: SubscriptionViewModel[] } => ({
   rows: subs
-    .map((sub) => ({ ...sub, ...state().viewState(sub.id) }))
+    .map((sub) => ({ ...sub, ...state().viewModel(sub.id) }))
     .sort((a, b) => a.exitStatus.length - b.exitStatus.length)
 });
 
@@ -130,7 +130,7 @@ router.get("/:id", async (req, res) => {
   const id = req.params.id;
   const props = {
     shortid: shortId(id),
-    ...state().viewState(id),
+    ...state().viewModel(id),
     services: state().services()
   };
   const err = {

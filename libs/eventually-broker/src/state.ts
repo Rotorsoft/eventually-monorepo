@@ -3,30 +3,67 @@ import cluster from "cluster";
 import { cpus } from "os";
 import { Writable } from "stream";
 import {
-  EventStats,
   Operation,
-  WorkerViewState,
   Service,
   Subscription,
-  WorkerStats,
-  WorkerConfig,
-  subscriptions
+  subscriptions,
+  TriggerPayload
 } from ".";
 
-type WorkerStatus = {
+// TODO: refactor
+export type ChannelConfig = {
+  id: string;
+  channel: string;
+  endpoint: string;
+  streams: string;
+  names: string;
+  position: number;
+  producer: string;
+  consumer: string;
+};
+
+type EventStats = { count: number; min: number; max: number };
+
+export type SubscriptionStats = {
+  id: string;
+  trigger: TriggerPayload;
+  batches: number;
+  total: number;
+  events: Record<string, Record<number, EventStats>>;
+};
+
+type SubscriptionState = {
   active: boolean;
   channel: string;
   position: number;
   exitStatus: string;
   error: string;
-  stats: WorkerStats;
+  stats: SubscriptionStats;
 };
 
-const resetStatus = (
+export type SubscriptionViewModel = {
+  id: string;
+  active: boolean;
+  exitStatus: string;
+  error: string;
+  color: string;
+  icon: string;
+  position: number;
+  channelPosition: number;
+  total: number;
+  events: Array<{
+    name: string;
+    ok: EventStats;
+    ignored: EventStats;
+    errors: EventStats;
+  }>;
+};
+
+const resetState = (
   id: string,
   channel: string,
   position: number
-): WorkerStatus => ({
+): SubscriptionState => ({
   active: false,
   channel,
   position,
@@ -41,20 +78,20 @@ const resetStatus = (
   }
 });
 
-type BrokerState = {
+type State = {
   init: (services: Service[], subs: Subscription[]) => Promise<void>;
   refreshService: (operation: Operation, id: string) => Promise<void>;
   refreshSubscription: (operation: Operation, id: string) => Promise<void>;
   subscribeSSE: (session: string, stream: Writable, id?: string) => void;
   unsubscribeSSE: (session: string) => void;
   services: () => Service[];
-  viewState: (id: string) => WorkerViewState;
+  viewModel: (id: string) => SubscriptionViewModel;
 };
 
-export const state = singleton((): BrokerState => {
+export const state = singleton((): State => {
   const services: Record<string, Service> = {};
-  const running: Record<number, WorkerConfig> = {};
-  const status: Record<string, WorkerStatus> = {};
+  const running: Record<number, ChannelConfig> = {};
+  const status: Record<string, SubscriptionState> = {};
   const channels: Record<string, number> = {};
   const sse: Record<string, { stream: Writable; id?: string }> = {};
 
@@ -65,7 +102,7 @@ export const state = singleton((): BrokerState => {
         sub;
       const ps = services[producer];
       const cs = services[consumer];
-      const config: WorkerConfig = {
+      const config: ChannelConfig = {
         id,
         channel: ps?.channel || "producer not found!",
         endpoint: cs ? `${cs.url}/${path}` : "consumer not found!",
@@ -76,7 +113,7 @@ export const state = singleton((): BrokerState => {
         consumer
       };
       if (active && ps && cs) {
-        status[id] = resetStatus(id, config.channel, position);
+        status[id] = resetState(id, config.channel, position);
         status[id].active = true;
         const { id: workerId } = cluster.fork({
           WORKER_ENV: JSON.stringify(config)
@@ -84,7 +121,7 @@ export const state = singleton((): BrokerState => {
         running[workerId] = config;
       } else {
         status[id] = {
-          ...resetStatus(id, config.channel, position),
+          ...resetState(id, config.channel, position),
           ...status[id],
           active: false
         };
@@ -93,9 +130,9 @@ export const state = singleton((): BrokerState => {
     }
   };
 
-  const viewState = (id: string): WorkerViewState => {
+  const viewModel = (id: string): SubscriptionViewModel => {
     const { active, channel, position, stats, exitStatus, error } =
-      status[id] || resetStatus(id, "", -1);
+      status[id] || resetState(id, "", -1);
     return {
       id,
       active,
@@ -145,7 +182,7 @@ export const state = singleton((): BrokerState => {
       ({ id: subid }) => id === (subid || id)
     );
     if (found.length) {
-      const props = viewState(id);
+      const props = viewModel(id);
       found.map(({ stream }) => {
         stream.write(`id: ${props.id}\n`);
         stream.write(`event: message\n`);
@@ -169,7 +206,7 @@ export const state = singleton((): BrokerState => {
 
   const stats = (
     workerId: number,
-    stats: WorkerStats,
+    stats: SubscriptionStats,
     position: number
   ): void => {
     const runner = running[workerId];
@@ -205,7 +242,7 @@ export const state = singleton((): BrokerState => {
         position: number;
         channel?: string;
         error?: string;
-        stats?: WorkerStats;
+        stats?: SubscriptionStats;
       }
     ) => {
       msg.channel && setChannelPosition(msg.channel, msg.position);
@@ -242,7 +279,7 @@ export const state = singleton((): BrokerState => {
     },
     subscribeSSE,
     unsubscribeSSE,
-    viewState,
+    viewModel,
     refreshService: async (operation: Operation, id: string) => {
       log().info("white", operation, id);
       const [service] = await subscriptions().loadServices(id);

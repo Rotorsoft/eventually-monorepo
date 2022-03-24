@@ -34,7 +34,7 @@ export const PostgresStreamListenerFactory: StreamListenerFactory = () => {
       void subscriber.connect().then(async () => {
         const { href, hostname } = channel;
         await subscriber.listenTo(hostname);
-        log().info("blue", `⌛${id} - ${href}`);
+        log().info("bgGreen", `[${process.pid}]`, `🏃${id} - ${href}`);
       });
     },
     close
