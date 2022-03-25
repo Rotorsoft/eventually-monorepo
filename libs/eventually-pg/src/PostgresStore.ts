@@ -44,20 +44,24 @@ $$;
 ALTER TABLE public.${table}
 ADD COLUMN IF NOT EXISTS metadata json;
 
-CREATE UNIQUE INDEX IF NOT EXISTS stream_ix
+CREATE UNIQUE INDEX IF NOT EXISTS ${table}_stream_ix
     ON public.${table} USING btree
     (stream COLLATE pg_catalog."default" ASC, version ASC)
     TABLESPACE pg_default;
 	
-CREATE INDEX IF NOT EXISTS name_ix
+CREATE INDEX IF NOT EXISTS ${table}_name_ix
     ON public.${table} USING btree
     (name COLLATE pg_catalog."default" ASC)
     TABLESPACE pg_default;
     
-CREATE INDEX IF NOT EXISTS created_id_ix
+CREATE INDEX IF NOT EXISTS ${table}_created_id_ix
     ON public.${table} USING btree
     (created ASC, id ASC)
-    TABLESPACE pg_default;`;
+    TABLESPACE pg_default;
+    
+DROP INDEX IF EXISTS stream_ix;
+DROP INDEX IF EXISTS name_id;
+DROP INDEX IF EXISTS created_id_ix`;
 
 type Event = {
   id: number;
