@@ -43,6 +43,12 @@ export interface SubscriptionStore {
   loadSubscriptions: (id?: string) => Promise<Subscription[]>;
 
   /**
+   * Loads subscriptions by producer
+   * @param producer the producer name
+   */
+  loadSubscriptionsByProducer: (producer: string) => Promise<Subscription[]>;
+
+  /**
    * Searches subscriptions from store
    * @param pattern search pattern
    */

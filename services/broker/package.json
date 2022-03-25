@@ -18,7 +18,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/eventually-broker": "workspace:^0.2.4"
+    "@rotorsoft/eventually-broker": "workspace:^0.2.5"
   },
   "devDependencies": {
     "@types/node": "*",

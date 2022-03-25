@@ -3,15 +3,14 @@ import express from "express";
 import { engine } from "express-handlebars";
 import path from "path";
 import { subscriptions } from ".";
+import { state } from "./cluster";
 import * as routes from "./routes";
-import { state } from "./state";
 
 export const app = async (): Promise<void> => {
   const listenerFactory = await subscriptions().init(true);
   const services = await subscriptions().loadServices();
-  const subs = await subscriptions().loadSubscriptions();
 
-  await state().init(services, subs);
+  await state().init(services);
 
   const servicesListener = listenerFactory();
   void servicesListener.listen(

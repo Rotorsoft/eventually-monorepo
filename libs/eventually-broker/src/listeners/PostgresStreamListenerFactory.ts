@@ -26,8 +26,9 @@ export const PostgresStreamListenerFactory: StreamListenerFactory = () => {
 
       subscriber.notifications.on(
         channel.hostname,
-        async (payload: TriggerPayload): Promise<void> => {
-          await callback(payload);
+        async (trigger: TriggerPayload): Promise<void> => {
+          log().info("magenta", `[${process.pid}]`, "⚡", trigger);
+          await callback(trigger);
         }
       );
 

@@ -35,8 +35,8 @@
         </td>
         <td id="status-{{this.id}}"></td>
         <td id="session-{{this.id}}"></td>
-        <td>{{this.producer}}</td>
-        <td>{{this.consumer}}</td>
+        <td><a href="/services/{{this.producer}}">{{this.producer}}</a></td>
+        <td><a href="/services/{{this.consumer}}">{{this.consumer}}</a></td>
         <td>{{this.path}}</td>
         <td>{{this.streams}}</td>
         <td>{{this.names}}</td>
@@ -66,17 +66,19 @@
 
     const a = events.reduce((a,e) => {
       a.ok += e.ok ? e.ok.count : 0;
-      a.errors += e.errors ? e.errors.count : 0;
       a.ignored += e.ignored ? e.ignored.count : 0;
+      a.retryable += e.retryable ? e.retryable.count : 0;
+      a.critical += e.critical ? e.critical.count : 0;
       return a;
-    }, { ok:0, errors:0,ignored:0 });
+    }, { ok:0, ignored:0, retryable:0, critical:0 });
 
     const sessionTd = document.getElementById(`session-${id}`);
     sessionTd && (sessionTd.innerHTML = `
       <div class="counters">
         ${badge(a.ok, "ok")}
-        ${badge(a.errors, "errors")}
         ${badge(a.ignored, "ignored")}
+        ${badge(a.retryable, "retryable")}
+        ${badge(a.critical, "critical")}
       </div>`
     );
   };

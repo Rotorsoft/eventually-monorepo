@@ -98,12 +98,13 @@
     <td class="text-end table-${color} stat">${stats.max}</td>
   ` : "<td/><td/><td/>";
   const refresh = (state) => {
-    const events = state.events.map(({ name, ok, errors, ignored }) => {
+    const events = state.events.map(({ name, ok, ignored, retryable, critical }) => {
       return `
         <tr>
           <th>${name}</th>
           ${renderStats(ok, "success")}
-          ${renderStats(errors, "danger")}
+          ${renderStats(retryable, "warning")}
+          ${renderStats(critical, "danger")}
           ${renderStats(ignored, "secondary")}
         </tr>
       `
@@ -134,7 +135,8 @@
             <tr>
               <th scope="col">Event</th>
               <th scope="col" colspan="3" style="width:28%" class="text-center table-success">Ok</th>
-              <th scope="col" colspan="3" style="width:28%" class="text-center table-danger">Errors</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-warning">Retryable</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-danger">Critical</th>
               <th scope="col" colspan="3" style="width:28%" class="text-center table-secondary">Ignored</th>
             </tr>
             <tr>
@@ -142,6 +144,9 @@
               <th class="text-end table-success">Count</th>
               <th class="text-end table-success stat">Min</th>
               <th class="text-end table-success stat">Max</th>
+              <th class="text-end table-warning">Count</th>
+              <th class="text-end table-warning stat">Min</th>
+              <th class="text-end table-warning stat">Max</th>
               <th class="text-end table-danger">Count</th>
               <th class="text-end table-danger stat">Min</th>
               <th class="text-end table-danger stat">Max</th>

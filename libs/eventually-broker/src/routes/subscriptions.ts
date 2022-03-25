@@ -2,7 +2,8 @@ import { log, randomId } from "@rotorsoft/eventually";
 import { Router } from "express";
 import joi from "joi";
 import { Subscription, subscriptions } from "..";
-import { state, SubscriptionViewModel } from "../state";
+import { state, SubscriptionViewModel } from "../cluster";
+import * as regex from "./regex";
 
 export const router = Router();
 
@@ -25,21 +26,9 @@ const defaultSubscription = {
 
 const editSchema = joi
   .object({
-    producer: joi
-      .string()
-      .trim()
-      .max(100)
-      .regex(/^[a-z-]*$/),
-    consumer: joi
-      .string()
-      .trim()
-      .max(100)
-      .regex(/^[a-z-]*$/),
-    path: joi
-      .string()
-      .trim()
-      .max(100)
-      .regex(/^[a-z-]*$/),
+    producer: joi.string().trim().max(100).regex(regex.name),
+    consumer: joi.string().trim().max(100).regex(regex.name),
+    path: joi.string().trim().max(100).regex(regex.name),
     streams: joi.string().trim().max(100),
     names: joi.string().trim().max(250)
   })
@@ -47,11 +36,7 @@ const editSchema = joi
 
 const addSchema = editSchema
   .append({
-    id: joi
-      .string()
-      .trim()
-      .max(100)
-      .regex(/^[a-z-]*$/)
+    id: joi.string().trim().max(100).regex(regex.name)
   })
   .options({ presence: "required" });
 
@@ -74,7 +59,11 @@ router.get("/monitor/:id", (req, res) => {
   req.on("error", (error) => {
     log().error(error);
   });
-  req.on("close", () => state().unsubscribeSSE(session));
+  req.on("close", () => {
+    //log().trace("bgRed", "SSE", `close ${session}`);
+    state().unsubscribeSSE(session);
+  });
+  //log().trace("bgGreen", "SSE", `open ${session}`);
   state().subscribeSSE(session, res, id);
 });
 
@@ -201,5 +190,10 @@ router.get("/toggle/:id", async (req, res) => {
   } catch (error) {
     log().error(error);
   }
-  res.redirect(`/${id}`);
+  res.redirect(`/toggle/wait/${id}`);
+});
+
+router.get("/toggle/wait/:id", (req, res) => {
+  const id = req.params.id;
+  res.render("toggle-wait", { id });
 });

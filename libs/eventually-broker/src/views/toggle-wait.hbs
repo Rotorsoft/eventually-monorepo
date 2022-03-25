@@ -1,0 +1,12 @@
+<div class="d-flex align-items-center">
+  Just a second or two while we update&nbsp;<b>{{id}}</b>&nbsp;...
+  <div
+    class="spinner-border ms-auto text-warning"
+    role="status"
+    aria-hidden="true"
+  ></div>
+</div>
+
+<script>
+  setTimeout(()=>document.location="/{{id}}", 3000);
+</script>

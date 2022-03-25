@@ -131,6 +131,16 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       return result.rows;
     },
 
+    loadSubscriptionsByProducer: async (
+      producer: string
+    ): Promise<Subscription[]> => {
+      const result = await pool.query<Subscription>(
+        "select * from public.subscriptions where producer=$1",
+        [producer]
+      );
+      return result.rows;
+    },
+
     searchSubscriptions: async (pattern: string): Promise<Subscription[]> => {
       const result = await pool.query<Subscription>(
         `select * from public.subscriptions

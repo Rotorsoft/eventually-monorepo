@@ -2,6 +2,7 @@ import { log } from "@rotorsoft/eventually";
 import { Router } from "express";
 import joi from "joi";
 import { Service, subscriptions } from "..";
+import * as regex from "./regex";
 
 export const router = Router();
 
@@ -15,28 +16,14 @@ const defaultService = {
 
 const editSchema = joi
   .object({
-    channel: joi
-      .string()
-      .trim()
-      .uri()
-      .max(100)
-      .regex(/^pg|void:\/\/[a-z_]*$/),
-    url: joi
-      .string()
-      .trim()
-      .uri()
-      .max(100)
-      .regex(/^http|https|sse|void:\/\/[a-z_-]*$/)
+    channel: joi.string().trim().uri().max(100).regex(regex.channel),
+    url: joi.string().trim().uri().max(100).regex(regex.url)
   })
   .options({ presence: "required" });
 
 const addSchema = editSchema
   .append({
-    id: joi
-      .string()
-      .trim()
-      .max(100)
-      .regex(/^[a-z-]*$/)
+    id: joi.string().trim().max(100).regex(regex.name)
   })
   .options({ presence: "required" });
 

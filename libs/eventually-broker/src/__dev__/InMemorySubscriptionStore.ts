@@ -23,6 +23,9 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
     loadSubscriptions: () => {
       throw Error("Not Implemented");
     },
+    loadSubscriptionsByProducer: () => {
+      throw Error("Not Implemented");
+    },
     searchSubscriptions: () => {
       throw Error("Not Implemented");
     },

@@ -7,7 +7,7 @@ import {
   VoidPushChannel
 } from ".";
 import { app } from "./app";
-import { work } from "./worker";
+import { work } from "./cluster";
 
 const defaultResolvers: ChannelResolvers = {
   pull: {
