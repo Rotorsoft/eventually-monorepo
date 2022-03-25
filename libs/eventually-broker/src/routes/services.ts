@@ -17,7 +17,7 @@ const defaultService = {
 const editSchema = joi
   .object({
     channel: joi.string().trim().uri().max(100).regex(regex.channel),
-    url: joi.string().trim().uri().max(100).regex(regex.url)
+    url: joi.string().trim().uri().max(100)
   })
   .options({ presence: "required" });
 
