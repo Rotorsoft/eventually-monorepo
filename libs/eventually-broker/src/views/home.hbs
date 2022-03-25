@@ -52,12 +52,12 @@
     count > 0 ? `<span class="${cls}">${count}</span>` : "";
 
   const refresh = (state) => {
-    const { id, color, icon, position, channelPosition, total, events } = state;
+    const { id, position, channelPosition, endpointStatus, total, events } = state;
 
     const statusTd = document.getElementById(`status-${id}`);
     statusTd && (statusTd.innerHTML=`
-      <div class="counters text-${color}">
-        <i class="bi ${icon}"></i>&nbsp;
+      <div class="counters text-${endpointStatus.color}">
+        <i class="bi ${endpointStatus.icon}"></i>&nbsp;
         ${position < channelPosition 
           ? `<b style='color:silver'>${position}</b><b>/${channelPosition}</b>` 
           : `<b>${position}</b>`}

@@ -10,7 +10,15 @@ export const router = Router();
 const rows = (subs: Subscription[]): { rows: SubscriptionViewModel[] } => ({
   rows: subs
     .map((sub) => ({ ...sub, ...state().viewModel(sub.id) }))
-    .sort((a, b) => a.exitStatus.length - b.exitStatus.length)
+    .sort((a, b) =>
+      a.active < b.active
+        ? 1
+        : a.active > b.active
+        ? -1
+        : b.total - a.total
+        ? b.total - a.total
+        : b.position - a.position
+    )
 });
 
 const shortId = (id: string): string =>
@@ -115,6 +123,21 @@ router.post("/add", async (req, res) => {
   }
 });
 
+router.get("/toggle/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    await subscriptions().toggleSubscription(id);
+  } catch (error) {
+    log().error(error);
+  }
+  res.redirect(`/wait/${id}`);
+});
+
+router.get("/wait/:id", (req, res) => {
+  const id = req.params.id;
+  res.render("wait", { id });
+});
+
 router.get("/:id", async (req, res) => {
   const id = req.params.id;
   const props = {
@@ -160,7 +183,7 @@ router.post("/:id", async (req, res) => {
       });
     } else {
       await subscriptions().updateSubscription({ ...value, id });
-      res.redirect("/");
+      res.redirect(`/wait/${id}`);
     }
   } catch (error) {
     log().error(error);
@@ -181,19 +204,4 @@ router.delete("/:id", async (req, res) => {
     log().error(error);
     res.json({ deleted: false });
   }
-});
-
-router.get("/toggle/:id", async (req, res) => {
-  const id = req.params.id;
-  try {
-    await subscriptions().toggleSubscription(id);
-  } catch (error) {
-    log().error(error);
-  }
-  res.redirect(`/toggle/wait/${id}`);
-});
-
-router.get("/toggle/wait/:id", (req, res) => {
-  const id = req.params.id;
-  res.render("toggle-wait", { id });
 });

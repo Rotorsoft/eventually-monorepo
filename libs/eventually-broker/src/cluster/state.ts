@@ -2,7 +2,12 @@ import { log, singleton } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { cpus } from "os";
 import { Writable } from "stream";
-import { CommittableHttpStatus, EventsViewModel, RetryableHttpStatus } from ".";
+import {
+  CommittableHttpStatus,
+  ErrorMessage,
+  EventsViewModel,
+  RetryableHttpStatus
+} from ".";
 import {
   Operation,
   Service,
@@ -40,8 +45,12 @@ export const state = singleton((): State => {
     workerId,
     active,
     position,
-    exitStatus: "",
-    error: "",
+    channelStatus: "",
+    endpointStatus: {
+      code: 200,
+      color: "success"
+    },
+    errorMessage: "",
     stats: {
       total: 0,
       batches: 0,
@@ -68,8 +77,8 @@ export const state = singleton((): State => {
 
   const run = async (id: string, position: number): Promise<void> => {
     try {
-      const { channel } =
-        _services[id] || (await subscriptions().loadServices(id))[0];
+      const { channel } = (_services[id] =
+        _services[id] || (await subscriptions().loadServices(id))[0]);
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
       const config: ChannelConfig = {
         id,
@@ -93,8 +102,15 @@ export const state = singleton((): State => {
   };
 
   const viewModel = (id: string): SubscriptionViewModel => {
-    const { workerId, active, position, stats, exitStatus, error } =
-      _states[id] || resetState();
+    const {
+      workerId,
+      active,
+      position,
+      stats,
+      channelStatus,
+      endpointStatus,
+      errorMessage
+    } = _states[id] || resetState();
     const channelPosition = workerId ? _channels[workerId]?.position : -1;
     const eventsMap: Record<string, EventsViewModel> = {};
     Object.entries(stats.events).map(([name, value]) => {
@@ -116,23 +132,22 @@ export const state = singleton((): State => {
       });
     });
     const events = Object.values(eventsMap);
-    const color = active
-      ? events[0].critical?.count
-        ? "danger"
-        : events[0].retryable?.count
-        ? "warning"
-        : "success"
-      : "secondary";
     return {
       id,
       active,
-      exitStatus,
-      error,
-      color,
-      icon:
-        error || exitStatus ? "bi-cone-striped" : active ? "bi-activity" : "",
       position,
+      channelStatus,
       channelPosition,
+      endpointStatus: {
+        ...endpointStatus,
+        icon:
+          errorMessage || channelStatus
+            ? "bi-cone-striped"
+            : active
+            ? "bi-activity"
+            : ""
+      },
+      errorMessage,
       total: stats.total,
       events: Object.values(events)
     };
@@ -164,9 +179,58 @@ export const state = singleton((): State => {
     }
   };
 
-  const _error = (id: string, message: string, position?: number): void => {
-    _states[id].error = message;
-    _states[id].position = Math.max(_states[id].position, position || -1);
+  const _stats = (
+    workerId: number,
+    channel: ChannelConfig,
+    {
+      id,
+      active,
+      position,
+      total,
+      batches,
+      events
+    }: SubscriptionConfig & SubscriptionStats
+  ): void => {
+    channel.position = Math.max(channel.position, position);
+    const state = (_states[id] =
+      _states[id] || resetState(workerId, true, position));
+    state.active = active;
+    state.position = Math.max(state.position, position);
+    state.errorMessage = "";
+    state.endpointStatus = { code: 200, color: "success" };
+
+    const acc = state.stats;
+    acc.batches += batches;
+    acc.total += total;
+    Object.entries(events).map(([name, codes]) => {
+      Object.entries(codes).map(([code, estats]) => {
+        const event = (acc.events[name] = acc.events[name] || {});
+        const stats = (event[parseInt(code)] = event[parseInt(code)] || {
+          count: 0,
+          min: Number.MAX_SAFE_INTEGER,
+          max: -1
+        });
+        stats.count += estats.count;
+        stats.min = Math.min(stats.min, estats.min);
+        stats.max = Math.max(stats.max, estats.max);
+      });
+    });
+    emitSSE(id);
+  };
+
+  const _error = (
+    workerId: number,
+    channel: ChannelConfig,
+    id: string,
+    { message, config, code = 500, color = "danger", stats }: ErrorMessage
+  ): void => {
+    config && stats && _stats(workerId, channel, { ...config, ...stats });
+    _states[id].errorMessage = message;
+    _states[id].position = Math.max(
+      _states[id].position,
+      config.position || -1
+    );
+    _states[id].endpointStatus = { code, color };
     emitSSE(id);
   };
 
@@ -179,7 +243,7 @@ export const state = singleton((): State => {
         stats,
         trigger
       }: {
-        error?: { message: string; id?: string; position?: number };
+        error?: ErrorMessage;
         stats?: SubscriptionStats & SubscriptionConfig;
         trigger?: TriggerPayload;
       }
@@ -188,35 +252,14 @@ export const state = singleton((): State => {
       if (!channel) return;
 
       if (error) {
-        error.id
-          ? _error(error.id, error.message, error.position)
-          : channel.subscriptions.map(({ id }) => _error(id, error.message));
-      } else if (stats) {
-        channel.position = Math.max(channel.position, stats.position);
-        const state = (_states[stats.id] =
-          _states[stats.id] || resetState(worker.id, true, stats.position));
-        state.active = stats.active;
-        state.position = Math.max(state.position, stats.position);
-        const acc = state.stats;
-        acc.batches += stats.batches;
-        acc.total += stats.total;
-        Object.entries(stats.events).map(([name, codes]) => {
-          Object.entries(codes).map(([code, estats]) => {
-            const event = (acc.events[name] = acc.events[name] || {});
-            const stats = (event[parseInt(code)] = event[parseInt(code)] || {
-              count: 0,
-              min: Number.MAX_SAFE_INTEGER,
-              max: -1
-            });
-            stats.count += estats.count;
-            stats.min = Math.min(stats.min, estats.min);
-            stats.max = Math.max(stats.max, estats.max);
-          });
-        });
-        emitSSE(stats.id);
-      } else if (trigger) {
+        error.config?.id
+          ? _error(worker.id, channel, error.config?.id, error)
+          : channel.subscriptions.map(({ id }) =>
+              _error(worker.id, channel, id, error)
+            );
+      } else if (stats) _stats(worker.id, channel, stats);
+      else if (trigger)
         channel.position = Math.max(channel.position, trigger.position || -1);
-      }
     }
   );
 
@@ -229,7 +272,7 @@ export const state = singleton((): State => {
       `exit ${channel.id} with ${signal ? signal : `code ${code}`}`
     );
     channel.subscriptions.map(({ id }) => {
-      _states[id].exitStatus = signal || `E${code}`;
+      _states[id].channelStatus = signal || `E${code}`;
       emitSSE(id);
     });
     // reload worker when active and interrupted by recoverable runtime errors

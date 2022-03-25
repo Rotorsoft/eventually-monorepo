@@ -1,4 +1,5 @@
 import { log } from "@rotorsoft/eventually";
+import { ErrorMessage } from ".";
 import {
   ChannelResolvers,
   Operation,
@@ -28,9 +29,22 @@ const triggerLog = (trigger: TriggerPayload): string =>
 const sendTrigger = (trigger: TriggerPayload): boolean =>
   process.send({ trigger });
 
-const sendError = (message: string, sub?: SubscriptionConfig): void => {
+const sendError = (
+  message: string,
+  config?: SubscriptionConfig,
+  code = 500,
+  color = "danger",
+  stats?: SubscriptionStats
+): void => {
   log().error(Error(message));
-  process.send({ error: { message, id: sub?.id, position: sub?.position } });
+  const error: ErrorMessage = {
+    message,
+    config,
+    code,
+    color,
+    stats
+  };
+  process.send({ error });
 };
 
 const sendStats = (
@@ -120,13 +134,15 @@ export const work = (resolvers: ChannelResolvers): void => {
             await subscriptions().commitPosition(sub.id, e.id);
             sub.position = e.id;
           } else {
-            RetryableHttpStatus.includes(status) &&
-              (retry = (trigger.retries || 0) < 3);
+            const retryable = RetryableHttpStatus.includes(status);
+            retryable && (retry = (trigger.retries || 0) < 3);
             sendError(
               `${triggerLog(trigger)} HTTP ${status} ${statusText}`,
-              sub
+              sub,
+              status,
+              retryable ? "warning" : "danger",
+              stats
             );
-            sendStats(sub, stats);
             return retry ? sub : undefined;
           }
         }
@@ -179,7 +195,12 @@ export const work = (resolvers: ChannelResolvers): void => {
       delete _subs[config.id];
     } else {
       try {
-        _subs[config.id] = build(config);
+        const sub = (_subs[config.id] = build(config));
+        void pumpRetry([sub], {
+          operation,
+          id: config.id,
+          position: config.position
+        });
       } catch (error) {
         sendError(error.message, config);
       }

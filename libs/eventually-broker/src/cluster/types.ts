@@ -29,9 +29,21 @@ export type SubscriptionState = {
   workerId?: number;
   active: boolean;
   position: number;
-  exitStatus: string;
-  error: string;
+  channelStatus: string;
+  endpointStatus: {
+    code: number;
+    color: string;
+  };
+  errorMessage: string;
   stats: SubscriptionStats;
+};
+
+export type ErrorMessage = {
+  message: string;
+  config?: SubscriptionConfig;
+  code?: number;
+  color?: string;
+  stats?: SubscriptionStats;
 };
 
 export type EventsViewModel = {
@@ -45,12 +57,15 @@ export type EventsViewModel = {
 export type SubscriptionViewModel = {
   id: string;
   active: boolean;
-  exitStatus: string;
-  error: string;
-  color: string;
-  icon: string;
   position: number;
+  channelStatus: string;
   channelPosition: number;
+  endpointStatus: {
+    code: number;
+    color: string;
+    icon: string;
+  };
+  errorMessage: string;
   total: number;
   events: EventsViewModel[];
 };

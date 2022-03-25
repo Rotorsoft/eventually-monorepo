@@ -29,7 +29,7 @@
       id="floatingStatus"
       placeholder="Status"
       name="status"
-      value="{{this.exitStatus}}"
+      value="{{this.channelStatus}}"
       readonly
     />
     <label class="px-4" for="floatingStatus">Status</label>
@@ -110,7 +110,7 @@
       `
     }).join('');
 
-    const status = state.exitStatus || (state.active ? "Running" : "Inactive");
+    const status = state.channelStatus || (state.active ? "Running" : "Inactive");
     statusInput.value = status;
     positionInput.value = state.position;
     triggerInput.value = state.channelPosition;
@@ -124,9 +124,9 @@
         <h5 class="card-title m-0">
           <a href="/toggle/${state.id}" title=${toggleTitle}
             type="button"
-            class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${state.color}"></i>
+            class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${state.endpointStatus.color}"></i>
           </a>
-          <small class="text-muted">${state.error}</small>
+          <small class="text-muted">${state.errorMessage}</small>
         </h5> 
       </div>
       <div class="card-body">
