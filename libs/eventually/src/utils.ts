@@ -158,9 +158,12 @@ export enum Errors {
 
 export class ValidationError extends Error {
   public readonly details;
-  constructor(errors: joi.ValidationError) {
+  constructor(errors: joi.ValidationError, message?: Message<string, Payload>) {
     super(Errors.ValidationError);
-    this.details = errors.details.flatMap((item) => item.message);
+    this.details = {
+      errors: errors.details.flatMap((item) => item.message),
+      message
+    };
   }
 }
 
