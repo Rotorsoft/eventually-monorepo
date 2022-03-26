@@ -54,8 +54,8 @@ const info = (
   console.info(chalk[color](message), chalk.gray(details || ""), ...params);
 };
 
-const error = (error: Error): void => {
-  console.error(JSON.stringify({ severity: "ERROR", message: error.message }));
+const error = ({ message, details }: Error & { details?: any }): void => {
+  console.error(JSON.stringify({ severity: "ERROR", message, details }));
 };
 
 const nolog = (): void => {

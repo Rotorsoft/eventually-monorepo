@@ -15,7 +15,10 @@ if [[ ! -d "${target}" ]]; then
     exit 1
 fi; 
 
-echo ">>> building project..."
+echo ">>> cleaning $target..."
+yarn clean $target
+
+echo ">>> building repo..."
 yarn build
 
 version=$(npm pkg get version -w ${target})

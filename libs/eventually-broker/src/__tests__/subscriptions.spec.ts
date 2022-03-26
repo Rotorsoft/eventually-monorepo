@@ -1,46 +1,38 @@
+import Chance from "chance";
 import { PostgresSubscriptionStore } from "..";
+import { subscriptions } from "..";
+import { createService, createSubscription } from "./utils";
 
-const db = PostgresSubscriptionStore();
+const chance = Chance();
+subscriptions(PostgresSubscriptionStore());
 
 describe("subscriptions", () => {
+  const service = chance.name();
+
   beforeAll(async () => {
-    await db.init(true);
-    await db.init();
+    await subscriptions().init(true);
+    await subscriptions().init();
+    await createService(service);
   });
 
   afterAll(async () => {
-    await db.close();
-    await db.close();
+    await subscriptions().close();
+    await subscriptions().close();
   });
 
-  it("should create a new subscription", () => {
-    expect(true).toBe(true);
-  });
-
-  it("should fail validation when creating a new subscription", () => {
-    expect(true).toBe(true);
+  it("should create a new subscription", async () => {
+    const id = chance.name();
+    await createSubscription(id, service);
+    const [sub] = await subscriptions().loadSubscriptions(id);
+    expect(sub.id).toBe(id);
   });
 
   it("should update a subscription", () => {
     expect(true).toBe(true);
   });
 
-  it("should fail validation when updating subscription", () => {
-    expect(true).toBe(true);
-  });
-
   it("should delete a subscription", () => {
     expect(true).toBe(true);
-  });
-
-  it("should load subscriptions", async () => {
-    const result = await db.loadSubscriptions();
-    expect(result.length).toBe(2);
-  });
-
-  it("should load subscription", async () => {
-    const result = await db.loadSubscriptions("id2");
-    expect(result.length).toBe(1);
   });
 
   it("should load subscriptions by producer", () => {
@@ -56,11 +48,19 @@ describe("subscriptions", () => {
   });
 
   it("should commit position", async () => {
-    await db.commitPosition("id1", 10);
-    await db.commitPosition("id2", 10);
-    const result = await db.loadSubscriptions();
-    expect(result.length).toBe(2);
-    expect(result[0].position).toBe(10);
-    expect(result[1].position).toBe(10);
+    const id1 = chance.name();
+    const id2 = chance.name();
+    const producer = chance.name();
+    await createService(producer);
+    await createSubscription(id1, producer);
+    await createSubscription(id2, producer);
+    await subscriptions().commitPosition(id1, 10);
+    await subscriptions().commitPosition(id2, 11);
+    const result1 = await subscriptions().loadSubscriptions();
+    const result2 = await subscriptions().loadSubscriptionsByProducer(producer);
+    expect(result1.length).toBeGreaterThanOrEqual(2);
+    expect(result2.length).toBe(2);
+    expect(result2[0].position).toBe(10);
+    expect(result2[1].position).toBe(11);
   });
 });

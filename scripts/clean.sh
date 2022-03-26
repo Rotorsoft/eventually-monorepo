@@ -1,14 +1,17 @@
 #! bin/sh
 
-echo "Cleaning dist"
-find . -type d -name 'dist' -exec rm -rf {} \;
+set -e
 
-echo "Cleaning tsbuildinfo"
-find . -type f -name '*.tsbuildinfo' -delete
+target="."
 
-echo "Cleaning garbage"
-find . -type f -name '*.d.ts' -delete
-find . -type f -name '*.d.ts.map' -delete
-find . -type f -name '*.js.map' -delete
-find ./libs/* -type f -name '*.js' -delete
-find ./services/* -type f -name '*.js' -delete
+if [[ $# -eq 1 ]]; then
+    target="libs/$1"
+fi;
+
+echo "Cleaning $target"
+find $target -type d -name 'dist' -exec rm -rf {} \;
+find $target -type f -name '*.tsbuildinfo' -delete
+find $target -type f -name '*.d.ts' -delete
+find $target -type f -name '*.d.ts.map' -delete
+find $target -type f -name '*.js.map' -delete
+find $target/* -type f -name '**/src/**/*.js' -delete

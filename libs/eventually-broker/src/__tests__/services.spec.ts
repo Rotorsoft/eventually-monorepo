@@ -1,43 +1,53 @@
-import { PostgresSubscriptionStore } from "..";
+import Chance from "chance";
+import { PostgresSubscriptionStore, subscriptions } from "..";
+import { createService } from "./utils";
 
-const db = PostgresSubscriptionStore();
+const chance = Chance();
+subscriptions(PostgresSubscriptionStore());
 
 describe("services", () => {
   beforeAll(async () => {
-    await db.init(true);
-    await db.init();
+    await subscriptions().init(true);
+    await subscriptions().init();
   });
 
   afterAll(async () => {
-    await db.close();
-    await db.close();
+    await subscriptions().close();
+    await subscriptions().close();
   });
 
-  it("should create a new service", () => {
-    expect(true).toBe(true);
+  it("should create a new service", async () => {
+    const id = chance.name();
+    await createService(id);
+    const [service] = await subscriptions().loadServices(id);
+    expect(service.id).toBe(id);
   });
 
-  it("should fail validation when creating a new service", () => {
-    expect(true).toBe(true);
+  it("should update a service", async () => {
+    const id = chance.name();
+    await createService(id);
+    const [service] = await subscriptions().loadServices(id);
+    const newUrl = chance.url();
+    service.url = newUrl;
+    await subscriptions().updateService(service);
+    const [updated] = await subscriptions().loadServices(id);
+    expect(updated.url).toBe(newUrl);
   });
 
-  it("should update a service", () => {
-    expect(true).toBe(true);
+  it("should delete a service", async () => {
+    const id = chance.name();
+    await createService(id);
+    const [service] = await subscriptions().loadServices(id);
+    expect(service.id).toBe(id);
+    await subscriptions().deleteService(id);
+    const [deleted] = await subscriptions().loadServices(id);
+    expect(deleted).toBeUndefined();
   });
 
-  it("should fail validation when updating a service", () => {
-    expect(true).toBe(true);
-  });
-
-  it("should delete a service", () => {
-    expect(true).toBe(true);
-  });
-
-  it("should load services", () => {
-    expect(true).toBe(true);
-  });
-
-  it("should load a service by id", () => {
-    expect(true).toBe(true);
+  it("should load services", async () => {
+    await createService(chance.name());
+    await createService(chance.name());
+    const loaded = await subscriptions().loadServices();
+    expect(loaded.length).toBeGreaterThanOrEqual(2);
   });
 });

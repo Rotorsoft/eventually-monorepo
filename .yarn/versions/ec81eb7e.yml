@@ -1,6 +1,0 @@
-undecided:
-  - "@rotorsoft/eventually-monorepo"
-  - "@rotorsoft/eventually"
-  - "@rotorsoft/eventually-gcp"
-  - "@rotorsoft/eventually-pg"
-  - "@rotorsoft/calculator"
