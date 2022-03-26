@@ -21,7 +21,6 @@
   ],
   "scripts": {
     "clean": "sh ./scripts/clean.sh",
-    "build": "yarn tsc --build && cp -R ./libs/eventually-broker/src/views ./libs/eventually-broker/dist/views && cp -R ./libs/eventually-broker/src/public ./libs/eventually-broker/dist/public",
     "test": "yarn jest",
     "test:watch": "yarn jest --watch",
     "lint-file:eslint": "yarn eslint",
