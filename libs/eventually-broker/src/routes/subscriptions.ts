@@ -48,7 +48,7 @@ const addSchema = editSchema
   })
   .options({ presence: "required" });
 
-router.get("/monitor-all", (req, res) => {
+router.get("/_monitor-all", (req, res) => {
   const session = randomId();
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-store");
@@ -59,7 +59,7 @@ router.get("/monitor-all", (req, res) => {
   state().subscribeSSE(session, res);
 });
 
-router.get("/monitor/:id", (req, res) => {
+router.get("/_monitor/:id", (req, res) => {
   const session = randomId();
   const id = req.params.id;
   res.setHeader("Content-Type", "text/event-stream");
@@ -88,14 +88,14 @@ router.post("/", async (req, res) => {
   } else res.redirect("/");
 });
 
-router.get("/add", (_, res) => {
+router.get("/_add", (_, res) => {
   res.render("add-subscription", {
     ...defaultSubscription,
     services: state().services()
   });
 });
 
-router.post("/add", async (req, res) => {
+router.post("/_add", async (req, res) => {
   const services = state().services();
   try {
     const { value, error } = addSchema.validate(req.body, {
@@ -123,17 +123,27 @@ router.post("/add", async (req, res) => {
   }
 });
 
-router.get("/toggle/:id", async (req, res) => {
+router.get("/_toggle/:id", async (req, res) => {
   const id = req.params.id;
   try {
     await subscriptions().toggleSubscription(id);
   } catch (error) {
     log().error(error);
   }
-  res.redirect(`/wait/${id}`);
+  res.redirect(`/_wait/${id}`);
 });
 
-router.get("/wait/:id", (req, res) => {
+router.get("/_refresh/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    await state().refreshSubscription("RESTART", id);
+  } catch (error) {
+    log().error(error);
+  }
+  res.redirect(`/${id}`);
+});
+
+router.get("/_wait/:id", (req, res) => {
   const id = req.params.id;
   res.render("wait", { id });
 });
@@ -183,7 +193,7 @@ router.post("/:id", async (req, res) => {
       });
     } else {
       await subscriptions().updateSubscription({ ...value, id });
-      res.redirect(`/wait/${id}`);
+      res.redirect(`/_wait/${id}`);
     }
   } catch (error) {
     log().error(error);

@@ -7,7 +7,7 @@
     </nav>
   </div>
   <div class="col-6 d-flex justify-content-end">
-    <a href="/add" type="button" class="btn btn-primary align-self-center"><i
+    <a href="/_add" type="button" class="btn btn-primary align-self-center"><i
         class="bi bi-plus"
       ></i>
       Add</a>
@@ -35,8 +35,8 @@
         </td>
         <td id="status-{{this.id}}"></td>
         <td id="session-{{this.id}}"></td>
-        <td><a href="/services/{{this.producer}}">{{this.producer}}</a></td>
-        <td><a href="/services/{{this.consumer}}">{{this.consumer}}</a></td>
+        <td><a href="/_services/{{this.producer}}">{{this.producer}}</a></td>
+        <td><a href="/_services/{{this.consumer}}">{{this.consumer}}</a></td>
         <td>{{this.path}}</td>
         <td>{{this.streams}}</td>
         <td>{{this.names}}</td>
@@ -46,7 +46,7 @@
 </table>
 
 <script>
-  const es = new EventSource("/monitor-all");
+  const es = new EventSource("/_monitor-all");
 
   const badge = (count, cls) => 
     count > 0 ? `<span class="${cls}">${count}</span>` : "";

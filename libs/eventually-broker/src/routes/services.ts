@@ -32,11 +32,11 @@ router.get("/", async (_, res) => {
   res.render("services", { rows: prepare(services) });
 });
 
-router.get("/add", (_, res) => {
+router.get("/_add", (_, res) => {
   res.render("add-service", { ...defaultService });
 });
 
-router.post("/add", async (req, res) => {
+router.post("/_add", async (req, res) => {
   try {
     const { value, error } = addSchema.validate(req.body, {
       abortEarly: false
@@ -49,7 +49,7 @@ router.post("/add", async (req, res) => {
       });
     } else {
       await subscriptions().createService(value);
-      res.redirect("/services");
+      res.redirect("/_services");
     }
   } catch (error) {
     log().error(error);
@@ -93,7 +93,7 @@ router.post("/:id", async (req, res) => {
       });
     } else {
       await subscriptions().updateService({ ...value, id });
-      res.redirect("/services");
+      res.redirect("/_services");
     }
   } catch (error) {
     log().error(error);

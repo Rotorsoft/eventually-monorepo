@@ -13,7 +13,7 @@ export type SubscriptionConfig = {
 export type ChannelConfig = {
   id: string;
   channel: string;
-  position: number;
+  position?: number;
   subscriptions: SubscriptionConfig[];
 };
 

@@ -40,7 +40,7 @@ export const app = async (): Promise<void> => {
   );
   app.set("view engine", "hbs");
   app.set("views", path.resolve(__dirname, "./views"));
-  app.use("/services", routes.services);
+  app.use("/_services", routes.services);
   app.use("/", routes.subscriptions);
 
   app.listen(config().port, () =>

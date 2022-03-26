@@ -19,7 +19,7 @@
 
 {{> alert}}
 
-<form class="row my-3" method="post" action="/services/{{this.id}}">
+<form class="row my-3" method="post" action="/_services/{{this.id}}">
   {{> service-form edit=true}}
 </form>
 
@@ -33,10 +33,10 @@
       : delBtn.classList.add("disabled")
   }
   delBtn.onclick = () => {
-    fetch("/services/{{this.id}}", { method: "delete" })
+    fetch("/_services/{{this.id}}", { method: "delete" })
       .then(response => response.json())
       .then(json => {
-        if(json.deleted) document.location = "/services";
+        if(json.deleted) document.location = "/_services";
         else delId.value = "";
       })
       .catch(()=> delId.value = "")

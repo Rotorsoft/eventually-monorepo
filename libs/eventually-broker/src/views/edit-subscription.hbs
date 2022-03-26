@@ -113,21 +113,29 @@
     const status = state.channelStatus || (state.active ? "Running" : "Inactive");
     statusInput.value = status;
     positionInput.value = state.position;
-    triggerInput.value = state.channelPosition;
+    triggerInput.value = state.channelPosition||"";
 
     const toggleIcon = state.active ? "bi-toggle-on" : "bi-toggle-off";
     const toggleTitle = state.active ? "Stop" : "Start";
 
     statsDiv.innerHTML=`
     <div class="card p-0">
-      <div class="card-header p-2">
-        <h5 class="card-title m-0">
-          <a href="/toggle/${state.id}" title=${toggleTitle}
+      <div class="card-header row p-2 m-0">
+        <h6 class="card-title m-0 col-11">
+          <a href="/_toggle/${state.id}" title=${toggleTitle}
             type="button"
             class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${state.endpointStatus.color}"></i>
           </a>
           <small class="text-muted">${state.errorMessage}</small>
-        </h5> 
+        </h6> 
+        ${(state.channelPosition||-1)===-1 || state.position < state.channelPosition ? `
+          <div class="col-1 text-end">
+            <a href="/_refresh/${state.id}" title="Refresh"
+              type="button"
+              class="btn btn-lg p-0"><i class="bi bi-arrow-repeat text-primary"></i>
+            </a>
+          </div>`: ""
+        }
       </div>
       <div class="card-body">
         <table class="table align-middle table-hover">
@@ -163,7 +171,7 @@
     </div>`
   }
 
-  const es = new EventSource(`/monitor/{{this.id}}`);
+  const es = new EventSource(`/_monitor/{{this.id}}`);
   es.onmessage = ({ data }) => {
     const props = JSON.parse(data);
     refresh(props);

@@ -23,8 +23,8 @@ type Sub = SubscriptionConfig & {
   namesRegExp: RegExp;
 };
 
-const triggerLog = (trigger: TriggerPayload): string =>
-  `${trigger.operation}${trigger.retries || ""}@${trigger.position}`;
+const triggerLog = ({ operation, retries, position }: TriggerPayload): string =>
+  `[${operation}${retries || ""}${position ? `@${position}` : ""}]`;
 
 const sendTrigger = (trigger: TriggerPayload): boolean =>
   process.send({ trigger });
@@ -141,7 +141,7 @@ export const work = (resolvers: ChannelResolvers): void => {
               sub,
               status,
               retryable ? "warning" : "danger",
-              stats
+              stats.total > 1 ? stats : undefined
             );
             return retry ? sub : undefined;
           }
@@ -196,11 +196,7 @@ export const work = (resolvers: ChannelResolvers): void => {
     } else {
       try {
         const sub = (_subs[config.id] = build(config));
-        void pumpRetry([sub], {
-          operation,
-          id: config.id,
-          position: config.position
-        });
+        void pumpRetry([sub], { operation, id: config.id });
       } catch (error) {
         sendError(error.message, config);
       }
@@ -211,8 +207,7 @@ export const work = (resolvers: ChannelResolvers): void => {
 
   void pumpChannel({
     operation: "RESTART",
-    id: config.id,
-    position: config.position
+    id: config.id
   });
   void pullChannel.listen(pumpChannel);
 };

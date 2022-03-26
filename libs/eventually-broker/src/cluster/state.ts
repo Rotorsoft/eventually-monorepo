@@ -75,7 +75,7 @@ export const state = singleton((): State => {
     position
   });
 
-  const run = async (id: string, position: number): Promise<void> => {
+  const run = async (id: string, position?: number): Promise<void> => {
     try {
       const { channel } = (_services[id] =
         _services[id] || (await subscriptions().loadServices(id))[0]);
@@ -191,7 +191,7 @@ export const state = singleton((): State => {
       events
     }: SubscriptionConfig & SubscriptionStats
   ): void => {
-    channel.position = Math.max(channel.position, position);
+    channel.position = Math.max(channel.position || -1, position);
     const state = (_states[id] =
       _states[id] || resetState(workerId, true, position));
     state.active = active;
@@ -290,7 +290,7 @@ export const state = singleton((): State => {
       await Promise.all(
         services.map((service) => {
           _services[service.id] = service;
-          return run(service.id, -1);
+          return run(service.id);
         })
       );
     },
@@ -301,7 +301,7 @@ export const state = singleton((): State => {
       try {
         const workerId = findWorkerId(id);
         if (workerId) cluster.workers[workerId].kill("SIGINT");
-        else if (operation !== "DELETE") await run(id, -1);
+        else if (operation !== "DELETE") await run(id);
       } catch (error) {
         log().error(error);
       }
@@ -321,7 +321,7 @@ export const state = singleton((): State => {
         (newWorkerId || -1) !== (workerId || -2)
           ? newWorker
             ? newWorker.send({ operation, config })
-            : await run(sub.producer, -1)
+            : await run(sub.producer)
           : undefined;
       } catch (error) {
         log().error(error);
