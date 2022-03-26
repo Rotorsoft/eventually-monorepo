@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-pg",
-  "version": "4.0.12",
+  "version": "4.0.13",
   "description": "Eventually Framework Postgres Services",
   "author": {
     "name": "rotorsoft",
@@ -17,9 +17,11 @@
   "files": [
     "dist"
   ],
-  "scripts": {},
+  "scripts": {
+    "build": "tsc --build"
+  },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4.0.11",
+    "@rotorsoft/eventually": "workspace:^4",
     "joi": "^17.4.2",
     "pg": "^8.7.1"
   },

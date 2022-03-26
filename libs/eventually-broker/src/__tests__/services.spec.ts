@@ -7,7 +7,7 @@ subscriptions(PostgresSubscriptionStore());
 
 describe("services", () => {
   beforeAll(async () => {
-    await subscriptions().init(true);
+    await subscriptions().init();
     await subscriptions().init();
   });
 

@@ -15,11 +15,11 @@ if [[ ! -d "${target}" ]]; then
     exit 1
 fi; 
 
-echo ">>> cleaning $target..."
-yarn clean $target
+echo ">>> cleaning $lib..."
+yarn clean $lib
 
-echo ">>> building repo..."
-yarn build
+echo ">>> building $target..."
+yarn $target build
 
 version=$(npm pkg get version -w ${target})
 lastpublished=$(npm view @rotorsoft/${lib} version)

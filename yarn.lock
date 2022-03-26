@@ -750,8 +750,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/accounts@workspace:services/accounts"
   dependencies:
-    "@rotorsoft/eventually": "workspace:libs/eventually"
-    "@rotorsoft/eventually-express": "workspace:libs/eventually-express"
+    "@rotorsoft/eventually": "workspace:^4"
+    "@rotorsoft/eventually-express": "workspace:^4"
     "@types/chance": ^1
     "@types/uuid": ^8
     chance: ^1.1.8
@@ -766,7 +766,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
-    "@rotorsoft/eventually-broker": "workspace:^0.2.8"
+    "@rotorsoft/eventually-broker": "workspace:^0"
     "@types/node": "*"
     ts-node-dev: ^1.1.8
     tsconfig-paths: ^3.12.0
@@ -778,8 +778,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.11"
-    "@rotorsoft/eventually-express": "workspace:^4.0.15"
+    "@rotorsoft/eventually": "workspace:^4"
+    "@rotorsoft/eventually-express": "workspace:^4"
     "@types/chance": ^1
     chance: ^1.1.8
     joi: ^17.4.2
@@ -789,12 +789,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-broker@workspace:^0.2.8, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
+"@rotorsoft/eventually-broker@workspace:^0, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-broker@workspace:libs/eventually-broker"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.11"
-    "@rotorsoft/eventually-pg": "workspace:^4.0.12"
+    "@rotorsoft/eventually": "workspace:^4"
+    "@rotorsoft/eventually-pg": "workspace:^4"
     "@types/chance": ^1
     "@types/express": ^4
     "@types/pg": ^8
@@ -808,11 +808,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-express@workspace:^4.0.15, @rotorsoft/eventually-express@workspace:libs/eventually-express":
+"@rotorsoft/eventually-express@workspace:^4, @rotorsoft/eventually-express@workspace:libs/eventually-express":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.11"
+    "@rotorsoft/eventually": "workspace:^4"
     "@types/cors": ^2.8.12
     "@types/express": ^4.17.13
     "@types/node": "*"
@@ -849,11 +849,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-pg@workspace:^4.0.12, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+"@rotorsoft/eventually-pg@workspace:^4, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.0.11"
+    "@rotorsoft/eventually": "workspace:^4"
     "@types/chance": ^1
     "@types/node": "*"
     "@types/pg": ^8
@@ -863,7 +863,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually@workspace:^4.0.11, @rotorsoft/eventually@workspace:libs/eventually":
+"@rotorsoft/eventually@workspace:^4, @rotorsoft/eventually@workspace:libs/eventually":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:

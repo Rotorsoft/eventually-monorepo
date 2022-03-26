@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-broker",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Eventually Framework Broker Services",
   "author": "rotorsoft",
   "license": "MIT",
@@ -14,10 +14,12 @@
   "files": [
     "dist"
   ],
-  "scripts": {},
+  "scripts": {
+    "build": "tsc --build"
+  },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4.0.11",
-    "@rotorsoft/eventually-pg": "workspace:^4.0.12",
+    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually-pg": "workspace:^4",
     "axios": "^0.26.1",
     "express": "^4.17.3",
     "express-handlebars": "^6.0.3",

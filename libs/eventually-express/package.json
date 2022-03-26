@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-express",
-  "version": "4.0.15",
+  "version": "4.0.16",
   "description": "Eventually Framework Express Services",
   "author": {
     "name": "rotorsoft",
@@ -17,9 +17,11 @@
   "files": [
     "dist"
   ],
-  "scripts": {},
+  "scripts": {
+    "build": "tsc --build"
+  },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4.0.11",
+    "@rotorsoft/eventually": "workspace:^4",
     "axios": "^0.26.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",

@@ -18,8 +18,8 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:libs/eventually",
-    "@rotorsoft/eventually-express": "workspace:libs/eventually-express",
+    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually-express": "workspace:^4",
     "joi": "^17.4.2",
     "uuid": "^8.3.2"
   },

@@ -10,7 +10,7 @@ describe("subscriptions", () => {
   const service = chance.name();
 
   beforeAll(async () => {
-    await subscriptions().init(true);
+    await subscriptions().init();
     await subscriptions().init();
     await createService(service);
   });
