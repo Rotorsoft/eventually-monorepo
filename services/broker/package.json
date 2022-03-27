@@ -21,9 +21,9 @@
     "@rotorsoft/eventually-broker": "workspace:^0"
   },
   "devDependencies": {
-    "@types/node": "*",
+    "@types/node": "^16",
     "ts-node-dev": "^1.1.8",
     "tsconfig-paths": "^3.12.0",
-    "typescript": "^4.4.3"
+    "typescript": "^4.6.3"
   }
 }

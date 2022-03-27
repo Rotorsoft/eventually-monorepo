@@ -21,6 +21,7 @@
   ],
   "scripts": {
     "clean": "sh ./scripts/clean.sh",
+    "build": " yarn workspaces foreach run build",
     "test": "yarn jest",
     "test:watch": "yarn jest --watch",
     "lint-file:eslint": "yarn eslint",
@@ -37,9 +38,6 @@
       "pre-commit": "lint-staged"
     }
   },
-  "engines": {
-    "node": "14.x.x"
-  },
   "lint-staged": {
     "*.ts": "yarn lint-file:eslint",
     "*.{ts,js,json,css,md}": "yarn lint-file:prettier"
@@ -47,7 +45,7 @@
   "devDependencies": {
     "@types/jest": "^27.0.1",
     "@types/minimist": "^1",
-    "@types/node": "*",
+    "@types/node": "^16",
     "@typescript-eslint/eslint-plugin": "^4.28.3",
     "@typescript-eslint/parser": "^4.28.3",
     "eslint": "^7.30.0",
@@ -58,10 +56,11 @@
     "lint-staged": "^11.0.1",
     "prettier": "^2.5.1",
     "ts-jest": "^27.0.5",
-    "typescript": "^4.4.3"
+    "typescript": "^4.6.3"
   },
   "dependencies": {
     "handlebars": "^4.7.7",
     "minimist": "^1.2.6"
-  }
+  },
+  "packageManager": "yarn@3.2.0"
 }

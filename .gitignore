@@ -5,11 +5,11 @@ dist
 app.yaml
 .DS_Store
 data
-
-# Yarn 2
+node_modules
 .yarn/*
-!.yarn/cache
+!.yarn/patches
 !.yarn/releases
 !.yarn/plugins
 !.yarn/sdks
 !.yarn/versions
+.pnp.*

@@ -18,16 +18,16 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build --verbose"
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^4",
-    "joi": "^17.4.2",
+    "joi": "^17.6.0",
     "pg": "^8.7.1"
   },
   "devDependencies": {
     "@types/chance": "^1",
-    "@types/node": "*",
+    "@types/node": "^16",
     "@types/pg": "^8",
     "chance": "^1.1.8"
   }

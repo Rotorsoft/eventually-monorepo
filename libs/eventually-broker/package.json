@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build && cp -R ./src/views ./dist/views && cp -R ./src/public ./dist/public"
+    "build": "tsc --build --verbose && cp -R ./src/views ./dist/views && cp -R ./src/public ./dist/public"
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^4",
@@ -23,13 +23,14 @@
     "axios": "^0.26.1",
     "express": "^4.17.3",
     "express-handlebars": "^6.0.3",
-    "joi": "^17.4.2",
+    "joi": "^17.6.0",
     "pg": "^8.7.1",
     "pg-listen": "^1.7.0"
   },
   "devDependencies": {
     "@types/chance": "^1",
     "@types/express": "^4",
+    "@types/node": "^16",
     "@types/pg": "^8",
     "chance": "^1.1.8"
   }

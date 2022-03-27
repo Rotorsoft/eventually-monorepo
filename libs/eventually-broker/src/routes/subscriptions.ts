@@ -1,9 +1,8 @@
 import { log, randomId } from "@rotorsoft/eventually";
 import { Router } from "express";
-import joi from "joi";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
-import * as regex from "./regex";
+import * as schemas from "./schemas";
 
 export const router = Router();
 
@@ -31,22 +30,6 @@ const defaultSubscription = {
   streams: ".*",
   names: ".*"
 };
-
-const editSchema = joi
-  .object({
-    producer: joi.string().trim().max(100).regex(regex.name),
-    consumer: joi.string().trim().max(100).regex(regex.name),
-    path: joi.string().trim().max(100).regex(regex.name),
-    streams: joi.string().trim().max(100),
-    names: joi.string().trim().max(250)
-  })
-  .options({ presence: "required" });
-
-const addSchema = editSchema
-  .append({
-    id: joi.string().trim().max(100).regex(regex.name)
-  })
-  .options({ presence: "required" });
 
 router.get("/_monitor-all", (req, res) => {
   const session = randomId();
@@ -98,7 +81,7 @@ router.get("/_add", (_, res) => {
 router.post("/_add", async (req, res) => {
   const services = state().services();
   try {
-    const { value, error } = addSchema.validate(req.body, {
+    const { value, error } = schemas.addSubscription.validate(req.body, {
       abortEarly: false
     });
     if (error) {
@@ -181,7 +164,7 @@ router.post("/:id", async (req, res) => {
     ...req.body
   };
   try {
-    const { value, error } = editSchema.validate(req.body, {
+    const { value, error } = schemas.editSubscription.validate(req.body, {
       abortEarly: false,
       allowUnknown: true
     });

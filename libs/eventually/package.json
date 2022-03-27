@@ -15,11 +15,14 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build --verbose"
   },
   "dependencies": {
     "chalk": "~4",
-    "dotenv": "^10.0.0",
-    "joi": "^17.4.2"
+    "dotenv": "^16.0.0",
+    "joi": "^17.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16"
   }
 }

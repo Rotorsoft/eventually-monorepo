@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 4
+  version: 6
   cacheKey: 8
 
 "@babel/code-frame@npm:7.12.11":
@@ -30,7 +30,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:7.15.5, @babel/core@npm:^7.1.0, @babel/core@npm:^7.7.2, @babel/core@npm:^7.7.5":
+"@babel/core@npm:^7.1.0, @babel/core@npm:^7.7.2, @babel/core@npm:^7.7.5":
   version: 7.15.5
   resolution: "@babel/core@npm:7.15.5"
   dependencies:
@@ -753,11 +753,12 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-express": "workspace:^4"
     "@types/chance": ^1
+    "@types/node": ^16
     "@types/uuid": ^8
     chance: ^1.1.8
-    joi: ^17.4.2
+    joi: ^17.6.0
     ts-node-dev: ^1.1.8
-    typescript: ^4.4.3
+    typescript: ^4.6.3
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
@@ -767,10 +768,10 @@ __metadata:
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
     "@rotorsoft/eventually-broker": "workspace:^0"
-    "@types/node": "*"
+    "@types/node": ^16
     ts-node-dev: ^1.1.8
     tsconfig-paths: ^3.12.0
-    typescript: ^4.4.3
+    typescript: ^4.6.3
   languageName: unknown
   linkType: soft
 
@@ -781,11 +782,12 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-express": "workspace:^4"
     "@types/chance": ^1
+    "@types/node": ^16
     chance: ^1.1.8
-    joi: ^17.4.2
+    joi: ^17.6.0
     ts-node-dev: ^1.1.8
     tsconfig-paths: ^3.12.0
-    typescript: ^4.4.3
+    typescript: ^4.6.3
   languageName: unknown
   linkType: soft
 
@@ -797,12 +799,13 @@ __metadata:
     "@rotorsoft/eventually-pg": "workspace:^4"
     "@types/chance": ^1
     "@types/express": ^4
+    "@types/node": ^16
     "@types/pg": ^8
     axios: ^0.26.1
     chance: ^1.1.8
     express: ^4.17.3
     express-handlebars: ^6.0.3
-    joi: ^17.4.2
+    joi: ^17.6.0
     pg: ^8.7.1
     pg-listen: ^1.7.0
   languageName: unknown
@@ -815,12 +818,12 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^4"
     "@types/cors": ^2.8.12
     "@types/express": ^4.17.13
-    "@types/node": "*"
+    "@types/node": ^16
     "@types/swagger-ui-express": ^4
     axios: ^0.26.0
     cors: ^2.8.5
     express: ^4.17.1
-    joi: ^17.4.2
+    joi: ^17.6.0
     joi-to-swagger: ^6.0.1
     swagger-ui-express: ^4.3.0
   languageName: unknown
@@ -832,7 +835,7 @@ __metadata:
   dependencies:
     "@types/jest": ^27.0.1
     "@types/minimist": ^1
-    "@types/node": "*"
+    "@types/node": ^16
     "@typescript-eslint/eslint-plugin": ^4.28.3
     "@typescript-eslint/parser": ^4.28.3
     eslint: ^7.30.0
@@ -845,7 +848,7 @@ __metadata:
     minimist: ^1.2.6
     prettier: ^2.5.1
     ts-jest: ^27.0.5
-    typescript: ^4.4.3
+    typescript: ^4.6.3
   languageName: unknown
   linkType: soft
 
@@ -855,10 +858,10 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
     "@types/chance": ^1
-    "@types/node": "*"
+    "@types/node": ^16
     "@types/pg": ^8
     chance: ^1.1.8
-    joi: ^17.4.2
+    joi: ^17.6.0
     pg: ^8.7.1
   languageName: unknown
   linkType: soft
@@ -867,18 +870,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:
+    "@types/node": ^16
     chalk: ~4
-    dotenv: ^10.0.0
-    joi: ^17.4.2
+    dotenv: ^16.0.0
+    joi: ^17.6.0
   languageName: unknown
   linkType: soft
 
-"@sideway/address@npm:^4.1.0":
-  version: 4.1.2
-  resolution: "@sideway/address@npm:4.1.2"
+"@sideway/address@npm:^4.1.3":
+  version: 4.1.4
+  resolution: "@sideway/address@npm:4.1.4"
   dependencies:
     "@hapi/hoek": ^9.0.0
-  checksum: 1e4910f7b3205347f78e698923dd7e0bb400c9e9e9bdd4a059edb6d2e32a540b426aba4652d095ea299fb75019d87883251dd9b96b350c00a35454bcdfa5f9f5
+  checksum: b9fca2a93ac2c975ba12e0a6d97853832fb1f4fb02393015e012b47fa916a75ca95102d77214b2a29a2784740df2407951af8c5dde054824c65577fd293c4cdb
   languageName: node
   linkType: hard
 
@@ -1090,10 +1094,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 16.9.1
-  resolution: "@types/node@npm:16.9.1"
-  checksum: 41afcf183a22d59323a0199dd7e0f46591247f45fc08a4434edb26d56dc279ae4fdb80f37989ddd7a0f45e3857c4933e6e82057ede09c5a829f77e373e680375
+"@types/node@npm:*, @types/node@npm:^16":
+  version: 16.11.26
+  resolution: "@types/node@npm:16.11.26"
+  checksum: 57757caaba3f0d95de82198cb276a1002c49b710108c932a1d02d7c91ff2fa57cfe2dd19fde60853b6dd90b0964b3cf35557981d2628e20aed6a909057aedfe6
   languageName: node
   linkType: hard
 
@@ -2254,10 +2258,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "dotenv@npm:10.0.0"
-  checksum: f412c5fe8c24fbe313d302d2500e247ba8a1946492db405a4de4d30dd0eb186a88a43f13c958c5a7de303938949c4231c56994f97d05c4bc1f22478d631b4005
+"dotenv@npm:^16.0.0":
+  version: 16.0.0
+  resolution: "dotenv@npm:16.0.0"
+  checksum: 664cebb51f0a9a1d1b930f51f0271e72e26d62feaecc9dc03df39453dd494b4e724809ca480fb3ec3213382b1ed3f791aaeb83569a137f9329ce58efd4853dbf
   languageName: node
   linkType: hard
 
@@ -2843,15 +2847,16 @@ __metadata:
   dependencies:
     node-gyp: latest
   checksum: 97ade64e75091afee5265e6956cb72ba34db7819b4c3e94c431d4be2b19b8bb7a2d4116da417950c3425f17c8fe693d25e20212cac583ac1521ad066b77ae31f
+  conditions: os=darwin
   languageName: node
   linkType: hard
 
 "fsevents@patch:fsevents@^2.3.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=1cc4b2"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
   dependencies:
     node-gyp: latest
-  checksum: 78db9daf1f6526a49cefee3917cc988f62dc7f25b5dd80ad6de4ffc4af7f0cab7491ac737626ff53e482a111bc53aac9e411fe3602458eca36f6a003ecf69c16
+  conditions: os=darwin
   languageName: node
   linkType: hard
 
@@ -3717,7 +3722,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-resolve@npm:27.2.0, jest-resolve@npm:^27.2.0":
+"jest-resolve@npm:^27.2.0":
   version: 27.2.0
   resolution: "jest-resolve@npm:27.2.0"
   dependencies:
@@ -3925,16 +3930,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"joi@npm:^17.4.2":
-  version: 17.4.2
-  resolution: "joi@npm:17.4.2"
+"joi@npm:^17.6.0":
+  version: 17.6.0
+  resolution: "joi@npm:17.6.0"
   dependencies:
     "@hapi/hoek": ^9.0.0
     "@hapi/topo": ^5.0.0
-    "@sideway/address": ^4.1.0
+    "@sideway/address": ^4.1.3
     "@sideway/formula": ^3.0.0
     "@sideway/pinpoint": ^2.0.0
-  checksum: 977ada1f9d38c2762689b61cec1272176968ccea731a16b71713ebaa067f140460e0b6f7eccff6fc12206fddce22e7f4ed74724651bc1b24b1e26d43280633d0
+  checksum: eaf62f6c02f2edb1042f1ab04fc23a5918a2cb8f54bec84c6e1033624d8a462c10ae9518af55a3ba84f1793960450d58094eda308e7ef93c17edd4e3c8ef31d5
   languageName: node
   linkType: hard
 
@@ -5136,11 +5141,11 @@ __metadata:
 
 "resolve@patch:resolve@^1.0.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>":
   version: 1.20.0
-  resolution: "resolve@patch:resolve@npm%3A1.20.0#~builtin<compat/resolve>::version=1.20.0&hash=00b1ff"
+  resolution: "resolve@patch:resolve@npm%3A1.20.0#~builtin<compat/resolve>::version=1.20.0&hash=07638b"
   dependencies:
     is-core-module: ^2.2.0
     path-parse: ^1.0.6
-  checksum: bed00be983cd20a8af0e7840664f655c4b269786dbd9595c5f156cd9d8a0050e65cdbbbdafc30ee9b6245b230c78a2c8ab6447a52545b582f476c29adb188cc5
+  checksum: a0dd7d16a8e47af23afa9386df2dff10e3e0debb2c7299a42e581d9d9b04d7ad5d2c53f24f1e043f7b3c250cbdc71150063e53d0b6559683d37f790b7c8c3cd5
   languageName: node
   linkType: hard
 
@@ -5989,23 +5994,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-typescript@^4.4.3:
-  version: 4.4.3
-  resolution: "typescript@npm:4.4.3"
+typescript@^4.6.3:
+  version: 4.6.3
+  resolution: "typescript@npm:4.6.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 05823f21796d450531a7e4ab299715d38fd9ded0e4ce7400876053f4b5166ca3dde7a68cecfe72d9086039f03c0b6edba36516fb10ed83c5837d9600532ea4c2
+  checksum: 255bb26c8cb846ca689dd1c3a56587af4f69055907aa2c154796ea28ee0dea871535b1c78f85a6212c77f2657843a269c3a742d09d81495b97b914bf7920415b
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.4.3#~builtin<compat/typescript>":
-  version: 4.4.3
-  resolution: "typescript@patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=32657b"
+"typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>":
+  version: 4.6.3
+  resolution: "typescript@patch:typescript@npm%3A4.6.3#~builtin<compat/typescript>::version=4.6.3&hash=bda367"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 28ab98313afab46788ff41014fdb5932430ada6e03cf9e92ac47f406526a2cac1ae2894834e7da61e46b7429318e9c47f45ba8de323332f0cb9af99b72ebae74
+  checksum: 6bf45caf847062420592e711bc9c28bf5f9a9a7fa8245343b81493e4ededae33f1774009d1234d911422d1646a2c839f44e1a23ecb111b40a60ac2ea4c1482a8
   languageName: node
   linkType: hard
 

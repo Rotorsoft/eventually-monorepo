@@ -1,8 +1,7 @@
 import { log } from "@rotorsoft/eventually";
 import { Router } from "express";
-import joi from "joi";
 import { Service, subscriptions } from "..";
-import * as regex from "./regex";
+import * as schemas from "./schemas";
 
 export const router = Router();
 
@@ -13,19 +12,6 @@ const defaultService = {
   channel: "pg://table_name",
   url: "http://service"
 };
-
-const editSchema = joi
-  .object({
-    channel: joi.string().trim().uri().max(100).regex(regex.channel),
-    url: joi.string().trim().uri().max(100)
-  })
-  .options({ presence: "required" });
-
-const addSchema = editSchema
-  .append({
-    id: joi.string().trim().max(100).regex(regex.name)
-  })
-  .options({ presence: "required" });
 
 router.get("/", async (_, res) => {
   const services = await subscriptions().loadServices();
@@ -38,7 +24,7 @@ router.get("/_add", (_, res) => {
 
 router.post("/_add", async (req, res) => {
   try {
-    const { value, error } = addSchema.validate(req.body, {
+    const { value, error } = schemas.addService.validate(req.body, {
       abortEarly: false
     });
     if (error) {
@@ -81,7 +67,7 @@ router.get("/:id", async (req, res) => {
 router.post("/:id", async (req, res) => {
   const id = req.params.id;
   try {
-    const { value, error } = editSchema.validate(req.body, {
+    const { value, error } = schemas.editService.validate(req.body, {
       abortEarly: false,
       allowUnknown: true
     });

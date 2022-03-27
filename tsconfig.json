@@ -7,10 +7,5 @@
     { "path": "./services/calculator" },
     { "path": "./services/accounts" },
     { "path": "./services/broker" }
-  ],
-  "files": [],
-  "include": [],
-  "compilerOptions": {
-    "incremental": true
-  }
+  ]
 }

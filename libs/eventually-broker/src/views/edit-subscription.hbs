@@ -97,8 +97,8 @@
     <td class="text-end table-${color} stat">${stats.min}</td>
     <td class="text-end table-${color} stat">${stats.max}</td>
   ` : "<td/><td/><td/>";
-  const refresh = (state) => {
-    const events = state.events.map(({ name, ok, ignored, retryable, critical }) => {
+  const refresh = ({ id, active, position, channelPosition, channelStatus, endpointStatus, errorMessage, events }) => {
+    const _events = events.map(({ name, ok, ignored, retryable, critical }) => {
       return `
         <tr>
           <th>${name}</th>
@@ -110,32 +110,33 @@
       `
     }).join('');
 
-    const status = state.channelStatus || (state.active ? "Running" : "Inactive");
-    statusInput.value = status;
-    positionInput.value = state.position;
-    triggerInput.value = state.channelPosition||"";
+    const status = channelStatus || (active ? "Running" : "Inactive");
+    const refreshBtn = active && ((channelPosition || -1) === -1 || position < channelPosition)
+      ? `<a href="/_refresh/${id}" title="Refresh"
+          type="button"
+          class="btn btn-lg p-0"><i class="bi bi-arrow-repeat text-primary"></i>
+        </a>` : "";
 
-    const toggleIcon = state.active ? "bi-toggle-on" : "bi-toggle-off";
-    const toggleTitle = state.active ? "Stop" : "Start";
+    statusInput.value = status;
+    positionInput.value = position;
+    triggerInput.value = channelPosition || "";
+
+    const toggleIcon = active ? "bi-toggle-on" : "bi-toggle-off";
+    const toggleTitle = active ? "Stop" : "Start";
 
     statsDiv.innerHTML=`
     <div class="card p-0">
       <div class="card-header row p-2 m-0">
         <h6 class="card-title m-0 col-11">
-          <a href="/_toggle/${state.id}" title=${toggleTitle}
+          <a href="/_toggle/${id}" title=${toggleTitle}
             type="button"
-            class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${state.endpointStatus.color}"></i>
+            class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${endpointStatus.color}"></i>
           </a>
-          <small class="text-muted">${state.errorMessage}</small>
+          <small class="text-muted">${errorMessage}</small>
         </h6> 
-        ${(state.channelPosition||-1)===-1 || state.position < state.channelPosition ? `
-          <div class="col-1 text-end">
-            <a href="/_refresh/${state.id}" title="Refresh"
-              type="button"
-              class="btn btn-lg p-0"><i class="bi bi-arrow-repeat text-primary"></i>
-            </a>
-          </div>`: ""
-        }
+        <div class="col-1 text-end">
+          ${refreshBtn}
+        </div>
       </div>
       <div class="card-body">
         <table class="table align-middle table-hover">
@@ -164,7 +165,7 @@
             </tr>
           </thead>
           <tbody>
-            ${events}
+            ${_events}
           </tbody>
         </table>
       </div>
