@@ -15,6 +15,7 @@ export type ChannelConfig = {
   channel: string;
   position?: number;
   subscriptions: SubscriptionConfig[];
+  runs: number;
 };
 
 export type EventStats = { count: number; min: number; max: number };

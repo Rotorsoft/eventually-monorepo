@@ -7,7 +7,8 @@ import {
   TriggerCallback
 } from "..";
 
-store(PostgresStore("channel_test"));
+const stream = "channel_test";
+store(PostgresStore(stream));
 subscriptions(PostgresSubscriptionStore());
 
 describe("listener", () => {
@@ -18,7 +19,7 @@ describe("listener", () => {
   };
 
   beforeAll(async () => {
-    PostgresStreamListenerFactory("id1", new URL("pg://channel_test"), pump);
+    PostgresStreamListenerFactory(stream, pump);
     await store().seed();
   });
 

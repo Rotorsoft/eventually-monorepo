@@ -8,9 +8,9 @@ export interface SubscriptionStore {
   seed: () => Promise<void>;
 
   /**
-   * Starts listening to a channel
+   * Starts listening to a stream
    */
-  listen: (id: string, channel: URL, callback: TriggerCallback) => void;
+  listen: (stream: string, callback: TriggerCallback) => void;
 
   /**
    * Loads services from store

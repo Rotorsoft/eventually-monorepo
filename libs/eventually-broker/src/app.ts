@@ -12,15 +12,11 @@ export const app = async (): Promise<void> => {
 
   await state().init(services);
 
-  subscriptions().listen(
-    "services",
-    new URL("pg://services"), // TODO: abstract url by factory
-    ({ operation, id }) => state().refreshService(operation, id)
+  subscriptions().listen("services", ({ operation, id }) =>
+    state().refreshService(operation, id)
   );
-  subscriptions().listen(
-    "subscriptions",
-    new URL("pg://subscriptions"), // TODO: abstract url by factory
-    ({ operation, id }) => state().refreshSubscription(operation, id)
+  subscriptions().listen("subscriptions", ({ operation, id }) =>
+    state().refreshSubscription(operation, id)
   );
 
   const app = express();

@@ -57,8 +57,7 @@ export type TriggerCallback = (trigger: TriggerPayload) => Promise<void>;
  * Stream listeners listen for stream notifications and trigger integrations
  */
 export type StreamListenerFactory = (
-  id: string,
-  channel: URL,
+  stream: string,
   callback: TriggerCallback
 ) => void;
 

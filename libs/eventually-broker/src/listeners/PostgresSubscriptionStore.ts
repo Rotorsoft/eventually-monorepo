@@ -23,8 +23,8 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       await pool.query(seed());
     },
 
-    listen: (id, channel, callback) =>
-      PostgresStreamListenerFactory(id, channel, callback),
+    listen: (stream, callback) =>
+      PostgresStreamListenerFactory(stream, callback),
 
     loadServices: async (id?: string): Promise<Service[]> => {
       const result = id

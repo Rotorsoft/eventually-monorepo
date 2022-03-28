@@ -5,14 +5,13 @@ import { TriggerPayload } from "..";
 import { StreamListenerFactory } from "../types";
 
 export const PostgresStreamListenerFactory: StreamListenerFactory = (
-  id,
-  channel,
+  stream,
   callback
 ) => {
   log().info(
     "bgGreen",
     `[${process.pid}]`,
-    `✨PostgresStreamListener ${id} ${channel.href}...`
+    `✨PostgresStreamListener ${stream}...`
   );
   const subscriber = createSubscriber(config.pg);
 
@@ -20,7 +19,7 @@ export const PostgresStreamListenerFactory: StreamListenerFactory = (
     log().info(
       "bgRed",
       `[${process.pid}]`,
-      `💣PostgresStreamListener ${id} ${channel.href}...`
+      `💣PostgresStreamListener ${stream}...`
     );
     void subscriber.close();
   });
@@ -31,7 +30,7 @@ export const PostgresStreamListenerFactory: StreamListenerFactory = (
   });
 
   subscriber.notifications.on(
-    channel.hostname,
+    stream,
     async (trigger: TriggerPayload): Promise<void> => {
       log().info("magenta", `[${process.pid}]`, "⚡", trigger);
       await callback(trigger);
@@ -39,8 +38,7 @@ export const PostgresStreamListenerFactory: StreamListenerFactory = (
   );
 
   void subscriber.connect().then(async () => {
-    const { href, hostname } = channel;
-    await subscriber.listenTo(hostname);
-    log().info("bgGreen", `[${process.pid}]`, `🏃${id} - ${href}`);
+    await subscriber.listenTo(stream);
+    log().info("bgGreen", `[${process.pid}]`, `👂${stream}`);
   });
 };

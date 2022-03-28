@@ -15,6 +15,6 @@ export const PostgresPullChannel = (id: string, channel: URL): PullChannel => {
       return events;
     },
     listen: (callback: TriggerCallback) =>
-      PostgresStreamListenerFactory(id, channel, callback)
+      PostgresStreamListenerFactory(channel.hostname, callback)
   };
 };

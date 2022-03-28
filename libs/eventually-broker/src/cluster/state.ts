@@ -75,7 +75,15 @@ export const state = singleton(function state(): State {
     position
   });
 
-  const run = async (id: string, position?: number): Promise<void> => {
+  const run = async (
+    id: string,
+    position?: number,
+    runs = 0
+  ): Promise<void> => {
+    if (++runs > 10) {
+      log().error(Error(`Too many runs in session for channel ${id}`));
+      return;
+    }
     try {
       const { channel } = (_services[id] = (
         await subscriptions().loadServices(id)
@@ -85,7 +93,10 @@ export const state = singleton(function state(): State {
         id,
         channel,
         position,
-        subscriptions: subs.map((sub) => subConfig(sub)).filter((p) => p.active)
+        subscriptions: subs
+          .map((sub) => subConfig(sub))
+          .filter((p) => p.active),
+        runs
       };
       let workerId: number = undefined;
       if (config.subscriptions.length) {
@@ -260,7 +271,10 @@ export const state = singleton(function state(): State {
             );
       } else if (stats) _stats(worker.id, channel, stats);
       else if (trigger)
-        channel.position = Math.max(channel.position, trigger.position || -1);
+        channel.position = Math.max(
+          channel.position || -1,
+          trigger.position || -1
+        );
     }
   );
 
@@ -276,9 +290,8 @@ export const state = singleton(function state(): State {
       _states[id].channelStatus = signal || `E${code}`;
       emitSSE(id);
     });
-    // TODO: implement an exit counter to avoid exit loops
     // re-run when exit code == 0
-    !code && void run(channel.id, channel.position);
+    !code && void run(channel.id, channel.position, channel.runs);
   });
 
   return {
