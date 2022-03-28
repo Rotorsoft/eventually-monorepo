@@ -2,7 +2,7 @@
 
 set -u
 
-target="."
+target="libs"
 
 if [[ $# -eq 1 ]]; then
     target="libs/$1"

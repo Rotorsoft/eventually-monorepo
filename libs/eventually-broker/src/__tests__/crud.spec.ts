@@ -1,17 +1,22 @@
 import { dispose } from "@rotorsoft/eventually";
+import { config } from "@rotorsoft/eventually-pg";
 import Chance from "chance";
+import { Pool } from "pg";
 import { PostgresSubscriptionStore, subscriptions } from "..";
 import { createService, createSubscription } from "./utils";
 
 const chance = Chance();
 subscriptions(PostgresSubscriptionStore());
+const pool = new Pool(config.pg);
 
 describe("crud", () => {
   beforeAll(async () => {
     await subscriptions().seed();
+    await pool.query("delete from subscriptions; delete from services;");
   });
-  afterAll(() => {
+  afterAll(async () => {
     dispose()();
+    await pool.end();
   });
 
   describe("services", () => {
@@ -66,24 +71,51 @@ describe("crud", () => {
       expect(sub.id).toBe(id);
     });
 
-    it("should update a subscription", () => {
-      expect(true).toBe(true);
+    it("should update a subscription", async () => {
+      const id = chance.name();
+      await createSubscription(id, service);
+      const [sub] = await subscriptions().loadSubscriptions(id);
+      const newPath = chance.name();
+      sub.path = newPath;
+      await subscriptions().updateSubscription(sub);
+      const [updated] = await subscriptions().loadSubscriptions(id);
+      expect(updated.path).toBe(newPath);
     });
 
-    it("should delete a subscription", () => {
-      expect(true).toBe(true);
+    it("should delete a subscription", async () => {
+      const id = chance.name();
+      await createSubscription(id, service);
+      const [sub] = await subscriptions().loadSubscriptions(id);
+      expect(sub.id).toBe(id);
+      await subscriptions().deleteSubscription(id);
+      const [deleted] = await subscriptions().loadSubscriptions(id);
+      expect(deleted).toBeUndefined();
     });
 
-    it("should load subscriptions by producer", () => {
-      expect(true).toBe(true);
+    it("should load subscriptions by producer", async () => {
+      const id = chance.name();
+      await createSubscription(id, service);
+      const subs = await subscriptions().loadSubscriptionsByProducer(service);
+      expect(subs.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("should activate a subscription", () => {
-      expect(true).toBe(true);
+    it("should find subscription", async () => {
+      const id = chance.name();
+      await createSubscription(id, service);
+      const subs = await subscriptions().searchSubscriptions(
+        service.substring(0, 1)
+      );
+      expect(subs.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("should deactivate a subscription", () => {
-      expect(true).toBe(true);
+    it("should activate a subscription", async () => {
+      const id = chance.name();
+      await createSubscription(id, service);
+      const [sub] = await subscriptions().loadSubscriptions(id);
+      expect(sub.active).toBeFalsy();
+      await subscriptions().toggleSubscription(id);
+      const [updated] = await subscriptions().loadSubscriptions(id);
+      expect(updated.active).toBeTruthy();
     });
 
     it("should commit position", async () => {

@@ -30,11 +30,11 @@ const expressApp = app(new ExpressApp())
     policies.WaitForAllAndComplete
   )
   .withCommandHandlers(
-    systems.ExternalSystem1,
     systems.ExternalSystem2,
     systems.ExternalSystem3,
     systems.ExternalSystem4
-  );
+  )
+  .withExternalSystem(systems.ExternalSystem1, "ext1");
 
 const port = 3005;
 const t = tester(port);

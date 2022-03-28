@@ -325,9 +325,9 @@ export class ExpressApp extends AppBase {
         mem: process.memoryUsage(),
         uptime:
           uptime < 60 * 60
-            ? formattedUptime.substr(14, 5)
+            ? formattedUptime.substring(14, 5)
             : uptime < 24 * 60 * 60
-            ? formattedUptime.substr(11, 8)
+            ? formattedUptime.substring(11, 8)
             : formattedUptime,
         "swagger-ui": "/swagger-ui",
         redoc: "/redoc",

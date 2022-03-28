@@ -125,11 +125,11 @@ Full Yarn2 installation and configuration details can be found [here](https://ya
 - Follow structure of base `package.json`. *Pay attention to "repository" and "workspaces"*
 - Internal packages follow standard format, but you can reference other monorepo packages using `workspace:...` prefix like this `"@rotorsoft/eventually": "workspace:^1.0.0"`
 - Follow structure of base `tsconfig.json`. **Update references as you add/remove packages and dependencies**
-- Internal packages inherit from common `tsconfig.base.json`, adding their own `composite` settings like below:
+- Internal packages inherit from common `tsconfig.json`, adding their own `composite` settings like below:
 
 ```json
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
@@ -223,7 +223,7 @@ Add the `tsconfig.json` file with proper references
 
 ```json
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",

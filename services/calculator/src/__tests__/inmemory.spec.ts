@@ -5,6 +5,7 @@ import {
   CommittedEvent,
   dispose,
   Errors,
+  InMemorySnapshotStore,
   log,
   Payload,
   Snapshot,
@@ -24,8 +25,10 @@ const chance = new Chance();
 const t = tester();
 
 app()
-  .withCommandHandlers(Calculator, Forget)
-  .withEventHandlers(Counter, IgnoredHandler)
+  .withCommandHandlers(Forget)
+  .withAggregate(Calculator, "testing calculator")
+  .withPolicy(IgnoredHandler, "ignored")
+  .withProcessManager(Counter, "counter")
   .withSchemas<Pick<Commands, "PressKey">>({
     PressKey: schemas.PressKey
   })
@@ -45,7 +48,12 @@ const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
   app().command(bind("Reset", undefined, id));
 
 describe("in memory", () => {
-  beforeAll(() => {
+  beforeAll(async () => {
+    // just to cover seeds
+    await store().seed();
+    const ss = InMemorySnapshotStore();
+    await ss.seed();
+
     jest.clearAllMocks();
     app().listen();
   });
