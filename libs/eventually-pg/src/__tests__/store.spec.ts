@@ -1,4 +1,4 @@
-import { CommittedEvent, Payload } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, Payload } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";
@@ -15,13 +15,11 @@ let created_after: Date;
 
 describe("pg", () => {
   beforeAll(async () => {
-    await db.init();
-    await db.init();
+    await db.seed();
   });
 
-  afterAll(async () => {
-    await db.close();
-    await db.close();
+  afterAll(() => {
+    dispose()();
   });
 
   it("should commit and query", async () => {

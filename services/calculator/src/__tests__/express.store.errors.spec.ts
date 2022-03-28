@@ -1,13 +1,13 @@
-import { app, store, ValidationError } from "@rotorsoft/eventually";
+import { app, dispose, store, ValidationError } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
-import { Server } from "http";
 import * as joi from "joi";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
 import * as schemas from "../calculator.schemas";
 
-const t = tester(3001);
+const port = 4002;
+const t = tester(port);
 
 const exapp = app(new ExpressApp())
   .withSchemas<Pick<Commands, "PressKey">>({
@@ -19,13 +19,11 @@ const exapp = app(new ExpressApp())
   })
   .withCommandHandlers(Calculator);
 
-let server: Server;
-
 jest.spyOn(store(), "query").mockRejectedValue("Error");
 jest.spyOn(store(), "stats").mockRejectedValue("Error");
 
 describe("express app", () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     const express = exapp.build();
     express.get("/query", (req, res) => {
       const { error } = joi
@@ -35,15 +33,11 @@ describe("express app", () => {
       if (error) throw new ValidationError(error);
       res.send("Query results");
     });
-    await exapp.listen(true);
-    server = express.listen(3001, () => {
-      return;
-    });
+    exapp.listen(false, port);
   });
 
-  afterAll(async () => {
-    server.close();
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   describe("errors", () => {

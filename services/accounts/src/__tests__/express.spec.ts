@@ -1,7 +1,6 @@
-import { app, bind } from "@rotorsoft/eventually";
+import { app, bind, dispose } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { Server } from "http";
 import * as schemas from "../accounts.schemas";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -37,22 +36,17 @@ const expressApp = app(new ExpressApp())
     systems.ExternalSystem4
   );
 
-let server: Server;
 const port = 3005;
 const t = tester(port);
 
 describe("express", () => {
-  beforeAll(async () => {
-    const express = expressApp.build();
-    await expressApp.listen(true);
-    server = express.listen(port, () => {
-      return;
-    });
+  beforeAll(() => {
+    expressApp.build();
+    expressApp.listen(false, port);
   });
 
-  afterAll(async () => {
-    if (server) server.close();
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   it("should complete command", async () => {

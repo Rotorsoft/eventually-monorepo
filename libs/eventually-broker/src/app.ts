@@ -7,19 +7,17 @@ import { state } from "./cluster";
 import * as routes from "./routes";
 
 export const app = async (): Promise<void> => {
-  const listenerFactory = await subscriptions().init(true);
+  await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
   await state().init(services);
 
-  const servicesListener = listenerFactory();
-  void servicesListener.listen(
+  subscriptions().listen(
     "services",
     new URL("pg://services"), // TODO: abstract url by factory
     ({ operation, id }) => state().refreshService(operation, id)
   );
-  const subscriptionsListener = listenerFactory();
-  void subscriptionsListener.listen(
+  subscriptions().listen(
     "subscriptions",
     new URL("pg://subscriptions"), // TODO: abstract url by factory
     ({ operation, id }) => state().refreshSubscription(operation, id)

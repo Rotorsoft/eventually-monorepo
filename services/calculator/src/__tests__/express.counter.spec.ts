@@ -1,6 +1,4 @@
-process.env.PORT = "3006";
-
-import { app, bind, Snapshot } from "@rotorsoft/eventually";
+import { app, bind, dispose, Snapshot } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
@@ -11,10 +9,10 @@ import * as schemas from "../calculator.schemas";
 import { CalculatorModel, Keys } from "../calculator.models";
 
 const chance = new Chance();
-const port = +process.env.PORT;
+const port = 4001;
 const t = tester(port);
 
-app(new ExpressApp())
+const _app = app(new ExpressApp())
   .withSchemas<Pick<Commands, "PressKey">>({
     PressKey: schemas.PressKey
   })
@@ -23,8 +21,7 @@ app(new ExpressApp())
     OperatorPressed: schemas.OperatorPressed
   })
   .withCommandHandlers(Calculator)
-  .withEventHandlers(Counter)
-  .build();
+  .withEventHandlers(Counter);
 
 const pressKey = (
   id: string,
@@ -33,12 +30,13 @@ const pressKey = (
   t.command(Calculator, bind("PressKey", { key }, id));
 
 describe("express app", () => {
-  beforeAll(async () => {
-    await app().listen();
+  beforeAll(() => {
+    _app.build();
+    _app.listen(false, port);
   });
 
-  afterAll(async () => {
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   describe("Calculator", () => {

@@ -5,20 +5,16 @@ import { PullChannel, TriggerCallback } from "../types";
 
 export const PostgresPullChannel = (id: string, channel: URL): PullChannel => {
   const store = PostgresStore(channel.hostname);
-  const listener = PostgresStreamListenerFactory();
   return {
     pull: async (position: number, limit: number) => {
       const events: CommittedEvent<string, Payload>[] = [];
-      await store.init(false);
       await store.query((e) => events.push(e), {
         after: position,
         limit
       });
       return events;
     },
-    listen: async (callback: TriggerCallback): Promise<void> => {
-      await store.init(false);
-      await listener.listen(id, channel, callback);
-    }
+    listen: (callback: TriggerCallback) =>
+      PostgresStreamListenerFactory(id, channel, callback)
   };
 };

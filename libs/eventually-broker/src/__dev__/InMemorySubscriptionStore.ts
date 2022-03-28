@@ -2,10 +2,10 @@ import { SubscriptionStore } from "../interfaces";
 
 export const InMemorySubscriptionStore = (): SubscriptionStore => {
   return {
-    init: () => {
+    seed: () => {
       throw Error("Not Implemented");
     },
-    close: () => {
+    listen: () => {
       throw Error("Not Implemented");
     },
     loadServices: () => {

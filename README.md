@@ -44,7 +44,6 @@ Full Yarn2 installation and configuration details can be found [here](https://ya
 ```bash
 > npm install -g yarn
 > cd ~/path/to/project
-> yarn set version berry
 ```
 
 ### Using Yarn 2
@@ -88,12 +87,10 @@ Full Yarn2 installation and configuration details can be found [here](https://ya
 ```bash
 # Yarn 2
 .yarn/*
-!.yarn/cache
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
-!.yarn/versions
 ```
 
 ### Updating `.gitattributes`
@@ -112,9 +109,6 @@ Full Yarn2 installation and configuration details can be found [here](https://ya
 # to manage @types automatically
 > yarn plugin import typescript
 
-# to bump versions with yarn version
-> yarn plugin import version
-
 # to start new package in monorepo
 > yarn ./path/to/package init
 
@@ -125,20 +119,6 @@ Full Yarn2 installation and configuration details can be found [here](https://ya
 - Press `ctrl-shift-p` in a TS file
 - Choose "Select TypeScript Version"
 - Pick "Use Workspace Version"
-
-### Using PnP mode `.yarnrc.yml`
-
-```bash
-nodeLinker: pnp
-
-plugins:
-  - path: .yarn/plugins/@yarnpkg/plugin-typescript.cjs
-    spec: "@yarnpkg/plugin-typescript"
-  - path: .yarn/plugins/@yarnpkg/plugin-version.cjs
-    spec: "@yarnpkg/plugin-version"
-
-yarnPath: .yarn/releases/yarn-berry.cjs
-```
 
 ### Configuring the Monorepo
 
@@ -159,9 +139,7 @@ yarnPath: .yarn/releases/yarn-berry.cjs
   "references": [
     { "path": "../../libs/eventually" },
     { "path": "../../libs/eventually-pg" }
-  ],
-  "include": ["src"],
-  "exclude": ["**/__mocks__/**", "**/__tests__/**"]
+  ]
 }
 ```
 
@@ -173,8 +151,6 @@ yarnPath: .yarn/releases/yarn-berry.cjs
 > yarn build
 > yarn test
 > yarn ./path/to/package [run script]
-> yarn ./path/to/package version [path|minor|major]
-> yarn ./path/to/package npm publish [--access public]
 ```
 
 ## Configuring VS Code Icons
@@ -257,9 +233,7 @@ Add the `tsconfig.json` file with proper references
   "references": [
     { "path": "../../libs/eventually" },
     { "path": "../../libs/eventually-express" }
-  ],
-  "include": ["src"],
-  "exclude": ["**/__mocks__/**", "**/__tests__/**"]
+  ]
 }
 ```
 
@@ -404,3 +378,8 @@ void app().listen();
 ### 5. Start fixing those tests by implementing missing logic
 
 At this point you can finish your service implementation
+
+## Version 4 Breaking Changes
+
+- Stopped using Yarn 2 PnP Linker and Version Plugin - Back to node_modules and manual versioning until these tools are more stable
+- Independent library "build" scripts

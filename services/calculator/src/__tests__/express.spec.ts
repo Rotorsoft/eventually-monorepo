@@ -1,4 +1,11 @@
-import { app, bind, Message, Payload, Snapshot } from "@rotorsoft/eventually";
+import {
+  app,
+  bind,
+  dispose,
+  Message,
+  Payload,
+  Snapshot
+} from "@rotorsoft/eventually";
 import {
   ExpressApp,
   GcpGatewayMiddleware,
@@ -13,7 +20,8 @@ import { CalculatorModel, Keys } from "../calculator.models";
 import { StatelessCounter } from "../counter.policy";
 
 const chance = new Chance();
-const t = tester();
+const port = 4000;
+const t = tester(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
@@ -41,13 +49,11 @@ const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
   t.command(Calculator, bind("Reset", undefined, id));
 
 describe("express app", () => {
-  beforeAll(async () => {
-    await app().listen();
+  beforeAll(() => {
+    expressApp.listen(false, port);
   });
-
-  afterAll(async () => {
-    await app().close();
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   describe("Calculator", () => {
@@ -220,10 +226,14 @@ describe("express app", () => {
     beforeAll(async () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
+      await t.sleep(200);
       created_after = new Date();
+      await t.sleep(200);
       await pressKey(id, "2");
       await pressKey(id, ".");
+      await t.sleep(200);
       created_before = new Date();
+      await t.sleep(200);
       await pressKey(id, "3");
       await pressKey(id, "=");
     });

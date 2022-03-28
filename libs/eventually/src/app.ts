@@ -116,23 +116,9 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Initializes application store
-   * Concrete implementations provide the listening framework
+   * Concrete implementations should provide the listening framework
    */
-  async listen(): Promise<void> {
-    await store().init();
-    await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
-  }
-
-  /**
-   * Closes the listening app
-   */
-  async close(): Promise<void> {
-    await store().close();
-    await Promise.all(
-      Object.values(this._snapshotStores).map((s) => s.close())
-    );
-  }
+  abstract listen(): void;
 
   /**
    * Handles command

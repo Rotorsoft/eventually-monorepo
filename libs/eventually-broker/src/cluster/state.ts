@@ -24,7 +24,7 @@ import {
   SubscriptionViewModel
 } from "./types";
 
-export const state = singleton((): State => {
+export const state = singleton(function state(): State {
   const _services: Record<string, Service> = {};
   const _channels: Record<number, ChannelConfig> = {};
   const _states: Record<string, SubscriptionState> = {};
@@ -77,8 +77,9 @@ export const state = singleton((): State => {
 
   const run = async (id: string, position?: number): Promise<void> => {
     try {
-      const { channel } = (_services[id] =
-        _services[id] || (await subscriptions().loadServices(id))[0]);
+      const { channel } = (_services[id] = (
+        await subscriptions().loadServices(id)
+      )[0]);
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
       const config: ChannelConfig = {
         id,
@@ -275,8 +276,9 @@ export const state = singleton((): State => {
       _states[id].channelStatus = signal || `E${code}`;
       emitSSE(id);
     });
-    // reload worker when active and interrupted by recoverable runtime errors
-    (code || signal === "SIGINT") && void run(channel.id, channel.position);
+    // TODO: implement an exit counter to avoid exit loops
+    // re-run when exit code == 0
+    !code && void run(channel.id, channel.position);
   });
 
   return {

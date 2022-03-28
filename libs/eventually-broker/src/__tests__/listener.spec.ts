@@ -1,32 +1,29 @@
-import { bind, store } from "@rotorsoft/eventually";
+import { bind, dispose, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import {
   PostgresStreamListenerFactory,
   PostgresSubscriptionStore,
-  StreamListener,
   subscriptions,
   TriggerCallback
 } from "..";
 
 store(PostgresStore("channel_test"));
-subscriptions(PostgresSubscriptionStore("listener_test"));
+subscriptions(PostgresSubscriptionStore());
 
 describe("listener", () => {
-  let listener: StreamListener;
   let pumped = 0;
-
   const pump: TriggerCallback = () => {
     pumped++;
     return Promise.resolve();
   };
 
   beforeAll(async () => {
-    listener = PostgresStreamListenerFactory();
-    await listener.listen("id1", new URL("pg://channel_test"), pump);
+    PostgresStreamListenerFactory("id1", new URL("pg://channel_test"), pump);
+    await store().seed();
   });
 
-  afterAll(async () => {
-    await listener.close();
+  afterAll(() => {
+    dispose()();
   });
 
   it("should trigger subscription", async () => {

@@ -1,27 +1,22 @@
 import { app } from "..";
 import { SnapshotStore } from "../interfaces";
 
-let _store: Record<string, any> = {};
-export const InMemorySnapshotStore = (): SnapshotStore => ({
-  init: async () => {
-    _store = {};
-    return Promise.resolve();
-  },
+export const InMemorySnapshotStore = (): SnapshotStore => {
+  const _store: Record<string, any> = {};
 
-  close: async () => {
-    _store = {};
-    return Promise.resolve();
-  },
+  return {
+    seed: () => undefined,
 
-  read: (stream) => {
-    _store[stream] &&
-      app().log.trace("white", `Snapshot loaded for stream ${stream}`);
-    return Promise.resolve(_store[stream]);
-  },
+    read: (stream) => {
+      _store[stream] &&
+        app().log.trace("white", `Snapshot loaded for stream ${stream}`);
+      return Promise.resolve(_store[stream]);
+    },
 
-  upsert: (stream, data) => {
-    _store[stream] = data;
-    app().log.trace("white", `Snapshot created for stream ${stream}`);
-    return Promise.resolve();
-  }
-});
+    upsert: (stream, data) => {
+      _store[stream] = data;
+      app().log.trace("white", `Snapshot created for stream ${stream}`);
+      return Promise.resolve();
+    }
+  };
+};

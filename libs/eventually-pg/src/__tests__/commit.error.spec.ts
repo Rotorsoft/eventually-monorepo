@@ -1,4 +1,10 @@
-import { Errors, CommittedEvent, Payload, bind } from "@rotorsoft/eventually";
+import {
+  Errors,
+  CommittedEvent,
+  Payload,
+  bind,
+  dispose
+} from "@rotorsoft/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 
@@ -30,11 +36,11 @@ const query = (
 
 describe("Mocked", () => {
   beforeAll(async () => {
-    await db.init();
+    await db.seed();
   });
 
-  afterAll(async () => {
-    await db.close();
+  afterAll(() => {
+    dispose()();
   });
 
   afterEach(() => {

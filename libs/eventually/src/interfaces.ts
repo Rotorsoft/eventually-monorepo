@@ -15,12 +15,7 @@ export interface Store {
   /**
    * Store initializer
    */
-  init: (seed?: boolean) => Promise<void>;
-
-  /**
-   * Store closer
-   */
-  close: () => Promise<void>;
+  seed: () => Promise<void>;
 
   /**
    * Queries the event store
@@ -60,12 +55,7 @@ export interface SnapshotStore {
   /**
    * Store initializer
    */
-  init: (seed?: boolean) => Promise<void>;
-
-  /**
-   * Store closer
-   */
-  close: () => Promise<void>;
+  seed: () => Promise<void>;
 
   /**
    * Reads snapshot from store for stream

@@ -56,21 +56,17 @@ export type TriggerCallback = (trigger: TriggerPayload) => Promise<void>;
 /**
  * Stream listeners listen for stream notifications and trigger integrations
  */
-export type StreamListener = {
-  listen: (
-    id: string,
-    channel: URL,
-    callback: TriggerCallback
-  ) => Promise<void>;
-  close: () => Promise<void>;
-};
-export type StreamListenerFactory = () => StreamListener;
+export type StreamListenerFactory = (
+  id: string,
+  channel: URL,
+  callback: TriggerCallback
+) => void;
 
 /**
  * Pull channels pull events from streams
  */
 export type PullChannel = {
-  listen: (callback: TriggerCallback) => Promise<void>;
+  listen: (callback: TriggerCallback) => void;
   pull: (
     position: number,
     limit: number

@@ -34,15 +34,7 @@ export const InMemoryStore = (): Store => {
   };
 
   return {
-    init: (): Promise<void> => {
-      _events.length = 0;
-      return;
-    },
-
-    close: (): Promise<void> => {
-      _events.length = 0;
-      return;
-    },
+    seed: () => undefined,
 
     query: (
       callback: (event: CommittedEvent<string, Payload>) => void,

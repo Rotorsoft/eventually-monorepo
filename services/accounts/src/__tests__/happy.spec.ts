@@ -1,6 +1,6 @@
 // process.env.LOG_LEVEL = "trace";
 
-import { app } from "@rotorsoft/eventually";
+import { app, dispose } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -48,12 +48,12 @@ const trigger = (id: string): any => ({
 });
 
 describe("happy path", () => {
-  beforeAll(async () => {
-    await app().listen();
+  beforeAll(() => {
+    app().listen();
   });
 
-  afterAll(async () => {
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   it("should complete integration 1-2", async () => {

@@ -126,3 +126,6 @@ We group unit tests inside `__tests__` folders. Tests should mainly focus on tes
 
 - Removed messages scopes (public/private) and `.withPrivate` builder option. TODO - reasons
 - Decoupled `broker` from framework and removed `.withTopic` from builder. **Services should be agnostic of system integrations**. A new `./services/broker` service was added as an implementation template for this higher level responsibility.
+- Independent **seed** function in stores, to be called by service bootstrap logic or CI/CD pipelines accordining to hosting options
+- Stores (and singletons in general) are initialized by factories when invoked for the first time, and those resources are disposed by new **dispose** utility - Removed init/close pattern
+- Use dispose()() in unit tests teardown

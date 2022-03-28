@@ -1,16 +1,16 @@
-import { Service, StreamListenerFactory, Subscription } from "./types";
+import { Service, Subscription, TriggerCallback } from "./types";
 
 export interface SubscriptionStore {
   /**
    * Store initializer
    * @returns a stream listener factory for this store
    */
-  init: (seed?: boolean) => Promise<StreamListenerFactory>;
+  seed: () => Promise<void>;
 
   /**
-   * Store closer
+   * Starts listening to a channel
    */
-  close: () => Promise<void>;
+  listen: (id: string, channel: URL, callback: TriggerCallback) => void;
 
   /**
    * Loads services from store

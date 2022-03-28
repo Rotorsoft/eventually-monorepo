@@ -24,7 +24,9 @@ type Sub = SubscriptionConfig & {
 };
 
 const triggerLog = ({ operation, retries, position }: TriggerPayload): string =>
-  `[${operation}${retries || ""}${position ? `@${position}` : ""}]`;
+  `[${operation}${retries || ""}${
+    position ? `@${position}` : ""
+  } ${new Date().toISOString()}]`;
 
 const sendTrigger = (trigger: TriggerPayload): boolean =>
   process.send({ trigger });
@@ -101,6 +103,8 @@ export const work = (resolvers: ChannelResolvers): void => {
   });
 
   const BATCH_SIZE = 100;
+  const RETRY_TIMEOUT = 10000;
+
   const pumpSub = async (
     sub: Sub,
     trigger: TriggerPayload
@@ -180,7 +184,7 @@ export const work = (resolvers: ChannelResolvers): void => {
               position: trigger.position
             }
           ),
-        5000 * retries
+        RETRY_TIMEOUT * retries
       ));
     pumping = false;
   };
@@ -202,7 +206,7 @@ export const work = (resolvers: ChannelResolvers): void => {
       }
     }
     sendStats(config, { batches: 0, total: 0, events: {} });
-    !Object.keys(_subs).length && process.exit(0);
+    !Object.keys(_subs).length && process.exit(1);
   });
 
   void pumpChannel({

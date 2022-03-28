@@ -3,6 +3,7 @@ import {
   app,
   bind,
   CommittedEvent,
+  dispose,
   Errors,
   log,
   Payload,
@@ -44,14 +45,13 @@ const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
   app().command(bind("Reset", undefined, id));
 
 describe("in memory", () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     jest.clearAllMocks();
-    await app().listen();
+    app().listen();
   });
 
-  afterAll(async () => {
-    app().log.trace("green", "Closing in memory app");
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   describe("calculator", () => {

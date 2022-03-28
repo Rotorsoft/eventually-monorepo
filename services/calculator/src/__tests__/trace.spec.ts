@@ -1,6 +1,6 @@
 process.env.LOG_LEVEL = "trace";
 
-import { app, bind } from "@rotorsoft/eventually";
+import { app, bind, dispose } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
@@ -21,12 +21,12 @@ app()
   .build();
 
 describe("trace in test mode", () => {
-  beforeAll(async () => {
-    await app().listen();
+  beforeAll(() => {
+    app().listen();
   });
 
-  afterAll(async () => {
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   describe("calculator", () => {

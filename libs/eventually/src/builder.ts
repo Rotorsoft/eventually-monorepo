@@ -185,22 +185,19 @@ export class Builder {
     return this;
   }
 
-  private async getSnapshotStore<M extends Payload, E>(
+  private getSnapshotStore<M extends Payload, E>(
     reducible: Reducible<M, E>
-  ): Promise<SnapshotStore> {
+  ): SnapshotStore {
     const factory = reducible?.snapshot?.factory || InMemorySnapshotStore;
     let store = this._snapshotStores[factory.name];
-    if (!store) {
-      store = this._snapshotStores[factory.name] = factory();
-      await store.init();
-    }
+    !store && (store = this._snapshotStores[factory.name] = factory());
     return store;
   }
 
   protected async readSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>
   ): Promise<Snapshot<M>> {
-    const store = await this.getSnapshotStore(reducible);
+    const store = this.getSnapshotStore(reducible);
     return await store.read(reducible.stream());
   }
 
@@ -208,7 +205,7 @@ export class Builder {
     reducible: Reducible<M, E>,
     snapshot: Snapshot<M>
   ): Promise<void> {
-    const store = await this.getSnapshotStore(reducible);
+    const store = this.getSnapshotStore(reducible);
     await store.upsert(reducible.stream(), snapshot);
   }
 

@@ -1,4 +1,4 @@
-import { CommittedEvent, Payload } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, Payload } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { PostgresSnapshotStore } from "..";
 import { config } from "../config";
@@ -17,8 +17,7 @@ describe("snapshots", () => {
   beforeAll(async () => {
     pool = new Pool(config.pg);
     await pool.query(`DROP TABLE IF EXISTS ${table};`);
-    await db.init();
-    await db.init();
+    await db.seed();
   });
 
   beforeEach(async () => {
@@ -27,7 +26,7 @@ describe("snapshots", () => {
 
   afterAll(async () => {
     await pool.end();
-    await db.close();
+    dispose()();
   });
 
   it("should insert snapshot with no error", async () => {

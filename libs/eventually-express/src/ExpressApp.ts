@@ -6,6 +6,7 @@ import {
   bind,
   CommittedEvent,
   config,
+  dispose,
   Errors,
   Getter,
   Payload,
@@ -307,7 +308,7 @@ export class ExpressApp extends AppBase {
    * @param silent flag to skip express listening when using cloud functions
    * @param port to override port in config
    */
-  async listen(silent = false, port?: number): Promise<void> {
+  listen(silent = false, port?: number): void {
     const { service, version, env, logLevel } = config();
     port = port || config().port;
     this._app.get("/_health", (_, res: Response) => {
@@ -350,25 +351,23 @@ export class ExpressApp extends AppBase {
       }
     );
 
-    await super.listen();
-    if (silent) this.log.info("white", "Config", undefined, config());
-    else
+    const _config = { env, port, logLevel, service, version };
+    if (silent) this.log.info("white", "Config", undefined, _config);
+    else {
+      this.log.info("bgGreen", `[${process.pid}]`, "✨ExpressApp...");
       this._server = this._app.listen(port, () => {
         !cluster.isWorker &&
           this.log.info(
             "white",
             "Express app is listening",
             undefined,
-            config()
+            _config
           );
       });
-  }
-
-  async close(): Promise<void> {
-    await super.close();
-    if (this._server) {
-      this._server.close();
-      delete this._server;
+      dispose(() => {
+        this.log.info("bgRed", `[${process.pid}]`, "💣ExpressApp...");
+        this._server.close();
+      });
     }
   }
 }
