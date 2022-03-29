@@ -14,13 +14,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "start:dev": "ts-node-dev --inspect=9229 --transpile-only --respawn -r tsconfig-paths/register ./src/index.ts",
     "start": "node index.js"
   },
   "dependencies": {
     "@rotorsoft/eventually-broker": "workspace:^0"
-  },
-  "devDependencies": {
-    "ts-node-dev": "^1.1.8"
   }
 }

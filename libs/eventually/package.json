@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build --verbose"
+    "build": "tsc --build"
   },
   "dependencies": {
     "chalk": "~4",

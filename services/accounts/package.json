@@ -14,7 +14,6 @@
   },
   "main": "index.js",
   "scripts": {
-    "start:dev": "yarn run ts-node-dev --respawn ./src/index.ts",
     "start": "node index.js"
   },
   "dependencies": {
@@ -22,8 +21,5 @@
     "@rotorsoft/eventually-express": "workspace:^4",
     "joi": "^17.6.0",
     "uuid": "^8.3.2"
-  },
-  "devDependencies": {
-    "ts-node-dev": "^1.1.8"
   }
 }

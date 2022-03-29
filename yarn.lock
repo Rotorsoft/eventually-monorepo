@@ -766,7 +766,6 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-express": "workspace:^4"
     joi: ^17.6.0
-    ts-node-dev: ^1.1.8
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
@@ -776,7 +775,6 @@ __metadata:
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
     "@rotorsoft/eventually-broker": "workspace:^0"
-    ts-node-dev: ^1.1.8
   languageName: unknown
   linkType: soft
 
@@ -787,7 +785,6 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-express": "workspace:^4"
     joi: ^17.6.0
-    ts-node-dev: ^1.1.8
   languageName: unknown
   linkType: soft
 

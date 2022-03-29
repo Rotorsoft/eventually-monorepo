@@ -20,6 +20,7 @@
     "services/*"
   ],
   "scripts": {
+    "dev": "sh ./scripts/dev.sh",
     "clean": "sh ./scripts/clean.sh",
     "build": "yarn workspaces foreach run build",
     "test": "yarn jest",

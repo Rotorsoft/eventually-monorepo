@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build --verbose && cp -R ./src/views ./dist/views && cp -R ./src/public ./dist/public"
+    "build": "tsc --build && cp -R ./src/views ./dist/views && cp -R ./src/public ./dist/public"
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^4",
