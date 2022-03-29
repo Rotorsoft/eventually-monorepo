@@ -1,5 +1,4 @@
-import { Aggregate, bind } from "@rotorsoft/eventually";
-import { PostgresSnapshotStore } from "@rotorsoft/eventually-pg";
+import { Aggregate, bind, InMemorySnapshotStore } from "@rotorsoft/eventually";
 import { Commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import {
@@ -38,7 +37,7 @@ export const Calculator = (
   Omit<Events, "Ignored1" | "Ignored2" | "Forgotten">
 > => ({
   snapshot: {
-    factory: PostgresSnapshotStore,
+    factory: InMemorySnapshotStore,
     threshold: 2
   },
   stream: () => `Calculator-${id}`,

@@ -1,5 +1,7 @@
 import * as crypto from "crypto";
 import * as joi from "joi";
+import { Store } from "./interfaces";
+import { singleton } from "./singleton";
 import {
   Actor,
   Command,
@@ -14,6 +16,11 @@ import {
   ReducibleFactory,
   Streamable
 } from "./types";
+import { InMemoryStore } from "./__dev__";
+
+export const store = singleton(function store(store?: Store) {
+  return store || InMemoryStore();
+});
 
 /**
  * Binds message arguments
@@ -79,7 +86,7 @@ export const eventsOf = <M extends Payload, E>(
     .filter(([key, value]) => {
       return typeof value === "function" && key.startsWith("apply");
     })
-    .map(([key]) => key.substr(5));
+    .map(([key]) => key.substring(5));
 };
 
 /**
@@ -94,7 +101,7 @@ export const messagesOf = <M extends Payload, C, E>(
     .filter(([key, value]) => {
       return typeof value === "function" && key.startsWith("on");
     })
-    .map(([key]) => key.substr(2));
+    .map(([key]) => key.substring(2));
 };
 
 /**

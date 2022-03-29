@@ -6,11 +6,8 @@ app.yaml
 .DS_Store
 data
 node_modules
-
-# Yarn 2
 .yarn/*
-!.yarn/cache
+!.yarn/patches
 !.yarn/releases
 !.yarn/plugins
 !.yarn/sdks
-!.yarn/versions

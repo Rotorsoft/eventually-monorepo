@@ -16,6 +16,9 @@ if [[ ! -d "${target}" ]]; then
     exit 1
 fi; 
 
+echo "Building service [${service}]..."
+tsc --build ${target}
+
 echo "Deploying service [${service}]..."
 
 sed 's/"workspace:/"/g' "${target}/package.json" > "${target}/dist/package.json"

@@ -1,0 +1,22 @@
+{
+  "name": "@rotorsoft/broker",
+  "version": "0.1.4",
+  "description": "Broker Service",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "services/broker"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@rotorsoft/eventually-broker": "workspace:^0"
+  }
+}

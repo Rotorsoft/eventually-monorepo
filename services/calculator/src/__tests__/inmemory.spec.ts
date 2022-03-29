@@ -2,15 +2,16 @@ import {
   Actor,
   app,
   bind,
-  broker,
   CommittedEvent,
+  dispose,
   Errors,
+  InMemorySnapshotStore,
   log,
   Payload,
   Snapshot,
   store
 } from "@rotorsoft/eventually";
-import { sleep } from "@rotorsoft/eventually-test";
+import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Forget } from "../forget.system";
@@ -21,10 +22,13 @@ import { Events } from "../calculator.events";
 import { Counter, IgnoredHandler } from "../counter.policy";
 
 const chance = new Chance();
+const t = tester();
 
 app()
-  .withCommandHandlers(Calculator, Forget)
-  .withEventHandlers(Counter, IgnoredHandler)
+  .withCommandHandlers(Forget)
+  .withAggregate(Calculator, "testing calculator")
+  .withPolicy(IgnoredHandler, "ignored")
+  .withProcessManager(Counter, "counter")
   .withSchemas<Pick<Commands, "PressKey">>({
     PressKey: schemas.PressKey
   })
@@ -32,14 +36,6 @@ app()
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
-  .withTopic<Events>({ name: "mytopic" }, "DigitPressed", "DotPressed")
-  .withPrivate<Commands>("Whatever", "Reset")
-  .withPrivate<Events>(
-    "OperatorPressed",
-    "EqualsPressed",
-    "Ignored1",
-    "Ignored3"
-  )
   .build();
 
 const pressKey = (
@@ -53,13 +49,17 @@ const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
 
 describe("in memory", () => {
   beforeAll(async () => {
+    // just to cover seeds
+    await store().seed();
+    const ss = InMemorySnapshotStore();
+    await ss.seed();
+
     jest.clearAllMocks();
-    await app().listen();
+    app().listen();
   });
 
-  afterAll(async () => {
-    app().log.trace("green", "Closing in memory app");
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   describe("calculator", () => {
@@ -215,14 +215,6 @@ describe("in memory", () => {
         "Don't have an operator"
       );
     });
-
-    it("should publish public events only", async () => {
-      const id = chance.guid();
-      const publishSpy = jest.spyOn(broker(), "publish");
-      const snapshots = await reset(id);
-      expect(snapshots.length).toBe(3);
-      expect(publishSpy).toHaveBeenCalledTimes(2);
-    });
   });
 
   describe("Counter", () => {
@@ -231,19 +223,13 @@ describe("in memory", () => {
 
       // GIVEN
       await reset(id);
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
       await pressKey(id, ".");
-      await sleep(100);
 
       // WHEN
       await pressKey(id, "3");
-      await sleep(500);
 
       // THEN
       const { event, state } = await app().load(Calculator(id));
@@ -258,19 +244,13 @@ describe("in memory", () => {
 
       // GIVEN
       await reset(id);
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "1");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
       await pressKey(id, "2");
-      await sleep(100);
 
       // WHEN
       await pressKey(id, ".");
-      await sleep(100);
 
       // THEN
       const { state } = await app().load(Calculator(id));
@@ -285,12 +265,18 @@ describe("in memory", () => {
     beforeAll(async () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
+
+      await t.sleep(100);
       created_after = new Date();
-      await sleep(100);
+      await t.sleep(100);
+
       await pressKey(id, "2");
       await pressKey(id, ".");
-      await sleep(100);
+
+      await t.sleep(100);
       created_before = new Date();
+      await t.sleep(100);
+
       await pressKey(id, "3");
       await pressKey(id, "=");
     });

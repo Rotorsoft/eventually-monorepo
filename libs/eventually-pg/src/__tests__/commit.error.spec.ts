@@ -1,13 +1,21 @@
-import { Errors, CommittedEvent, Payload, bind } from "@rotorsoft/eventually";
+import {
+  Errors,
+  CommittedEvent,
+  Payload,
+  bind,
+  dispose
+} from "@rotorsoft/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
+
+const db = PostgresStore("commit_error_test");
 
 const query = (
   sql: string
 ): Promise<QueryResult<CommittedEvent<string, Payload>>> => {
-  if (sql === "COMMIT") {
-    return Promise.reject("commit error");
-  }
+  const commit = sql.indexOf("COMMIT");
+  if (commit > 0) return Promise.reject("mocked commit error");
+
   return Promise.resolve({
     rowCount: 1,
     rows: [
@@ -27,14 +35,12 @@ const query = (
 };
 
 describe("Mocked", () => {
-  const db2 = PostgresStore("db2");
-
   beforeAll(async () => {
-    await db2.init();
+    await db.seed();
   });
 
-  afterAll(async () => {
-    await db2.close();
+  afterAll(() => {
+    dispose()();
   });
 
   afterEach(() => {
@@ -49,7 +55,7 @@ describe("Mocked", () => {
       }
     }));
     await expect(
-      db2.commit("stream", [bind("test", {})], {
+      db.commit("stream", [bind("test", {})], {
         correlation: "",
         causation: {}
       })

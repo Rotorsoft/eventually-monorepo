@@ -1,40 +1,13 @@
 import * as joi from "joi";
 import { SnapshotStore } from ".";
 
+//=====================================================================================
+// COMMAND LEVEL
+//=====================================================================================
 /**
  * Message payloads are objects
  */
 export type Payload = Record<string, unknown>;
-
-/**
- * Message scopes can be
- * - `public` to expose public endpoints (HTTP command and event handlers), and publish events to brokers for async communication - **default**
- * - `private` to connect messages synchronously (in-process)
- */
-export enum Scopes {
-  private = "private",
-  public = "public"
-}
-
-/**
- * Topics to pub/sub public messages
- */
-export type Topic = {
-  name: string;
-  orderingKey?: string;
-};
-
-/**
- * Message options
- * - `scope` public or private
- * - `schema?` Optional validation schema
- * - `topic?` Optional pub/sub topic options
- */
-export type Options<Type extends Payload> = {
-  scope: Scopes;
-  schema?: joi.ObjectSchema<Type>;
-  topic?: Topic;
-};
 
 /**
  * Messages have
@@ -189,44 +162,6 @@ export type ProcessManagerFactory<M extends Payload, C, E> = (
 ) => ProcessManager<M, C, E>;
 
 /**
- * Options to query the all stream
- * - stream? filter by stream
- * - names? filter by event names
- * - before? filter events before this id
- * - after? filter events after this id
- * - limit? limit the number of events to return
- * - created_before? filter events created before this date/time
- * - created_after? filter events created after this date/time
- */
-export type AllQuery = {
-  readonly stream?: string;
-  readonly names?: string[];
-  readonly before?: number;
-  readonly after?: number;
-  readonly limit?: number;
-  readonly created_before?: Date;
-  readonly created_after?: Date;
-};
-
-/**
- * Apps are getters of reducibles
- */
-export type Getter = <M extends Payload, E>(
-  reducible: Reducible<M, E>,
-  useSnapshot?: boolean,
-  callback?: (snapshot: Snapshot<M>) => void
-) => Promise<Snapshot<M> | Snapshot<M>[]>;
-
-/**
- * All message handler types
- */
-export type MessageHandler<M extends Payload, C, E> =
-  | Aggregate<M, C, E>
-  | ExternalSystem<C, E>
-  | ProcessManager<M, C, E>
-  | Policy<C, E>;
-
-/**
  * All message handler factory types
  */
 export type MessageHandlerFactory<M extends Payload, C, E> =
@@ -254,6 +189,47 @@ export type CommandHandler<M extends Payload, C, E> =
 export type EventHandler<M extends Payload, C, E> =
   | ProcessManager<M, C, E>
   | Policy<C, E>;
+
+/**
+ * All message handler types
+ */
+export type MessageHandler<M extends Payload, C, E> =
+  | Aggregate<M, C, E>
+  | ExternalSystem<C, E>
+  | ProcessManager<M, C, E>
+  | Policy<C, E>;
+
+//=====================================================================================
+// QUERY LEVEL
+//=====================================================================================
+/**
+ * Options to query the all stream
+ * - stream? filter by stream
+ * - names? filter by event names
+ * - before? filter events before this id
+ * - after? filter events after this id
+ * - limit? limit the number of events to return
+ * - created_before? filter events created before this date/time
+ * - created_after? filter events created after this date/time
+ */
+export type AllQuery = {
+  readonly stream?: string;
+  readonly names?: string[];
+  readonly before?: number;
+  readonly after?: number;
+  readonly limit?: number;
+  readonly created_before?: Date;
+  readonly created_after?: Date;
+};
+
+/**
+ * Apps are getters of reducibles
+ */
+export type Getter = <M extends Payload, E>(
+  reducible: Reducible<M, E>,
+  useSnapshot?: boolean,
+  callback?: (snapshot: Snapshot<M>) => void
+) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 /**
  * Store stats

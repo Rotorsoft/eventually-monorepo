@@ -1,0 +1,89 @@
+{{#if edit}}
+  <input name="id" type="text" value="{{id}}" hidden />
+{{else}}
+  <div class="form-floating mb-3">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingId"
+      placeholder="Id"
+      name="id"
+      value="{{id}}"
+      required
+    />
+    <label class="px-4" for="floatingId">Id</label>
+  </div>
+{{/if}}
+
+<div class="form-floating mb-3">
+  <select
+    class="form-control"
+    id="floatingProducer"
+    placeholder="Producer"
+    name="producer"
+  >
+    <option value="{{producer}}" selected>{{producer}}</option>
+    {{#each services}}
+      <option value="{{this.id}}">{{this.id}}</option>
+    {{/each}}
+  </select>
+  <label class="px-4" for="floatingProducer">Producer</label>
+</div>
+
+<div class="form-floating mb-3">
+  <select
+    class="form-control"
+    id="floatingConsumer"
+    placeholder="Consumer"
+    name="consumer"
+  >
+    <option value="{{consumer}}" selected>{{consumer}}</option>
+    {{#each services}}
+      <option value="{{this.id}}">{{this.id}}</option>
+    {{/each}}
+  </select>
+  <label class="px-4" for="floatingConsumer">Consumer</label>
+</div>
+
+<div class="form-floating mb-3">
+  <input
+    type="text"
+    class="form-control"
+    id="floatingPath"
+    placeholder="Path"
+    name="path"
+    value="{{path}}"
+    required
+  />
+  <label class="px-4" for="floatingPath">Path</label>
+</div>
+
+<div class="form-floating mb-3">
+  <input
+    type="text"
+    class="form-control"
+    id="floatingStreams"
+    placeholder="Streams"
+    name="streams"
+    value="{{streams}}"
+    required
+  />
+  <label class="px-4" for="floatingStreams">Streams</label>
+</div>
+
+<div class="form-floating mb-3">
+  <input
+    type="text"
+    class="form-control"
+    id="floatingNames"
+    placeholder="Names"
+    name="names"
+    value="{{names}}"
+    required
+  />
+  <label class="px-4" for="floatingNames">Names</label>
+</div>
+
+<div class="mb-3">
+  <button class="btn btn-primary" type="submit">Submit</button>
+</div>

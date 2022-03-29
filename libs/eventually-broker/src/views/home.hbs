@@ -1,0 +1,97 @@
+<div class="row">
+  <div class="col-6">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Subscriptions</li>
+      </ol>
+    </nav>
+  </div>
+  <div class="col-6 d-flex justify-content-end">
+    <a href="/_add" type="button" class="btn btn-primary align-self-center"><i
+        class="bi bi-plus"
+      ></i>
+      Add</a>
+  </div>
+</div>
+
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Id</th>
+      <th>Status</th>
+      <th>Session</th>
+      <th scope="col">Producer</th>
+      <th scope="col">Consumer</th>
+      <th scope="col">Path</th>
+      <th scope="col">Streams</th>
+      <th scope="col">Names</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each rows}}
+      <tr class="{{#unless this.active}}table-secondary{{/unless}}">
+        <td scope="row">
+          <a href="/{{this.id}}">{{this.id}}</a>
+        </td>
+        <td id="status-{{this.id}}"></td>
+        <td id="session-{{this.id}}"></td>
+        <td><a href="/_services/{{this.producer}}">{{this.producer}}</a></td>
+        <td><a href="/_services/{{this.consumer}}">{{this.consumer}}</a></td>
+        <td>{{this.path}}</td>
+        <td>{{this.streams}}</td>
+        <td>{{this.names}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<script>
+  const es = new EventSource("/_monitor-all");
+
+  const badge = (count, cls) => 
+    count > 0 ? `<span class="${cls}">${count}</span>` : "";
+
+  const refresh = (state) => {
+    const { id, position, channelPosition, endpointStatus, total, events } = state;
+
+    const statusTd = document.getElementById(`status-${id}`);
+    statusTd && (statusTd.innerHTML=`
+      <div class="counters text-${endpointStatus.color}">
+        <i class="bi ${endpointStatus.icon}"></i>&nbsp;
+        ${position < channelPosition 
+          ? `<b style='color:silver'>${position}</b><b>/${channelPosition}</b>` 
+          : `<b>${position}</b>`}
+      </div>`
+    );
+
+    const a = events.reduce((a,e) => {
+      a.ok += e.ok ? e.ok.count : 0;
+      a.ignored += e.ignored ? e.ignored.count : 0;
+      a.retryable += e.retryable ? e.retryable.count : 0;
+      a.critical += e.critical ? e.critical.count : 0;
+      return a;
+    }, { ok:0, ignored:0, retryable:0, critical:0 });
+
+    const sessionTd = document.getElementById(`session-${id}`);
+    sessionTd && (sessionTd.innerHTML = `
+      <div class="counters">
+        ${badge(a.ok, "ok")}
+        ${badge(a.ignored, "ignored")}
+        ${badge(a.retryable, "retryable")}
+        ${badge(a.critical, "critical")}
+      </div>`
+    );
+  };
+
+  es.onmessage = ({ data }) => {
+    const props = JSON.parse(data);
+    refresh(props);
+  };
+
+  es.onerror = (error) => {
+    console.error(error);
+  };
+
+  const { rows } = {{{json this}}};
+  rows.map(row => refresh(row));
+</script>

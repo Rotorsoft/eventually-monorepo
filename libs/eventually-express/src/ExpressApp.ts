@@ -4,9 +4,9 @@ import {
   AllQuery,
   AppBase,
   bind,
-  broker,
   CommittedEvent,
   config,
+  dispose,
   Errors,
   Getter,
   Payload,
@@ -15,6 +15,7 @@ import {
   reduciblePath,
   store
 } from "@rotorsoft/eventually";
+import cluster from "cluster";
 import cors from "cors";
 import express, {
   NextFunction,
@@ -27,6 +28,41 @@ import express, {
 import { Server } from "http";
 import * as swaggerUI from "swagger-ui-express";
 import { swagger } from "./swagger";
+
+const redoc = (title: string): string => `<!DOCTYPE html>
+<html>
+  <head>
+    <title>${title}</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <redoc spec-url='/swagger'></redoc>
+    <script src="https://unpkg.com/redoc@latest/bundles/redoc.standalone.js"> </script>
+  </body>
+</html>`;
+
+const rapidoc = (title: string): string => `<!doctype html>
+<html>
+<head>
+  <title>${title}</title>
+  <meta charset="utf-8">
+  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+</head>
+<body>
+  <rapi-doc
+    spec-url="/swagger"
+    theme = "dark"
+  > </rapi-doc>
+</body>
+</html>`;
 
 export class ExpressApp extends AppBase {
   private _app = express();
@@ -196,7 +232,7 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
-              const message = broker().decode(req.body);
+              const message = req.body;
               const meta = this.messages[message.name];
               if (meta && meta.eventHandlerFactories[path]) {
                 const response = await this.event(factory, message as any);
@@ -227,8 +263,15 @@ export class ExpressApp extends AppBase {
     super.build();
     this._buildCommandHandlers();
     this._buildEventHandlers();
-    this._buildAllStreamRoute();
-    this._buildStatsRoute();
+    if (
+      Object.keys(this.endpoints.commands).length ||
+      Object.values(this.endpoints.eventHandlers).filter(
+        (eh) => eh.type === "process-manager"
+      ).length
+    ) {
+      this._buildAllStreamRoute();
+      this._buildStatsRoute();
+    }
 
     this._app.set("trust proxy", true);
     this._app.use(cors());
@@ -243,30 +286,53 @@ export class ExpressApp extends AppBase {
     this._app.use(
       "/swagger-ui",
       swaggerUI.serve,
-      swaggerUI.setup(this._swagger)
+      swaggerUI.setup(this._swagger, {
+        swaggerOptions: {
+          deepLinking: true
+        }
+      })
     );
+    this._app.get("/redoc", (_, res) => {
+      res.type("html");
+      res.send(redoc(config().service));
+    });
+    this._app.get("/rapidoc", (_, res) => {
+      res.type("html");
+      res.send(rapidoc(config().service));
+    });
     return this._app;
   }
 
   /**
    * Starts listening
    * @param silent flag to skip express listening when using cloud functions
+   * @param port to override port in config
    */
-  async listen(silent = false): Promise<void> {
-    const { host, port, service, version, env, logLevel } = config();
+  listen(silent = false, port?: number): void {
+    const { service, version, env, logLevel } = config();
+    port = port || config().port;
     this._app.get("/_health", (_, res: Response) => {
       res.status(200).json({ status: "OK" });
     });
-    this._app.get("/", (_, res: Response) => {
+    this._app.get("/", (req: Request, res: Response) => {
+      const uptime = process.uptime();
+      const formattedUptime = new Date(uptime * 1000).toISOString();
       res.status(200).json({
         env,
         service,
         version,
         logLevel,
         mem: process.memoryUsage(),
-        uptime: process.uptime(),
-        swagger: `${host}/swagger-ui`,
-        health: `${host}/_health`
+        uptime:
+          uptime < 60 * 60
+            ? formattedUptime.substring(14, 5)
+            : uptime < 24 * 60 * 60
+            ? formattedUptime.substring(11, 8)
+            : formattedUptime,
+        "swagger-ui": "/swagger-ui",
+        redoc: "/redoc",
+        rapidoc: "/rapidoc",
+        health: "/_health"
       });
     });
 
@@ -285,19 +351,23 @@ export class ExpressApp extends AppBase {
       }
     );
 
-    await super.listen();
-    if (silent) this.log.info("white", "Config", undefined, config());
-    else
+    const _config = { env, port, logLevel, service, version };
+    if (silent) this.log.info("white", "Config", undefined, _config);
+    else {
+      this.log.info("bgGreen", `[${process.pid}]`, "✨ExpressApp...");
       this._server = this._app.listen(port, () => {
-        this.log.info("white", "Express app is listening", undefined, config());
+        !cluster.isWorker &&
+          this.log.info(
+            "white",
+            "Express app is listening",
+            undefined,
+            _config
+          );
       });
-  }
-
-  async close(): Promise<void> {
-    await super.close();
-    if (this._server) {
-      this._server.close();
-      delete this._server;
+      dispose(() => {
+        this.log.info("bgRed", `[${process.pid}]`, "💣ExpressApp...");
+        this._server.close();
+      });
     }
   }
 }

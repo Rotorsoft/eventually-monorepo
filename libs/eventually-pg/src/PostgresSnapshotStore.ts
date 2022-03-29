@@ -1,32 +1,29 @@
-import { app, SnapshotStore } from "@rotorsoft/eventually";
+import { app, dispose, log, SnapshotStore } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { config } from "./config";
-
-const create_script = (table: string): string => `
-CREATE TABLE IF NOT EXISTS public.${table}
-(
-  stream character varying(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY,
-  data json
-) TABLESPACE pg_default;
-ALTER TABLE public.${table} OWNER to postgres;`;
+import { snapshot } from "./seed";
 
 export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
-  let pool: Pool;
   table = table || config.pg.snapshotsTable;
+  log().info(
+    "bgGreen",
+    `[${process.pid}]`,
+    `✨PostgresSnapshotStore ${table}...`
+  );
+  const pool = new Pool(config.pg);
+
+  dispose(() => {
+    log().info(
+      "bgRed",
+      `[${process.pid}]`,
+      `💣PostgresSnapshotStore ${table}...`
+    );
+    void pool.end();
+  });
 
   return {
-    init: async () => {
-      if (!pool) {
-        pool = new Pool(config.pg);
-        await pool.query(create_script(table));
-      }
-    },
-
-    close: async () => {
-      if (pool) {
-        await pool.end();
-        pool = null;
-      }
+    seed: async () => {
+      await pool.query(snapshot(table));
     },
 
     read: async (stream) => {

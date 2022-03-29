@@ -1,8 +1,5 @@
 import { Builder } from "./builder";
-import { config } from "./config";
-import { Broker, Store } from "./interfaces";
 import { log } from "./log";
-import { singleton } from "./singleton";
 import {
   AllQuery,
   Command,
@@ -15,26 +12,16 @@ import {
   MessageHandler,
   Payload,
   Reducible,
-  Scopes,
   Snapshot
 } from "./types";
 import {
   bind,
-  eventHandlerPath,
   getReducible,
   getStreamable,
   randomId,
+  store,
   ValidationError
 } from "./utils";
-import { InMemoryBroker, InMemoryStore } from "./__dev__";
-
-export const store = singleton(function store(store?: Store) {
-  return store || InMemoryStore();
-});
-
-export const broker = singleton(function broker(broker?: Broker) {
-  return broker || InMemoryBroker();
-});
 
 interface Reader {
   load: Getter;
@@ -57,41 +44,13 @@ export abstract class AppBase extends Builder implements Reader {
         `Message metadata not found. Please register "${message.name}" with the application builder`
       );
 
-    const schema = metadata.options.schema;
-    if (schema) {
-      const { error } = schema.validate(message.data, { abortEarly: false });
+    if (metadata.schema) {
+      const { error } = metadata.schema.validate(message.data, {
+        abortEarly: false,
+        allowUnknown: true
+      });
       if (error) throw new ValidationError(error, message);
     }
-  }
-
-  /**
-   * Publishes committed events inside commit transaction to ensure "at-least-once" delivery
-   * - Private events are executed synchronously (in-process)
-   * - Public events are delegated to the broker to be published
-   * @param events the events about to commit
-   */
-  private async _publish<C, E>(
-    events: CommittedEvent<keyof E & string, Payload>[]
-  ): Promise<void> {
-    const published = await Promise.all(
-      events.map(async (e) => {
-        const msg = this.messages[e.name];
-        if (msg.options.scope === Scopes.private) {
-          // private events are invoked synchronously (in-process)
-          await Promise.all(
-            Object.values(msg.eventHandlerFactories).map(
-              (factory: EventHandlerFactory<Payload, C, E>) =>
-                this.event(factory, e)
-            )
-          );
-          return `*${e.name}`;
-        } else {
-          // public events are published by the broker
-          return broker().publish(e, this._getTopic(msg));
-        }
-      })
-    );
-    published.length && this.log.trace("red", "Published", published);
   }
 
   /**
@@ -99,16 +58,13 @@ export abstract class AppBase extends Builder implements Reader {
    * @param handler Message handler
    * @param callback Concrete message handling callback
    * @param metadata Message metadata
-   * @param publishCallback Optional callback to publish events with "at-least-once" delivery guarantees
    * @returns Reduced snapshots
    */
   private async _handle<M extends Payload, C, E>(
     handler: MessageHandler<M, C, E>,
     callback: (state: M) => Promise<Message<string, Payload>[]>,
     metadata: CommittedEventMetadata,
-    publishCallback?: (
-      events: CommittedEvent<keyof E & string, Payload>[]
-    ) => Promise<void>
+    notify = true
   ): Promise<Snapshot<M>[]> {
     const streamable = getStreamable(handler);
     const reducible = getReducible(handler);
@@ -123,7 +79,7 @@ export abstract class AppBase extends Builder implements Reader {
         events,
         metadata,
         metadata.causation.command?.expectedVersion,
-        publishCallback
+        notify
       );
       if (reducible) {
         let state = snapshot.state;
@@ -144,9 +100,10 @@ export abstract class AppBase extends Builder implements Reader {
           return { event, state };
         });
 
-        snapshot.count > reducible.snapshot?.threshold &&
-          (await this.getSnapshotStore(reducible).upsert(
-            streamable.stream(),
+        reducible.snapshot &&
+          snapshot.count > reducible.snapshot?.threshold &&
+          (await this.upsertSnapshot(
+            reducible,
             snapshots[snapshots.length - 1]
           ));
 
@@ -159,37 +116,9 @@ export abstract class AppBase extends Builder implements Reader {
   }
 
   /**
-   * Initializes application store and subscribes event handler endpoints
-   * Concrete implementations provide the listening framework
+   * Concrete implementations should provide the listening framework
    */
-  async listen(): Promise<void> {
-    await store().init();
-    await Promise.all(Object.values(this._snapshotStores).map((s) => s.init()));
-    await Promise.all(
-      Object.values(this.endpoints.eventHandlers).map(({ factory, topics }) => {
-        return Object.values(topics).map((topic) => {
-          if (topic.name !== config().service) {
-            // only subscribe to external topics
-            const url = `${config().host}${eventHandlerPath(factory)}`;
-            const sub = `${topic.name}-${config().service}.${factory.name}`;
-            return broker()
-              .subscribe(sub, url, topic)
-              .then(() => this.log.info("bgRed", " SUB ", topic.name, url));
-          }
-        });
-      })
-    );
-  }
-
-  /**
-   * Closes the listening app
-   */
-  async close(): Promise<void> {
-    await store().close();
-    await Promise.all(
-      Object.values(this._snapshotStores).map((s) => s.close())
-    );
-  }
+  abstract listen(): void;
 
   /**
    * Handles command
@@ -219,8 +148,7 @@ export abstract class AppBase extends Builder implements Reader {
           ...metadata?.causation,
           ...{ command }
         }
-      },
-      this._publish.bind(this)
+      }
     );
   }
 
@@ -254,7 +182,8 @@ export abstract class AppBase extends Builder implements Reader {
         command && (await this.command<M, C, E>(command, metadata));
         return [bind(name, data)];
       },
-      metadata
+      metadata,
+      false // dont notify events committed by process managers to avoid loops
     );
     return { command, state };
   }
@@ -275,7 +204,7 @@ export abstract class AppBase extends Builder implements Reader {
     const snapshot =
       useSnapshots &&
       reducible.snapshot &&
-      (await this.getSnapshotStore(reducible).read<M>(reducible.stream()));
+      (await this.readSnapshot(reducible));
     let state = snapshot?.state || reducible.init();
     let event = snapshot?.event;
     let count = 0;

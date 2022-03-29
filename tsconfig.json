@@ -1,15 +1,16 @@
 {
-  "extends": "./tsconfig.base.json",
-  "references": [
-    { "path": "./libs/eventually" },
-    { "path": "./libs/eventually-express" },
-    { "path": "./libs/eventually-pg" },
-    { "path": "./libs/eventually-gcp" },
-    { "path": "./services/calculator" }
-  ],
-  "files": [],
-  "include": [],
   "compilerOptions": {
-    "incremental": true
-  }
+    "module": "commonjs",
+    "target": "ES2021",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@rotorsoft/*": ["libs/*/src"]
+    }
+  },
+  "exclude": ["**/dist", "**/__mocks__", "**/__tests__"]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually",
-  "version": "3.2.14",
+  "version": "4.0.14",
   "description": "Eventually Framework",
   "author": "rotorsoft",
   "license": "MIT",
@@ -14,10 +14,12 @@
   "files": [
     "dist"
   ],
-  "scripts": {},
+  "scripts": {
+    "build": "tsc --build"
+  },
   "dependencies": {
     "chalk": "~4",
-    "dotenv": "^10.0.0",
-    "joi": "^17.4.2"
+    "dotenv": "^16.0.0",
+    "joi": "^17.6.0"
   }
 }

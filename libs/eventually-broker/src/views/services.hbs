@@ -1,0 +1,30 @@
+<div class="row mb-2">
+  <div class="col-6">{{>subscription-bc crumb='Services'}}</div>
+  <div class="col-6 d-flex justify-content-end">
+    <a href="/_services/_add" type="button" class="btn btn-primary align-self-center"><i
+        class="bi bi-plus"
+      ></i>
+      Add</a>
+  </div>
+</div>
+
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Id</th>
+      <th scope="col">Channel</th>
+      <th scope="col">Url</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each rows}}
+      <tr>
+        <td scope="row">
+          <a href="/_services/{{this.id}}">{{this.id}}</a>
+        </td>
+        <td>{{this.channel}}</td>
+        <td><a href="{{this.url}}">{{this.url}}</a></td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

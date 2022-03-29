@@ -2,13 +2,11 @@
 
 set -e
 
-readonly usage="Use: yarn publish lib [patch|minor|major]"
 readonly lib="$1"
 readonly target="libs/${lib}"
 
 if [[ $# -eq 0 ]]; then
     echo "Missing lib name"
-    echo $usage
     exit 1
 fi;
 
@@ -17,36 +15,19 @@ if [[ ! -d "${target}" ]]; then
     exit 1
 fi; 
 
-bump="patch"
-if [[ ! -z $2 ]]; then
-    case "$2" in 
-        "patch"|"minor"|"major")
-            bump="$2";;
-        *)
-            echo "Invalid version bump"
-            echo $usage
-            exit 1;;
-    esac
-fi;
+echo ">>> cleaning $lib..."
+yarn clean $lib
 
-echo ">>> building ..."
-yarn build
-
-current=$(npm pkg get version -w ${target})
-echo ">>> version ${bump} ${current} ..."
-yarn "${target}" version "${bump}"
+echo ">>> building $target..."
+yarn $target build
 
 version=$(npm pkg get version -w ${target})
+lastpublished=$(npm view @rotorsoft/${lib} version)
+
+echo ">>> last published version ${lastpublished}"
 echo ">>> publishing ${version} ..."
 yarn "${target}" npm publish --access public
-
 if [ $? -eq 0 ]; then
-    echo ">>> comitting new version ..."
-    published=$(npm view @rotorsoft/${lib} version) \
-    && git add . \
-    && git commit -m "published ${target} v${published}" \
-    && git tag "${lib}@${published}" \
-    && git push origin master
-    echo ">>> completed!"
+    echo ">>> DONE!"
 fi
 

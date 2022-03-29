@@ -1,0 +1,46 @@
+{{#if edit}}
+  <input name="id" type="text" value="{{id}}" hidden />
+{{else}}
+  <div class="form-floating mb-3">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingId"
+      placeholder="Id"
+      name="id"
+      value="{{id}}"
+      required
+    />
+    <label class="px-4" for="floatingId">Id</label>
+  </div>
+{{/if}}
+
+<div class="form-floating mb-3">
+  <input
+    type="text"
+    class="form-control"
+    id="floatingChannel"
+    placeholder="Channel"
+    name="channel"
+    value="{{channel}}"
+    required
+  />
+  <label class="px-4" for="floatingChannel">Channel</label>
+</div>
+
+<div class="form-floating mb-3">
+  <input
+    type="text"
+    class="form-control"
+    id="floatingUrl"
+    placeholder="Url"
+    name="url"
+    value="{{url}}"
+    required
+  />
+  <label class="px-4" for="floatingUrl">Url</label>
+</div>
+
+<div class="mb-3">
+  <button class="btn btn-primary" type="submit">Submit</button>
+</div>

@@ -1,0 +1,186 @@
+<div class="row mb-2">
+  <div class="col-6">{{>subscription-bc}}</div>
+  <div class="col-6 d-flex justify-content-end">
+    <div class="col mx-2">
+      <input
+        id="deleteId"
+        type="text"
+        class="form-control"
+        placeholder="{{this.id}}"
+        name="deleteId"
+        required
+      />
+    </div>
+    <a id="deleteButton" href="#" type="button" class="btn btn-danger align-self-center disabled">
+      <i class="bi bi-trash"></i></i>
+    </a>
+  </div>
+</div>
+
+<div class="col-12">
+  {{endpoint}}
+</div>
+
+<div class="row">
+  <div class="col-4 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingStatus"
+      placeholder="Status"
+      name="status"
+      value="{{this.channelStatus}}"
+      readonly
+    />
+    <label class="px-4" for="floatingStatus">Status</label>
+  </div>
+  <div class="col-4 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingPosition"
+      placeholder="Position"
+      name="position"
+      value="{{this.position}}"
+      readonly
+    />
+    <label class="px-4" for="floatingPosition">Position</label>
+  </div>
+  <div class="col-4 form-floating">
+    <input
+      type="text"
+      class="form-control"
+      id="floatingChannelPosition"
+      placeholder="Channel"
+      name="channelPosition"
+      value="{{this.channelPosition}}"
+      readonly
+    />
+    <label class="px-4" for="floatingChannelPosition">Stream</label>
+  </div>
+</div>
+
+<div id="stats" class="mx-1 my-3">
+</div>
+
+{{> alert}}
+
+<form class="row my-3" method="post" action="/{{this.id}}">
+  {{> subscription-form edit=true}}
+</form>
+
+<script>
+  const delId = document.getElementById("deleteId");
+  const delBtn = document.getElementById("deleteButton");
+  delId.onkeyup = (ev) => {
+    const enable = delId.value === '{{this.id}}';
+    enable 
+      ? delBtn.classList.remove("disabled")
+      : delBtn.classList.add("disabled")
+  }
+  delBtn.onclick = () => {
+    fetch("/{{this.id}}", { method: "delete" })
+      .then(response => response.json())
+      .then(json => {
+        if(json.deleted) document.location = "/";
+        else delId.value = "";
+      })
+      .catch(()=> delId.value = "")
+  }
+
+  const statusInput = document.getElementById("floatingStatus");
+  const positionInput = document.getElementById("floatingPosition");
+  const triggerInput = document.getElementById("floatingChannelPosition");
+  const statsDiv = document.getElementById("stats");
+  const renderStats = (stats, color) => stats && stats.count ? `
+    <th class="text-end table-${color}">${stats.count}</th>
+    <td class="text-end table-${color} stat">${stats.min}</td>
+    <td class="text-end table-${color} stat">${stats.max}</td>
+  ` : "<td/><td/><td/>";
+  const refresh = ({ id, active, position, channelPosition, channelStatus, endpointStatus, errorMessage, events }) => {
+    const _events = events.map(({ name, ok, ignored, retryable, critical }) => {
+      return `
+        <tr>
+          <th>${name}</th>
+          ${renderStats(ok, "success")}
+          ${renderStats(retryable, "warning")}
+          ${renderStats(critical, "danger")}
+          ${renderStats(ignored, "secondary")}
+        </tr>
+      `
+    }).join('');
+
+    const status = channelStatus || (active ? "Running" : "Inactive");
+    const refreshBtn = active && ((channelPosition || -1) === -1 || position < channelPosition)
+      ? `<a href="/_refresh/${id}" title="Refresh"
+          type="button"
+          class="btn btn-lg p-0"><i class="bi bi-arrow-repeat text-primary"></i>
+        </a>` : "";
+
+    statusInput.value = status;
+    positionInput.value = position;
+    triggerInput.value = channelPosition || "";
+
+    const toggleIcon = active ? "bi-toggle-on" : "bi-toggle-off";
+    const toggleTitle = active ? "Stop" : "Start";
+
+    statsDiv.innerHTML=`
+    <div class="card p-0">
+      <div class="card-header row p-2 m-0">
+        <h6 class="card-title m-0 col-11">
+          <a href="/_toggle/${id}" title=${toggleTitle}
+            type="button"
+            class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${endpointStatus.color}"></i>
+          </a>
+          <small class="text-muted">${errorMessage}</small>
+        </h6> 
+        <div class="col-1 text-end">
+          ${refreshBtn}
+        </div>
+      </div>
+      <div class="card-body">
+        <table class="table align-middle table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Event</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-success">Ok</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-warning">Retryable</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-danger">Critical</th>
+              <th scope="col" colspan="3" style="width:28%" class="text-center table-secondary">Ignored</th>
+            </tr>
+            <tr>
+              <th/>
+              <th class="text-end table-success">Count</th>
+              <th class="text-end table-success stat">Min</th>
+              <th class="text-end table-success stat">Max</th>
+              <th class="text-end table-warning">Count</th>
+              <th class="text-end table-warning stat">Min</th>
+              <th class="text-end table-warning stat">Max</th>
+              <th class="text-end table-danger">Count</th>
+              <th class="text-end table-danger stat">Min</th>
+              <th class="text-end table-danger stat">Max</th>
+              <th class="text-end table-secondary">Count</th>
+              <th class="text-end table-secondary stat">Min</th>
+              <th class="text-end table-secondary stat">Max</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${_events}
+          </tbody>
+        </table>
+      </div>
+    </div>`
+  }
+
+  const es = new EventSource(`/_monitor/{{this.id}}`);
+  es.onmessage = ({ data }) => {
+    const props = JSON.parse(data);
+    refresh(props);
+  };
+  
+  es.onerror = (error) => {
+    console.error(error);
+  };
+
+  refresh({{{json this}}});
+</script>

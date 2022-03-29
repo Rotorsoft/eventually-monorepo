@@ -8,6 +8,7 @@ dotenv.config();
 type Package = {
   name: string;
   version: string;
+  description: string;
 };
 
 const getPackage = (): Package => {
@@ -35,6 +36,7 @@ export interface Config {
   logLevel: LogLevels;
   service: string;
   version: string;
+  description: string;
 }
 
 export const extend = <S extends Record<string, any>, T extends Config>(
@@ -61,7 +63,8 @@ export const config = singleton(function config() {
       port: Number.parseInt(PORT || "3000"),
       logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error,
       service,
-      version: pkg.version
+      version: pkg.version,
+      description: pkg.description
     },
     joi.object<Config>({
       env: joi
@@ -75,7 +78,8 @@ export const config = singleton(function config() {
         .required()
         .valid(...Object.keys(LogLevels)),
       service: joi.string().required(),
-      version: joi.string().required()
+      version: joi.string().required(),
+      description: joi.string().required()
     })
   );
 });

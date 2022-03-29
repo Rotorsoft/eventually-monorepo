@@ -10,7 +10,10 @@ export * from "./log";
 export * from "./singleton";
 export * from "./types";
 export * from "./utils";
+export * from "./__dev__";
 
-export const app = singleton(function app<T extends AppBase = InMemoryApp>(app?: T) : T {
-  return app || new InMemoryApp() as T;
+export const app = singleton(function app<T extends AppBase = InMemoryApp>(
+  app?: T
+): T {
+  return app || (new InMemoryApp() as T);
 });

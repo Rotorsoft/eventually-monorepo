@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
@@ -8,10 +8,6 @@
   },
   "references": [
     { "path": "../../libs/eventually" },
-    { "path": "../../libs/eventually-express" },
-    { "path": "../../libs/eventually-pg" },
-    { "path": "../../libs/eventually-test" }
-  ],
-  "include": ["src"],
-  "exclude": ["**/__mocks__/**", "**/__tests__/**"]
+    { "path": "../../libs/eventually-express" }
+  ]
 }

@@ -1,9 +1,6 @@
-import { app, bind, store } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
-import { PostgresStore } from "@rotorsoft/eventually-pg";
-import { command } from "@rotorsoft/eventually-test";
+import { app, bind, dispose } from "@rotorsoft/eventually";
+import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { Server } from "http";
 import * as schemas from "../accounts.schemas";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -12,9 +9,7 @@ import * as systems from "../accounts.systems";
 
 const chance = new Chance();
 
-store(PostgresStore("accounts"));
-
-app(new ExpressApp())
+const expressApp = app(new ExpressApp())
   .withSchemas<commands.Commands>({
     CreateAccount1: schemas.CreateAccount1,
     CreateAccount2: schemas.CreateAccount2,
@@ -35,35 +30,30 @@ app(new ExpressApp())
     policies.WaitForAllAndComplete
   )
   .withCommandHandlers(
-    systems.ExternalSystem1,
     systems.ExternalSystem2,
     systems.ExternalSystem3,
     systems.ExternalSystem4
-  );
+  )
+  .withExternalSystem(systems.ExternalSystem1, "ext1");
 
-let server: Server;
 const port = 3005;
+const t = tester(port);
 
 describe("express", () => {
-  beforeAll(async () => {
-    const express = (app() as ExpressApp).build();
-    await (app() as ExpressApp).listen(true);
-    server = express.listen(port, () => {
-      return;
-    });
+  beforeAll(() => {
+    expressApp.build();
+    expressApp.listen(false, port);
   });
 
-  afterAll(async () => {
-    if (server) server.close();
-    await app().close();
+  afterAll(() => {
+    dispose()();
   });
 
   it("should complete command", async () => {
     // when
-    const [result] = await command(
+    const [result] = await t.command(
       systems.ExternalSystem1,
-      bind("CreateAccount1", { id: chance.guid() }),
-      port
+      bind("CreateAccount1", { id: chance.guid() })
     );
 
     // then
@@ -73,7 +63,7 @@ describe("express", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      command(systems.ExternalSystem1, bind("CreateAccount1", null), port)
+      t.command(systems.ExternalSystem1, bind("CreateAccount1", null))
     ).rejects.toThrowError("Request failed with status code 400");
   });
 });

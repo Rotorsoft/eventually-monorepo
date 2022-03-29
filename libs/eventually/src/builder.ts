@@ -1,19 +1,20 @@
 import Joi from "joi";
 import {
+  AggregateFactory,
   CommandHandlerFactory,
   commandHandlerPath,
-  config,
   EventHandlerFactory,
   eventHandlerPath,
   eventsOf,
+  ExternalSystemFactory,
   getReducible,
   log,
   messagesOf,
-  Options,
   Payload,
+  PolicyFactory,
+  ProcessManagerFactory,
   Reducible,
-  Scopes,
-  Topic
+  Snapshot
 } from ".";
 import { SnapshotStore } from "./interfaces";
 import { InMemorySnapshotStore } from "./__dev__";
@@ -41,14 +42,13 @@ export type Endpoints = {
       type: "policy" | "process-manager";
       factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
-      topics: Record<string, Topic>;
     };
   };
 };
 
 export type MessageMetadata = {
   name: string;
-  options: Options<Payload>;
+  schema?: Joi.ObjectSchema<Payload>;
   commandHandlerFactory?: CommandHandlerFactory<Payload, unknown, unknown>;
   eventHandlerFactories: Record<
     string,
@@ -71,25 +71,33 @@ export class Builder {
     eventHandlers: {}
   };
   readonly messages: Record<string, MessageMetadata> = {};
+  readonly documentation: Record<string, { description: string }> = {};
 
   private _msg(name: string): MessageMetadata {
     return (this.messages[name] = this.messages[name] || {
       name,
-      options: { scope: Scopes.public },
       eventHandlerFactories: {}
     });
   }
 
-  /**
-   * Gets configured topic or uses default service name ordered by event id
-   */
-  protected _getTopic(message: MessageMetadata): Topic {
-    return (
-      this.messages[message.name].options.topic || {
-        name: config().service,
-        orderingKey: "id"
-      }
-    );
+  private _registerEventHandlerFactory(
+    factory: EventHandlerFactory<Payload, unknown, unknown>,
+    description?: string
+  ): void {
+    if (this._factories.eventHandlers[factory.name])
+      throw Error(`Duplicate event handler ${factory.name}`);
+    this._factories.eventHandlers[factory.name] = factory;
+    this.documentation[factory.name] = { description };
+  }
+
+  private _registerCommandHandlerFactory(
+    factory: CommandHandlerFactory<Payload, unknown, unknown>,
+    description?: string
+  ): void {
+    if (this._factories.commandHandlers[factory.name])
+      throw Error(`Duplicate command handler ${factory.name}`);
+    this._factories.commandHandlers[factory.name] = factory;
+    this.documentation[factory.name] = { description };
   }
 
   /**
@@ -98,27 +106,7 @@ export class Builder {
    */
   withSchemas<M>(schemas: Schemas<M>): this {
     Object.entries(schemas).map(([key, value]): void => {
-      this._msg(key).options.schema = value as any;
-    });
-    return this;
-  }
-
-  /**
-   * Registers public messages with topics
-   */
-  withTopic<M>(topic: Topic, ...messages: Array<keyof M & string>): this {
-    messages.map((key): void => {
-      this._msg(key).options.topic = topic;
-    });
-    return this;
-  }
-
-  /**
-   * Registers private messages
-   */
-  withPrivate<M>(...messages: Array<keyof M & string>): this {
-    messages.map((key): void => {
-      this._msg(key).options.scope = Scopes.private;
+      this._msg(key).schema = value as any;
     });
     return this;
   }
@@ -130,11 +118,33 @@ export class Builder {
   withEventHandlers(
     ...factories: EventHandlerFactory<Payload, unknown, unknown>[]
   ): this {
-    factories.map((f) => {
-      if (this._factories.eventHandlers[f.name])
-        throw Error(`Duplicate event handler ${f.name}`);
-      this._factories.eventHandlers[f.name] = f;
-    });
+    factories.map((f) => this._registerEventHandlerFactory(f));
+    return this;
+  }
+
+  /**
+   * Registers policy factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withPolicy(
+    factory: PolicyFactory<unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerEventHandlerFactory(factory, description);
+    return this;
+  }
+
+  /**
+   * Registers process manager factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withProcessManager(
+    factory: ProcessManagerFactory<Payload, unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerEventHandlerFactory(factory, description);
     return this;
   }
 
@@ -145,32 +155,58 @@ export class Builder {
   withCommandHandlers(
     ...factories: CommandHandlerFactory<Payload, unknown, unknown>[]
   ): this {
-    factories.map((f) => {
-      if (this._factories.commandHandlers[f.name])
-        throw Error(`Duplicate command handler ${f.name}`);
-      this._factories.commandHandlers[f.name] = f;
-    });
+    factories.map((f) => this._registerCommandHandlerFactory(f));
     return this;
   }
 
-  protected getSnapshotStore<M extends Payload, E>(
-    reducible: Reducible<M, E>
-  ): SnapshotStore | undefined {
-    return (
-      reducible?.snapshot &&
-      this._snapshotStores[
-        reducible.snapshot.factory?.name || InMemorySnapshotStore.name
-      ]
-    );
+  /**
+   * Registers aggregate factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withAggregate(
+    factory: AggregateFactory<Payload, unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerCommandHandlerFactory(factory, description);
+    return this;
   }
-  private registerSnapshotStore<M extends Payload, E>(
+
+  /**
+   * Registers system factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withExternalSystem(
+    factory: ExternalSystemFactory<unknown, unknown>,
+    description?: string
+  ): this {
+    this._registerCommandHandlerFactory(factory, description);
+    return this;
+  }
+
+  private getSnapshotStore<M extends Payload, E>(
     reducible: Reducible<M, E>
-  ): void {
-    if (reducible?.snapshot) {
-      const factory = reducible.snapshot.factory || InMemorySnapshotStore;
-      this._snapshotStores[factory.name] =
-        this._snapshotStores[factory.name] || factory();
-    }
+  ): SnapshotStore {
+    const factory = reducible?.snapshot?.factory || InMemorySnapshotStore;
+    let store = this._snapshotStores[factory.name];
+    !store && (store = this._snapshotStores[factory.name] = factory());
+    return store;
+  }
+
+  protected async readSnapshot<M extends Payload, E>(
+    reducible: Reducible<M, E>
+  ): Promise<Snapshot<M>> {
+    const store = this.getSnapshotStore(reducible);
+    return await store.read(reducible.stream());
+  }
+
+  protected async upsertSnapshot<M extends Payload, E>(
+    reducible: Reducible<M, E>,
+    snapshot: Snapshot<M>
+  ): Promise<void> {
+    const store = this.getSnapshotStore(reducible);
+    await store.upsert(reducible.stream(), snapshot);
   }
 
   /**
@@ -183,23 +219,18 @@ export class Builder {
     Object.values(this._factories.commandHandlers).map((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
-      reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "aggregate" : "external-system";
       messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.commandHandlerFactory = factory;
-        const path =
-          msg.options.scope === Scopes.public
-            ? commandHandlerPath(factory, name)
-            : "";
-        path &&
-          (this.endpoints.commands[path] = {
-            type,
-            name,
-            factory,
-            path
-          });
-        log().info("bgBlue", " POST ", path ?? factory.name);
+        const path = commandHandlerPath(factory, name);
+        this.endpoints.commands[path] = {
+          type,
+          name,
+          factory,
+          path
+        };
+        log().info("bgBlue", " POST ", path);
       });
       reducible && eventsOf(reducible).map((name) => this._msg(name));
     });
@@ -208,30 +239,19 @@ export class Builder {
     Object.values(this._factories.eventHandlers).map((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
-      reducible && this.registerSnapshotStore(reducible);
       const type = reducible ? "process-manager" : "policy";
       const path = eventHandlerPath(factory);
       this.endpoints.eventHandlers[path] = {
         type,
         factory,
-        path,
-        topics: {} as Record<string, Topic>
+        path
       };
       const events = messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.eventHandlerFactories[path] = factory;
-        if (msg.options.scope === Scopes.public) {
-          const topic = this._getTopic(msg);
-          this.endpoints.eventHandlers[path].topics[topic.name] = topic;
-          return name;
-        }
+        return name;
       });
-      log().info(
-        "bgMagenta",
-        " POST ",
-        path,
-        events.filter((n) => n)
-      );
+      log().info("bgMagenta", " POST ", path, events);
     });
 
     return;
