@@ -23,10 +23,10 @@ const policy = async (
       return bind(
         "Reset",
         undefined,
-        event.stream.substr("Calculator-".length)
+        event.stream.substring("Calculator-".length)
       );
   } else {
-    const id = event.stream.substr("Calculator-".length);
+    const id = event.stream.substring("Calculator-".length);
     const { state } = await app().load(Calculator(id));
     if (
       (state.left || "").length >= threshold ||

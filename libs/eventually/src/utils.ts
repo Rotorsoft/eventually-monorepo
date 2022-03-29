@@ -86,7 +86,7 @@ export const eventsOf = <M extends Payload, E>(
     .filter(([key, value]) => {
       return typeof value === "function" && key.startsWith("apply");
     })
-    .map(([key]) => key.substr(5));
+    .map(([key]) => key.substring(5));
 };
 
 /**
@@ -101,7 +101,7 @@ export const messagesOf = <M extends Payload, C, E>(
     .filter(([key, value]) => {
       return typeof value === "function" && key.startsWith("on");
     })
-    .map(([key]) => key.substr(2));
+    .map(([key]) => key.substring(2));
 };
 
 /**

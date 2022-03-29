@@ -21,7 +21,7 @@ const rows = (subs: Subscription[]): { rows: SubscriptionViewModel[] } => ({
 });
 
 const shortId = (id: string): string =>
-  id.length > 20 ? id.substr(0, 20) + "..." : id;
+  id.length > 20 ? id.substring(0, 20) + "..." : id;
 
 const defaultSubscription = {
   producer: "",

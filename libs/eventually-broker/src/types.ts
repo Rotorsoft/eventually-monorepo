@@ -18,7 +18,7 @@ export type Service = {
  * - `producer` The producer service
  * - `consumer` The consumer service
  * - `path` The path on the consumer service (appended to url - policy name by convention)
- * - `streams`: regex rules to filter by substreams (aggregates, systems, process managers)
+ * - `streams`: regex rules to filter by substringeams (aggregates, systems, process managers)
  * - `names`: regex rules to filter by event names
  * - `position` The position in the stream - last acked id
  */

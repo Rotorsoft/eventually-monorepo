@@ -208,7 +208,9 @@ Some manual tweaking of `package.json` is required to reference the appropriate 
     "start": "node index.js"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "ts-node-dev": "^1.1.8"
+  }
 }
 ```
 
