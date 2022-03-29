@@ -39,12 +39,14 @@ export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
  * - `id`: trigger id (record id, event name)
  * - `operation`: triggering operation
  * - `position`: optional position in stream
+ * - `payload`: optional trigger payload
  * - `retries`: optional retry counter
  */
 export type TriggerPayload = {
   id: string;
   operation: Operation;
   position?: number;
+  payload?: any;
   retries?: number;
 };
 
@@ -88,6 +90,6 @@ export type PushChannel = {
  * Maps protocols to channel factories
  */
 export type ChannelResolvers = {
-  pull: Record<string, (id: string, channel: URL) => PullChannel>;
-  push: Record<string, (id: string, endpoint: URL) => PushChannel>;
+  pull: Record<string, (url: URL) => PullChannel>;
+  push: Record<string, (url: URL) => PushChannel>;
 };

@@ -12,12 +12,12 @@ import { work } from "./cluster";
 const defaultResolvers: ChannelResolvers = {
   pull: {
     "void:": () => VoidPullChannel(),
-    "pg:": (id: string, channel: URL) => PostgresPullChannel(id, channel)
+    "pg:": (url: URL) => PostgresPullChannel(url)
   },
   push: {
     "void:": () => VoidPushChannel(),
-    "http:": (_, endpoint: URL) => HttpPostPushChannel(endpoint),
-    "https:": (_, endpoint: URL) => HttpPostPushChannel(endpoint)
+    "http:": (url: URL) => HttpPostPushChannel(url),
+    "https:": (url: URL) => HttpPostPushChannel(url)
   }
 };
 

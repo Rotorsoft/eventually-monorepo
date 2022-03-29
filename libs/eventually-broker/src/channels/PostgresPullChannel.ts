@@ -3,7 +3,7 @@ import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { PostgresStreamListenerFactory } from "../listeners";
 import { PullChannel, TriggerCallback } from "../types";
 
-export const PostgresPullChannel = (id: string, channel: URL): PullChannel => {
+export const PostgresPullChannel = (channel: URL): PullChannel => {
   const store = PostgresStore(channel.hostname);
   return {
     pull: async (position: number, limit: number) => {

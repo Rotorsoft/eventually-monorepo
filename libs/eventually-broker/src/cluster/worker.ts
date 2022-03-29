@@ -68,13 +68,12 @@ export const work = (resolvers: ChannelResolvers): void => {
   const build = (config: SubscriptionConfig): Sub => {
     const pushUrl = new URL(config.endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
-    if (!pushFactory)
-      throw Error(`Cannot resolve push channel from ${config.endpoint}`);
+    if (!pushFactory) throw Error(`Cannot resolve push ${config.endpoint}`);
     return {
       ...config,
       streamsRegExp: RegExp(config.streams),
       namesRegExp: RegExp(config.names),
-      pushChannel: pushFactory(config.id, pushUrl)
+      pushChannel: pushFactory(pushUrl)
     };
   };
 
@@ -82,11 +81,8 @@ export const work = (resolvers: ChannelResolvers): void => {
   try {
     const pullUrl = new URL(config.channel);
     const pullFactory = resolvers.pull[pullUrl.protocol];
-    if (!pullFactory)
-      throw Error(
-        `Cannot resolve pull channel ${config.channel} from protocol ${pullUrl.protocol}`
-      );
-    pullChannel = pullFactory(config.id, pullUrl);
+    if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
+    pullChannel = pullFactory(pullUrl);
   } catch (error) {
     sendError(error.message);
     process.exit(1);
