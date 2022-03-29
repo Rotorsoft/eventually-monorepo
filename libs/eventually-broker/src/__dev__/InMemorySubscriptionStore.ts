@@ -1,48 +1,56 @@
 import { SubscriptionStore } from "../interfaces";
+import { Service, Subscription } from "../types";
 
 export const InMemorySubscriptionStore = (): SubscriptionStore => {
+  const services: Record<string, Service> = {};
+  const subscriptions: Record<string, Subscription> = {};
+
+  const findSubscriptionById = (id: string): Subscription[] =>
+    Object.values(subscriptions).filter((s) => s.id === id);
+
   return {
-    seed: () => {
-      throw Error("Not Implemented");
+    seed: () => undefined,
+    listen: () => undefined,
+    loadServices: () => Promise.resolve(Object.values(services)),
+    createService: (service: Service) => {
+      services[service.id] = service;
+      return Promise.resolve();
     },
-    listen: () => {
-      throw Error("Not Implemented");
+    updateService: (service: Service) => {
+      services[service.id] = service;
+      return Promise.resolve();
     },
-    loadServices: () => {
-      throw Error("Not Implemented");
+    deleteService: (id: string) => {
+      delete services[id];
+      return Promise.resolve();
     },
-    createService: () => {
-      throw Error("Not Implemented");
+    loadSubscriptions: () => Promise.resolve(Object.values(subscriptions)),
+    loadSubscriptionsByProducer: (producer: string) =>
+      Promise.resolve(
+        Object.values(subscriptions).filter((s) => s.producer === producer)
+      ),
+    searchSubscriptions: () => Promise.resolve(Object.values(subscriptions)),
+    createSubscription: (subscription: Subscription) => {
+      subscriptions[subscription.id] = subscription;
+      return Promise.resolve();
     },
-    updateService: () => {
-      throw Error("Not Implemented");
+    updateSubscription: (subscription: Subscription) => {
+      subscriptions[subscription.id] = subscription;
+      return Promise.resolve();
     },
-    deleteService: () => {
-      throw Error("Not Implemented");
+    deleteSubscription: (id: string) => {
+      delete subscriptions[id];
+      return Promise.resolve();
     },
-    loadSubscriptions: () => {
-      throw Error("Not Implemented");
+    toggleSubscription: (id: string) => {
+      const [found] = findSubscriptionById(id);
+      found && (found.active = !found.active);
+      return Promise.resolve();
     },
-    loadSubscriptionsByProducer: () => {
-      throw Error("Not Implemented");
-    },
-    searchSubscriptions: () => {
-      throw Error("Not Implemented");
-    },
-    createSubscription: () => {
-      throw Error("Not Implemented");
-    },
-    updateSubscription: () => {
-      throw Error("Not Implemented");
-    },
-    deleteSubscription: () => {
-      throw Error("Not Implemented");
-    },
-    toggleSubscription: () => {
-      throw Error("Not Implemented");
-    },
-    commitPosition: () => {
-      throw Error("Not Implemented");
+    commitPosition: (id: string, position: number) => {
+      const [found] = findSubscriptionById(id);
+      found && (found.position = position);
+      return Promise.resolve();
     }
   };
 };

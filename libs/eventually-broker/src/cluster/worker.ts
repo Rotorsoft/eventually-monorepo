@@ -213,5 +213,6 @@ export const work = (resolvers: ChannelResolvers): void => {
     operation: "RESTART",
     id: config.id
   });
-  void pullChannel.listen(pumpChannel);
+
+  pullChannel.listen(pumpChannel);
 };

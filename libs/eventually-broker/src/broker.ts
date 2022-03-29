@@ -21,8 +21,13 @@ const defaultResolvers: ChannelResolvers = {
   }
 };
 
-export const broker = (resolvers?: ChannelResolvers): void => {
-  cluster.isWorker
-    ? void work({ ...defaultResolvers, ...resolvers })
-    : void app();
+type Options = {
+  port?: number;
+  resolvers?: ChannelResolvers;
 };
+
+export const broker = ({
+  port,
+  resolvers
+}: Options = {}): void | Promise<void> =>
+  cluster.isWorker ? work({ ...defaultResolvers, ...resolvers }) : app(port);
