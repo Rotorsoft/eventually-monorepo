@@ -23,8 +23,8 @@ describe("listener", () => {
     await store().seed();
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   it("should trigger subscription", async () => {

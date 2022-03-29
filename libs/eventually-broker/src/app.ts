@@ -1,6 +1,7 @@
 import { config, dispose, log } from "@rotorsoft/eventually";
 import express from "express";
 import { engine } from "express-handlebars";
+import { Server } from "http";
 import path from "path";
 import { subscriptions } from ".";
 import { state } from "./cluster";
@@ -40,12 +41,18 @@ export const app = async (port?: number): Promise<void> => {
   app.use("/_services", routes.services);
   app.use("/", routes.subscriptions);
 
-  const server = app.listen(port, () =>
-    log().info("bgGreen", `Broker is listening on port ${port}`)
-  );
+  const server: Server = await new Promise((resolve) => {
+    const server = app.listen(port, () => {
+      log().info("bgGreen", `Broker is listening on port ${port}`);
+      resolve(server);
+    });
+  });
 
   dispose(() => {
     log().info("bgRed", `[${process.pid}]`, "💣Broker");
-    server.close();
+    return new Promise((resolve, reject) => {
+      server.once("close", resolve);
+      server.close(reject);
+    });
   });
 };

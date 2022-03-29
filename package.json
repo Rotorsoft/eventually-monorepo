@@ -21,6 +21,7 @@
   ],
   "scripts": {
     "dev": "sh ./scripts/dev.sh",
+    "clinic": "sh ./scripts/clinic.sh",
     "clean": "sh ./scripts/clean.sh",
     "build": "yarn workspaces foreach run build",
     "test": "yarn jest",

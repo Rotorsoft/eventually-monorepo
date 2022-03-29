@@ -30,7 +30,7 @@ export const PostgresStore = (table: string): Store => {
 
   dispose(() => {
     log().info("bgRed", `[${process.pid}]`, `💣PostgresStore ${table}...`);
-    void pool.end();
+    return pool.end();
   });
 
   return {

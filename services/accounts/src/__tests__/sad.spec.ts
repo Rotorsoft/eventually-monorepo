@@ -68,8 +68,8 @@ describe("sad path", () => {
     app().listen();
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   afterEach(() => {

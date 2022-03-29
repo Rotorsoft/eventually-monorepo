@@ -58,8 +58,8 @@ describe("in memory", () => {
     app().listen();
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   describe("calculator", () => {

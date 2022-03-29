@@ -6,16 +6,24 @@ import { Service, Subscription } from "../types";
 
 const port = 3001;
 
-const serviceBody = (id: string): Service => ({
+const serviceBody = (
+  id: string,
+  channel = "pg://channel",
+  url = "http://url"
+): Service => ({
   id,
-  channel: "pg://channel",
-  url: "http://url"
+  channel,
+  url
 });
 
-const subscriptionBody = (id: string): Subscription => ({
+const subscriptionBody = (
+  id: string,
+  producer = "s1",
+  consumer = "s1"
+): Subscription => ({
   id,
-  producer: "s1",
-  consumer: "s1",
+  producer,
+  consumer,
   path: "path",
   active: false,
   streams: ".*",
@@ -57,14 +65,25 @@ describe("views", () => {
   beforeAll(async () => {
     await broker({ port });
     await subscriptions().createService(serviceBody("s1"));
+    await subscriptions().createService(serviceBody("s3", "void://"));
+    await subscriptions().createService(
+      serviceBody("s4", "void://", "https://localhost")
+    );
+    await subscriptions().createService(
+      serviceBody("s5", "void://", "void://")
+    );
     await subscriptions().createSubscription(subscriptionBody("s1"));
-    await subscriptions().createService(serviceBody("s3"));
     await subscriptions().createSubscription(subscriptionBody("s3"));
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await subscriptions().createSubscription(
+      subscriptionBody("s4", "s1", "s4")
+    );
+    await subscriptions().createSubscription(
+      subscriptionBody("s5", "s1", "s5")
+    );
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   it("should get", async () => {
@@ -76,7 +95,7 @@ describe("views", () => {
       "/s1",
       "/_services/s1",
       "/_wait/s1",
-      "/_toggle/s1",
+      //"/_toggle/s1", -- creates failing child process when jesting!
       "/_refresh/s1"
     ];
     const responses = await Promise.all(paths.map((path) => get(path)));

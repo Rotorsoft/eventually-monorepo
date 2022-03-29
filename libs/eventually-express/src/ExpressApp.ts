@@ -366,7 +366,10 @@ export class ExpressApp extends AppBase {
       });
       dispose(() => {
         this.log.info("bgRed", `[${process.pid}]`, "💣ExpressApp...");
-        this._server.close();
+        return new Promise((resolve, reject) => {
+          this._server.once("close", resolve);
+          this._server.close(reject);
+        });
       });
     }
   }

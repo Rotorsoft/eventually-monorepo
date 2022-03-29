@@ -26,8 +26,8 @@ describe("trace in prod mode", () => {
     app().listen();
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   describe("calculator", () => {

@@ -45,8 +45,8 @@ describe("express", () => {
     expressApp.listen(false, port);
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   it("should complete command", async () => {

@@ -18,8 +18,8 @@ describe("pg", () => {
     await db.seed();
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   it("should commit and query", async () => {

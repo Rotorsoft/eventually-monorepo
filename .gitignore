@@ -1,4 +1,5 @@
 coverage
+.clinic
 dist
 *.env
 *.env.yml

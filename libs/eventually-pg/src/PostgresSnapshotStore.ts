@@ -18,7 +18,7 @@ export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
       `[${process.pid}]`,
       `💣PostgresSnapshotStore ${table}...`
     );
-    void pool.end();
+    return pool.end();
   });
 
   return {

@@ -15,7 +15,7 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
 
   dispose(() => {
     log().info("bgRed", `[${process.pid}]`, "💣PostgresSubscriptionStore...");
-    void pool.end();
+    return pool.end();
   });
 
   return {

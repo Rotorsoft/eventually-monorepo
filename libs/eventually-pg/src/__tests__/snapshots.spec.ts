@@ -26,7 +26,7 @@ describe("snapshots", () => {
 
   afterAll(async () => {
     await pool.end();
-    dispose()();
+    await dispose()();
   });
 
   it("should insert snapshot with no error", async () => {

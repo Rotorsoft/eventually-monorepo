@@ -52,8 +52,8 @@ describe("happy path", () => {
     app().listen();
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   it("should complete integration 1-2", async () => {

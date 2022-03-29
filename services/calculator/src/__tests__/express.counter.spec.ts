@@ -35,8 +35,8 @@ describe("express app", () => {
     _app.listen(false, port);
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   describe("Calculator", () => {

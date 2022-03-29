@@ -1,4 +1,4 @@
-import { dispose, log } from "@rotorsoft/eventually";
+import { dispose, ExitCodes, log } from "@rotorsoft/eventually";
 import { config } from "@rotorsoft/eventually-pg";
 import createSubscriber from "pg-listen";
 import { TriggerPayload } from "..";
@@ -21,12 +21,12 @@ export const PostgresStreamListenerFactory: StreamListenerFactory = (
       `[${process.pid}]`,
       `💣PostgresStreamListener ${stream}...`
     );
-    void subscriber.close();
+    return subscriber.close();
   });
 
-  subscriber.events.on("error", (error) => {
+  subscriber.events.on("error", async (error) => {
     log().error(error);
-    process.exit();
+    await dispose()(ExitCodes.ERROR);
   });
 
   subscriber.notifications.on(

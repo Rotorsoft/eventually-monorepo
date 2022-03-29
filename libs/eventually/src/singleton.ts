@@ -11,37 +11,37 @@ export const singleton =
     return instances[target.name] as T;
   };
 
-type Disposer = () => void;
+export enum ExitCodes {
+  UNIT_TEST = "UNIT_TEST",
+  OK = "OK",
+  ERROR = "ERROR"
+}
+type Disposer = () => Promise<void>;
 const disposers: Disposer[] = [];
-const disposeAll = (): void => {
+const disposeAll = async (
+  code: ExitCodes = ExitCodes.UNIT_TEST
+): Promise<void> => {
   while (disposers.length) {
     const disposer = disposers.pop();
-    disposer();
+    await disposer();
   }
+  code !== ExitCodes.UNIT_TEST && process.exit(code === ExitCodes.OK ? 0 : 1);
 };
 /**
  * Registers resource disposers that are triggered on process exit
  * @param disposer the disposer function
  * @returns a fuction that triggers all registered disposers - useful for unit testing teardown
  */
-export const dispose = (disposer?: Disposer): Disposer => {
+export const dispose = (
+  disposer?: Disposer
+): ((code?: ExitCodes) => Promise<void>) => {
   disposer && disposers.push(disposer);
   return disposeAll;
 };
 
-process.once("exit", disposeAll);
-
-process.once("SIGINT", () => {
-  console.log(`[${process.pid}] SIGINT - ctrl+c`);
-  process.exit();
-});
-
-process.once("SIGTERM", () => {
-  console.log(`[${process.pid}] SIGTERM - kill`);
-  process.exit(1);
-});
-
-process.once("uncaughtException", (error) => {
-  console.error(error.name, error.message);
-  process.exit(1);
+["SIGINT", "SIGTERM", "uncaughtException"].map((e) => {
+  process.once(e, async () => {
+    console.log(`[${process.pid}] ${e}`);
+    await disposeAll(e === "SIGINT" ? ExitCodes.OK : ExitCodes.ERROR);
+  });
 });

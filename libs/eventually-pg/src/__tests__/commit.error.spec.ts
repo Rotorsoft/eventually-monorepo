@@ -39,8 +39,8 @@ describe("Mocked", () => {
     await db.seed();
   });
 
-  afterAll(() => {
-    dispose()();
+  afterAll(async () => {
+    await dispose()();
   });
 
   afterEach(() => {

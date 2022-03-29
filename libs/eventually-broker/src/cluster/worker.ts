@@ -1,4 +1,4 @@
-import { log } from "@rotorsoft/eventually";
+import { dispose, ExitCodes, log } from "@rotorsoft/eventually";
 import { ErrorMessage } from ".";
 import {
   ChannelResolvers,
@@ -62,7 +62,7 @@ const sendStats = (
   process.send({ stats: { ...stats, ...config } });
 };
 
-export const work = (resolvers: ChannelResolvers): void => {
+export const work = async (resolvers: ChannelResolvers): Promise<void> => {
   const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
 
   const build = (config: SubscriptionConfig): Sub => {
@@ -85,16 +85,16 @@ export const work = (resolvers: ChannelResolvers): void => {
     pullChannel = pullFactory(pullUrl);
   } catch (error) {
     sendError(error.message);
-    process.exit(1);
+    await dispose()(ExitCodes.ERROR);
   }
 
   const _subs: Record<string, Sub> = {};
-  config.subscriptions.map((config) => {
+  config.subscriptions.map(async (config) => {
     try {
       _subs[config.id] = build(config);
     } catch (error) {
       sendError(error.message, config);
-      process.exit(1);
+      await dispose()(ExitCodes.ERROR);
     }
   });
 
@@ -150,7 +150,7 @@ export const work = (resolvers: ChannelResolvers): void => {
       sendStats(sub, stats);
     } catch (error) {
       sendError(`${triggerLog(trigger)} ${error.message}`, sub);
-      process.exit(1);
+      await dispose()(ExitCodes.ERROR);
     }
   };
 
@@ -190,20 +190,23 @@ export const work = (resolvers: ChannelResolvers): void => {
   };
 
   type MasterMessage = { operation: Operation; config: SubscriptionConfig };
-  process.on("message", ({ operation, config }: MasterMessage): void => {
-    if (!config.active || operation === "DELETE") {
-      delete _subs[config.id];
-    } else {
-      try {
-        const sub = (_subs[config.id] = build(config));
-        void pumpRetry([sub], { operation, id: config.id });
-      } catch (error) {
-        sendError(error.message, config);
+  process.on(
+    "message",
+    async ({ operation, config }: MasterMessage): Promise<void> => {
+      if (!config.active || operation === "DELETE") {
+        delete _subs[config.id];
+      } else {
+        try {
+          const sub = (_subs[config.id] = build(config));
+          void pumpRetry([sub], { operation, id: config.id });
+        } catch (error) {
+          sendError(error.message, config);
+        }
       }
+      sendStats(config, { batches: 0, total: 0, events: {} });
+      !Object.keys(_subs).length && (await dispose()(ExitCodes.ERROR));
     }
-    sendStats(config, { batches: 0, total: 0, events: {} });
-    !Object.keys(_subs).length && process.exit(1);
-  });
+  );
 
   void pumpChannel({
     operation: "RESTART",
