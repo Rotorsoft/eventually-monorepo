@@ -1,10 +1,14 @@
-import { app } from "@rotorsoft/eventually";
+import { app, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Calculator } from "./calculator.aggregate";
 import { Commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import { Counter, StatelessCounter } from "./counter.policy";
 import * as schemas from "./calculator.schemas";
+import { PostgresStore } from "libs/eventually-pg/dist";
+
+store(PostgresStore("calculator"));
+void store().seed();
 
 const _app = app(new ExpressApp())
   .withSchemas<Pick<Commands, "PressKey">>({
