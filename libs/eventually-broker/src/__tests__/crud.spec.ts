@@ -14,6 +14,7 @@ describe("crud", () => {
     await subscriptions().seed();
     await pool.query("delete from subscriptions; delete from services;");
   });
+
   afterAll(async () => {
     await dispose()();
     await pool.end();

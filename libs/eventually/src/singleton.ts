@@ -18,30 +18,27 @@ export enum ExitCodes {
 }
 type Disposer = () => Promise<void>;
 const disposers: Disposer[] = [];
-const disposeAll = async (
+const disposeAndExit = async (
   code: ExitCodes = ExitCodes.UNIT_TEST
 ): Promise<void> => {
-  while (disposers.length) {
-    const disposer = disposers.pop();
-    await disposer();
-  }
+  await Promise.all(disposers.map((disposer) => disposer()));
   code !== ExitCodes.UNIT_TEST && process.exit(code === ExitCodes.OK ? 0 : 1);
 };
 /**
  * Registers resource disposers that are triggered on process exit
  * @param disposer the disposer function
- * @returns a fuction that triggers all registered disposers - useful for unit testing teardown
+ * @returns a function that triggers all registered disposers and terminates the process
  */
 export const dispose = (
   disposer?: Disposer
 ): ((code?: ExitCodes) => Promise<void>) => {
   disposer && disposers.push(disposer);
-  return disposeAll;
+  return disposeAndExit;
 };
 
 ["SIGINT", "SIGTERM", "uncaughtException"].map((e) => {
   process.once(e, async () => {
     console.log(`[${process.pid}] ${e}`);
-    await disposeAll(e === "SIGINT" ? ExitCodes.OK : ExitCodes.ERROR);
+    await disposeAndExit(e === "SIGINT" ? ExitCodes.OK : ExitCodes.ERROR);
   });
 });

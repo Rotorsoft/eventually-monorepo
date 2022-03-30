@@ -2,34 +2,9 @@ import axios from "axios";
 import { dispose } from "@rotorsoft/eventually";
 import { broker } from "../index";
 import { subscriptions } from "..";
-import { Service, Subscription } from "../types";
+import { serviceBody, subscriptionBody } from "./utils";
 
 const port = 3001;
-
-const serviceBody = (
-  id: string,
-  channel = "pg://channel",
-  url = "http://url"
-): Service => ({
-  id,
-  channel,
-  url
-});
-
-const subscriptionBody = (
-  id: string,
-  producer = "s1",
-  consumer = "s1"
-): Subscription => ({
-  id,
-  producer,
-  consumer,
-  path: "path",
-  active: false,
-  streams: ".*",
-  names: ".*",
-  position: -1
-});
 
 const get = (path: string): Promise<any> => {
   const url = `http://localhost:${port}${path}`;

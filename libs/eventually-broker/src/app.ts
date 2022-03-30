@@ -32,7 +32,7 @@ export const app = async (port?: number): Promise<void> => {
       extname: ".hbs",
       helpers: {
         json: (context: any) => JSON.stringify(context),
-        title: () => `${config().description} ${config().version}`
+        title: () => `${config().service} ${config().version}`
       }
     })
   );
