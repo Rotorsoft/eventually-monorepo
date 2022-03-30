@@ -20,7 +20,7 @@ import {
   getStreamable,
   randomId,
   store,
-  ValidationError
+  validateMessage
 } from "./utils";
 
 interface Reader {
@@ -33,25 +33,6 @@ interface Reader {
  */
 export abstract class AppBase extends Builder implements Reader {
   public readonly log = log();
-
-  /**
-   * Validates message payloads
-   */
-  private _validate(message: Message<string, Payload>): void {
-    const metadata = this.messages[message.name];
-    if (!metadata)
-      throw Error(
-        `Message metadata not found. Please register "${message.name}" with the application builder`
-      );
-
-    if (metadata.schema) {
-      const { error } = metadata.schema.validate(message.data, {
-        abortEarly: false,
-        allowUnknown: true
-      });
-      if (error) throw new ValidationError(error, message);
-    }
-  }
 
   /**
    * Generic message handler
@@ -72,7 +53,7 @@ export abstract class AppBase extends Builder implements Reader {
       ? await this.load(reducible)
       : { event: undefined, count: 0 };
     const events = await callback(snapshot.state);
-    events.map((event) => this._validate(event));
+    events.map((event) => validateMessage(event));
     if (streamable) {
       const committed = await store().commit(
         streamable.stream(),
@@ -137,7 +118,7 @@ export abstract class AppBase extends Builder implements Reader {
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
-    this._validate(command);
+    validateMessage(command);
     const handler = factory(id);
     return await this._handle(
       handler,
@@ -166,7 +147,7 @@ export abstract class AppBase extends Builder implements Reader {
     state?: M;
   }> {
     this.log.trace("magenta", `\n>>> ${factory.name}`, event);
-    this._validate(event);
+    validateMessage(event);
     const handler = factory(event);
     const { name, stream, id, data } = event;
     const metadata: CommittedEventMetadata = {

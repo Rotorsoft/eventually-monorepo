@@ -393,9 +393,7 @@ describe("in memory", () => {
       await app().command(bind("Whatever", undefined, id));
       await expect(
         app().command(bind("Forget", undefined, id))
-      ).rejects.toThrow(
-        'Message metadata not found. Please register "Forgotten" with the application builder'
-      );
+      ).rejects.toThrow("Please register message: Forgotten");
     });
   });
 });

@@ -1,5 +1,6 @@
 import * as crypto from "crypto";
 import * as joi from "joi";
+import { app } from ".";
 import { Store } from "./interfaces";
 import { singleton } from "./singleton";
 import {
@@ -183,3 +184,18 @@ export class ConcurrencyError extends Error {
     super(Errors.ConcurrencyError);
   }
 }
+
+/**
+ * Validates message payloads
+ */
+export const validateMessage = (message: Message<string, Payload>): void => {
+  const metadata = app().messages[message.name];
+  if (!metadata) throw Error(`Please register message: ${message.name}`);
+  if (metadata.schema) {
+    const { error } = metadata.schema.validate(message.data, {
+      abortEarly: false,
+      allowUnknown: true
+    });
+    if (error) throw new ValidationError(error, message);
+  }
+};
