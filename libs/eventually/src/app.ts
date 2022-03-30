@@ -1,4 +1,5 @@
 import { Builder } from "./builder";
+import { handleMessage } from "./handler";
 import { log } from "./log";
 import {
   AllQuery,
@@ -8,20 +9,11 @@ import {
   CommittedEventMetadata,
   EventHandlerFactory,
   Getter,
-  Message,
-  MessageHandler,
   Payload,
   Reducible,
   Snapshot
 } from "./types";
-import {
-  bind,
-  getReducible,
-  getStreamable,
-  randomId,
-  store,
-  validateMessage
-} from "./utils";
+import { bind, randomId, store, validateMessage } from "./utils";
 
 interface Reader {
   load: Getter;
@@ -41,60 +33,6 @@ export abstract class AppBase extends Builder implements Reader {
    * @param metadata Message metadata
    * @returns Reduced snapshots
    */
-  private async _handle<M extends Payload, C, E>(
-    handler: MessageHandler<M, C, E>,
-    callback: (state: M) => Promise<Message<string, Payload>[]>,
-    metadata: CommittedEventMetadata,
-    notify = true
-  ): Promise<Snapshot<M>[]> {
-    const streamable = getStreamable(handler);
-    const reducible = getReducible(handler);
-    const snapshot = reducible
-      ? await this.load(reducible)
-      : { event: undefined, count: 0 };
-    const events = await callback(snapshot.state);
-    events.map((event) => validateMessage(event));
-    if (streamable) {
-      const committed = await store().commit(
-        streamable.stream(),
-        events,
-        metadata,
-        metadata.causation.command?.expectedVersion,
-        notify
-      );
-      if (reducible) {
-        let state = snapshot.state;
-        const snapshots = committed.map((event) => {
-          this.log.trace(
-            "gray",
-            `   ... ${streamable.stream()} committed ${event.name} @ ${
-              event.version
-            }`,
-            event.data
-          );
-          state = (reducible as any)["apply".concat(event.name)](state, event);
-          this.log.trace(
-            "gray",
-            `   === ${JSON.stringify(state)}`,
-            ` @ ${event.version}`
-          );
-          return { event, state };
-        });
-
-        reducible.snapshot &&
-          snapshot.count > reducible.snapshot?.threshold &&
-          (await this.upsertSnapshot(
-            reducible,
-            snapshots[snapshots.length - 1]
-          ));
-
-        return snapshots;
-      } else {
-        return committed.map((event) => ({ event }));
-      }
-    }
-    return [{ event: undefined }];
-  }
 
   /**
    * Concrete implementations should provide the listening framework
@@ -120,7 +58,7 @@ export abstract class AppBase extends Builder implements Reader {
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
     validateMessage(command);
     const handler = factory(id);
-    return await this._handle(
+    return await handleMessage(
       handler,
       (state: M) => (handler as any)["on".concat(name)](data, state, actor),
       {
@@ -155,7 +93,7 @@ export abstract class AppBase extends Builder implements Reader {
       causation: { event: { name, stream, id } }
     };
     let command: Command<keyof C & string, Payload> | undefined;
-    const [{ state }] = await this._handle(
+    const [{ state }] = await handleMessage(
       handler,
       async (state: M) => {
         command = await (handler as any)["on".concat(name)](event, state);

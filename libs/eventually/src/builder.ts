@@ -185,7 +185,7 @@ export class Builder {
     return this;
   }
 
-  private getSnapshotStore<M extends Payload, E>(
+  getSnapshotStore<M extends Payload, E>(
     reducible: Reducible<M, E>
   ): SnapshotStore {
     const factory = reducible?.snapshot?.factory || InMemorySnapshotStore;
@@ -199,14 +199,6 @@ export class Builder {
   ): Promise<Snapshot<M>> {
     const store = this.getSnapshotStore(reducible);
     return await store.read(reducible.stream());
-  }
-
-  protected async upsertSnapshot<M extends Payload, E>(
-    reducible: Reducible<M, E>,
-    snapshot: Snapshot<M>
-  ): Promise<void> {
-    const store = this.getSnapshotStore(reducible);
-    await store.upsert(reducible.stream(), snapshot);
   }
 
   /**
