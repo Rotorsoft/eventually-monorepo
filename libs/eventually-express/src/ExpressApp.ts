@@ -8,6 +8,7 @@ import {
   config,
   dispose,
   Errors,
+  formatTime,
   Getter,
   Payload,
   ProcessManagerFactory,
@@ -263,12 +264,7 @@ export class ExpressApp extends AppBase {
     super.build();
     this._buildCommandHandlers();
     this._buildEventHandlers();
-    if (
-      Object.keys(this.endpoints.commands).length ||
-      Object.values(this.endpoints.eventHandlers).filter(
-        (eh) => eh.type === "process-manager"
-      ).length
-    ) {
+    if (this.hasStreams) {
       this._buildAllStreamRoute();
       this._buildStatsRoute();
     }
@@ -314,21 +310,14 @@ export class ExpressApp extends AppBase {
     this._app.get("/_health", (_, res: Response) => {
       res.status(200).json({ status: "OK" });
     });
-    this._app.get("/", (req: Request, res: Response) => {
-      const uptime = process.uptime();
-      const formattedUptime = new Date(uptime * 1000).toISOString();
+    this._app.get("/", (_: Request, res: Response) => {
       res.status(200).json({
         env,
         service,
         version,
         logLevel,
         mem: process.memoryUsage(),
-        uptime:
-          uptime < 60 * 60
-            ? formattedUptime.substring(14, 5)
-            : uptime < 24 * 60 * 60
-            ? formattedUptime.substring(11, 8)
-            : formattedUptime,
+        uptime: formatTime(process.uptime()),
         "swagger-ui": "/swagger-ui",
         redoc: "/redoc",
         rapidoc: "/rapidoc",

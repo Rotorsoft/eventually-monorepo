@@ -372,12 +372,7 @@ export const swagger = (app: Builder): any => {
   const tags: { name: string; description: string }[] = [];
   const paths: Record<string, any> = {};
 
-  if (
-    Object.keys(app.endpoints.commands).length ||
-    Object.values(app.endpoints.eventHandlers).filter(
-      (eh) => eh.type === "process-manager"
-    ).length
-  ) {
+  if (app.hasStreams) {
     paths["/stats"] = {
       get: {
         operationId: "getStats",

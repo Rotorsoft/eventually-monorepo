@@ -75,6 +75,24 @@ export const randomId = (): string => {
   return id;
 };
 
+const HOUR_MILLIS = 60 * 60;
+const DAY_MILLIS = 24 * HOUR_MILLIS;
+/** Formats milliseconds into elapsed time string */
+export const formatTime = (millis: number): string => {
+  const iso = new Date(millis * 1000).toISOString();
+  if (millis < HOUR_MILLIS) return iso.substring(14, 19);
+  if (millis < DAY_MILLIS) return iso.substring(11, 19);
+  return `${Math.round(millis / DAY_MILLIS)} days ${iso.substring(11, 19)}`;
+};
+
+const funcsOf = (prefix: string, object: Record<string, unknown>): string[] => {
+  return Object.entries(object)
+    .filter(([key, value]) => {
+      return typeof value === "function" && key.startsWith(prefix);
+    })
+    .map(([key]) => key.substring(prefix.length));
+};
+
 /**
  * Extracts events from reducible
  * @param reducible the reducible
@@ -82,13 +100,7 @@ export const randomId = (): string => {
  */
 export const eventsOf = <M extends Payload, E>(
   reducible: Reducible<M, E>
-): string[] => {
-  return Object.entries(reducible)
-    .filter(([key, value]) => {
-      return typeof value === "function" && key.startsWith("apply");
-    })
-    .map(([key]) => key.substring(5));
-};
+): string[] => funcsOf("apply", reducible);
 
 /**
  * Extracts messages from handler
@@ -97,13 +109,7 @@ export const eventsOf = <M extends Payload, E>(
  */
 export const messagesOf = <M extends Payload, C, E>(
   handler: CommandHandler<M, C, E> | EventHandler<M, C, E>
-): string[] => {
-  return Object.entries(handler)
-    .filter(([key, value]) => {
-      return typeof value === "function" && key.startsWith("on");
-    })
-    .map(([key]) => key.substring(2));
-};
+): string[] => funcsOf("on", handler);
 
 /**
  * Reducible type guard

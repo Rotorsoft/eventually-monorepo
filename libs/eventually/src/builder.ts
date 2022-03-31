@@ -72,6 +72,10 @@ export class Builder {
   };
   readonly messages: Record<string, MessageMetadata> = {};
   readonly documentation: Record<string, { description: string }> = {};
+  private _hasStreams = false;
+  get hasStreams(): boolean {
+    return this._hasStreams;
+  }
 
   private _msg(name: string): MessageMetadata {
     return (this.messages[name] = this.messages[name] || {
@@ -98,6 +102,14 @@ export class Builder {
       throw Error(`Duplicate command handler ${factory.name}`);
     this._factories.commandHandlers[factory.name] = factory;
     this.documentation[factory.name] = { description };
+  }
+
+  /**
+   * Flags app with streams
+   */
+  withStreams(): this {
+    this._hasStreams = true;
+    return this;
   }
 
   /**
@@ -225,6 +237,7 @@ export class Builder {
         log().info("bgBlue", " POST ", path);
       });
       reducible && eventsOf(reducible).map((name) => this._msg(name));
+      this.withStreams();
     });
 
     // event handlers
@@ -243,6 +256,7 @@ export class Builder {
         msg.eventHandlerFactories[path] = factory;
         return name;
       });
+      reducible && this.withStreams();
       log().info("bgMagenta", " POST ", path, events);
     });
 
