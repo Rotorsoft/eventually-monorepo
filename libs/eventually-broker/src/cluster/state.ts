@@ -8,20 +8,15 @@ import {
   EventsViewModel,
   RetryableHttpStatus
 } from ".";
-import {
-  Operation,
-  Service,
-  Subscription,
-  subscriptions,
-  TriggerPayload
-} from "..";
+import { Operation, Service, Subscription, subscriptions } from "..";
 import {
   ChannelConfig,
   State,
   SubscriptionConfig,
   SubscriptionState,
   SubscriptionStats,
-  SubscriptionViewModel
+  SubscriptionViewModel,
+  WorkerMessage
 } from "./types";
 
 export const state = singleton(function state(): State {
@@ -246,42 +241,31 @@ export const state = singleton(function state(): State {
     emitSSE(id);
   };
 
-  cluster.on(
-    "message",
-    (
-      worker,
-      {
-        error,
-        stats,
-        trigger
-      }: {
-        error?: ErrorMessage;
-        stats?: SubscriptionStats & SubscriptionConfig;
-        trigger?: TriggerPayload;
-      }
-    ) => {
-      const channel = _channels[worker.id];
-      if (!channel) return;
-
-      if (error) {
-        error.config?.id
-          ? _error(worker.id, channel, error.config?.id, error)
-          : channel.subscriptions.map(({ id }) =>
-              _error(worker.id, channel, id, error)
-            );
-      } else if (stats) _stats(worker.id, channel, stats);
-      else if (trigger)
-        channel.position = Math.max(
-          channel.position || -1,
-          trigger.position || -1
-        );
-    }
-  );
-
-  cluster.on("exit", (worker, code, signal) => {
-    const channel = _channels[worker.id];
+  const onMessage = (
+    workerId: number,
+    { error, stats, trigger }: WorkerMessage
+  ): void => {
+    const channel = _channels[workerId];
     if (!channel) return;
-    delete _channels[worker.id];
+
+    if (error) {
+      error.config?.id
+        ? _error(workerId, channel, error.config?.id, error)
+        : channel.subscriptions.map(({ id }) =>
+            _error(workerId, channel, id, error)
+          );
+    } else if (stats) _stats(workerId, channel, stats);
+    else if (trigger)
+      channel.position = Math.max(
+        channel.position || -1,
+        trigger.position || -1
+      );
+  };
+
+  const onExit = (workerId: number, code: number, signal: string): void => {
+    const channel = _channels[workerId];
+    if (!channel) return;
+    delete _channels[workerId];
     log().info(
       "red",
       `exit ${channel.id} with ${signal ? signal : `code ${code}`}`
@@ -292,7 +276,10 @@ export const state = singleton(function state(): State {
     });
     // re-run when exit code == 0
     !code && void run(channel.id, channel.position, channel.runs);
-  });
+  };
+
+  cluster.on("message", (worker, message) => onMessage(worker.id, message));
+  cluster.on("exit", (worker, code, signal) => onExit(worker.id, code, signal));
 
   return {
     services: () =>
@@ -312,6 +299,8 @@ export const state = singleton(function state(): State {
     subscribeSSE,
     unsubscribeSSE,
     viewModel,
+    onMessage,
+    onExit,
     refreshService: async (operation: Operation, id: string) => {
       try {
         const workerId = findWorkerId(id);

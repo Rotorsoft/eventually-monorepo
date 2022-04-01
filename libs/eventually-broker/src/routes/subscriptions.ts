@@ -51,10 +51,8 @@ router.get("/_monitor/:id", (req, res) => {
     log().error(error);
   });
   req.on("close", () => {
-    //log().trace("bgRed", "SSE", `close ${session}`);
     state().unsubscribeSSE(session);
   });
-  //log().trace("bgGreen", "SSE", `open ${session}`);
   state().subscribeSSE(session, res, id);
 });
 

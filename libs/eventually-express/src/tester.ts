@@ -41,8 +41,7 @@ type Tester = {
 };
 
 export const tester = (port = 3000): Tester => {
-  const url = (path: string): string =>
-    `http://localhost:${port || 3000}${path}`;
+  const url = (path: string): string => `http://localhost:${port}${path}`;
 
   return {
     get: (path: string): Promise<AxiosResponse<any>> =>
@@ -80,17 +79,10 @@ export const tester = (port = 3000): Tester => {
       reducible: ReducibleFactory<M, C, E>,
       id: string
     ): Promise<Snapshot<M>> => {
-      try {
-        const response = await axios.get<any, AxiosResponse<Snapshot<M>>>(
-          url(reduciblePath(reducible).replace(":id", id))
-        );
-        if (response.status === 200) return response.data;
-        console.log(response);
-        throw Error(response.statusText);
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
+      const { data } = await axios.get<any, AxiosResponse<Snapshot<M>>>(
+        url(reduciblePath(reducible).replace(":id", id))
+      );
+      return data;
     },
 
     stream: async <M extends Payload, C, E>(
@@ -100,42 +92,28 @@ export const tester = (port = 3000): Tester => {
         useSnapshots?: boolean;
       } = { useSnapshots: false }
     ): Promise<Snapshot<M>[]> => {
-      try {
-        const response = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
-          url(
-            reduciblePath(reducible)
-              .replace(":id", id)
-              .concat(
-                `/stream${options.useSnapshots ? "?useSnapshots=true" : ""}`
-              )
-          )
-        );
-        if (response.status === 200) return response.data;
-        console.log(response);
-        throw Error(response.statusText);
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
+      const { data } = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
+        url(
+          reduciblePath(reducible)
+            .replace(":id", id)
+            .concat(
+              `/stream${options.useSnapshots ? "?useSnapshots=true" : ""}`
+            )
+        )
+      );
+      return data;
     },
 
     read: async (
       query: AllQuery = { after: -1, limit: 1 }
     ): Promise<CommittedEvent<string, Payload>[]> => {
-      try {
-        const response = await axios.get<
-          any,
-          AxiosResponse<CommittedEvent<string, Payload>[]>
-        >(url("/all"), {
-          params: query
-        });
-        if (response.status === 200) return response.data;
-        console.log(response);
-        throw Error(response.statusText);
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
+      const { data } = await axios.get<
+        any,
+        AxiosResponse<CommittedEvent<string, Payload>[]>
+      >(url("/all"), {
+        params: query
+      });
+      return data;
     },
 
     sleep: (millis: number): Promise<void> =>

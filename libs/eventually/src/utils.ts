@@ -75,14 +75,14 @@ export const randomId = (): string => {
   return id;
 };
 
-const HOUR_MILLIS = 60 * 60;
-const DAY_MILLIS = 24 * HOUR_MILLIS;
-/** Formats milliseconds into elapsed time string */
-export const formatTime = (millis: number): string => {
-  const iso = new Date(millis * 1000).toISOString();
-  if (millis < HOUR_MILLIS) return iso.substring(14, 19);
-  if (millis < DAY_MILLIS) return iso.substring(11, 19);
-  return `${Math.round(millis / DAY_MILLIS)} days ${iso.substring(11, 19)}`;
+const HOUR_SECS = 60 * 60;
+const DAY_SECS = 24 * HOUR_SECS;
+/** Formats seconds into elapsed time string */
+export const formatTime = (seconds: number): string => {
+  const iso = new Date(seconds * 1000).toISOString();
+  if (seconds < HOUR_SECS) return iso.substring(14, 19);
+  if (seconds < DAY_SECS) return iso.substring(11, 19);
+  return `${Math.round(seconds / DAY_SECS)} days ${iso.substring(11, 19)}`;
 };
 
 const funcsOf = (prefix: string, object: Record<string, unknown>): string[] => {

@@ -1,5 +1,5 @@
 import { Writable } from "stream";
-import { Operation, Service } from "../types";
+import { Operation, Service, TriggerPayload } from "../types";
 
 export type SubscriptionConfig = {
   id: string;
@@ -71,6 +71,12 @@ export type SubscriptionViewModel = {
   events: EventsViewModel[];
 };
 
+export type WorkerMessage = {
+  error?: ErrorMessage;
+  stats?: SubscriptionStats & SubscriptionConfig;
+  trigger?: TriggerPayload;
+};
+
 export type State = {
   init: (services: Service[]) => Promise<void>;
   refreshService: (operation: Operation, id: string) => Promise<void>;
@@ -79,6 +85,8 @@ export type State = {
   unsubscribeSSE: (session: string) => void;
   services: () => Service[];
   viewModel: (id: string) => SubscriptionViewModel;
+  onMessage: (workerId: number, message: WorkerMessage) => void;
+  onExit: (workerId: number, code: number, signal: string) => void;
 };
 
 // 404 - Not Found

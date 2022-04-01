@@ -9,7 +9,7 @@ import {
 import { app } from "./app";
 import { work } from "./cluster";
 
-const defaultResolvers: ChannelResolvers = {
+export const defaultResolvers: ChannelResolvers = {
   pull: {
     "void:": () => VoidPullChannel(),
     "pg:": (url: URL) => PostgresPullChannel(url)

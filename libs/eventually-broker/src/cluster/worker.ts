@@ -28,10 +28,10 @@ const triggerLog = ({ operation, retries, position }: TriggerPayload): string =>
     position ? `@${position}` : ""
   } ${new Date().toISOString()}]`;
 
-const sendTrigger = (trigger: TriggerPayload): boolean =>
+export const sendTrigger = (trigger: TriggerPayload): boolean =>
   process.send({ trigger });
 
-const sendError = (
+export const sendError = (
   message: string,
   config?: SubscriptionConfig,
   code = 500,
@@ -49,7 +49,7 @@ const sendError = (
   process.send({ error });
 };
 
-const sendStats = (
+export const sendStats = (
   config: SubscriptionConfig,
   stats: SubscriptionStats
 ): void => {

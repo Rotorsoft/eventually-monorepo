@@ -317,5 +317,25 @@ describe("express app", () => {
       const swagger = expressApp.getSwagger();
       expect(swagger).toBeDefined();
     });
+
+    it("should get redoc spec", async () => {
+      const swagger = await t.get("/redoc");
+      expect(swagger.status).toBe(200);
+    });
+
+    it("should get rapidoc spec", async () => {
+      const swagger = await t.get("/rapidoc");
+      expect(swagger.status).toBe(200);
+    });
+
+    it("should get _health", async () => {
+      const swagger = await t.get("/_health");
+      expect(swagger.status).toBe(200);
+    });
+
+    it("should get home", async () => {
+      const swagger = await t.get("/");
+      expect(swagger.status).toBe(200);
+    });
   });
 });

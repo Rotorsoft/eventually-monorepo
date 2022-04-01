@@ -1,4 +1,13 @@
 import { CommittedEvent, Payload } from "@rotorsoft/eventually";
+import axios from "axios";
+import {
+  ChildProcess,
+  Serializable,
+  SendHandle,
+  MessageOptions
+} from "child_process";
+import { Worker } from "cluster";
+import { EventEmitter } from "stream";
 import { Service, Subscription, subscriptions } from "..";
 
 export const serviceBody = (
@@ -46,3 +55,63 @@ export const createCommittedEvent = (
   version: 0,
   created: new Date()
 });
+
+export const get = (path: string, port: number): Promise<any> => {
+  const url = `http://localhost:${port}${path}`;
+  return axios.get<any>(url);
+};
+
+export const post = (
+  path: string,
+  body: Record<string, unknown>,
+  port: number
+): Promise<any> => {
+  const url = `http://localhost:${port}${path}`;
+  return axios.post<any>(url, body);
+};
+
+export const _delete = (path: string, port: number): Promise<any> => {
+  const url = `http://localhost:${port}${path}`;
+  return axios.delete<any>(url);
+};
+
+export class FakeChildProcess extends EventEmitter implements Worker {
+  constructor(_id: number) {
+    super();
+    this.id = _id;
+  }
+
+  id: number;
+  process: ChildProcess;
+  send(message: Serializable, callback?: (error: Error) => void): boolean;
+  send(
+    message: Serializable,
+    sendHandle: SendHandle,
+    callback?: (error: Error) => void
+  ): boolean;
+  send(
+    message: Serializable,
+    sendHandle: SendHandle,
+    options?: MessageOptions,
+    callback?: (error: Error) => void
+  ): boolean;
+  send(): boolean {
+    throw new Error("Method not implemented.");
+  }
+  kill(): void {
+    throw new Error("Method not implemented.");
+  }
+  destroy(): void {
+    throw new Error("Method not implemented.");
+  }
+  disconnect(): void {
+    throw new Error("Method not implemented.");
+  }
+  isConnected(): boolean {
+    throw new Error("Method not implemented.");
+  }
+  isDead(): boolean {
+    throw new Error("Method not implemented.");
+  }
+  exitedAfterDisconnect: boolean;
+}

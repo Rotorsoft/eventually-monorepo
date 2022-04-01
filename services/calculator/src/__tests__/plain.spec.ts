@@ -1,7 +1,7 @@
 process.env.NODE_ENV = "production";
 process.env.LOG_LEVEL = "trace";
 
-import { app, bind, dispose } from "@rotorsoft/eventually";
+import { app, bind, dispose, formatTime } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
@@ -41,6 +41,15 @@ describe("trace in prod mode", () => {
         left: "1",
         result: 0
       });
+    });
+
+    it("should display elapsed time", () => {
+      const et1 = formatTime(process.uptime());
+      expect(et1.length).toBe(5);
+      const et2 = formatTime(process.uptime() + 2 * 60 * 60);
+      expect(et2.length).toBe(8);
+      const et3 = formatTime(process.uptime() + 25 * 60 * 60);
+      expect(et3.length).toBeGreaterThan(8);
     });
   });
 });

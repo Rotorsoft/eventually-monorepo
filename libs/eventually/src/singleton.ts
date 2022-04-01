@@ -1,4 +1,4 @@
-const instances: { [name: string]: unknown } = {};
+const instances: Record<string, unknown> = {};
 /**
  * Wraps creation of singletons around factory functions
  * @param target the factory function
@@ -22,6 +22,7 @@ const disposeAndExit = async (
   code: ExitCodes = ExitCodes.UNIT_TEST
 ): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
+  Object.keys(instances).map((key) => delete instances[key]);
   code !== ExitCodes.UNIT_TEST && process.exit(code === ExitCodes.OK ? 0 : 1);
 };
 /**
