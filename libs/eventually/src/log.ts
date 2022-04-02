@@ -1,26 +1,7 @@
 import chalk from "chalk";
-import { Environments } from ".";
-import { config, LogLevels } from "./config";
+import { config } from "./config";
+import { Color, Environments, Log, LogLevels } from "./interfaces";
 import { singleton } from "./singleton";
-
-type Color =
-  | "red"
-  | "green"
-  | "magenta"
-  | "blue"
-  | "white"
-  | "gray"
-  | "bgRed"
-  | "bgGreen"
-  | "bgMagenta"
-  | "bgBlue"
-  | "bgWhite";
-
-export interface Log {
-  trace(color: Color, message: string, ...params: any[]): void;
-  info(color: Color, message: string, ...params: any[]): void;
-  error(error: Error): void;
-}
 
 /** Uncolored and stringified for deployed non-dev envs */
 const plain = (
@@ -63,18 +44,24 @@ const nolog = (): void => {
 };
 
 const testLog = (): Log => ({
+  name: "testLog",
+  dispose: () => undefined,
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error: nolog
 });
 
 const devLog = (): Log => ({
+  name: "devLog",
+  dispose: () => undefined,
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error
 });
 
 const plainLog = (): Log => ({
+  name: "plainLog",
+  dispose: () => undefined,
   trace: config().logLevel === LogLevels.trace ? plain : nolog,
   info: config().logLevel !== LogLevels.error ? plain : nolog,
   error

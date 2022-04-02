@@ -15,11 +15,9 @@ export const app = async (port?: number): Promise<void> => {
 
   await state().init(services);
 
-  subscriptions().listen("services", ({ operation, id }) =>
-    state().refreshService(operation, id)
-  );
-  subscriptions().listen("subscriptions", ({ operation, id }) =>
-    state().refreshSubscription(operation, id)
+  subscriptions().listen(
+    ({ operation, id }) => state().refreshService(operation, id),
+    ({ operation, id }) => state().refreshSubscription(operation, id)
   );
 
   const app = express();
@@ -49,7 +47,7 @@ export const app = async (port?: number): Promise<void> => {
   });
 
   dispose(() => {
-    log().info("bgRed", `[${process.pid}]`, "💣Broker");
+    log().info("bgRed", `[${process.pid}]`, "💣 Broker");
     return new Promise((resolve, reject) => {
       server.once("close", resolve);
       server.close(reject);

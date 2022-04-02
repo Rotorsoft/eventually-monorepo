@@ -1,7 +1,7 @@
 import { bind, dispose, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import {
-  PostgresStreamListenerFactory,
+  PostgresStreamListener,
   PostgresSubscriptionStore,
   subscriptions,
   TriggerCallback
@@ -17,17 +17,19 @@ describe("listener", () => {
     pumped++;
     return Promise.resolve();
   };
+  const listener = PostgresStreamListener(stream);
 
   beforeAll(async () => {
-    PostgresStreamListenerFactory(stream, pump);
     await store().seed();
   });
 
   afterAll(async () => {
+    await listener.close();
     await dispose()();
   });
 
   it("should trigger subscription", async () => {
+    listener.listen(pump);
     await store().commit("aggregate1", [bind("test3", { value: "1" })], {
       correlation: "",
       causation: {}

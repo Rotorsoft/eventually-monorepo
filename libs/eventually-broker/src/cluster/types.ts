@@ -1,3 +1,4 @@
+import { Disposable } from "@rotorsoft/eventually";
 import { Writable } from "stream";
 import { Operation, Service, TriggerPayload } from "../types";
 
@@ -77,7 +78,7 @@ export type WorkerMessage = {
   trigger?: TriggerPayload;
 };
 
-export type State = {
+export interface State extends Disposable {
   init: (services: Service[]) => Promise<void>;
   refreshService: (operation: Operation, id: string) => Promise<void>;
   refreshSubscription: (operation: Operation, id: string) => Promise<void>;
@@ -87,7 +88,7 @@ export type State = {
   viewModel: (id: string) => SubscriptionViewModel;
   onMessage: (workerId: number, message: WorkerMessage) => void;
   onExit: (workerId: number, code: number, signal: string) => void;
-};
+}
 
 // 404 - Not Found
 // 429 - Too Many Requests

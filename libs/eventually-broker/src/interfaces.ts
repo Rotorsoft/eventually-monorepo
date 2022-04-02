@@ -1,6 +1,46 @@
-import { Service, Subscription, TriggerCallback } from "./types";
+import { CommittedEvent, Disposable, Payload } from "@rotorsoft/eventually";
+import { PushResponse, Service, Subscription, TriggerCallback } from "./types";
 
-export interface SubscriptionStore {
+/**
+ * Listens for changes in streams
+ */
+export interface StreamListener {
+  listen: (callback: TriggerCallback) => void;
+  close: () => Promise<void>;
+}
+
+/**
+ * Pull channels pull events from streams
+ */
+export interface PullChannel extends Disposable {
+  listen: (callback: TriggerCallback) => void;
+  pull: (
+    position: number,
+    limit: number
+  ) => Promise<CommittedEvent<string, Payload>[]>;
+}
+
+/**
+ * Push channels push events to consumer endpoints
+ */
+
+export interface PushChannel {
+  init: (...args: any) => void;
+  push: (event: CommittedEvent<string, Payload>) => Promise<PushResponse>;
+}
+
+/**
+ * Maps protocols to channel factories
+ */
+export interface ChannelResolvers {
+  pull: Record<string, (url: URL) => PullChannel>;
+  push: Record<string, (url: URL) => PushChannel>;
+}
+
+/**
+ * Implements subscription store
+ */
+export interface SubscriptionStore extends Disposable {
   /**
    * Store initializer
    * @returns a stream listener factory for this store
@@ -8,9 +48,12 @@ export interface SubscriptionStore {
   seed: () => Promise<void>;
 
   /**
-   * Starts listening to a stream
+   * Starts listening for changes in services and subscriptions
    */
-  listen: (stream: string, callback: TriggerCallback) => void;
+  listen: (
+    servicesCallback: TriggerCallback,
+    subscriptionsCallback: TriggerCallback
+  ) => void;
 
   /**
    * Loads services from store

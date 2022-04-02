@@ -1,6 +1,7 @@
 import { dispose, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import axios from "axios";
+import { pullchannel } from "..";
 import {
   PostgresPullChannel,
   HttpPostPushChannel,
@@ -13,6 +14,7 @@ jest.spyOn(axios, "post").mockResolvedValue({ status: 200, statusText: "OK" });
 
 const table = "pull_test";
 store(PostgresStore(table));
+pullchannel(PostgresPullChannel(new URL(`pg://${table}`)));
 
 describe("channels", () => {
   beforeAll(async () => {
@@ -32,8 +34,7 @@ describe("channels", () => {
   });
 
   it("should pg pull", async () => {
-    const channel = PostgresPullChannel(new URL(`pg://${table}`));
-    const events = await channel.pull(-1, 1);
+    const events = await pullchannel().pull(-1, 1);
     expect(events.length).toBe(0);
   });
 

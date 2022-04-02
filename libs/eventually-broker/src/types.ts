@@ -1,5 +1,3 @@
-import { CommittedEvent, Payload } from "@rotorsoft/eventually";
-
 /**
  * Services
  * - `id` The service unique id
@@ -56,40 +54,9 @@ export type TriggerPayload = {
 export type TriggerCallback = (trigger: TriggerPayload) => Promise<void>;
 
 /**
- * Stream listeners listen for stream notifications and trigger integrations
- */
-export type StreamListenerFactory = (
-  stream: string,
-  callback: TriggerCallback
-) => void;
-
-/**
- * Pull channels pull events from streams
- */
-export type PullChannel = {
-  listen: (callback: TriggerCallback) => void;
-  pull: (
-    position: number,
-    limit: number
-  ) => Promise<CommittedEvent<string, Payload>[]>;
-};
-
-/**
- * Push channels push events to consumer endpoints
+ * Push response
  */
 export type PushResponse = {
   status: number;
   statusText: string;
-};
-export type PushChannel = {
-  init: (...args: any) => void;
-  push: (event: CommittedEvent<string, Payload>) => Promise<PushResponse>;
-};
-
-/**
- * Maps protocols to channel factories
- */
-export type ChannelResolvers = {
-  pull: Record<string, (url: URL) => PullChannel>;
-  push: Record<string, (url: URL) => PushChannel>;
 };

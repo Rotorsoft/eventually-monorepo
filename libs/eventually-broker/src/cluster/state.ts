@@ -282,6 +282,11 @@ export const state = singleton(function state(): State {
   cluster.on("exit", (worker, code, signal) => onExit(worker.id, code, signal));
 
   return {
+    name: "state",
+    dispose: () => {
+      cluster.removeAllListeners();
+      return Promise.resolve();
+    },
     services: () =>
       Object.values(_services).sort((a, b) =>
         a.id > b.id ? 1 : a.id < b.id ? -1 : 0

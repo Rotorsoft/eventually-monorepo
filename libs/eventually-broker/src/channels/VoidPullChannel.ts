@@ -1,6 +1,8 @@
-import { PullChannel } from "../types";
+import { PullChannel } from "../interfaces";
 
 export const VoidPullChannel = (): PullChannel => ({
-  pull: () => Promise.resolve([]),
-  listen: () => Promise.resolve()
+  name: "VoidPullChannel",
+  dispose: () => undefined,
+  listen: () => undefined,
+  pull: () => Promise.resolve([])
 });

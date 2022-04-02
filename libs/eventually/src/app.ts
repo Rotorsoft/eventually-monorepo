@@ -1,5 +1,6 @@
 import { Builder } from "./builder";
 import { handleMessage } from "./handler";
+import { Disposable } from "./interfaces";
 import { log } from "./log";
 import {
   AllQuery,
@@ -8,35 +9,23 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   EventHandlerFactory,
-  Getter,
   Payload,
   Reducible,
   Snapshot
 } from "./types";
 import { bind, randomId, store, validateMessage } from "./utils";
 
-interface Reader {
-  load: Getter;
-  stream: Getter;
-}
-
 /**
  * App abstraction implementing generic handlers
  */
-export abstract class AppBase extends Builder implements Reader {
+export abstract class AppBase extends Builder implements Disposable {
   public readonly log = log();
 
   /**
-   * Generic message handler
-   * @param handler Message handler
-   * @param callback Concrete message handling callback
-   * @param metadata Message metadata
-   * @returns Reduced snapshots
+   * Concrete implementations should provide disposers and the listening framework
    */
-
-  /**
-   * Concrete implementations should provide the listening framework
-   */
+  abstract readonly name: string;
+  abstract dispose(): Promise<void>;
   abstract listen(): void;
 
   /**

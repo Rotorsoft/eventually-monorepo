@@ -1,13 +1,22 @@
-const instances: Record<string, unknown> = {};
+import { Disposable } from "./interfaces";
+import { Disposer } from "./types";
+
+const instances: Record<string, Disposable> = {};
 /**
  * Wraps creation of singletons around factory functions
  * @param target the factory function
  * @returns the singleton function
  */
 export const singleton =
-  <T>(target: (arg?: T) => T) =>
+  <T extends Disposable>(target: (arg?: T) => T) =>
   (arg?: T): T => {
-    !instances[target.name] && (instances[target.name] = target(arg));
+    if (!instances[target.name]) {
+      instances[target.name] = target(arg);
+      console.log(
+        `[${process.pid}]`,
+        `✨ ${instances[target.name].name || target.name}`
+      );
+    }
     return instances[target.name] as T;
   };
 
@@ -16,13 +25,18 @@ export enum ExitCodes {
   OK = "OK",
   ERROR = "ERROR"
 }
-type Disposer = () => Promise<void>;
 const disposers: Disposer[] = [];
 const disposeAndExit = async (
   code: ExitCodes = ExitCodes.UNIT_TEST
 ): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
-  Object.keys(instances).map((key) => delete instances[key]);
+  await Promise.all(
+    Object.entries(instances).map(async ([key, instance]) => {
+      console.log(`[${process.pid}]`, `♻️ ${instance.name || key}`);
+      await instance.dispose();
+      delete instances[key];
+    })
+  );
   code !== ExitCodes.UNIT_TEST && process.exit(code === ExitCodes.OK ? 0 : 1);
 };
 /**

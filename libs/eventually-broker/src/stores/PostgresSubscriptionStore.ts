@@ -1,8 +1,7 @@
-import { dispose, log } from "@rotorsoft/eventually";
 import { config } from "@rotorsoft/eventually-pg";
 import { Pool } from "pg";
 import {
-  PostgresStreamListenerFactory,
+  PostgresStreamListener,
   Service,
   Subscription,
   SubscriptionStore
@@ -10,21 +9,26 @@ import {
 import { seed } from "./seed";
 
 export const PostgresSubscriptionStore = (): SubscriptionStore => {
-  log().info("bgGreen", `[${process.pid}]`, "✨PostgresSubscriptionStore...");
   const pool = new Pool(config.pg);
-
-  dispose(() => {
-    log().info("bgRed", `[${process.pid}]`, "💣PostgresSubscriptionStore...");
-    return pool.end();
-  });
+  const servicesListener = PostgresStreamListener("services");
+  const subscriptionsListener = PostgresStreamListener("subscriptions");
 
   return {
+    name: "PostgresSubscriptionStore",
+    dispose: async () => {
+      await servicesListener.close();
+      await subscriptionsListener.close();
+      await pool.end();
+    },
+
     seed: async () => {
       await pool.query(seed());
     },
 
-    listen: (stream, callback) =>
-      PostgresStreamListenerFactory(stream, callback),
+    listen: (servicesCallback, subscriptionsCallback) => {
+      servicesListener.listen(servicesCallback);
+      subscriptionsListener.listen(subscriptionsCallback);
+    },
 
     loadServices: async (id?: string): Promise<Service[]> => {
       const result = id

@@ -3,7 +3,6 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   ConcurrencyError,
-  dispose,
   log,
   Message,
   Payload,
@@ -25,15 +24,14 @@ type Event = {
 };
 
 export const PostgresStore = (table: string): Store => {
-  log().info("bgGreen", `[${process.pid}]`, `✨PostgresStore ${table}...`);
   const pool = new Pool(config.pg);
 
-  dispose(() => {
-    log().info("bgRed", `[${process.pid}]`, `💣PostgresStore ${table}...`);
-    return pool.end();
-  });
-
   return {
+    name: `PostgresStore:${table}`,
+    dispose: async () => {
+      await pool.end();
+    },
+
     seed: async () => {
       await pool.query(stream(table));
     },

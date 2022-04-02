@@ -8,6 +8,14 @@ import {
 } from "./types";
 import { getReducible, getStreamable, validateMessage } from "./utils";
 
+/**
+ * Generic message handler
+ * @param handler Message handler
+ * @param callback Concrete message handling callback
+ * @param metadata Message metadata
+ * @param notify Notify commits
+ * @returns Reduced snapshots
+ */
 export const handleMessage = async <M extends Payload, C, E>(
   handler: MessageHandler<M, C, E>,
   callback: (state: M) => Promise<Message<string, Payload>[]>,

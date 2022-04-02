@@ -19,6 +19,7 @@ describe("pg", () => {
   });
 
   afterAll(async () => {
+    await db.dispose();
     await dispose()();
   });
 

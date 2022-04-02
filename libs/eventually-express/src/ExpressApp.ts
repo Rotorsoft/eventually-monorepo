@@ -6,7 +6,6 @@ import {
   bind,
   CommittedEvent,
   config,
-  dispose,
   Errors,
   formatTime,
   Getter,
@@ -16,7 +15,6 @@ import {
   reduciblePath,
   store
 } from "@rotorsoft/eventually";
-import cluster from "cluster";
 import cors from "cors";
 import express, {
   NextFunction,
@@ -342,24 +340,23 @@ export class ExpressApp extends AppBase {
 
     const _config = { env, port, logLevel, service, version };
     if (silent) this.log.info("white", "Config", undefined, _config);
-    else {
-      this.log.info("bgGreen", `[${process.pid}]`, "✨ExpressApp...");
+    else
       this._server = this._app.listen(port, () => {
-        !cluster.isWorker &&
-          this.log.info(
-            "white",
-            "Express app is listening",
-            undefined,
-            _config
-          );
+        this.log.info("white", "Express app is listening", undefined, _config);
       });
-      dispose(() => {
-        this.log.info("bgRed", `[${process.pid}]`, "💣ExpressApp...");
-        return new Promise((resolve, reject) => {
-          this._server.once("close", resolve);
-          this._server.close(reject);
-        });
+  }
+
+  get name(): string {
+    return "ExpressApp";
+  }
+
+  async dispose(): Promise<void> {
+    if (this._server) {
+      await new Promise((resolve, reject) => {
+        this._server.once("close", resolve);
+        this._server.close(reject);
       });
+      this._server = undefined;
     }
   }
 }

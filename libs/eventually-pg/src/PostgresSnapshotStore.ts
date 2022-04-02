@@ -1,23 +1,15 @@
-import { app, dispose, log, SnapshotStore } from "@rotorsoft/eventually";
+import { dispose, log, SnapshotStore } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { config } from "./config";
 import { snapshot } from "./seed";
 
 export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
   table = table || config.pg.snapshotsTable;
-  log().info(
-    "bgGreen",
-    `[${process.pid}]`,
-    `✨PostgresSnapshotStore ${table}...`
-  );
   const pool = new Pool(config.pg);
 
+  log().info("bgGreen", `✨ PostgresSnapshotStore:${table}`);
   dispose(() => {
-    log().info(
-      "bgRed",
-      `[${process.pid}]`,
-      `💣PostgresSnapshotStore ${table}...`
-    );
+    log().info("bgGreen", `♻️ PostgresSnapshotStore:${table}`);
     return pool.end();
   });
 
@@ -30,7 +22,7 @@ export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
       const sql = `SELECT * FROM ${table} WHERE stream=$1`;
       const result = await pool.query(sql, [stream]);
       result.rows[0] &&
-        app().log.trace("white", `Snapshot loaded for stream ${stream}`);
+        log().trace("white", `Snapshot loaded for stream ${stream}`);
       return result.rows[0]?.data;
     },
 
@@ -42,7 +34,7 @@ export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
           UPDATE set data=$2 WHERE ${table}.stream=$1`,
         [stream, data]
       );
-      app().log.trace("white", `Snapshot Created for stream ${stream}`);
+      log().trace("white", `Snapshot Created for stream ${stream}`);
     }
   };
 };

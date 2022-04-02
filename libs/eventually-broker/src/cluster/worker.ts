@@ -3,7 +3,7 @@ import { ErrorMessage } from ".";
 import {
   ChannelResolvers,
   Operation,
-  PullChannel,
+  pullchannel,
   PushChannel,
   subscriptions,
   TriggerCallback,
@@ -77,12 +77,11 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     };
   };
 
-  let pullChannel: PullChannel;
   try {
     const pullUrl = new URL(config.channel);
     const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
-    pullChannel = pullFactory(pullUrl);
+    pullchannel(pullFactory(pullUrl));
   } catch (error) {
     sendError(error.message);
     await dispose()(ExitCodes.ERROR);
@@ -111,7 +110,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       let count = BATCH_SIZE;
       while (count === BATCH_SIZE) {
         stats.batches++;
-        const events = await pullChannel.pull(sub.position, BATCH_SIZE);
+        const events = await pullchannel().pull(sub.position, BATCH_SIZE);
         count = events.length;
         for (const e of events) {
           const { status, statusText } =
@@ -164,9 +163,9 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     pumping = true;
     sendTrigger(trigger);
     clearTimeout(retryTimeout);
-    const retrySubs = await Promise.all(
-      subs.map((sub) => pumpSub(sub, trigger))
-    );
+    const retrySubs = (
+      await Promise.all(subs.map((sub) => pumpSub(sub, trigger)))
+    ).filter((s) => s);
     const retries = (trigger.retries || 0) + 1;
     retrySubs.length &&
       (retryTimeout = setTimeout(
@@ -213,5 +212,5 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     id: config.id
   });
 
-  pullChannel.listen(pumpChannel);
+  pullchannel().listen(pumpChannel);
 };

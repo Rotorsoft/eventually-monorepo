@@ -1,15 +1,7 @@
 import { dispose } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { subscriptions } from "..";
-import { broker, defaultResolvers } from "../broker";
-import {
-  ChannelConfig,
-  sendError,
-  sendStats,
-  state,
-  SubscriptionStats,
-  work
-} from "../cluster";
+import { broker } from "../broker";
 import {
   FakeChildProcess,
   get,
@@ -122,54 +114,5 @@ describe("views", () => {
     responses.map((response) => {
       expect(response.status).toBe(200);
     });
-  });
-
-  it("should view model", () => {
-    const config = {
-      id: "s1",
-      active: true,
-      endpoint: "http://localhost",
-      streams: ".*",
-      names: ".*",
-      position: 2
-    };
-    const stats: SubscriptionStats = {
-      batches: 1,
-      total: 5,
-      events: {
-        event1: { "200": { count: 1, min: 1, max: 1 } },
-        event2: {
-          "200": { count: 1, min: 2, max: 2 },
-          "204": { count: 1, min: 3, max: 3 }
-        },
-        event3: {
-          "404": { count: 1, min: 4, max: 4 },
-          "503": { count: 1, min: 5, max: 5 }
-        }
-      }
-    };
-    sendError("Error message", config);
-    sendStats(config, stats);
-    state().onMessage(1, { error: { message: "Error message", config } });
-    state().onMessage(1, {
-      trigger: { id: "s1", operation: "RESTART", position: 1 }
-    });
-    state().onMessage(1, { stats: { ...config, ...stats } });
-    const viewModel = state().viewModel("s1");
-    expect(viewModel.id).toBe("s1");
-    state().onExit(1, 1, "");
-  });
-
-  it("should work", async () => {
-    const config: ChannelConfig = {
-      id: "s1",
-      channel: "void://",
-      position: -1,
-      subscriptions: [],
-      runs: 0
-    };
-    process.env.WORKER_ENV = JSON.stringify(config);
-    await work(defaultResolvers);
-    expect(1).toBe(1);
   });
 });

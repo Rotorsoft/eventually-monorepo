@@ -23,13 +23,14 @@ export const serviceBody = (
 export const subscriptionBody = (
   id: string,
   producer = "s1",
-  consumer = "s1"
+  consumer = "s1",
+  active = false
 ): Subscription => ({
   id,
   producer,
   consumer,
   path: "path",
-  active: false,
+  active,
   streams: ".*",
   names: ".*",
   position: -1

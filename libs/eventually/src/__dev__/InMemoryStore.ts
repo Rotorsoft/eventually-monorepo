@@ -34,6 +34,8 @@ export const InMemoryStore = (): Store => {
   };
 
   return {
+    name: "InMemoryStore",
+    dispose: () => undefined,
     seed: () => undefined,
 
     query: (

@@ -1,6 +1,11 @@
 import * as joi from "joi";
 import { SnapshotStore } from ".";
 
+/**
+ * Resource disposer function
+ */
+export type Disposer = () => Promise<void>;
+
 //=====================================================================================
 // COMMAND LEVEL
 //=====================================================================================

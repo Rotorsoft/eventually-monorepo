@@ -4,32 +4,35 @@ import { Service, Subscription, TriggerCallback } from "../types";
 export const InMemorySubscriptionStore = (): SubscriptionStore => {
   const services: Record<string, Service> = {};
   const subscriptions: Record<string, Subscription> = {};
-  const callbacks: Record<string, TriggerCallback> = {};
+  let _servicesCallback: TriggerCallback;
+  let _subscriptionsCallback: TriggerCallback;
 
   const findSubscriptionById = (id: string): Subscription[] =>
     Object.values(subscriptions).filter((s) => s.id === id);
 
   return {
+    name: "InMemorySubscriptionStore",
+    dispose: () => undefined,
     seed: () => undefined,
-    listen: (stream, callback) => {
-      callbacks[stream] = callback;
-      return Promise.resolve();
+    listen: (servicesCallback, subscriptionsCallback) => {
+      _servicesCallback = servicesCallback;
+      _subscriptionsCallback = subscriptionsCallback;
     },
     loadServices: () => Promise.resolve(Object.values(services)),
     createService: async (service: Service) => {
       services[service.id] = service;
-      const callback = callbacks["services"];
-      callback && (await callback({ operation: "INSERT", id: service.id }));
+      _servicesCallback &&
+        (await _servicesCallback({ operation: "INSERT", id: service.id }));
     },
     updateService: async (service: Service) => {
       services[service.id] = service;
-      const callback = callbacks["services"];
-      callback && (await callback({ operation: "UPDATE", id: service.id }));
+      _servicesCallback &&
+        (await _servicesCallback({ operation: "UPDATE", id: service.id }));
     },
     deleteService: async (id: string) => {
       delete services[id];
-      const callback = callbacks["services"];
-      callback && (await callback({ operation: "DELETE", id }));
+      _servicesCallback &&
+        (await _servicesCallback({ operation: "DELETE", id }));
     },
     loadSubscriptions: () => Promise.resolve(Object.values(subscriptions)),
     loadSubscriptionsByProducer: (producer: string) =>
@@ -39,32 +42,30 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
     searchSubscriptions: () => Promise.resolve(Object.values(subscriptions)),
     createSubscription: async (subscription: Subscription) => {
       subscriptions[subscription.id] = subscription;
-      const callback = callbacks["subscriptions"];
-      callback &&
-        (await callback({
+      _subscriptionsCallback &&
+        (await _subscriptionsCallback({
           operation: "INSERT",
           id: subscription.id
         }));
     },
     updateSubscription: async (subscription: Subscription) => {
       subscriptions[subscription.id] = subscription;
-      const callback = callbacks["subscriptions"];
-      callback &&
-        (await callback({
+      _subscriptionsCallback &&
+        (await _subscriptionsCallback({
           operation: "UPDATE",
           id: subscription.id
         }));
     },
     deleteSubscription: async (id: string) => {
       delete subscriptions[id];
-      const callback = callbacks["subscriptions"];
-      callback && (await callback({ operation: "DELETE", id }));
+      _subscriptionsCallback &&
+        (await _subscriptionsCallback({ operation: "DELETE", id }));
     },
     toggleSubscription: async (id: string) => {
       const [found] = findSubscriptionById(id);
       found && (found.active = !found.active);
-      const callback = callbacks["subscriptions"];
-      callback && (await callback({ operation: "UPDATE", id }));
+      _subscriptionsCallback &&
+        (await _subscriptionsCallback({ operation: "UPDATE", id }));
     },
     commitPosition: (id: string, position: number) => {
       const [found] = findSubscriptionById(id);

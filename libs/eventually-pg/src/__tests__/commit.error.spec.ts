@@ -35,10 +35,6 @@ const query = (
 };
 
 describe("Mocked", () => {
-  beforeAll(async () => {
-    await db.seed();
-  });
-
   afterAll(async () => {
     await dispose()();
   });

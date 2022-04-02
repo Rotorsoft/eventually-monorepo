@@ -1,4 +1,4 @@
-import { PushChannel } from "../types";
+import { PushChannel } from "../interfaces";
 
 export const VoidPushChannel = (): PushChannel => ({
   init: () => undefined,
