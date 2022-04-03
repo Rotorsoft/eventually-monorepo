@@ -51,9 +51,17 @@ export const dispose = (
   return disposeAndExit;
 };
 
-["SIGINT", "SIGTERM", "uncaughtException"].map((e) => {
-  process.once(e, async () => {
-    console.log(`[${process.pid}] ${e}`);
+["SIGINT", "SIGTERM", "uncaughtException", "unhandledRejection"].map((e) => {
+  process.once(e, async (arg?: any) => {
+    console.error(`[${process.pid}]`, arg || e);
     await disposeAndExit(e === "SIGINT" ? ExitCodes.OK : ExitCodes.ERROR);
   });
 });
+
+/**
+ * Bootstrap wrapper with above process error handlers in scope
+ * @param boot async function to boot app
+ */
+export const bootstrap = async (boot: () => Promise<void>): Promise<void> => {
+  await boot();
+};

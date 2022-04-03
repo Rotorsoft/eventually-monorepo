@@ -1,4 +1,4 @@
-import { app, store } from "@rotorsoft/eventually";
+import { app, bootstrap, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Calculator } from "./calculator.aggregate";
 import { Commands } from "./calculator.commands";
@@ -7,24 +7,26 @@ import { Counter, StatelessCounter } from "./counter.policy";
 import * as schemas from "./calculator.schemas";
 import { PostgresStore } from "libs/eventually-pg/dist";
 
-store(PostgresStore("calculator"));
-void store().seed();
+void bootstrap(async (): Promise<void> => {
+  store(PostgresStore("calculator"));
+  await store().seed();
 
-const _app = app(new ExpressApp())
-  .withSchemas<Pick<Commands, "PressKey">>({
-    PressKey: schemas.PressKey
-  })
-  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
-    DigitPressed: schemas.DigitPressed,
-    OperatorPressed: schemas.OperatorPressed
-  })
-  .withAggregate(Calculator, `Aggregates **calculator** instances`)
-  .withProcessManager(
-    Counter,
-    `Counts keys and *resets* calculator when the
+  const _app = app(new ExpressApp())
+    .withSchemas<Pick<Commands, "PressKey">>({
+      PressKey: schemas.PressKey
+    })
+    .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
+      DigitPressed: schemas.DigitPressed,
+      OperatorPressed: schemas.OperatorPressed
+    })
+    .withAggregate(Calculator, `Aggregates **calculator** instances`)
+    .withProcessManager(
+      Counter,
+      `Counts keys and *resets* calculator when the
   number of consecutire key presses without resoulution exceeds some **limit**`
-  )
-  .withEventHandlers(StatelessCounter);
+    )
+    .withEventHandlers(StatelessCounter);
 
-_app.build();
-_app.listen();
+  _app.build();
+  _app.listen();
+});
