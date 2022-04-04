@@ -61,7 +61,7 @@ export const state = singleton(function state(): State {
     streams,
     names,
     position
-  }: Subscription): SubscriptionConfig | undefined => ({
+  }: Subscription): SubscriptionConfig => ({
     id,
     active,
     endpoint: `${_services[consumer].url}/${path}`,
@@ -267,8 +267,9 @@ export const state = singleton(function state(): State {
     if (!channel) return;
     delete _channels[workerId];
     log().info(
-      "red",
-      `exit ${channel.id} with ${signal ? signal : `code ${code}`}`
+      "bgRed",
+      `[${process.pid}]`,
+      `exit ${channel.id} ${signal ? signal : `code ${code}`}`
     );
     channel.subscriptions.map(({ id }) => {
       _states[id].channelStatus = signal || `E${code}`;
@@ -318,20 +319,31 @@ export const state = singleton(function state(): State {
     refreshSubscription: async (operation: Operation, id: string) => {
       try {
         const [sub] = await subscriptions().loadSubscriptions(id);
-        const config = subConfig(sub);
+        const config: SubscriptionConfig = sub
+          ? subConfig(sub)
+          : {
+              id,
+              active: false,
+              endpoint: "",
+              streams: "",
+              names: "",
+              position: -1
+            };
 
         const { workerId } = _states[id] || resetState();
         const worker = cluster.workers[workerId];
         worker && worker.send({ operation, config });
 
-        const newWorkerId = findWorkerId(sub.producer);
-        const newWorker = cluster.workers[newWorkerId];
+        if (operation !== "DELETE") {
+          const newWorkerId = findWorkerId(sub.producer);
+          const newWorker = cluster.workers[newWorkerId];
 
-        (newWorkerId || -1) !== (workerId || -2)
-          ? newWorker
-            ? newWorker.send({ operation, config })
-            : await run(sub.producer)
-          : undefined;
+          (newWorkerId || -1) !== (workerId || -2)
+            ? newWorker
+              ? newWorker.send({ operation, config })
+              : await run(sub.producer)
+            : undefined;
+        }
       } catch (error) {
         log().error(error);
       }

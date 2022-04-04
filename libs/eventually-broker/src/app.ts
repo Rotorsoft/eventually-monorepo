@@ -41,13 +41,13 @@ export const app = async (port?: number): Promise<void> => {
 
   const server: Server = await new Promise((resolve) => {
     const server = app.listen(port, () => {
-      log().info("bgGreen", `Broker is listening on port ${port}`);
+      log().info("bgGreen", `Broker app is listening on port ${port}`);
       resolve(server);
     });
   });
 
   dispose(() => {
-    log().info("bgRed", `[${process.pid}]`, "💣 Broker");
+    log().info("bgRed", `[${process.pid}]`, "♻️ app");
     return new Promise((resolve, reject) => {
       server.once("close", resolve);
       server.close(reject);
