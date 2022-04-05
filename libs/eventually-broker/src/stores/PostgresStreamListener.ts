@@ -9,7 +9,7 @@ export const PostgresStreamListener = (stream: string): StreamListener => {
   const subscriber = createSubscriber(config.pg);
 
   return {
-    listen: (callback: TriggerCallback) => {
+    listen: async (callback: TriggerCallback) => {
       subscriber.events.on("error", async (error) => {
         log().error(error);
         await dispose()(ExitCodes.ERROR);
@@ -23,10 +23,9 @@ export const PostgresStreamListener = (stream: string): StreamListener => {
         }
       );
 
-      void subscriber.connect().then(async () => {
-        await subscriber.listenTo(stream);
-        log().info("bgGreen", `[${process.pid}]`, "👂", stream);
-      });
+      await subscriber.connect();
+      await subscriber.listenTo(stream);
+      log().info("bgGreen", `[${process.pid}]`, "👂", stream);
     },
 
     close: async () => {

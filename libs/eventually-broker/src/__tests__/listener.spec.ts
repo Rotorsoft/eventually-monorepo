@@ -29,7 +29,7 @@ describe("listener", () => {
   });
 
   it("should trigger subscription", async () => {
-    listener.listen(pump);
+    await listener.listen(pump);
     await store().commit("aggregate1", [bind("test3", { value: "1" })], {
       correlation: "",
       causation: {}

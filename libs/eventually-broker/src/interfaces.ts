@@ -5,7 +5,7 @@ import { PushResponse, Service, Subscription, TriggerCallback } from "./types";
  * Listens for changes in streams
  */
 export interface StreamListener {
-  listen: (callback: TriggerCallback) => void;
+  listen: (callback: TriggerCallback) => Promise<void>;
   close: () => Promise<void>;
 }
 
@@ -13,7 +13,7 @@ export interface StreamListener {
  * Pull channels pull events from streams
  */
 export interface PullChannel extends Disposable {
-  listen: (callback: TriggerCallback) => void;
+  listen: (callback: TriggerCallback) => Promise<void>;
   pull: (
     position: number,
     limit: number

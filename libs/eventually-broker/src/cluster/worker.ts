@@ -212,5 +212,5 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     id: config.id
   });
 
-  pullchannel().listen(pumpChannel);
+  return pullchannel().listen(pumpChannel);
 };

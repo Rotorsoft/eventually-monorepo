@@ -25,9 +25,11 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       await pool.query(seed());
     },
 
-    listen: (servicesCallback, subscriptionsCallback) => {
-      servicesListener.listen(servicesCallback);
-      subscriptionsListener.listen(subscriptionsCallback);
+    listen: async (servicesCallback, subscriptionsCallback) => {
+      await Promise.all([
+        servicesListener.listen(servicesCallback),
+        subscriptionsListener.listen(subscriptionsCallback)
+      ]);
     },
 
     loadServices: async (id?: string): Promise<Service[]> => {
