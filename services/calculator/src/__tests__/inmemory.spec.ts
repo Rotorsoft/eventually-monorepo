@@ -55,7 +55,7 @@ describe("in memory", () => {
     await ss.seed();
 
     jest.clearAllMocks();
-    app().listen();
+    await app().listen();
   });
 
   afterAll(async () => {
@@ -235,6 +235,7 @@ describe("in memory", () => {
       const { event, state } = await app().load(Calculator(id));
       expect(state).toEqual(expect.objectContaining({ result: 0 }));
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const stream = await app().stream(Counter(event as any));
       expect(stream.length).toBe(5);
     });

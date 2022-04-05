@@ -1,4 +1,5 @@
 import joi from "joi";
+import { Service, Subscription } from "../types";
 import * as regex from "./regex";
 
 const pgChannel = joi.string().trim().max(100).regex(regex.pg_channel);
@@ -7,7 +8,7 @@ const cronChannel = joi.string().trim().max(100).regex(regex.cron_channel);
 const voidChannel = joi.string().trim().max(100).regex(regex.void_channel);
 
 export const editService = joi
-  .object({
+  .object<Service>({
     channel: joi
       .alternatives()
       .match("one")
@@ -23,7 +24,7 @@ export const addService = editService
   .options({ presence: "required" });
 
 export const editSubscription = joi
-  .object({
+  .object<Subscription>({
     producer: joi.string().trim().max(100).regex(regex.name),
     consumer: joi.string().trim().max(100).regex(regex.name),
     path: joi.string().trim().max(100).regex(regex.name),

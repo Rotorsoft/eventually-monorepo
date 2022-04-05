@@ -40,9 +40,9 @@ const port = 3005;
 const t = tester(port);
 
 describe("express", () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     expressApp.build();
-    expressApp.listen(false, port);
+    await expressApp.listen(false, port);
   });
 
   afterAll(async () => {

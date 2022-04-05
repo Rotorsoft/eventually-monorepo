@@ -279,7 +279,9 @@ export const state = singleton(function state(): State {
     !code && void run(channel.id, channel.position, channel.runs);
   };
 
-  cluster.on("message", (worker, message) => onMessage(worker.id, message));
+  cluster.on("message", (worker, message: WorkerMessage) =>
+    onMessage(worker.id, message)
+  );
   cluster.on("exit", (worker, code, signal) => onExit(worker.id, code, signal));
 
   return {

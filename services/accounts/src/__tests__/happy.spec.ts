@@ -1,6 +1,6 @@
 // process.env.LOG_LEVEL = "trace";
 
-import { app, dispose } from "@rotorsoft/eventually";
+import { app, CommittedEvent, dispose, Payload } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -38,7 +38,7 @@ app()
   )
   .build();
 
-const trigger = (id: string): any => ({
+const trigger = (id: string): CommittedEvent<"AccountCreated", Payload> => ({
   id: 1,
   version: 1,
   stream: "main",
@@ -48,8 +48,8 @@ const trigger = (id: string): any => ({
 });
 
 describe("happy path", () => {
-  beforeAll(() => {
-    app().listen();
+  beforeAll(async () => {
+    await app().listen();
   });
 
   afterAll(async () => {
@@ -70,6 +70,7 @@ describe("happy path", () => {
       await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
     const snapshots = await app().stream(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       policies.WaitForAllAndComplete(seed as any)
     );
     expect(snapshots.length).toBe(2);
@@ -95,6 +96,7 @@ describe("happy path", () => {
       await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
     ).filter((e) => e.data.id === t.data.id);
     const snapshots = await app().stream(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       policies.WaitForAllAndComplete(seed as any)
     );
     expect(snapshots.length).toBe(2);

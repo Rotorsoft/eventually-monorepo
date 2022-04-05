@@ -9,16 +9,22 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   EventHandlerFactory,
+  Getter,
   Payload,
   Reducible,
   Snapshot
 } from "./types";
 import { bind, randomId, store, validateMessage } from "./utils";
 
+interface Reader {
+  load: Getter;
+  stream: Getter;
+}
+
 /**
  * App abstraction implementing generic handlers
  */
-export abstract class AppBase extends Builder implements Disposable {
+export abstract class AppBase extends Builder implements Disposable, Reader {
   public readonly log = log();
 
   /**
@@ -26,7 +32,7 @@ export abstract class AppBase extends Builder implements Disposable {
    */
   abstract readonly name: string;
   abstract dispose(): Promise<void>;
-  abstract listen(): void;
+  abstract listen(): Promise<void>;
 
   /**
    * Handles command
@@ -38,14 +44,14 @@ export abstract class AppBase extends Builder implements Disposable {
     command: Command<keyof C & string, Payload>,
     metadata?: CommittedEventMetadata
   ): Promise<Snapshot<M>[]> {
-    const { actor, name, id, data } = command;
+    const { actor, name, id } = command;
     const msg = this.messages[name];
     if (!msg || !msg.commandHandlerFactory)
       throw Error(`Invalid command "${name}"`);
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
-    validateMessage(command);
+    const data = validateMessage(command);
     const handler = factory(id);
     return await handleMessage(
       handler,
@@ -74,9 +80,9 @@ export abstract class AppBase extends Builder implements Disposable {
     state?: M;
   }> {
     this.log.trace("magenta", `\n>>> ${factory.name}`, event);
-    validateMessage(event);
+    const data = validateMessage(event);
     const handler = factory(event);
-    const { name, stream, id, data } = event;
+    const { name, stream, id } = event;
     const metadata: CommittedEventMetadata = {
       correlation: event.metadata?.correlation || randomId(),
       causation: { event: { name, stream, id } }

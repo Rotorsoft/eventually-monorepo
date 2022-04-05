@@ -30,9 +30,9 @@ const pressKey = (
   t.command(Calculator, bind("PressKey", { key }, id));
 
 describe("express app", () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     _app.build();
-    _app.listen(false, port);
+    await _app.listen(false, port);
   });
 
   afterAll(async () => {

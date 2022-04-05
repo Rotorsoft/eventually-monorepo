@@ -67,7 +67,7 @@ export class ExpressApp extends AppBase {
   private _app = express();
   private _router = Router();
   private _server: Server;
-  private _swagger: any;
+  private _swagger: swaggerUI.JsonObject;
 
   public getSwagger(): any {
     return this._swagger;
@@ -206,11 +206,15 @@ export class ExpressApp extends AppBase {
 
     Object.values(aggregates).map((aggregate) => {
       const getpath = reduciblePath(aggregate);
-      this._buildGetter(aggregate, this.load.bind(this), getpath);
+      this._buildGetter(aggregate, this.load.bind(this) as Getter, getpath);
       this.log.info("bgGreen", " GET ", getpath);
 
       const streampath = reduciblePath(aggregate).concat("/stream");
-      this._buildGetter(aggregate, this.stream.bind(this), streampath);
+      this._buildGetter(
+        aggregate,
+        this.stream.bind(this) as Getter,
+        streampath
+      );
       this.log.info("bgGreen", " GET ", streampath);
     });
   }
@@ -234,6 +238,7 @@ export class ExpressApp extends AppBase {
               const message = req.body;
               const meta = this.messages[message.name];
               if (meta && meta.eventHandlerFactories[path]) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const response = await this.event(factory, message as any);
                 return res.status(200).send(response);
               }
@@ -249,11 +254,16 @@ export class ExpressApp extends AppBase {
 
     Object.values(managers).map((manager) => {
       const getpath = reduciblePath(manager);
-      this._buildGetter(manager, this.load.bind(this), getpath, true);
+      this._buildGetter(manager, this.load.bind(this) as Getter, getpath, true);
       this.log.info("bgGreen", " GET ", getpath);
 
       const streampath = reduciblePath(manager).concat("/stream");
-      this._buildGetter(manager, this.stream.bind(this), streampath, true);
+      this._buildGetter(
+        manager,
+        this.stream.bind(this) as Getter,
+        streampath,
+        true
+      );
       this.log.info("bgGreen", " GET ", streampath);
     });
   }
@@ -302,7 +312,7 @@ export class ExpressApp extends AppBase {
    * @param silent flag to skip express listening when using cloud functions
    * @param port to override port in config
    */
-  listen(silent = false, port?: number): void {
+  async listen(silent = false, port?: number): Promise<void> {
     const { service, version, env, logLevel } = config();
     port = port || config().port;
     this._app.get("/_health", (_, res: Response) => {
@@ -341,8 +351,16 @@ export class ExpressApp extends AppBase {
     const _config = { env, port, logLevel, service, version };
     if (silent) this.log.info("white", "Config", undefined, _config);
     else
-      this._server = this._app.listen(port, () => {
-        this.log.info("white", "Express app is listening", undefined, _config);
+      this._server = await new Promise((resolve) => {
+        const server = this._app.listen(port, () => {
+          this.log.info(
+            "white",
+            "Express app is listening",
+            undefined,
+            _config
+          );
+          resolve(server);
+        });
       });
   }
 

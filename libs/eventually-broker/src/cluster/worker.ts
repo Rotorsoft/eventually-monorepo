@@ -83,7 +83,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl));
   } catch (error) {
-    sendError(error.message);
+    error instanceof Error && sendError(error.message);
     await dispose()(ExitCodes.ERROR);
   }
 
@@ -92,7 +92,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     try {
       _subs[config.id] = build(config);
     } catch (error) {
-      sendError(error.message, config);
+      error instanceof Error && sendError(error.message, config);
       await dispose()(ExitCodes.ERROR);
     }
   });
@@ -199,7 +199,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
           const sub = (_subs[config.id] = build(config));
           void pumpRetry([sub], { operation, id: config.id });
         } catch (error) {
-          sendError(error.message, config);
+          error instanceof Error && sendError(error.message, config);
         }
       }
       sendStats(config, { batches: 0, total: 0, events: {} });

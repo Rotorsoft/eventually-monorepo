@@ -1,5 +1,5 @@
 import { log, randomId } from "@rotorsoft/eventually";
-import { Router } from "express";
+import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
 import * as schemas from "./schemas";
@@ -61,13 +61,16 @@ router.get("/", async (_, res) => {
   res.render("home", rows(subs));
 });
 
-router.post("/", async (req, res) => {
-  const search = req.body.search;
-  if (search) {
-    const subs = await subscriptions().searchSubscriptions(search);
-    res.render("home", rows(subs));
-  } else res.redirect("/");
-});
+router.post(
+  "/",
+  async (req: Request<never, never, { search: string }, never, never>, res) => {
+    const search = req.body.search;
+    if (search) {
+      const subs = await subscriptions().searchSubscriptions(search);
+      res.render("home", rows(subs));
+    } else res.redirect("/");
+  }
+);
 
 router.get("/_add", (_, res) => {
   res.render("add-subscription", {
@@ -76,33 +79,36 @@ router.get("/_add", (_, res) => {
   });
 });
 
-router.post("/_add", async (req, res) => {
-  const services = state().services();
-  try {
-    const { value, error } = schemas.addSubscription.validate(req.body, {
-      abortEarly: false
-    });
-    if (error) {
+router.post(
+  "/_add",
+  async (req: Request<never, never, Subscription, never, never>, res) => {
+    const services = state().services();
+    try {
+      const { value, error } = schemas.addSubscription.validate(req.body, {
+        abortEarly: false
+      });
+      if (error) {
+        res.render("add-subscription", {
+          class: "alert-warning",
+          message: error.details.map((m) => m.message).join(", "),
+          ...req.body,
+          services
+        });
+      } else {
+        await subscriptions().createSubscription(value);
+        res.redirect("/");
+      }
+    } catch (error) {
+      log().error(error);
       res.render("add-subscription", {
-        class: "alert-warning",
-        message: error.details.map((m) => m.message).join(", "),
+        class: "alert-danger",
+        message: "Oops, something went wrong! Please check your logs.",
         ...req.body,
         services
       });
-    } else {
-      await subscriptions().createSubscription(value);
-      res.redirect("/");
     }
-  } catch (error) {
-    log().error(error);
-    res.render("add-subscription", {
-      class: "alert-danger",
-      message: "Oops, something went wrong! Please check your logs.",
-      ...req.body,
-      services
-    });
   }
-});
+);
 
 router.get("/_toggle/:id", async (req, res) => {
   const id = req.params.id;
@@ -154,37 +160,43 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/:id", async (req, res) => {
-  const id = req.params.id;
-  const props = {
-    shortid: shortId(id),
-    services: state().services(),
-    ...req.body
-  };
-  try {
-    const { value, error } = schemas.editSubscription.validate(req.body, {
-      abortEarly: false,
-      allowUnknown: true
-    });
-    if (error) {
+router.post(
+  "/:id",
+  async (
+    req: Request<{ id: string }, never, Subscription, never, never>,
+    res
+  ) => {
+    const id = req.params.id;
+    const props = {
+      shortid: shortId(id),
+      services: state().services(),
+      ...req.body
+    };
+    try {
+      const { value, error } = schemas.editSubscription.validate(req.body, {
+        abortEarly: false,
+        allowUnknown: true
+      });
+      if (error) {
+        res.render("edit-subscription", {
+          class: "alert-warning",
+          message: error.details.map((m) => m.message).join(", "),
+          ...props
+        });
+      } else {
+        await subscriptions().updateSubscription({ ...value, id });
+        res.redirect(`/_wait/${id}`);
+      }
+    } catch (error) {
+      log().error(error);
       res.render("edit-subscription", {
-        class: "alert-warning",
-        message: error.details.map((m) => m.message).join(", "),
+        class: "alert-danger",
+        message: "Oops, something went wrong! Please check your logs.",
         ...props
       });
-    } else {
-      await subscriptions().updateSubscription({ ...value, id });
-      res.redirect(`/_wait/${id}`);
     }
-  } catch (error) {
-    log().error(error);
-    res.render("edit-subscription", {
-      class: "alert-danger",
-      message: "Oops, something went wrong! Please check your logs.",
-      ...props
-    });
   }
-});
+);
 
 router.delete("/:id", async (req, res) => {
   const id = req.params.id;

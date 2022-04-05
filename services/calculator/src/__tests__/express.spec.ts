@@ -49,8 +49,8 @@ const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
   t.command(Calculator, bind("Reset", undefined, id));
 
 describe("express app", () => {
-  beforeAll(() => {
-    expressApp.listen(false, port);
+  beforeAll(async () => {
+    await expressApp.listen(false, port);
   });
 
   afterAll(async () => {
@@ -212,6 +212,7 @@ describe("express app", () => {
     });
 
     it("should return nothing but OK", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const response = await t.event(StatelessCounter, {
         name: "IgnoreThis"
       } as any);

@@ -1,8 +1,7 @@
 {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json",
-    "createDefaultProgram": true
+    "project": "./tsconfig.eslint.json"
   },
   "plugins": ["@typescript-eslint", "jest"],
   "env": {

@@ -27,6 +27,7 @@ export const InMemoryStore = (): Store => {
       const msg = app().messages[event.name];
       await Promise.all(
         Object.values(msg.eventHandlerFactories).map((factory) =>
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           app().event(factory, event as any)
         )
       );

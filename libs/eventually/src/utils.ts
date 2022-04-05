@@ -193,15 +193,22 @@ export class ConcurrencyError extends Error {
 
 /**
  * Validates message payloads
+ *
+ * @param message the message
+ * @returns validated payload when schema is provided
  */
-export const validateMessage = (message: Message<string, Payload>): void => {
+export const validateMessage = (
+  message: Message<string, Payload>
+): Payload | undefined => {
   const metadata = app().messages[message.name];
   if (!metadata) throw Error(`Please register message: ${message.name}`);
   if (metadata.schema) {
-    const { error } = metadata.schema.validate(message.data, {
+    const { value, error } = metadata.schema.validate(message.data, {
       abortEarly: false,
       allowUnknown: true
     });
     if (error) throw new ValidationError(error, message);
+    return value;
   }
+  return message.data;
 };

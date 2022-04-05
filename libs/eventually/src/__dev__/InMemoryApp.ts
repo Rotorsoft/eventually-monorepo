@@ -10,7 +10,8 @@ export class InMemoryApp extends AppBase {
     return Promise.resolve();
   }
 
-  listen(): void {
+  listen(): Promise<void> {
     this.log.info("white", "InMemory app is listening...", undefined, config);
+    return Promise.resolve();
   }
 }

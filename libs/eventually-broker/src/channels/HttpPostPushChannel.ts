@@ -19,7 +19,11 @@ export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
           }
           return { status: 503, statusText: error.code };
         }
-        return { status: 503, statusText: error.message };
+        return {
+          status: 503,
+          statusText:
+            error instanceof Error ? error.message : JSON.stringify(error)
+        };
       }
     }
   };

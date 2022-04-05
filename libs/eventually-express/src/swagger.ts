@@ -65,6 +65,7 @@ export const swagger = (app: Builder): any => {
     handler: MessageHandlerFactory<Payload, unknown, unknown>
   ): void => {
     if (!getReducible(handler(null))) return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const path = reduciblePath(handler as any).replace("/:id", "/{id}");
     if (paths[path]) return;
     // GET reducible

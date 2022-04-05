@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { config } from "./config";
 import { Color, Environments, Log, LogLevels } from "./interfaces";
 import { singleton } from "./singleton";
+import { ValidationError } from "./utils";
 
 /** Uncolored and stringified for deployed non-dev envs */
 const plain = (
@@ -16,8 +17,8 @@ const plain = (
 const trace = (
   color: Color,
   message: string,
-  details?: any,
-  ...params: any[]
+  details?: unknown,
+  ...params: unknown[]
 ): void => {
   console.log(
     chalk[color](message),
@@ -30,13 +31,9 @@ const info = (
   color: Color,
   message: string,
   details?: string,
-  ...params: any[]
+  ...params: unknown[]
 ): void => {
   console.info(chalk[color](message), chalk.gray(details || ""), ...params);
-};
-
-const error = ({ message, details }: Error & { details?: any }): void => {
-  console.error(JSON.stringify({ severity: "ERROR", message, details }));
 };
 
 const nolog = (): void => {
@@ -56,7 +53,13 @@ const devLog = (): Log => ({
   dispose: () => undefined,
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
-  error
+  error: (error: unknown): void => {
+    error instanceof ValidationError
+      ? console.error(chalk.red(error.name), error.message, error.details)
+      : error instanceof Error
+      ? console.error(chalk.red(error.name), error.message)
+      : console.error(error);
+  }
 });
 
 const plainLog = (): Log => ({
@@ -64,7 +67,26 @@ const plainLog = (): Log => ({
   dispose: () => undefined,
   trace: config().logLevel === LogLevels.trace ? plain : nolog,
   info: config().logLevel !== LogLevels.error ? plain : nolog,
-  error
+  error: (error: unknown): void => {
+    error instanceof ValidationError
+      ? console.error(
+          JSON.stringify({
+            severity: "ERROR",
+            name: error.name,
+            message: error.message,
+            details: error.details
+          })
+        )
+      : error instanceof Error
+      ? console.error(
+          JSON.stringify({
+            severity: "ERROR",
+            name: error.name,
+            message: error.message
+          })
+        )
+      : console.error(JSON.stringify({ severity: "ERROR", message: error }));
+  }
 });
 
 export const log = singleton(function log() {

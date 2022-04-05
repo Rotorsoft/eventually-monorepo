@@ -25,16 +25,11 @@
     "clean": "sh ./scripts/clean.sh",
     "build": "yarn workspaces foreach run build",
     "test": "yarn jest",
-    "test:watch": "yarn jest --watch",
-    "lint-file:eslint": "yarn eslint",
-    "lint-file:prettier": "yarn prettier --check",
-    "lint": "yarn lint-file:eslint '**/src/**/*.ts'",
-    "pretty": "yarn lint-file:prettier '**/src/*.{ts,js,json,css,md,yaml,yml}'",
+    "lint": "yarn eslint '**/src/**/*.ts'",
+    "pretty": "yarn prettier --check '**/src/*.{ts,js,json,css,md,yaml,yml}'",
     "fix": "yarn lint --fix && yarn pretty --write --ignore-path ./.prettierignore",
     "bump": "sh ./scripts/bump.sh",
-    "publish": "sh ./scripts/publish.sh",
-    "deploy:function": "sh ./scripts/deploy-function.sh",
-    "deploy:app": "sh ./scripts/deploy-app.sh"
+    "publish": "sh ./scripts/publish.sh"
   },
   "husky": {
     "hooks": {
@@ -55,8 +50,8 @@
     "@types/pg": "^8",
     "@types/swagger-ui-express": "^4",
     "@types/uuid": "^8",
-    "@typescript-eslint/eslint-plugin": "^4.28.3",
-    "@typescript-eslint/parser": "^4.28.3",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
+    "@typescript-eslint/parser": "^5.18.0",
     "chance": "^1.1.8",
     "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",

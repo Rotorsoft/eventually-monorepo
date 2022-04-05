@@ -28,5 +28,5 @@ void bootstrap(async (): Promise<void> => {
     .withEventHandlers(StatelessCounter);
 
   _app.build();
-  _app.listen();
+  await _app.listen();
 });

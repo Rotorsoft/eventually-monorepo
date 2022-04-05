@@ -55,7 +55,7 @@ export type Color =
 export interface Log extends Disposable {
   trace(color: Color, message: string, ...params: any[]): void;
   info(color: Color, message: string, ...params: any[]): void;
-  error(error: Error): void;
+  error(error: unknown): void;
 }
 
 /**

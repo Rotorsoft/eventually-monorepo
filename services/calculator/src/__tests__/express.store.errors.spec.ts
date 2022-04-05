@@ -23,7 +23,7 @@ jest.spyOn(store(), "query").mockRejectedValue("Error");
 jest.spyOn(store(), "stats").mockRejectedValue("Error");
 
 describe("express app", () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     const express = exapp.build();
     express.get("/query", (req, res) => {
       const { error } = joi
@@ -33,7 +33,7 @@ describe("express app", () => {
       if (error) throw new ValidationError(error);
       res.send("Query results");
     });
-    exapp.listen(false, port);
+    await exapp.listen(false, port);
   });
 
   afterAll(async () => {

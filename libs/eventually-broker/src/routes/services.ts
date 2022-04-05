@@ -1,5 +1,5 @@
 import { log } from "@rotorsoft/eventually";
-import { Router } from "express";
+import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import * as schemas from "./schemas";
 
@@ -22,30 +22,33 @@ router.get("/_add", (_, res) => {
   res.render("add-service", { ...defaultService });
 });
 
-router.post("/_add", async (req, res) => {
-  try {
-    const { value, error } = schemas.addService.validate(req.body, {
-      abortEarly: false
-    });
-    if (error) {
+router.post(
+  "/_add",
+  async (req: Request<never, never, Service, never, never>, res) => {
+    try {
+      const { value, error } = schemas.addService.validate(req.body, {
+        abortEarly: false
+      });
+      if (error) {
+        res.render("add-service", {
+          class: "alert-warning",
+          message: error.details.map((m) => m.message).join(", "),
+          ...req.body
+        });
+      } else {
+        await subscriptions().createService(value);
+        res.redirect("/_services");
+      }
+    } catch (error) {
+      log().error(error);
       res.render("add-service", {
-        class: "alert-warning",
-        message: error.details.map((m) => m.message).join(", "),
+        class: "alert-danger",
+        message: "Oops, something went wrong! Please check your logs.",
         ...req.body
       });
-    } else {
-      await subscriptions().createService(value);
-      res.redirect("/_services");
     }
-  } catch (error) {
-    log().error(error);
-    res.render("add-service", {
-      class: "alert-danger",
-      message: "Oops, something went wrong! Please check your logs.",
-      ...req.body
-    });
   }
-});
+);
 
 router.get("/:id", async (req, res) => {
   const id = req.params.id;
@@ -64,32 +67,35 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/:id", async (req, res) => {
-  const id = req.params.id;
-  try {
-    const { value, error } = schemas.editService.validate(req.body, {
-      abortEarly: false,
-      allowUnknown: true
-    });
-    if (error) {
+router.post(
+  "/:id",
+  async (req: Request<{ id: string }, never, Service, never, never>, res) => {
+    const id = req.params.id;
+    try {
+      const { value, error } = schemas.editService.validate(req.body, {
+        abortEarly: false,
+        allowUnknown: true
+      });
+      if (error) {
+        res.render("edit-service", {
+          class: "alert-warning",
+          message: error.details.map((m) => m.message).join(", "),
+          ...req.body
+        });
+      } else {
+        await subscriptions().updateService({ ...value, id });
+        res.redirect("/_services");
+      }
+    } catch (error) {
+      log().error(error);
       res.render("edit-service", {
-        class: "alert-warning",
-        message: error.details.map((m) => m.message).join(", "),
+        class: "alert-danger",
+        message: "Oops, something went wrong! Please check your logs.",
         ...req.body
       });
-    } else {
-      await subscriptions().updateService({ ...value, id });
-      res.redirect("/_services");
     }
-  } catch (error) {
-    log().error(error);
-    res.render("edit-service", {
-      class: "alert-danger",
-      message: "Oops, something went wrong! Please check your logs.",
-      ...req.body
-    });
   }
-});
+);
 
 router.delete("/:id", async (req, res) => {
   const id = req.params.id;

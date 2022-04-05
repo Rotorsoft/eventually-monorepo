@@ -21,8 +21,8 @@ app()
   .build();
 
 describe("trace in test mode", () => {
-  beforeAll(() => {
-    app().listen();
+  beforeAll(async () => {
+    await app().listen();
   });
 
   afterAll(async () => {

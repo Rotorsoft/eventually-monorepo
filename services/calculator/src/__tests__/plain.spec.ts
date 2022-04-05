@@ -1,12 +1,20 @@
 process.env.NODE_ENV = "production";
 process.env.LOG_LEVEL = "trace";
 
+import joi from "joi";
 import { app, bind, dispose, formatTime } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
 import * as schemas from "../calculator.schemas";
 import { Chance } from "chance";
+
+type TestMsg = {
+  date: Date;
+};
+const TestSchema = joi.object<TestMsg>({
+  date: joi.date().required()
+});
 
 const chance = new Chance();
 
@@ -22,8 +30,8 @@ app()
   .build();
 
 describe("trace in prod mode", () => {
-  beforeAll(() => {
-    app().listen();
+  beforeAll(async () => {
+    await app().listen();
   });
 
   afterAll(async () => {
@@ -50,6 +58,13 @@ describe("trace in prod mode", () => {
       expect(et2.length).toBe(8);
       const et3 = formatTime(process.uptime() + 25 * 60 * 60);
       expect(et3.length).toBeGreaterThan(8);
+    });
+
+    it("should validate and convert date", () => {
+      const date = new Date();
+      const msg = { date: date.toISOString() };
+      const { value } = TestSchema.validate(msg);
+      expect(value.date).toEqual(date);
     });
   });
 });

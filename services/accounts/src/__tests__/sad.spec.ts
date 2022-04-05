@@ -16,7 +16,13 @@ jest.mock("../accounts.systems.ts", () => {
   };
 });
 
-import { app, dispose, store } from "@rotorsoft/eventually";
+import {
+  app,
+  CommittedEvent,
+  dispose,
+  Payload,
+  store
+} from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
@@ -54,7 +60,7 @@ app()
   )
   .build();
 
-const trigger = (id: string): any => ({
+const trigger = (id: string): CommittedEvent<"AccountCreated", Payload> => ({
   id: 1,
   version: 1,
   stream: "main",
@@ -64,8 +70,8 @@ const trigger = (id: string): any => ({
 });
 
 describe("sad path", () => {
-  beforeAll(() => {
-    app().listen();
+  beforeAll(async () => {
+    await app().listen();
   });
 
   afterAll(async () => {
