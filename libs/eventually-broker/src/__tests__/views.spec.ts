@@ -53,7 +53,8 @@ describe("views", () => {
       "/_services/s1",
       "/_wait/s1",
       "/_refresh/s1",
-      "/_toggle/s1"
+      "/_toggle/s1",
+      "/_graph"
     ];
     const responses = await Promise.all(paths.map((path) => get(path, port)));
     responses.map((response) => {

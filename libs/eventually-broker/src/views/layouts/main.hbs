@@ -14,23 +14,14 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
     />
-    <style>
-      body { font-family: monospace;} .stat { font-size: 10px;} .counters {
-      display: flex; flex-wrap: nowrap; } .counters span { font-size:80%;
-      color:rgb(39, 38, 38); padding: 0px 4px 0px 4px; margin:0 1px 0 1px;
-      border-radius: 5px; } .counters .ok { border: solid 1px #198754;
-      background-color: #d1e7dd;} .counters .ignored { border:solid 1px #c0c0c0;
-      background-color: #e2e3e5; color:#6c757d;} .counters .retryable { border:
-      solid 1px #ffc107; background-color: #fff3cd; } .counters .critical {
-      border: solid 1px #dc3545; background-color: #f8d7da;}
-    </style>
+    <link rel="stylesheet" href="/_public/style.css" />
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container-fluid">
         <a class="navbar-brand" href="/">
           <img
-            src="/assets/broker.png"
+            src="/_public/assets/broker.png"
             alt=""
             width="36"
             height="36"
@@ -52,10 +43,13 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="/">Subscriptions</a>
+              <a class="nav-link" href="/">Home</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/_services">Services</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/_graph">Graph</a>
             </li>
           </ul>
           <form class="d-flex" method="post" action="/" novalidate>

@@ -23,7 +23,7 @@ export const app = async (port?: number): Promise<void> => {
   const app = express();
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
-  app.use(express.static(path.resolve(__dirname, "./public")));
+  app.use("/_public", express.static(path.resolve(__dirname, "./public")));
   app.engine(
     "hbs",
     engine({

@@ -56,6 +56,11 @@ router.get("/_monitor/:id", (req, res) => {
   state().subscribeSSE(session, res, id);
 });
 
+router.get("/_graph", async (_, res) => {
+  const subs = await subscriptions().loadSubscriptions();
+  res.render("subscriptions-graph", rows(subs));
+});
+
 router.get("/", async (_, res) => {
   const subs = await subscriptions().loadSubscriptions();
   res.render("home", rows(subs));
@@ -205,6 +210,6 @@ router.delete("/:id", async (req, res) => {
     res.json({ deleted: true });
   } catch (error) {
     log().error(error);
-    res.json({ deleted: false });
+    res.json({ deleted: false, message: error.message });
   }
 });

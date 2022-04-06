@@ -37,8 +37,14 @@
       .then(response => response.json())
       .then(json => {
         if(json.deleted) document.location = "/_services";
-        else delId.value = "";
+        else {
+          delId.value = "";
+          alert(json.message);
+        }
       })
-      .catch(()=> delId.value = "")
+      .catch((error)=> {
+        delId.value = "";
+        alert(json.message);
+      })
   }
 </script>

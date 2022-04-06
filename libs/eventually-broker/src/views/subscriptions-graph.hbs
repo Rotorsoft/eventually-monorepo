@@ -1,0 +1,93 @@
+{{>subscription-bc crumb='Subscriptions Graph'}}
+
+<div id="graph" class="row"></div>
+
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+    const { rows } = {{{json this}}};
+    const links = rows.map(row => ({
+        source: row.producer,
+        target: row.consumer,
+        type: "suit"
+    }));
+
+    const nodes = {};
+
+    // Compute the distinct nodes from the links.
+    links.forEach(link => {
+        link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
+        link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
+    });
+
+    const graph = document.getElementById("graph");
+    const svg = d3.select("div#graph").append("svg");
+    const force = d3.layout.force()
+        .nodes(d3.values(nodes))
+        .links(links)
+        .linkDistance(graph.offsetHeight)
+        .linkStrength(0.9)
+        .gravity(.1)
+        .charge(-500);
+
+    svg.append("defs").selectAll("marker")
+        .data(["arrow"]).enter()
+        .append("marker")
+        .attr("id", (d) => d)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 35)
+        .attr("refY", -1.5)
+        .attr("markerWidth", 8)
+        .attr("markerHeight", 8)
+        .attr("orient", "auto")
+        .attr("fill", "#666")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5");
+
+    const path = svg.append("g").selectAll("path")
+        .data(force.links()).enter()
+        .append("path")
+        .attr("class", (d) => "link")
+        .attr("marker-end", (d) => "url(#arrow)");
+
+    const circle = svg.append("g").selectAll("circle")
+        .data(force.nodes()).enter()
+        .append("circle")
+        .attr("r", 20)
+        .call(force.drag);
+
+    const text = svg.append("g").selectAll("text")
+        .data(force.nodes()).enter()
+        .append("text")
+        .attr("x", -8)
+        .attr("y", ".31em")
+        .text((d) => d.name);
+
+    const linkArc = (d) => {
+        var dx = d.target.x - d.source.x,
+            dy = d.target.y - d.source.y,
+            dr = Math.sqrt(dx * dx + dy * dy);
+        return "M" + d.source.x + "," + d.source.y + 
+            "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+    }
+
+    const transform = (d) => "translate(" + d.x + "," + d.y + ")";
+
+    // Use elliptical arc path segments to doubly-encode directionality.
+    const tick = () => {
+        path.attr("d", linkArc);
+        circle.attr("transform", transform);
+        text.attr("transform", transform);
+    }
+    force.on("tick", tick);
+
+    const refresh = () => {
+        const width = graph.offsetWidth - 100;
+        const height = window.innerHeight - 200;
+        graph.style.height = height;
+        svg.attr("height", height);
+        force.size([width, height]);
+        force.start();
+    }
+    window.onresize = refresh;
+    refresh();
+</script>

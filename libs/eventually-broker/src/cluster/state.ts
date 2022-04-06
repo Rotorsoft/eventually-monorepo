@@ -312,8 +312,9 @@ export const state = singleton(function state(): State {
     refreshService: async (operation: Operation, id: string) => {
       try {
         const workerId = findWorkerId(id);
-        if (workerId) cluster.workers[workerId].kill("SIGINT");
-        else if (operation !== "DELETE") await run(id);
+        workerId && cluster.workers[workerId].kill("SIGINT");
+        if (operation !== "DELETE") await run(id);
+        else delete _services[id];
       } catch (error) {
         log().error(error);
       }

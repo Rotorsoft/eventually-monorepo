@@ -1,0 +1,58 @@
+body {
+    font-family: monospace;
+}
+
+.stat {
+    font-size: 10px;
+}
+
+.counters {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.counters span {
+    font-size: 80%;
+    color: rgb(39, 38, 38);
+    padding: 0px 4px 0px 4px;
+    margin: 0 1px 0 1px;
+    border-radius: 5px;
+}
+
+.counters .ok {
+    border: solid 1px #198754;
+    background-color: #d1e7dd;
+}
+
+.counters .ignored {
+    border: solid 1px #c0c0c0;
+    background-color: #e2e3e5;
+    color: #6c757d;
+}
+
+.counters .retryable {
+    border:
+        solid 1px #ffc107;
+    background-color: #fff3cd;
+}
+
+.counters .critical {
+    border: solid 1px #dc3545;
+    background-color: #f8d7da;
+}
+
+.link {
+    fill: none;
+    stroke: #666;
+    stroke-dasharray: 0, 2 1;
+}
+
+circle {
+    fill: #eee;
+    stroke: #333;
+    stroke-width: 1.5px;
+}
+
+text {
+    font-size: 10px;
+}

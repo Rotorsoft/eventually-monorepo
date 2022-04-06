@@ -83,9 +83,15 @@
       .then(response => response.json())
       .then(json => {
         if(json.deleted) document.location = "/";
-        else delId.value = "";
+        else {
+          delId.value = "";
+          alert(json.message);
+        }
       })
-      .catch(()=> delId.value = "")
+      .catch((error)=> {
+        delId.value = "";
+        alert(json.message);
+      })
   }
 
   const statusInput = document.getElementById("floatingStatus");
