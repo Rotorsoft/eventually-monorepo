@@ -8,7 +8,7 @@
     const links = rows.map(row => ({
         source: row.producer,
         target: row.consumer,
-        type: "suit"
+        color: row.active ? row.endpointStatus.color : "secondary"
     }));
 
     const nodes = {};
@@ -21,62 +21,59 @@
 
     const graph = document.getElementById("graph");
     const svg = d3.select("div#graph").append("svg");
+
     const force = d3.layout.force()
         .nodes(d3.values(nodes))
         .links(links)
-        .linkDistance(graph.offsetHeight)
-        .linkStrength(0.9)
-        .gravity(.1)
-        .charge(-500);
+        .gravity(0.01)
+        .charge(-300);
 
     svg.append("defs").selectAll("marker")
-        .data(["arrow"]).enter()
+        .data(["secondary", "success", "danger"]).enter()
         .append("marker")
-        .attr("id", (d) => d)
+        .attr("id", (d) => `arrow-${d}`)
         .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 35)
-        .attr("refY", -1.5)
-        .attr("markerWidth", 8)
-        .attr("markerHeight", 8)
+        .attr("refX", 42)
+        .attr("refY", -2)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
         .attr("orient", "auto")
-        .attr("fill", "#666")
+        .attr("class", (d) => d)
         .append("path")
         .attr("d", "M0,-5L10,0L0,5");
 
     const path = svg.append("g").selectAll("path")
         .data(force.links()).enter()
         .append("path")
-        .attr("class", (d) => "link")
-        .attr("marker-end", (d) => "url(#arrow)");
+        .attr("class", (d) => `link ${d.color}`)
+        .attr("marker-end", (d) => `url(#arrow-${d.color})`);
 
     const circle = svg.append("g").selectAll("circle")
         .data(force.nodes()).enter()
         .append("circle")
-        .attr("r", 20)
+        .attr("r", 30)
+        .attr("transform", `translate(${(graph.offsetWidth-100)/2},${(window.innerHeight-200)/2})` )
         .call(force.drag);
 
     const text = svg.append("g").selectAll("text")
         .data(force.nodes()).enter()
         .append("text")
-        .attr("x", -8)
-        .attr("y", ".31em")
-        .text((d) => d.name);
+        .attr("x", (d) => -Math.min(30, 30*d.name.length/11))
+        .attr("y", 3)
+        .text((d) => d.name.length <= 10 ? d.name : d.name.substring(0, 10) + "\u22ef");
 
     const linkArc = (d) => {
-        var dx = d.target.x - d.source.x,
+        const dx = d.target.x - d.source.x,
             dy = d.target.y - d.source.y,
-            dr = Math.sqrt(dx * dx + dy * dy);
-        return "M" + d.source.x + "," + d.source.y + 
-            "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+            r = Math.sqrt(dx * dx + dy * dy);
+        return `M${d.source.x},${d.source.y}A${r},${r} 0 0,1 ${d.target.x},${d.target.y}`;
     }
-
-    const transform = (d) => "translate(" + d.x + "," + d.y + ")";
 
     // Use elliptical arc path segments to doubly-encode directionality.
     const tick = () => {
         path.attr("d", linkArc);
-        circle.attr("transform", transform);
-        text.attr("transform", transform);
+        circle.attr("transform", d => `translate(${d.x},${d.y})`);
+        text.attr("transform", d => `translate(${d.x},${d.y})`);
     }
     force.on("tick", tick);
 
@@ -86,6 +83,7 @@
         graph.style.height = height;
         svg.attr("height", height);
         force.size([width, height]);
+        force.linkDistance(Math.min(width, height) / 3)
         force.start();
     }
     window.onresize = refresh;

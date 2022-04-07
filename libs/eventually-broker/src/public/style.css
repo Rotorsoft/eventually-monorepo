@@ -43,16 +43,40 @@ body {
 
 .link {
     fill: none;
-    stroke: #666;
     stroke-dasharray: 0, 2 1;
+    stroke-width: 1.5px;
+}
+
+.secondary {
+    stroke: #c0c0c0;
+}
+
+.success {
+    stroke: #198754;
+}
+
+.danger {
+    stroke: #dc3545;
+}
+
+marker.secondary {
+    fill: #c0c0c0;
+}
+
+marker.success {
+    fill: #198754;
+}
+
+marker.danger {
+    fill: #dc3545;
 }
 
 circle {
-    fill: #eee;
+    fill: #fff;
     stroke: #333;
     stroke-width: 1.5px;
 }
 
 text {
-    font-size: 10px;
+    font-size: 9px;
 }
