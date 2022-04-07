@@ -29,7 +29,10 @@
     "pretty": "yarn prettier --check '**/src/*.{ts,js,json,css,md,yaml,yml}'",
     "fix": "yarn lint --fix && yarn pretty --write --ignore-path ./.prettierignore",
     "bump": "sh ./scripts/bump.sh",
-    "publish": "sh ./scripts/publish.sh"
+    "publish": "sh ./scripts/publish.sh",
+    "postinstall": "husky install",
+    "prepack": "pinst --disable",
+    "postpack": "pinst --enable"
   },
   "husky": {
     "hooks": {
@@ -37,8 +40,8 @@
     }
   },
   "lint-staged": {
-    "*.ts": "yarn lint-file:eslint",
-    "*.{ts,js,json,css,md}": "yarn lint-file:prettier"
+    "*.ts": "yarn lint",
+    "*.{ts,js,json,css,md,yaml,yml}": "yarn pretty"
   },
   "devDependencies": {
     "@types/chance": "^1",
@@ -56,9 +59,10 @@
     "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jest": "^24.3.6",
-    "husky": "^7.0.1",
+    "husky": "^7.0.4",
     "jest": "^27.5.1",
     "lint-staged": "^11.0.1",
+    "pinst": "^3.0.0",
     "prettier": "^2.6.1",
     "ts-jest": "^27.1.4",
     "ts-node-dev": "^1.1.8",
