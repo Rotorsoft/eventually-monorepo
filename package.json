@@ -34,15 +34,6 @@
     "prepack": "pinst --disable",
     "postpack": "pinst --enable"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.ts": "yarn lint",
-    "*.{ts,js,json,css,md,yaml,yml}": "yarn pretty"
-  },
   "devDependencies": {
     "@types/chance": "^1",
     "@types/cors": "^2.8.12",
