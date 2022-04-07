@@ -36,7 +36,10 @@ export const InMemoryStore = (): Store => {
 
   return {
     name: "InMemoryStore",
-    dispose: () => undefined,
+    dispose: () => {
+      _events.length = 0;
+      return Promise.resolve();
+    },
     seed: () => undefined,
 
     query: (

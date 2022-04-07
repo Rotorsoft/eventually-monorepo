@@ -63,6 +63,11 @@ describe("in memory", () => {
   });
 
   describe("calculator", () => {
+    beforeEach(async () => {
+      // to clear in-memory store before each test
+      await store().dispose();
+    });
+
     it("should compute correctly", async () => {
       const id = chance.guid();
 
