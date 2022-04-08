@@ -2,89 +2,127 @@
 
 <div id="graph" class="row"></div>
 
-<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script>
     const { rows } = {{{json this}}};
-    const links = rows.map(row => ({
+    
+    const links = rows.map(row => Object.create({
         source: row.producer,
         target: row.consumer,
-        color: row.active ? row.endpointStatus.color : "secondary"
+        color: row.active ? row.endpointStatus.color : "secondary",
+        position: row.active ? row.position : ""
     }));
 
-    const nodes = {};
-
-    // Compute the distinct nodes from the links.
+    const ids = {};
     links.forEach(link => {
-        link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
-        link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
+        link.source = ids[link.source] || (ids[link.source] = link.source);
+        link.target = ids[link.target] || (ids[link.target] = link.target);
     });
+    const nodes = Object.keys(ids).map(id => ({ id }));
+
+    const simulation = d3.forceSimulation(nodes)
+        .force("charge", d3.forceManyBody().strength(-300))
+        .force("link", d3.forceLink(links).id(d => d.id))
+        .force("center", d3.forceCenter())
+        .stop();
 
     const graph = document.getElementById("graph");
-    const svg = d3.select("div#graph").append("svg");
+    let width = graph.offsetWidth, height = window.innerHeight - 200;
+    const svg = d3.select("div#graph").append("svg").attr("height", height);
 
-    const force = d3.layout.force()
-        .nodes(d3.values(nodes))
-        .links(links)
-        .gravity(0.01)
-        .charge(-300);
+    const R = 30, D = 2 * R;
+    const drag = d3.drag()
+        .on("start", function({ active }, d) {
+            !active && simulation.alphaTarget(0.3).restart();
+            d3.select(this).classed("active", true);
+            d.fx = d.x;
+            d.fy = d.y;
+        })
+        .on("drag", function({x, y}, d) {
+            d.fx = Math.max(D, Math.min(width - D, x));
+            d.fy = Math.max(D, Math.min(height - D, y));
+        })
+        .on("end", function({ active }, d) {
+            !active && simulation.alphaTarget(0);
+            d3.select(this).classed("active", false);
+            d.fx = null;
+            d.fy = null;
+        });
 
     svg.append("defs").selectAll("marker")
         .data(["secondary", "success", "danger"]).enter()
         .append("marker")
-        .attr("id", (d) => `arrow-${d}`)
+        .attr("id", d => `arrow-${d}`)
         .attr("viewBox", "0 -5 10 10")
         .attr("refX", 42)
-        .attr("refY", -2)
+        .attr("refY", -4)
         .attr("markerWidth", 6)
         .attr("markerHeight", 6)
         .attr("orient", "auto")
-        .attr("class", (d) => d)
+        .attr("class", d => d)
         .append("path")
         .attr("d", "M0,-5L10,0L0,5");
 
-    const path = svg.append("g").selectAll("path")
-        .data(force.links()).enter()
-        .append("path")
-        .attr("class", (d) => `link ${d.color}`)
-        .attr("marker-end", (d) => `url(#arrow-${d.color})`);
+    const link = svg.append("g").selectAll("g")
+        .data(links).enter()
+        .append("g")
+        .attr("class", d => `link ${d.color}`);
 
-    const circle = svg.append("g").selectAll("circle")
-        .data(force.nodes()).enter()
-        .append("circle")
-        .attr("r", 30)
-        .attr("transform", `translate(${(graph.offsetWidth-100)/2},${(window.innerHeight-200)/2})` )
-        .call(force.drag);
+    const path = link.append("path")
+        .attr("id", d => `path-${d.source.id}-${d.target.id}`)
+        .attr("marker-end", d => `url(#arrow-${d.color})`);
+    link.append("text")
+        .attr("text-anchor", "middle")
+        .append("textPath")
+        .attr("xlink:href", d => `#path-${d.source.id}-${d.target.id}`)
+        //.attr("startOffset", "50%")
+        .text(d => d.position)
+        .append("animate")
+        .attr("attributeName", "startOffset")
+        .attr("from", "-50%")
+        .attr("to", "150%")
+        .attr("begin", "0s")
+        .attr("dur", "3s")
+        .attr("repeatCount", "indefinite");
 
-    const text = svg.append("g").selectAll("text")
-        .data(force.nodes()).enter()
-        .append("text")
-        .attr("x", (d) => -Math.min(30, 30*d.name.length/11))
+    const node = svg.append("g").selectAll("g")
+        .data(nodes).enter()
+        .append("g")
+        .attr("transform", `translate(${width/2},${height/2})`)
+        .call(drag);
+    node.append("circle").attr("r", R);
+    node.append("text")
+        .attr("x", d => -Math.min(R, R * d.id.length / 11))
         .attr("y", 3)
-        .text((d) => d.name.length <= 10 ? d.name : d.name.substring(0, 10) + "\u22ef");
+        .text(d => d.id.length <= 10 ? d.id : d.id.substring(0, 10) + "\u22ef");
 
-    const linkArc = (d) => {
-        const dx = d.target.x - d.source.x,
-            dy = d.target.y - d.source.y,
-            r = Math.sqrt(dx * dx + dy * dy);
-        return `M${d.source.x},${d.source.y}A${r},${r} 0 0,1 ${d.target.x},${d.target.y}`;
-    }
-
-    // Use elliptical arc path segments to doubly-encode directionality.
-    const tick = () => {
-        path.attr("d", linkArc);
-        circle.attr("transform", d => `translate(${d.x},${d.y})`);
-        text.attr("transform", d => `translate(${d.x},${d.y})`);
-    }
-    force.on("tick", tick);
+    simulation.on("tick", () => {
+        node.attr("transform", d => {
+            const x = Math.max(D, Math.min(width - D, d.x));
+            const y = Math.max(D, Math.min(height - D, d.y));
+            return `translate(${x},${y})`
+        });
+        path.attr("d", d => {
+            const sx = Math.max(D, Math.min(width - D, d.source.x));
+            const sy = Math.max(D, Math.min(height - D, d.source.y));
+            const tx = Math.max(D, Math.min(width - D, d.target.x));
+            const ty = Math.max(D, Math.min(height - D, d.target.y));
+            const r = Math.hypot(tx - sx, ty - sy);
+            return `M${sx},${sy}A${r},${r} 0 0,1 ${tx},${ty}`;
+        });
+     });
 
     const refresh = () => {
-        const width = graph.offsetWidth - 100;
-        const height = window.innerHeight - 200;
-        graph.style.height = height;
-        svg.attr("height", height);
-        force.size([width, height]);
-        force.linkDistance(Math.min(width, height) / 3)
-        force.start();
+        clearTimeout(window.resizing);
+        window.resizing = setTimeout(() => {
+            simulation.stop();
+            width = graph.offsetWidth;
+            height = window.innerHeight - 200;
+            svg.attr("height", height);
+            simulation.force("center").x(width/2).y(height/2);
+            simulation.force("link").distance(Math.min(width, height) / 3);
+            simulation.alpha(1).restart();
+        }, 250);
     }
     window.onresize = refresh;
     refresh();

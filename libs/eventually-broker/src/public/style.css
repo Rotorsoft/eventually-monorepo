@@ -41,21 +41,21 @@ body {
     background-color: #f8d7da;
 }
 
-.link {
+g.link>path {
     fill: none;
     stroke-dasharray: 0, 2 1;
     stroke-width: 1.5px;
 }
 
-.secondary {
+g.secondary {
     stroke: #c0c0c0;
 }
 
-.success {
+g.success {
     stroke: #198754;
 }
 
-.danger {
+g.danger {
     stroke: #dc3545;
 }
 
@@ -73,10 +73,17 @@ marker.danger {
 
 circle {
     fill: #fff;
-    stroke: #333;
+    stroke: #6c757d;
     stroke-width: 1.5px;
+    z-index: 10;
+}
+
+g.active circle {
+    fill: #eee;
+    stroke-width: 2px;
 }
 
 text {
     font-size: 9px;
+    color: #6c757d;
 }
