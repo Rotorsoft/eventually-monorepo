@@ -7,6 +7,7 @@
     const { rows } = {{{json this}}};
     
     const links = rows.map(row => Object.create({
+        id: row.id,
         source: row.producer,
         target: row.consumer,
         color: row.active ? row.endpointStatus.color : "secondary",
@@ -69,21 +70,20 @@
         .attr("class", d => `link ${d.color}`);
 
     const path = link.append("path")
-        .attr("id", d => `path-${d.source.id}-${d.target.id}`)
+        .attr("id", d => `path-${d.id}`)
         .attr("marker-end", d => `url(#arrow-${d.color})`);
     link.append("text")
-        .attr("text-anchor", "middle")
+        .attr("dy", -3)
         .append("textPath")
-        .attr("xlink:href", d => `#path-${d.source.id}-${d.target.id}`)
-        //.attr("startOffset", "50%")
-        .text(d => d.position)
-        .append("animate")
-        .attr("attributeName", "startOffset")
-        .attr("from", "-50%")
-        .attr("to", "150%")
-        .attr("begin", "0s")
-        .attr("dur", "3s")
-        .attr("repeatCount", "indefinite");
+        .attr("id", d => `last-event-${d.id}`)
+        .attr("xlink:href", d => `#path-${d.id}`)
+    link.append("text")
+        .attr("dy", 8)
+        .append("textPath")
+        .attr("id", d => `position-${d.id}`)
+        .attr("xlink:href", d => `#path-${d.id}`)
+        .attr("startOffset", 33)
+        .text(d => d.position);  
 
     const node = svg.append("g").selectAll("g")
         .data(nodes).enter()
@@ -126,4 +126,31 @@
     }
     window.onresize = refresh;
     refresh();
+
+    // SSE
+    const es = new EventSource("/_monitor-all");
+
+    const animate = async (state) => {
+        const { id, position, lastEventName } = state;
+
+        const totalTextPath = d3.select(`#position-${id}`);
+        totalTextPath && totalTextPath.text(position);
+
+        const lastEventTextPath = d3.select(`#last-event-${id}`);  
+        lastEventTextPath.text(lastEventName)
+            .interrupt()
+            .attr("startOffset", "0%")
+            .transition()
+            .duration(2000)
+            .attr("startOffset", "150%");
+    };
+
+    es.onmessage = ({ data }) => {
+        const props = JSON.parse(data);
+        animate(props);
+    };
+
+    es.onerror = (error) => {
+        console.error(error);
+    };
 </script>

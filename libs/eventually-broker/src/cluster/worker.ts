@@ -119,6 +119,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
               : { status: 204, statusText: "Not Matched" };
 
           stats.total++;
+          stats.lastEventName = status === 200 ? e.name : undefined;
           const event = (stats.events[e.name] = stats.events[e.name] || {});
           const eventStats = (event[status] = event[status] || {
             count: 0,

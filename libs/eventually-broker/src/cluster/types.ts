@@ -25,6 +25,7 @@ export type SubscriptionStats = {
   batches: number;
   total: number;
   events: Record<string, Record<number, EventStats>>;
+  lastEventName?: string;
 };
 
 export type SubscriptionState = {
@@ -70,6 +71,7 @@ export type SubscriptionViewModel = {
   errorMessage: string;
   total: number;
   events: EventsViewModel[];
+  lastEventName: string;
 };
 
 export type WorkerMessage = {

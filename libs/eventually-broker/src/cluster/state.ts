@@ -156,7 +156,8 @@ export const state = singleton(function state(): State {
       },
       errorMessage,
       total: stats.total,
-      events: Object.values(events)
+      events: Object.values(events),
+      lastEventName: stats.lastEventName
     };
   };
 
@@ -195,7 +196,8 @@ export const state = singleton(function state(): State {
       position,
       total,
       batches,
-      events
+      events,
+      lastEventName
     }: SubscriptionConfig & SubscriptionStats
   ): void => {
     channel.position = Math.max(channel.position || -1, position);
@@ -209,6 +211,7 @@ export const state = singleton(function state(): State {
     const acc = state.stats;
     acc.batches += batches;
     acc.total += total;
+    acc.lastEventName = lastEventName;
     Object.entries(events).map(([name, codes]) => {
       Object.entries(codes).map(([code, estats]) => {
         const event = (acc.events[name] = acc.events[name] || {});
