@@ -29,7 +29,7 @@ export const handleMessage = async <M extends Payload, C, E>(
     : { event: undefined, count: 0 };
   const events = await callback(snapshot.state);
   events.map((event) => validateMessage(event));
-  if (streamable) {
+  if (events.length && streamable) {
     const committed = await store().commit(
       streamable.stream(),
       events,
