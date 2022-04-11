@@ -178,15 +178,18 @@
     </div>`
   }
 
-  const es = new EventSource(`/_monitor/{{this.id}}`);
-  es.onmessage = ({ data }) => {
-    const props = JSON.parse(data);
-    refresh(props);
-  };
-  
-  es.onerror = (error) => {
-    console.error(error);
-  };
+  const connect = () => {
+    const es = new EventSource(`/_monitor/{{this.id}}`);
+    es.onmessage = ({ data }) => {
+      const props = JSON.parse(data);
+      refresh(props);
+    };
+    es.onerror = (error) => {
+      console.error("sse error... retrying...");
+      setTimeout(connect, 3000);
+    };
+  }
 
   refresh({{{json this}}});
+  connect();
 </script>

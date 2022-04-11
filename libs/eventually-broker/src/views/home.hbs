@@ -46,8 +46,6 @@
 </table>
 
 <script>
-  const es = new EventSource("/_monitor-all");
-
   const badge = (count, cls) => 
     count > 0 ? `<span class="${cls}">${count}</span>` : "";
 
@@ -83,15 +81,19 @@
     );
   };
 
-  es.onmessage = ({ data }) => {
-    const props = JSON.parse(data);
-    refresh(props);
-  };
-
-  es.onerror = (error) => {
-    console.error(error);
-  };
+  const connect = () => {
+    const es = new EventSource("/_monitor-all");
+    es.onmessage = ({ data }) => {
+      const props = JSON.parse(data);
+      refresh(props);
+    };
+    es.onerror = (error) => {
+      console.error("sse error... retrying...");
+      setTimeout(connect, 3000);
+    };
+  }
 
   const { rows } = {{{json this}}};
   rows.map(row => refresh(row));
+  connect();
 </script>

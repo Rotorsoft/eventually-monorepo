@@ -5,12 +5,19 @@
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script>
     const { rows } = {{{json this}}};
+    const COLORS = {
+        secondary: "#c0c0c0",
+        success: "#198754",
+        warning: "#ffc107",
+        danger: "#dc3545"
+    };
+    const color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
     
     const links = rows.map(row => Object.create({
         id: row.id,
         source: row.producer,
         target: row.consumer,
-        color: row.active ? row.endpointStatus.color : "secondary",
+        color: color(row),
         position: row.active ? row.position : ""
     }));
 
@@ -51,27 +58,29 @@
         });
 
     svg.append("defs").selectAll("marker")
-        .data(["secondary", "success", "danger"]).enter()
+        .data(["arrow"]).enter()
         .append("marker")
-        .attr("id", d => `arrow-${d}`)
+        .attr("id", "arrow")
         .attr("viewBox", "0 -5 10 10")
         .attr("refX", 42)
         .attr("refY", -4)
         .attr("markerWidth", 6)
         .attr("markerHeight", 6)
         .attr("orient", "auto")
-        .attr("class", d => d)
+        .style("fill", "#6c757d")
         .append("path")
         .attr("d", "M0,-5L10,0L0,5");
 
     const link = svg.append("g").selectAll("g")
         .data(links).enter()
         .append("g")
-        .attr("class", d => `link ${d.color}`);
+        .attr("id", d => `link-${d.id}`)
+        .style("stroke", d => d.color)
+        .attr("class", "link");
 
     const path = link.append("path")
         .attr("id", d => `path-${d.id}`)
-        .attr("marker-end", d => `url(#arrow-${d.color})`);
+        .attr("marker-end", "url(#arrow)")
     link.append("text")
         .attr("dy", -3)
         .append("textPath")
@@ -125,19 +134,20 @@
         }, 250);
     }
     window.onresize = refresh;
-    refresh();
-
-    // SSE
-    const es = new EventSource("/_monitor-all");
 
     const animate = async (state) => {
         const { id, position, lastEventName } = state;
 
-        const totalTextPath = d3.select(`#position-${id}`);
-        totalTextPath && totalTextPath.text(position);
+        d3.select(`#link-${id}`).style("stroke", color(state));
 
-        const lastEventTextPath = d3.select(`#last-event-${id}`);  
-        lastEventTextPath.text(lastEventName)
+        d3.select(`#position-${id}`).text(position)
+            .interrupt()
+            .style("font-size", "150%")
+            .transition()
+            .duration(2000)
+            .style("font-size", "100%");
+
+        d3.select(`#last-event-${id}`).text(lastEventName)
             .interrupt()
             .attr("startOffset", "0%")
             .transition()
@@ -145,12 +155,18 @@
             .attr("startOffset", "150%");
     };
 
-    es.onmessage = ({ data }) => {
-        const props = JSON.parse(data);
-        animate(props);
-    };
+    const connect = () => {
+        const es = new EventSource("/_monitor-all");
+        es.onmessage = ({ data }) => {
+            const props = JSON.parse(data);
+            animate(props);
+        };
+        es.onerror = (error) => {
+            console.error("sse error... retrying...");
+            setTimeout(connect, 3000);
+        };
+    }
 
-    es.onerror = (error) => {
-        console.error(error);
-    };
+    refresh();
+    connect();
 </script>

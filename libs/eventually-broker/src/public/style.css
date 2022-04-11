@@ -47,30 +47,6 @@ g.link>path {
     stroke-width: 1.5px;
 }
 
-g.secondary {
-    stroke: #c0c0c0;
-}
-
-g.success {
-    stroke: #198754;
-}
-
-g.danger {
-    stroke: #dc3545;
-}
-
-marker.secondary {
-    fill: #c0c0c0;
-}
-
-marker.success {
-    fill: #198754;
-}
-
-marker.danger {
-    fill: #dc3545;
-}
-
 circle {
     fill: #fff;
     stroke: #6c757d;
