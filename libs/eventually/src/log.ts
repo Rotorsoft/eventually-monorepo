@@ -54,11 +54,18 @@ const devLog = (): Log => ({
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error: (error: unknown): void => {
-    error instanceof ValidationError
-      ? console.error(chalk.red(error.name), error.message, error.details)
-      : error instanceof Error
-      ? console.error(chalk.red(error.name), error.message)
-      : console.error(error);
+    if (error instanceof ValidationError)
+      console.error(chalk.red(error.name), error.message, error.details);
+    else {
+      const { name, message, fileName, lineNumber } = error as Error & {
+        fileName?: string;
+        lineNumber?: number;
+      };
+      console.error(
+        chalk.red(`${name} ${fileName ? `[${fileName}:${lineNumber}]` : ""}`),
+        message
+      );
+    }
   }
 });
 
@@ -68,24 +75,30 @@ const plainLog = (): Log => ({
   trace: config().logLevel === LogLevels.trace ? plain : nolog,
   info: config().logLevel !== LogLevels.error ? plain : nolog,
   error: (error: unknown): void => {
-    error instanceof ValidationError
-      ? console.error(
-          JSON.stringify({
-            severity: "ERROR",
-            name: error.name,
-            message: error.message,
-            details: error.details
-          })
-        )
-      : error instanceof Error
-      ? console.error(
-          JSON.stringify({
-            severity: "ERROR",
-            name: error.name,
-            message: error.message
-          })
-        )
-      : console.error(JSON.stringify({ severity: "ERROR", message: error }));
+    if (error instanceof ValidationError)
+      console.error(
+        JSON.stringify({
+          severity: "ERROR",
+          name: error.name,
+          message: error.message,
+          details: error.details
+        })
+      );
+    else {
+      const { name, message, fileName, lineNumber } = error as Error & {
+        fileName?: string;
+        lineNumber?: number;
+      };
+      console.error(
+        JSON.stringify({
+          severity: "ERROR",
+          name,
+          message,
+          fileName,
+          lineNumber
+        })
+      );
+    }
   }
 });
 
