@@ -57,14 +57,8 @@ const devLog = (): Log => ({
     if (error instanceof ValidationError)
       console.error(chalk.red(error.name), error.message, error.details);
     else {
-      const { name, message, fileName, lineNumber } = error as Error & {
-        fileName?: string;
-        lineNumber?: number;
-      };
-      console.error(
-        chalk.red(`${name} ${fileName ? `[${fileName}:${lineNumber}]` : ""}`),
-        message
-      );
+      const { name, message, stack } = error as Error;
+      console.error(chalk.red(name), message, stack.substring(0, 200));
     }
   }
 });
@@ -85,18 +79,9 @@ const plainLog = (): Log => ({
         })
       );
     else {
-      const { name, message, fileName, lineNumber } = error as Error & {
-        fileName?: string;
-        lineNumber?: number;
-      };
+      const { name, message, stack } = error as Error;
       console.error(
-        JSON.stringify({
-          severity: "ERROR",
-          name,
-          message,
-          fileName,
-          lineNumber
-        })
+        JSON.stringify({ severity: "ERROR", name, message, stack })
       );
     }
   }

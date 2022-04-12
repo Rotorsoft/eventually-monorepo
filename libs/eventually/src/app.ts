@@ -88,7 +88,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
       causation: { event: { name, stream, id } }
     };
     let command: Command<keyof C & string, Payload> | undefined;
-    const [{ state }] = await handleMessage(
+    const snapshots = await handleMessage(
       handler,
       async (state: M) => {
         command = await (handler as any)["on".concat(name)](event, state);
@@ -99,7 +99,10 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
       metadata,
       false // dont notify events committed by process managers to avoid loops
     );
-    return { command, state };
+    return {
+      command,
+      state: snapshots.length ? snapshots[0].state : undefined
+    };
   }
 
   /**
