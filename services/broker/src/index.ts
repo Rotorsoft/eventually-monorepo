@@ -5,4 +5,4 @@ import {
 } from "@rotorsoft/eventually-broker";
 
 subscriptions(PostgresSubscriptionStore());
-void broker();
+void broker({ resolvers: { pull: {}, push: {} } });

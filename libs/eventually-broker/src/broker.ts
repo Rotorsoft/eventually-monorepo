@@ -30,4 +30,9 @@ export const broker = ({
   port,
   resolvers
 }: Options = {}): void | Promise<void> =>
-  cluster.isWorker ? work({ ...defaultResolvers, ...resolvers }) : app(port);
+  cluster.isWorker
+    ? work({
+        push: { ...defaultResolvers.push, ...resolvers.push },
+        pull: { ...defaultResolvers.pull, ...resolvers.pull }
+      })
+    : app(port);
