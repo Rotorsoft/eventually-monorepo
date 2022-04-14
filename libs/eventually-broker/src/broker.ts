@@ -14,7 +14,7 @@ export const defaultResolvers: ChannelResolvers = {
   pull: {
     "void:": () => VoidPullChannel(),
     "pg:": (url: URL) => PostgresPullChannel(url),
-    "cron:": (url: URL) => CronPullChannel(url)
+    "cron:": (url: URL, id: string) => CronPullChannel(url, id)
   },
   push: {
     "void:": () => VoidPushChannel(),

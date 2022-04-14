@@ -33,8 +33,8 @@ export interface PushChannel {
  * Maps protocols to channel factories
  */
 export interface ChannelResolvers {
-  pull: Record<string, (url: URL) => PullChannel>;
-  push: Record<string, (url: URL) => PushChannel>;
+  pull: Record<string, (url: URL, id: string) => PullChannel>;
+  push: Record<string, (url: URL, id: string) => PushChannel>;
 }
 
 /**

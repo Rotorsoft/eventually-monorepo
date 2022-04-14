@@ -2,8 +2,9 @@ import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { PullChannel } from "../interfaces";
 import { TriggerCallback } from "../types";
 
-export const CronPullChannel = (channel: URL): PullChannel => {
+export const CronPullChannel = (channel: URL, id: string): PullChannel => {
   // TODO: initialize your cron engine from channel.hostname making sure cron regex is valid
+  // TODO: load last trigger from storage - pg table? will need seed but we can add this to the subscriptions store
   let counter = 0;
 
   return {
@@ -13,7 +14,7 @@ export const CronPullChannel = (channel: URL): PullChannel => {
       return Promise.resolve();
     },
     listen: (callback: TriggerCallback) => {
-      // TODO: callback when cron engine triggers next tick
+      // TODO: callback when cron engine triggers next tick and persist last cron trigger by id
       setTimeout(
         () => callback({ id: channel.hostname, operation: "RESTART" }),
         10000
@@ -26,7 +27,7 @@ export const CronPullChannel = (channel: URL): PullChannel => {
       const events: CommittedEvent<string, Payload>[] = [
         {
           id: created.getTime(),
-          stream: channel.hostname,
+          stream: id,
           name: "CronTriggered",
           created,
           version: counter++

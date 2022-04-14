@@ -73,7 +73,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       ...config,
       streamsRegExp: RegExp(config.streams),
       namesRegExp: RegExp(config.names),
-      pushChannel: pushFactory(pushUrl)
+      pushChannel: pushFactory(pushUrl, config.id)
     };
   };
 
@@ -81,7 +81,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const pullUrl = new URL(config.channel);
     const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
-    pullchannel(pullFactory(pullUrl));
+    pullchannel(pullFactory(pullUrl, config.id));
   } catch (error) {
     error instanceof Error && sendError(error.message);
     await dispose()(ExitCodes.ERROR);
