@@ -113,12 +113,12 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         const events = await pullchannel().pull(sub.position, BATCH_SIZE);
         count = events.length;
         for (const e of events) {
-          stats.lastEventName = e.name;
           const { status, statusText } =
             sub.streamsRegExp.test(e.stream) && sub.namesRegExp.test(e.name)
               ? await sub.pushChannel.push(e)
               : { status: 204, statusText: "Not Matched" };
 
+          stats.lastEventName = status === 204 ? "" : e.name;
           stats.total++;
           const event = (stats.events[e.name] = stats.events[e.name] || {});
           const eventStats = (event[status] = event[status] || {
