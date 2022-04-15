@@ -170,8 +170,8 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const retries = (trigger.retries || 0) + 1;
     retrySubs.length &&
       (retryTimeout = setTimeout(
-        () =>
-          pumpRetry(
+        async () =>
+          await pumpRetry(
             retrySubs.filter((p) => p),
             {
               operation: "RETRY",
@@ -198,7 +198,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       } else {
         try {
           const sub = (_subs[config.id] = build(config));
-          void pumpRetry([sub], { operation, id: config.id });
+          await pumpRetry([sub], { operation, id: config.id });
         } catch (error) {
           error instanceof Error && sendError(error.message, config);
         }
@@ -208,7 +208,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     }
   );
 
-  void pumpChannel({
+  await pumpChannel({
     operation: "RESTART",
     id: config.id
   });
