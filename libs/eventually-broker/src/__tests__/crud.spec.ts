@@ -126,8 +126,8 @@ describe("crud", () => {
       await createService(producer);
       await createSubscription(id1, producer);
       await createSubscription(id2, producer);
-      await subscriptions().commitPosition(id1, 10);
-      await subscriptions().commitPosition(id2, 11);
+      await subscriptions().commitSubscriptionPosition(id1, 10);
+      await subscriptions().commitSubscriptionPosition(id2, 11);
       const result1 = await subscriptions().loadSubscriptions();
       const result2 = await subscriptions().loadSubscriptionsByProducer(
         producer

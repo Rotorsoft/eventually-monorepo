@@ -99,6 +99,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
 
   const BATCH_SIZE = 100;
   const RETRY_TIMEOUT = 10000;
+  let position = -1;
 
   const pumpSub = async (
     sub: Sub,
@@ -107,6 +108,14 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const stats: SubscriptionStats = { batches: 0, total: 0, events: {} };
     let retry = false;
     try {
+      if (trigger.position > position) {
+        await subscriptions().commitServicePosition(
+          config.id,
+          trigger.position
+        );
+        position = trigger.position;
+      }
+
       let count = BATCH_SIZE;
       while (count === BATCH_SIZE) {
         stats.batches++;
@@ -131,7 +140,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
           eventStats.max = Math.max(eventStats.max, e.id);
 
           if (CommittableHttpStatus.includes(status)) {
-            await subscriptions().commitPosition(sub.id, e.id);
+            await subscriptions().commitSubscriptionPosition(sub.id, e.id);
             sub.position = e.id;
           } else {
             const retryable = RetryableHttpStatus.includes(status);

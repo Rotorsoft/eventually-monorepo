@@ -93,7 +93,6 @@ describe("cluster", () => {
     const chanConfig: ChannelConfig = {
       id: "s1",
       channel: "void://",
-      position: -1,
       subscriptions: [subConfig],
       runs: 0
     };

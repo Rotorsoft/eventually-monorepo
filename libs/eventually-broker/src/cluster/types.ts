@@ -14,7 +14,6 @@ export type SubscriptionConfig = {
 export type ChannelConfig = {
   id: string;
   channel: string;
-  position?: number;
   subscriptions: SubscriptionConfig[];
   runs: number;
 };

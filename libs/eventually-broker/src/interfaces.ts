@@ -80,6 +80,13 @@ export interface SubscriptionStore extends Disposable {
   deleteService: (id: string) => Promise<void>;
 
   /**
+   * Commits a new channel position
+   * @param id service id
+   * @param position new position
+   */
+  commitServicePosition: (id: string, position: number) => Promise<void>;
+
+  /**
    * Loads subscriptions from store
    * @param id optional subscription id
    */
@@ -122,9 +129,9 @@ export interface SubscriptionStore extends Disposable {
   toggleSubscription: (id: string) => Promise<void>;
 
   /**
-   * Commits a new position
+   * Commits a new subscription position
    * @param id subscription id
    * @param position new position
    */
-  commitPosition: (id: string, position: number) => Promise<void>;
+  commitSubscriptionPosition: (id: string, position: number) => Promise<void>;
 }

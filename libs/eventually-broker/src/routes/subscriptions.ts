@@ -90,7 +90,8 @@ router.post(
     const services = state().services();
     try {
       const { value, error } = schemas.addSubscription.validate(req.body, {
-        abortEarly: false
+        abortEarly: false,
+        allowUnknown: true
       });
       if (error) {
         res.render("add-subscription", {
