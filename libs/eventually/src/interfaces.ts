@@ -5,6 +5,7 @@ import {
   Disposer,
   Message,
   Payload,
+  Seeder,
   Snapshot,
   StoreStat
 } from "./types";
@@ -15,6 +16,16 @@ import {
 export interface Disposable {
   readonly name: string;
   dispose: Disposer;
+}
+
+/**
+ * Disposable resources implement this
+ */
+export interface DisposableStore extends Disposable {
+  /**
+   * Store initializer
+   */
+  seed: Seeder;
 }
 
 /**
@@ -74,12 +85,7 @@ export interface Config extends Disposable {
 /**
  * Stores events in streams
  */
-export interface Store extends Disposable {
-  /**
-   * Store initializer
-   */
-  seed: () => Promise<void>;
-
+export interface Store extends DisposableStore {
   /**
    * Queries the event store
    * @param callback callback predicate

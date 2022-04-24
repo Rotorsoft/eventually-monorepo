@@ -74,6 +74,13 @@ export type SubscriptionViewModel = {
   lastEventName: string;
 };
 
+//TODO: Improve types for commands events and errors
+export type ContractsViewModel = {
+  commands: any[],
+  events: any[],
+  errors: any[]
+};
+
 export type WorkerMessage = {
   error?: ErrorMessage;
   stats?: SubscriptionStats & SubscriptionConfig;

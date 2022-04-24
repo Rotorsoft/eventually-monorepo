@@ -5,6 +5,10 @@ import { SnapshotStore } from ".";
  * Resource disposer function
  */
 export type Disposer = () => Promise<void>;
+/**
+ * Resource Seeder function
+ */
+export type Seeder = () => Promise<void>;
 
 //=====================================================================================
 // COMMAND LEVEL
