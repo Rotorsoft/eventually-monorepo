@@ -24,5 +24,8 @@
     "@rotorsoft/eventually": "workspace:^4",
     "joi": "^17.6.0",
     "pg": "^8.7.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.6.5"
   }
 }

@@ -856,6 +856,7 @@ __metadata:
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
+    "@types/pg": ^8.6.5
     joi: ^17.6.0
     pg: ^8.7.1
   languageName: unknown
@@ -1109,7 +1110,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:^8":
+"@types/pg@npm:^8, @types/pg@npm:^8.6.5":
   version: 8.6.5
   resolution: "@types/pg@npm:8.6.5"
   dependencies:
