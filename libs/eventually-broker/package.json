@@ -28,6 +28,7 @@
     "pg-listen": "^1.7.0"
   },
   "devDependencies": {
+    "@types/pg": "^8.6.5",
     "openapi-types": "^11.0.0"
   }
 }
