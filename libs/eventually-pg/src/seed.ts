@@ -1,7 +1,7 @@
 export const stream = (table: string): string => `
 CREATE TABLE IF NOT EXISTS public.${table}
 (
-	id serial PRIMARY KEY,
+	id bigserial PRIMARY KEY,
     name character varying(100) COLLATE pg_catalog."default" NOT NULL,
     data json,
     stream character varying(100) COLLATE pg_catalog."default" NOT NULL,
