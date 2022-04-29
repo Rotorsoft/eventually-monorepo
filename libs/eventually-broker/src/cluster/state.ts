@@ -80,7 +80,7 @@ export const state = singleton(function state(): State {
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
       const config: ChannelConfig = {
         id,
-        channel: _services[id].channel,
+        channel: encodeURI(_services[id].channel),
         subscriptions: subs
           .map((sub) => subConfig(sub))
           .filter((p) => p.active),
