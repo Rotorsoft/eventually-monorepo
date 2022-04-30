@@ -55,7 +55,6 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
           name: eventName,
           created,
           version: counter++,
-          data: { digit: "1" }
         }
       ];
       return Promise.resolve(events);

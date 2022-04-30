@@ -795,7 +795,11 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-pg": "workspace:^4"
+    "@types/cron": ^1
     axios: ^0.26.1
+    cron: ^1.8.3
+    cron-parser: ^4.3.0
+    cron-validator: ^1.3.1
     express: ^4.17.3
     express-handlebars: ^6.0.3
     joi: ^17.6.0
@@ -996,6 +1000,16 @@ __metadata:
   version: 2.8.12
   resolution: "@types/cors@npm:2.8.12"
   checksum: 8c45f112c7d1d2d831b4b266f2e6ed33a1887a35dcbfe2a18b28370751fababb7cd045e745ef84a523c33a25932678097bf79afaa367c6cb3fa0daa7a6438257
+  languageName: node
+  linkType: hard
+
+"@types/cron@npm:^1":
+  version: 1.7.3
+  resolution: "@types/cron@npm:1.7.3"
+  dependencies:
+    "@types/node": "*"
+    moment: ">=2.14.0"
+  checksum: f271c8624d5c2e8e38f62b66a4741877ffe31aa04ea8a038f117616e2a85196cfcd44edfce55fde91671348dab5b7ed1e65dcd902084243f5e19827b764cd770
   languageName: node
   linkType: hard
 
@@ -2099,6 +2113,31 @@ __metadata:
   version: 1.1.1
   resolution: "create-require@npm:1.1.1"
   checksum: a9a1503d4390d8b59ad86f4607de7870b39cad43d929813599a23714831e81c520bddf61bcdd1f8e30f05fd3a2b71ae8538e946eb2786dc65c2bbc520f692eff
+  languageName: node
+  linkType: hard
+
+"cron-parser@npm:^4.3.0":
+  version: 4.3.0
+  resolution: "cron-parser@npm:4.3.0"
+  dependencies:
+    luxon: ^1.28.0
+  checksum: 3559edba22f9f62b7eb72f406bb023dd325b882f50d0becbfd092e4fdcb3899ae49238ad56f440b8f17fb99c96e9ed7c2dc38027eba87ee34b05121a024421c7
+  languageName: node
+  linkType: hard
+
+"cron-validator@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "cron-validator@npm:1.3.1"
+  checksum: 82895b417bc35a96c8ad8501d2f236492403ba6e35c1112762e9573939eb15cd80bd0693d5ae95e3a15e15fc6442b1a6e6cc3dd0f740f0a3320b202082aeabec
+  languageName: node
+  linkType: hard
+
+"cron@npm:^1.8.3":
+  version: 1.8.3
+  resolution: "cron@npm:1.8.3"
+  dependencies:
+    luxon: ^1.23.x
+  checksum: e0d88005733426a41203846c6c258bb9a928ab2ebfdbd3e12628dec1bca93314b139b5132594d4bd4ea43f1deb2e8b53a135c4b955310d447c3e1f1a5ed09ea4
   languageName: node
   linkType: hard
 
@@ -4116,6 +4155,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"luxon@npm:^1.23.x, luxon@npm:^1.28.0":
+  version: 1.28.0
+  resolution: "luxon@npm:1.28.0"
+  checksum: 5250cb9f138b6048eeb0b3a9044a4ac994d0058f680c72a0da4b6aeaec8612460385639cba2b1052ef6d5564879e9ed144d686f26d9d97b38ab920d82e18281c
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^3.0.0":
   version: 3.1.0
   resolution: "make-dir@npm:3.1.0"
@@ -4334,6 +4380,13 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: a96865108c6c3b1b8e1d5e9f11843de1e077e57737602de1b82030815f311be11f96f09cce59bd5b903d0b29834733e5313f9301e3ed6d6f6fba2eae0df4298f
+  languageName: node
+  linkType: hard
+
+"moment@npm:>=2.14.0":
+  version: 2.29.3
+  resolution: "moment@npm:2.29.3"
+  checksum: 2e780e36d9a1823c08a1b6313cbb08bd01ecbb2a9062095820a34f42c878991ccba53abaa6abb103fd5c01e763724f295162a8c50b7e95b4f1c992ef0772d3f0
   languageName: node
   linkType: hard
 
