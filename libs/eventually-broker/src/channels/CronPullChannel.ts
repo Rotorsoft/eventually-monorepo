@@ -30,17 +30,15 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
       const cronNextRun = interval.next().toDate();
       if (cronNextRun.getTime() < new Date().getTime()) {
         await callback({ id, operation: "RESTART", position: service.position + 1})
-      } else {
-        job = new CronJob({
-          cronTime: decodedHostname,
-          onTick: async () => {
-            await callback({ id, operation: "RESTART", position: service.position + 1 });
-          },
-          start: false,
-        });
-
-        job.start()
-      }      
+      }
+      job = new CronJob({
+        cronTime: decodedHostname,
+        onTick: async () => {
+          await callback({ id, operation: "RESTART", position: service.position + 1 });
+        },
+        start: false,
+      });
+      job.start();
     },
     pull: async() => {
       const [subscription] = await subscriptions().loadSubscriptionsByProducer(id);
