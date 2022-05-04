@@ -58,7 +58,7 @@ const devLog = (): Log => ({
       console.error(chalk.red(error.name), error.message, error.details);
     else {
       const { name, message, stack } = error as Error;
-      console.error(chalk.red(name), message, stack.substring(0, 200));
+      console.error(chalk.red(name), message, stack);
     }
   }
 });
