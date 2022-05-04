@@ -7,12 +7,14 @@ import {
   VoidPushChannel
 } from ".";
 import { app } from "./app";
+import { CronPullChannel } from "./channels/CronPullChannel";
 import { work } from "./cluster";
 
 export const defaultResolvers: ChannelResolvers = {
   pull: {
     "void:": () => VoidPullChannel(),
-    "pg:": (url: URL) => PostgresPullChannel(url)
+    "pg:": (url: URL) => PostgresPullChannel(url),
+    "cron:": (url: URL, id: string) => CronPullChannel(url, id)
   },
   push: {
     "void:": () => VoidPushChannel(),
