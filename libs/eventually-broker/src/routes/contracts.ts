@@ -35,7 +35,7 @@ const rows = (services: Service[]): Promise<{services: Record<string, ContractsV
           }, {service, commands: [], events: [], errors: []} )
         }))
       return acc;
-    }, [])
+    }, [] as any[])
   )
     .then((contracts) => {
       return contracts.reduce((acc, contract) => {
