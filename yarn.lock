@@ -795,7 +795,6 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-pg": "workspace:^4"
-    "@types/cron": ^1
     axios: ^0.26.1
     cron: ^1.8.3
     cron-parser: ^4.3.0
@@ -828,6 +827,7 @@ __metadata:
   dependencies:
     "@types/chance": ^1
     "@types/cors": ^2.8.12
+    "@types/cron": ^1
     "@types/express": ^4.17.13
     "@types/jest": ^27.0.1
     "@types/minimist": ^1
