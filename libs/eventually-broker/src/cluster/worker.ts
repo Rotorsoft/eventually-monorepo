@@ -1,4 +1,4 @@
-import { dispose, ExitCodes, log } from "@rotorsoft/eventually";
+import { app, dispose, ExitCodes, log } from "@rotorsoft/eventually";
 import { ErrorMessage } from ".";
 import {
   ChannelResolvers,
@@ -122,6 +122,8 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         const events = await pullchannel().pull(sub.position, BATCH_SIZE);
         count = events.length;
         for (const e of events) {
+          app().log.trace('bgGreen', `Processing event with id ${e.id} for Subscription ${config.id}`);
+          stats.lastEventName = e.name;
           const { status, statusText } =
             sub.streamsRegExp.test(e.stream) && sub.namesRegExp.test(e.name)
               ? await sub.pushChannel.push(e)
