@@ -229,6 +229,7 @@ export type AllQuery = {
   readonly limit?: number;
   readonly created_before?: Date;
   readonly created_after?: Date;
+  readonly backward?: boolean;
 };
 
 /**
