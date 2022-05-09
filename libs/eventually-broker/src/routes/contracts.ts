@@ -10,7 +10,7 @@ const rows = (services: Service[]): Promise<{services: Record<string, ContractsV
   return Promise.all(
     services.reduce((acc, service) => {
       if (!service.url.startsWith('http')) return acc;
-      acc.push(axios.get<OpenAPIV3_1.Document>(`${service.url}/swagger`)
+      const contractsPromise = axios.get<OpenAPIV3_1.Document>(`${service.url}/swagger`)
         .then((response) => response.data)
         .then((apiDef) => apiDef?.components?.schemas)
         .then((schemas) => {
@@ -33,12 +33,14 @@ const rows = (services: Service[]): Promise<{services: Record<string, ContractsV
             else acc.commands.push({ ...schemas[name], service:service.id });
             return acc;
           }, {service, commands: [], events: [], errors: []} )
-        }))
+        })
+        .catch(() => undefined);
+      acc.push(contractsPromise);
       return acc;
     }, [] as any[])
   )
     .then((contracts) => {
-      return contracts.reduce((acc, contract) => {
+      return contracts.filter(c=> !!c).reduce((acc, contract) => {
         acc.services[contract.service.id] = {
           commands: contract.commands,
           events: contract.events,
