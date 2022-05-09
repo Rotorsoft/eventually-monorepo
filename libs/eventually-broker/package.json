@@ -29,6 +29,5 @@
     "joi": "^17.6.0",
     "pg": "^8.7.1",
     "pg-listen": "^1.7.0"
-  },
-  "devDependencies": {}
+  }
 }

@@ -795,7 +795,6 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-pg": "workspace:^4"
-    "@types/pg": ^8.6.5
     axios: ^0.26.1
     cron: ^1.8.3
     cron-parser: ^4.3.0
@@ -803,7 +802,6 @@ __metadata:
     express: ^4.17.3
     express-handlebars: ^6.0.3
     joi: ^17.6.0
-    openapi-types: ^11.0.0
     pg: ^8.7.1
     pg-listen: ^1.7.0
   languageName: unknown
@@ -847,6 +845,7 @@ __metadata:
     husky: ^7.0.0
     jest: ^27.5.1
     minimist: ^1.2.6
+    openapi-types: ^11.0.0
     pinst: ^3.0.0
     prettier: ^2.6.1
     ts-jest: ^27.1.4
@@ -861,7 +860,6 @@ __metadata:
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
-    "@types/pg": ^8.6.5
     joi: ^17.6.0
     pg: ^8.7.1
   languageName: unknown
@@ -1125,7 +1123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:^8, @types/pg@npm:^8.6.5":
+"@types/pg@npm:^8":
   version: 8.6.5
   resolution: "@types/pg@npm:8.6.5"
   dependencies:
