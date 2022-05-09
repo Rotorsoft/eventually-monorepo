@@ -845,6 +845,7 @@ __metadata:
     husky: ^7.0.0
     jest: ^27.5.1
     minimist: ^1.2.6
+    openapi-types: ^11.0.0
     pinst: ^3.0.0
     prettier: ^2.6.1
     ts-jest: ^27.1.4
@@ -4543,6 +4544,13 @@ __metadata:
   dependencies:
     mimic-fn: ^2.1.0
   checksum: 2478859ef817fc5d4e9c2f9e5728512ddd1dbc9fb7829ad263765bb6d3b91ce699d6e2332eef6b7dff183c2f490bd3349f1666427eaba4469fba0ac38dfd0d34
+  languageName: node
+  linkType: hard
+
+"openapi-types@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "openapi-types@npm:11.0.0"
+  checksum: 2c54c8edcd20b25713fceb51b5b3829b80c67ee070779f32e99e7fe26cf08afa3d53a047e62fe6e6831f80cd6a803b17ad16b0ae3c6f3abe638363832b6a917f
   languageName: node
   linkType: hard
 

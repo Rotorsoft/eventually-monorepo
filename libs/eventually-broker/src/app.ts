@@ -39,6 +39,7 @@ export const app = async (port?: number): Promise<void> => {
   app.set("view engine", "hbs");
   app.set("views", path.resolve(__dirname, "./views"));
   app.use("/_services", routes.services);
+  app.use("/_contracts", routes.contracts);
   app.use("/", routes.subscriptions);
 
   const server: Server = await new Promise((resolve) => {
