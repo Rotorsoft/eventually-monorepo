@@ -795,7 +795,6 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-pg": "workspace:^4"
-    "@types/pg": ^8.6.5
     axios: ^0.26.1
     cron: ^1.8.3
     cron-parser: ^4.3.0
@@ -803,7 +802,6 @@ __metadata:
     express: ^4.17.3
     express-handlebars: ^6.0.3
     joi: ^17.6.0
-    openapi-types: ^11.0.0
     pg: ^8.7.1
     pg-listen: ^1.7.0
   languageName: unknown
