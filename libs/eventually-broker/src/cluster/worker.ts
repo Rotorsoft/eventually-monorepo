@@ -73,7 +73,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       ...config,
       streamsRegExp: RegExp(config.streams),
       namesRegExp: RegExp(config.names),
-      pushChannel: pushFactory(pushUrl)
+      pushChannel: pushFactory(pushUrl, config.id)
     };
   };
 
@@ -81,7 +81,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const pullUrl = new URL(config.channel);
     const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
-    pullchannel(pullFactory(pullUrl));
+    pullchannel(pullFactory(pullUrl, config.id));
   } catch (error) {
     error instanceof Error && sendError(error.message);
     await dispose()(ExitCodes.ERROR);
@@ -99,6 +99,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
 
   const BATCH_SIZE = 100;
   const RETRY_TIMEOUT = 10000;
+  let position = -1;
 
   const pumpSub = async (
     sub: Sub,
@@ -107,18 +108,26 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const stats: SubscriptionStats = { batches: 0, total: 0, events: {} };
     let retry = false;
     try {
+      if (trigger.position > position) {
+        await subscriptions().commitServicePosition(
+          config.id,
+          trigger.position
+        );
+        position = trigger.position;
+      }
+
       let count = BATCH_SIZE;
       while (count === BATCH_SIZE) {
         stats.batches++;
         const events = await pullchannel().pull(sub.position, BATCH_SIZE);
         count = events.length;
         for (const e of events) {
-          stats.lastEventName = e.name;
           const { status, statusText } =
             sub.streamsRegExp.test(e.stream) && sub.namesRegExp.test(e.name)
               ? await sub.pushChannel.push(e)
               : { status: 204, statusText: "Not Matched" };
 
+          stats.lastEventName = status === 204 ? "" : e.name;
           stats.total++;
           const event = (stats.events[e.name] = stats.events[e.name] || {});
           const eventStats = (event[status] = event[status] || {
@@ -131,7 +140,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
           eventStats.max = Math.max(eventStats.max, e.id);
 
           if (CommittableHttpStatus.includes(status)) {
-            await subscriptions().commitPosition(sub.id, e.id);
+            await subscriptions().commitSubscriptionPosition(sub.id, e.id);
             sub.position = e.id;
           } else {
             const retryable = RetryableHttpStatus.includes(status);
@@ -170,8 +179,8 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const retries = (trigger.retries || 0) + 1;
     retrySubs.length &&
       (retryTimeout = setTimeout(
-        () =>
-          pumpRetry(
+        async () =>
+          await pumpRetry(
             retrySubs.filter((p) => p),
             {
               operation: "RETRY",
@@ -198,7 +207,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       } else {
         try {
           const sub = (_subs[config.id] = build(config));
-          void pumpRetry([sub], { operation, id: config.id });
+          await pumpRetry([sub], { operation, id: config.id });
         } catch (error) {
           error instanceof Error && sendError(error.message, config);
         }
@@ -208,7 +217,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     }
   );
 
-  void pumpChannel({
+  await pumpChannel({
     operation: "RESTART",
     id: config.id
   });

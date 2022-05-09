@@ -7,9 +7,6 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
   let _servicesCallback: TriggerCallback;
   let _subscriptionsCallback: TriggerCallback;
 
-  const findSubscriptionById = (id: string): Subscription[] =>
-    Object.values(subscriptions).filter((s) => s.id === id);
-
   return {
     name: "InMemorySubscriptionStore",
     dispose: () => undefined,
@@ -33,6 +30,12 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
       delete services[id];
       _servicesCallback &&
         (await _servicesCallback({ operation: "DELETE", id }));
+    },
+    commitServicePosition: (id: string, position: number) => {
+      const service = services[id];
+      service.position = position;
+      service.updated = new Date();
+      return Promise.resolve();
     },
     loadSubscriptions: () => Promise.resolve(Object.values(subscriptions)),
     loadSubscriptionsByProducer: (producer: string) =>
@@ -62,14 +65,15 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
         (await _subscriptionsCallback({ operation: "DELETE", id }));
     },
     toggleSubscription: async (id: string) => {
-      const [found] = findSubscriptionById(id);
-      found && (found.active = !found.active);
+      const sub = subscriptions[id];
+      sub.active = !sub.active;
       _subscriptionsCallback &&
         (await _subscriptionsCallback({ operation: "UPDATE", id }));
     },
-    commitPosition: (id: string, position: number) => {
-      const [found] = findSubscriptionById(id);
-      found && (found.position = position);
+    commitSubscriptionPosition: (id: string, position: number) => {
+      const sub = subscriptions[id];
+      sub.position = position;
+      sub.updated = new Date();
       return Promise.resolve();
     }
   };

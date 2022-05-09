@@ -17,7 +17,9 @@ export const serviceBody = (
 ): Service => ({
   id,
   channel,
-  url
+  url,
+  position: -1,
+  updated: new Date()
 });
 
 export const subscriptionBody = (
@@ -33,7 +35,8 @@ export const subscriptionBody = (
   active,
   streams: ".*",
   names: ".*",
-  position: -1
+  position: -1,
+  updated: new Date()
 });
 
 export const createService = (id: string): Promise<void> =>
