@@ -5,6 +5,9 @@ create table if not exists public.services (
   url varchar(100) not null
 ) tablespace pg_default;
 
+alter table public.services add column if not exists position integer not null default -1;
+alter table public.services add column if not exists updated timestamptz not null default now();
+
 create table if not exists public.subscriptions (
   id varchar(100) primary key,
   active boolean not null default true,
@@ -17,6 +20,8 @@ create table if not exists public.subscriptions (
   constraint fk_producer_service foreign key(producer) references services(id),
   constraint fk_consumer_service foreign key(consumer) references services(id)
 ) tablespace pg_default;
+
+alter table public.subscriptions add column if not exists updated timestamptz not null default now();
 
 create or replace function notify() returns trigger as
 $trigger$

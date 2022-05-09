@@ -60,6 +60,16 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       await pool.query("delete from public.services where id=$1", [id]);
     },
 
+    commitServicePosition: async (
+      id: string,
+      position: number
+    ): Promise<void> => {
+      await pool.query(
+        "update public.services set position=greatest(position, $2), updated=now() where id=$1",
+        [id, position]
+      );
+    },
+
     loadSubscriptions: async (id?: string): Promise<Subscription[]> => {
       const result = id
         ? await pool.query<Subscription>(
@@ -138,14 +148,17 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       );
     },
 
-    commitPosition: async (id: string, position: number): Promise<void> => {
+    commitSubscriptionPosition: async (
+      id: string,
+      position: number
+    ): Promise<void> => {
       /** 
         TODO: 
           WARNING!!!: We don't support multiple brokers handling the same subscription store
           In the future we can use optimistic concurrency or leasing strategies
       */
       await pool.query(
-        "update public.subscriptions set position=$2 where id=$1",
+        "update public.subscriptions set position=greatest(position, $2), updated=now() where id=$1",
         [id, position]
       );
     }

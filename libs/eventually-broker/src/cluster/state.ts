@@ -70,24 +70,17 @@ export const state = singleton(function state(): State {
     position
   });
 
-  const run = async (
-    id: string,
-    position?: number,
-    runs = 0
-  ): Promise<void> => {
+  const run = async (id: string, runs = 0): Promise<void> => {
     if (++runs > 10) {
       log().error(Error(`Too many runs in session for channel ${id}`));
       return;
     }
     try {
-      const { channel } = (_services[id] = (
-        await subscriptions().loadServices(id)
-      )[0]);
+      _services[id] = (await subscriptions().loadServices(id))[0];
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
       const config: ChannelConfig = {
         id,
-        channel,
-        position,
+        channel: encodeURI(_services[id].channel),
         subscriptions: subs
           .map((sub) => subConfig(sub))
           .filter((p) => p.active),
@@ -118,7 +111,7 @@ export const state = singleton(function state(): State {
       endpointStatus,
       errorMessage
     } = _states[id] || resetState();
-    const channelPosition = workerId ? _channels[workerId]?.position : -1;
+    const channel = _channels[workerId];
     const eventsMap: Record<string, EventsViewModel> = {};
     Object.entries(stats.events).map(([name, value]) => {
       const event = (eventsMap[name] = eventsMap[name] || {
@@ -144,7 +137,7 @@ export const state = singleton(function state(): State {
       active,
       position,
       channelStatus,
-      channelPosition,
+      channelPosition: channel ? _services[channel.id].position : -1,
       endpointStatus: {
         ...endpointStatus,
         icon:
@@ -200,7 +193,10 @@ export const state = singleton(function state(): State {
       lastEventName
     }: SubscriptionConfig & SubscriptionStats
   ): void => {
-    channel.position = Math.max(channel.position || -1, position);
+    _services[channel.id].position = Math.max(
+      _services[channel.id].position,
+      position
+    );
     const state = (_states[id] =
       _states[id] || resetState(workerId, true, position));
     state.active = active;
@@ -259,8 +255,8 @@ export const state = singleton(function state(): State {
           );
     } else if (stats) _stats(workerId, channel, stats);
     else if (trigger)
-      channel.position = Math.max(
-        channel.position || -1,
+      _services[channel.id].position = Math.max(
+        _services[channel.id].position,
         trigger.position || -1
       );
   };
@@ -279,7 +275,7 @@ export const state = singleton(function state(): State {
       emitSSE(id);
     });
     // re-run when exit code == 0
-    !code && void run(channel.id, channel.position, channel.runs);
+    !code && void run(channel.id, channel.runs);
   };
 
   cluster.on("message", (worker, message: WorkerMessage) =>

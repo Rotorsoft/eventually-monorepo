@@ -27,7 +27,8 @@ router.post(
   async (req: Request<never, never, Service, never, never>, res) => {
     try {
       const { value, error } = schemas.addService.validate(req.body, {
-        abortEarly: false
+        abortEarly: false,
+        allowUnknown: true
       });
       if (error) {
         res.render("add-service", {

@@ -27,7 +27,8 @@ describe("views", () => {
     store.updateSubscription = undefined;
     store.deleteSubscription = undefined;
     store.toggleSubscription = undefined;
-    store.commitPosition = undefined;
+    store.commitSubscriptionPosition = undefined;
+    store.commitServicePosition = undefined;
     subscriptions(store);
     await broker({ port });
   });
