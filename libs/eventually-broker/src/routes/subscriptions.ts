@@ -63,7 +63,7 @@ router.get("/_graph", async (_, res) => {
 
 router.get("/", async (_, res) => {
   const subs = await subscriptions().loadSubscriptions();
-  res.render("home", rows(subs));
+  res.render("subscriptions", rows(subs));
 });
 
 router.post(
@@ -72,7 +72,7 @@ router.post(
     const search = req.body.search;
     if (search) {
       const subs = await subscriptions().searchSubscriptions(search);
-      res.render("home", rows(subs));
+      res.render("subscriptions", rows(subs));
     } else res.redirect("/");
   }
 );
