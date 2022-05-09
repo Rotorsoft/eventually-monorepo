@@ -21,7 +21,7 @@ export interface Disposable {
 /**
  * Disposable resources implement this
  */
-export interface DisposableStore extends Disposable {
+export interface Seedable {
   /**
    * Store initializer
    */
@@ -85,7 +85,7 @@ export interface Config extends Disposable {
 /**
  * Stores events in streams
  */
-export interface Store extends DisposableStore {
+export interface Store extends Disposable, Seedable {
   /**
    * Queries the event store
    * @param callback callback predicate

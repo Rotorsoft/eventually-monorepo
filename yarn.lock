@@ -847,6 +847,7 @@ __metadata:
     husky: ^7.0.0
     jest: ^27.5.1
     minimist: ^1.2.6
+    openapi-types: ^11.0.0
     pinst: ^3.0.0
     prettier: ^2.6.1
     ts-jest: ^27.1.4
