@@ -17,11 +17,13 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
     },
     loadServices: () => Promise.resolve(Object.values(services)),
     createService: async (service: Service) => {
+      service.updated = new Date();
       services[service.id] = service;
       _servicesCallback &&
         (await _servicesCallback({ operation: "INSERT", id: service.id }));
     },
     updateService: async (service: Service) => {
+      service.updated = new Date();
       services[service.id] = service;
       _servicesCallback &&
         (await _servicesCallback({ operation: "UPDATE", id: service.id }));

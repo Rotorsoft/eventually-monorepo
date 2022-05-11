@@ -11,7 +11,7 @@ import {
 } from "./types";
 
 /**
- * Disposable resources implement this
+ * Disposable resources
  */
 export interface Disposable {
   readonly name: string;
@@ -19,12 +19,9 @@ export interface Disposable {
 }
 
 /**
- * Disposable resources implement this
+ * Seedable resources (i.e. to initialize or run store migrations)
  */
 export interface Seedable {
-  /**
-   * Store initializer
-   */
   seed: Seeder;
 }
 
@@ -120,12 +117,7 @@ export interface Store extends Disposable, Seedable {
   stats: () => Promise<StoreStat[]>;
 }
 
-export interface SnapshotStore {
-  /**
-   * Store initializer
-   */
-  seed: () => Promise<void>;
-
+export interface SnapshotStore extends Disposable, Seedable {
   /**
    * Reads snapshot from store for stream
    */

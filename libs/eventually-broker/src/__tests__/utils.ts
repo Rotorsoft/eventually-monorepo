@@ -1,5 +1,5 @@
 import { CommittedEvent, Payload } from "@rotorsoft/eventually";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import {
   ChildProcess,
   Serializable,
@@ -60,21 +60,27 @@ export const createCommittedEvent = (
   created: new Date()
 });
 
-export const get = (path: string, port: number): Promise<any> => {
+export const get = (
+  path: string,
+  port: number
+): Promise<AxiosResponse<any, any>> => {
   const url = `http://localhost:${port}${path}`;
   return axios.get<any>(url);
 };
 
-export const post = (
+export const post = async (
   path: string,
   body: Record<string, unknown>,
   port: number
-): Promise<any> => {
+): Promise<AxiosResponse<any, any>> => {
   const url = `http://localhost:${port}${path}`;
   return axios.post<any>(url, body);
 };
 
-export const _delete = (path: string, port: number): Promise<any> => {
+export const _delete = (
+  path: string,
+  port: number
+): Promise<AxiosResponse<any, any>> => {
   const url = `http://localhost:${port}${path}`;
   return axios.delete<any>(url);
 };

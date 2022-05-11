@@ -2,9 +2,15 @@ import { app } from "..";
 import { SnapshotStore } from "../interfaces";
 
 export const InMemorySnapshotStore = (): SnapshotStore => {
-  const _store: Record<string, any> = {};
+  let _store: Record<string, any> = {};
 
   return {
+    name: "InMemoryStore",
+    dispose: () => {
+      _store = {};
+      return Promise.resolve();
+    },
+
     seed: () => undefined,
 
     read: (stream) => {

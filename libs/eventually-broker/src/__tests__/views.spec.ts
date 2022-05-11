@@ -54,7 +54,8 @@ describe("views", () => {
       "/_wait/s1",
       "/_refresh/s1",
       "/_toggle/s1",
-      "/_graph"
+      "/_graph",
+      "/_contracts"
     ];
     const responses = await Promise.all(paths.map((path) => get(path, port)));
     responses.map((response) => {
@@ -72,23 +73,21 @@ describe("views", () => {
       expect(response.status).toBe(200);
     });
 
-    // const responses2 = await Promise.all(
-    //   [
-    //     "/_services/_add", "/_services/s2"].map((path) =>
-    //     post(path, serviceBody("s2"), port)
-    //   )
-    // );
-    // responses2.map((response) => {
-    //   expect(response.status).toBe(200);
-    // });
-
-    const responses3 = await Promise.all([
+    const responses2 = await Promise.all([
       post("/", { search: "s2" }, port),
       post("/", {}, port)
     ]);
-    responses3.map((response) => {
+    responses2.map((response) => {
       expect(response.status).toBe(200);
     });
+  });
+
+  it("should add-update service", async () => {
+    const response1 = await post("/_services/_add", serviceBody("s2"), port);
+    expect(response1.status).toBe(200);
+
+    const response2 = await post("/_services/s2", serviceBody("s2"), port);
+    expect(response2.status).toBe(200);
   });
 
   it("should post with validation errors", async () => {

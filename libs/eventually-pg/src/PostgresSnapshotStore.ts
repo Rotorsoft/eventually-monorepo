@@ -6,14 +6,12 @@ import { snapshot } from "./seed";
 export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
   table = table || config.pg.snapshotsTable;
   const pool = new Pool(config.pg);
+  const store: SnapshotStore = {
+    name: `PostgresSnapshotStore:${table}`,
+    dispose: async () => {
+      await pool.end();
+    },
 
-  log().info("bgGreen", `✨ PostgresSnapshotStore:${table}`);
-  dispose(() => {
-    log().info("bgGreen", `♻️ PostgresSnapshotStore:${table}`);
-    return pool.end();
-  });
-
-  return {
     seed: async () => {
       await pool.query(snapshot(table));
     },
@@ -37,4 +35,12 @@ export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
       log().trace("white", `Snapshot Created for stream ${stream}`);
     }
   };
+
+  log().info("bgGreen", `✨ ${store.name}`);
+  dispose(() => {
+    log().info("bgGreen", `♻️ ${store.name}`);
+    return store.dispose();
+  });
+
+  return store;
 };
