@@ -48,7 +48,8 @@ export const PostgresStore = (table: string): Store => {
         limit,
         created_before,
         created_after,
-        backward
+        backward,
+        correlation
       } = query;
 
       const values: any[] = [after];
@@ -72,6 +73,10 @@ export const PostgresStore = (table: string): Store => {
       if (created_before) {
         values.push(created_before.toISOString());
         sql = sql.concat(` AND created<$${values.length}`);
+      }
+      if (correlation) {
+        values.push(correlation);
+        sql = sql.concat(` AND metadata->>'correlation'=$${values.length}`);
       }
       sql = sql.concat(` ORDER BY id ${backward ? "DESC" : "ASC"}`);
       if (limit) {

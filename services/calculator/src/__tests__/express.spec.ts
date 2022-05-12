@@ -224,6 +224,7 @@ describe("express app", () => {
     const id = chance.guid();
     let created_after: Date;
     let created_before: Date;
+    let dot_correlation: string;
 
     beforeAll(async () => {
       await pressKey(id, "1");
@@ -232,7 +233,8 @@ describe("express app", () => {
       created_after = new Date();
       await t.sleep(200);
       await pressKey(id, "2");
-      await pressKey(id, ".");
+      const [snap] = await pressKey(id, ".");
+      dot_correlation = snap.event.metadata.correlation;
       await t.sleep(200);
       created_before = new Date();
       await t.sleep(200);
@@ -300,6 +302,15 @@ describe("express app", () => {
       });
       expect(stream[0].version).toBe(2);
       expect(stream.length).toBe(2);
+    });
+
+    it("should read stream by correlation", async () => {
+      const stream = await t.read({
+        correlation: dot_correlation,
+        limit: 5
+      });
+      expect(stream.length).toBe(1);
+      expect(stream[0].name).toBe("DotPressed");
     });
   });
 

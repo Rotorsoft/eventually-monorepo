@@ -24,6 +24,8 @@ describe("pg", () => {
   });
 
   it("should commit and query", async () => {
+    const query_correlation = chance.guid();
+
     await db.commit(a1, [event("test1", { value: "1" })], {
       correlation: "",
       causation: {}
@@ -32,7 +34,7 @@ describe("pg", () => {
     await sleep(200);
 
     await db.commit(a1, [event("test1", { value: "2" })], {
-      correlation: "",
+      correlation: query_correlation,
       causation: {}
     });
     await db.commit(a2, [event("test2", { value: "3" })], {
@@ -60,7 +62,7 @@ describe("pg", () => {
         event("test3", { value: "2" }),
         event("test3", { value: "3" })
       ],
-      { correlation: "", causation: {} },
+      { correlation: query_correlation, causation: {} },
       undefined
     );
 
@@ -106,6 +108,13 @@ describe("pg", () => {
     const events6: CommittedEvent<string, Payload>[] = [];
     await db.query((e) => events6.push(e), { limit: 5 });
     expect(events6.length).toBe(5);
+
+    const events7: CommittedEvent<string, Payload>[] = [];
+    await db.query((e) => events7.push(e), {
+      limit: 10,
+      correlation: query_correlation
+    });
+    expect(events7.length).toBe(4);
 
     await expect(
       db.commit(a1, [event("test2")], { correlation: "", causation: {} }, 1)
