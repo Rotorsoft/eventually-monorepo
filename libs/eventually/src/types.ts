@@ -220,6 +220,8 @@ export type MessageHandler<M extends Payload, C, E> =
  * - limit? limit the number of events to return
  * - created_before? filter events created before this date/time
  * - created_after? filter events created after this date/time
+ * - backward? order descending when true
+ * - correlation? filter by correlation
  */
 export type AllQuery = {
   readonly stream?: string;
@@ -230,6 +232,7 @@ export type AllQuery = {
   readonly created_before?: Date;
   readonly created_after?: Date;
   readonly backward?: boolean;
+  readonly correlation?: string;
 };
 
 /**

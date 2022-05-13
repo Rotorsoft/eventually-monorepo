@@ -101,7 +101,9 @@ export class ExpressApp extends AppBase {
             after = -1,
             limit = 1,
             created_before,
-            created_after
+            created_after,
+            correlation,
+            backward
           } = req.query;
           const result = await this.query({
             stream,
@@ -110,7 +112,9 @@ export class ExpressApp extends AppBase {
             before: before && +before,
             limit: limit && +limit,
             created_after: created_after && new Date(created_after),
-            created_before: created_before && new Date(created_before)
+            created_before: created_before && new Date(created_before),
+            correlation,
+            backward
           });
           return res.status(200).send(result);
         } catch (error) {

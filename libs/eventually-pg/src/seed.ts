@@ -44,6 +44,11 @@ CREATE INDEX IF NOT EXISTS ${table}_created_id_ix
     ON public.${table} USING btree
     (created ASC, id ASC)
     TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS ${table}_correlation_ix
+    ON public.${table} USING btree
+    ((metadata ->> 'correlation'::text) COLLATE pg_catalog."default" ASC NULLS LAST)
+    TABLESPACE pg_default;
     
 DROP INDEX IF EXISTS stream_ix;
 DROP INDEX IF EXISTS name_id;
