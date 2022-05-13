@@ -41,6 +41,8 @@
   <label class="px-4" for="floatingUrl">Url</label>
 </div>
 
-<div class="mb-3">
-  <button class="btn btn-primary" type="submit">Submit</button>
-</div>
+{{#if isAdmin}}
+  <div class="mb-3">
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </div>
+{{/if}}

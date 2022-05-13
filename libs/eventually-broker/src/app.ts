@@ -1,5 +1,5 @@
 import { config, dispose, log } from "@rotorsoft/eventually";
-import express from "express";
+import express, { RequestHandler } from "express";
 import { engine } from "express-handlebars";
 import { Server } from "http";
 import path from "path";
@@ -7,7 +7,15 @@ import { subscriptions } from ".";
 import { state } from "./cluster";
 import * as routes from "./routes";
 
-export const app = async (port?: number): Promise<void> => {
+type AppConfig = {
+  port?: number;
+  middleware?: RequestHandler[];
+};
+
+export const app = async ({
+  port,
+  middleware = []
+}: AppConfig): Promise<void> => {
   port = port || config().port;
 
   await subscriptions().seed();
@@ -38,9 +46,9 @@ export const app = async (port?: number): Promise<void> => {
   );
   app.set("view engine", "hbs");
   app.set("views", path.resolve(__dirname, "./views"));
-  app.use("/_services", routes.services);
-  app.use("/_contracts", routes.contracts);
-  app.use("/", routes.subscriptions);
+  app.use("/_services", middleware, routes.services);
+  app.use("/_contracts", middleware, routes.contracts);
+  app.use("/", middleware, routes.subscriptions);
 
   const server: Server = await new Promise((resolve) => {
     const server = app.listen(port, () => {

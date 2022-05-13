@@ -1,4 +1,4 @@
-import { log } from "@rotorsoft/eventually";
+import { log, Actor } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import * as schemas from "./schemas";
@@ -51,17 +51,18 @@ router.post(
   }
 );
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request & { user: Actor }, res) => {
   const id = req.params.id;
   const err = {
     class: "alert-danger",
     message: `Could not load service ${id}`
   };
+  const isAdmin = req.user && req.user.roles.includes("admin");
   try {
     const [service] = await subscriptions().loadServices(id);
     service
-      ? res.render("edit-service", { ...service })
-      : res.render("edit-service", { ...err });
+      ? res.render("edit-service", { ...service, isAdmin })
+      : res.render("edit-service", { ...err, isAdmin });
   } catch (error) {
     log().error(error);
     res.render("edit-service", { ...err });

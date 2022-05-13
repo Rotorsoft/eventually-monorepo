@@ -1,5 +1,6 @@
 <div class="row mb-2">
   <div class="col-6">{{>service-bc}}</div>
+  {{#if isAdmin}}
   <div class="col-6 d-flex justify-content-end">
     <div class="col mx-2">
       <input
@@ -15,6 +16,7 @@
       <i class="bi bi-trash"></i></i>
     </a>
   </div>
+  {{/if}}
 </div>
 
 {{> alert}}
