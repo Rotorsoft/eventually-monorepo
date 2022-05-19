@@ -1,4 +1,4 @@
-import { log, randomId } from "@rotorsoft/eventually";
+import { log, randomId, Actor } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
@@ -61,9 +61,10 @@ router.get("/_graph", async (_, res) => {
   res.render("subscriptions-graph", rows(subs));
 });
 
-router.get("/", async (_, res) => {
+router.get("/", async (req: Request & { user: Actor }, res) => {
   const subs = await subscriptions().loadSubscriptions();
-  res.render("subscriptions", rows(subs));
+  const isAdmin = req.user && req.user.roles.includes("admin");
+  res.render("subscriptions", {isAdmin, ...rows(subs)});
 });
 
 router.post(
@@ -141,7 +142,7 @@ router.get("/_wait/:id", (req, res) => {
   res.render("wait", { id });
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request & { user: Actor }, res) => {
   const id = req.params.id;
   const props = {
     shortid: shortId(id),
@@ -152,6 +153,7 @@ router.get("/:id", async (req, res) => {
     class: "alert-danger",
     message: `Could not load subscription ${id}`
   };
+  const isAdmin = req.user && req.user.roles.includes("admin");
   try {
     const [sub] = await subscriptions().loadSubscriptions(id);
     sub
@@ -159,10 +161,10 @@ router.get("/:id", async (req, res) => {
           ...props,
           ...sub
         })
-      : res.render("edit-subscription", { ...props, ...err });
+      : res.render("edit-subscription", { ...props, ...err, isAdmin});
   } catch (error) {
     log().error(error);
-    res.render("edit-subscription", { ...props, ...err });
+    res.render("edit-subscription", { ...props, ...err, isAdmin });
   }
 });
 
