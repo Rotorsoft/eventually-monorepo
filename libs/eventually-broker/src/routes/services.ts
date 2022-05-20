@@ -13,9 +13,10 @@ const defaultService = {
   url: "http://service"
 };
 
-router.get("/", async (_, res) => {
+router.get("/", async (req: Request & { user: Actor }, res) => {
   const services = await subscriptions().loadServices();
-  res.render("services", { rows: prepare(services) });
+  const isAdmin = req.user && req.user.roles.includes("admin");
+  res.render("services", { isAdmin, rows: prepare(services) });
 });
 
 router.get("/_add", (_, res) => {
