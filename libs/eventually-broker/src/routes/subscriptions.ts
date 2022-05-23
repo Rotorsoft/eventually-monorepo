@@ -2,6 +2,7 @@ import { log, randomId } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
+import { isAdmin } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -61,9 +62,9 @@ router.get("/_graph", async (_, res) => {
   res.render("subscriptions-graph", rows(subs));
 });
 
-router.get("/", async (_, res) => {
+router.get("/", async (req, res) => {
   const subs = await subscriptions().loadSubscriptions();
-  res.render("subscriptions", rows(subs));
+  res.render("subscriptions", {isAdmin: isAdmin(req), ...rows(subs)});
 });
 
 router.post(
@@ -77,10 +78,11 @@ router.post(
   }
 );
 
-router.get("/_add", (_, res) => {
+router.get("/_add", (req, res) => {
   res.render("add-subscription", {
     ...defaultSubscription,
-    services: state().services()
+    services: state().services(),
+    isAdmin: isAdmin(req)
   });
 });
 
@@ -98,7 +100,8 @@ router.post(
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
           ...req.body,
-          services
+          services,
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().createSubscription(value);
@@ -110,7 +113,8 @@ router.post(
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
         ...req.body,
-        services
+        services,
+        isAdmin: isAdmin(req)
       });
     }
   }
@@ -159,10 +163,10 @@ router.get("/:id", async (req, res) => {
           ...props,
           ...sub
         })
-      : res.render("edit-subscription", { ...props, ...err });
+      : res.render("edit-subscription", { ...props, ...err, isAdmin: isAdmin(req)});
   } catch (error) {
     log().error(error);
-    res.render("edit-subscription", { ...props, ...err });
+    res.render("edit-subscription", { ...props, ...err, isAdmin: isAdmin(req) });
   }
 });
 
@@ -187,7 +191,8 @@ router.post(
         res.render("edit-subscription", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...props
+          ...props, 
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().updateSubscription({ ...value, id });
@@ -198,7 +203,8 @@ router.post(
       res.render("edit-subscription", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...props
+        ...props,
+        isAdmin: isAdmin(req)
       });
     }
   }

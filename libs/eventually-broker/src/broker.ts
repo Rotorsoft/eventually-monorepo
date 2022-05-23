@@ -1,4 +1,5 @@
 import cluster from "cluster";
+import { RequestHandler } from "express";
 import {
   ChannelResolvers,
   PostgresPullChannel,
@@ -25,11 +26,13 @@ export const defaultResolvers: ChannelResolvers = {
 
 type Options = {
   port?: number;
+  middleware?: RequestHandler[];
   resolvers?: ChannelResolvers;
 };
 
 export const broker = ({
   port,
+  middleware,
   resolvers
 }: Options = {}): void | Promise<void> =>
   cluster.isWorker
@@ -37,4 +40,4 @@ export const broker = ({
         push: { ...defaultResolvers.push, ...resolvers.push },
         pull: { ...defaultResolvers.pull, ...resolvers.pull }
       })
-    : app(port);
+    : app({ port, middleware });

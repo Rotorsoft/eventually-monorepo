@@ -1,6 +1,7 @@
 import { log } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
+import { isAdmin } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -13,13 +14,13 @@ const defaultService = {
   url: "http://service"
 };
 
-router.get("/", async (_, res) => {
+router.get("/", async (req, res) => {
   const services = await subscriptions().loadServices();
-  res.render("services", { rows: prepare(services) });
+  res.render("services", { isAdmin: isAdmin(req), rows: prepare(services) });
 });
 
-router.get("/_add", (_, res) => {
-  res.render("add-service", { ...defaultService });
+router.get("/_add", (req, res) => {
+  res.render("add-service", { ...defaultService, isAdmin: isAdmin(req) });
 });
 
 router.post(
@@ -34,7 +35,8 @@ router.post(
         res.render("add-service", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...req.body
+          ...req.body,
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().createService(value);
@@ -45,7 +47,8 @@ router.post(
       res.render("add-service", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...req.body
+        ...req.body,
+        isAdmin: isAdmin(req)
       });
     }
   }
@@ -60,11 +63,11 @@ router.get("/:id", async (req, res) => {
   try {
     const [service] = await subscriptions().loadServices(id);
     service
-      ? res.render("edit-service", { ...service })
-      : res.render("edit-service", { ...err });
+      ? res.render("edit-service", { ...service, isAdmin: isAdmin(req) })
+      : res.render("edit-service", { ...err, isAdmin: isAdmin(req) });
   } catch (error) {
     log().error(error);
-    res.render("edit-service", { ...err });
+    res.render("edit-service", { ...err, isAdmin: isAdmin(req) });
   }
 });
 
@@ -81,7 +84,8 @@ router.post(
         res.render("edit-service", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...req.body
+          ...req.body,
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().updateService({ ...value, id });
@@ -92,7 +96,8 @@ router.post(
       res.render("edit-service", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...req.body
+        ...req.body,
+        isAdmin: isAdmin(req)
       });
     }
   }
