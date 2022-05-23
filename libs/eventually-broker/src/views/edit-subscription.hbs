@@ -67,11 +67,9 @@
 
 {{> alert}}
 
-{{#if isAdmin}}
 <form class="row my-3" method="post" action="/{{this.id}}">
   {{> subscription-form edit=isAdmin}}
 </form>
-{{/if}}
 
 <script>
   const delId = document.getElementById("deleteId");
