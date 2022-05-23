@@ -162,7 +162,7 @@ router.get("/:id", async (req, res) => {
       : res.render("edit-subscription", { ...props, ...err, isAdmin: isAdmin(req)});
   } catch (error) {
     log().error(error);
-    res.render("edit-subscription", { ...props, ...err, isAdmin });
+    res.render("edit-subscription", { ...props, ...err, isAdmin: isAdmin(req) });
   }
 });
 
