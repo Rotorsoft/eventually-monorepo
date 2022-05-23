@@ -1,7 +1,8 @@
-import { log, randomId, isAdmin } from "@rotorsoft/eventually";
+import { log, randomId } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
+import { isAdmin } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -77,10 +78,11 @@ router.post(
   }
 );
 
-router.get("/_add", (_, res) => {
+router.get("/_add", (req, res) => {
   res.render("add-subscription", {
     ...defaultSubscription,
-    services: state().services()
+    services: state().services(),
+    isAdmin: isAdmin(req)
   });
 });
 
@@ -98,7 +100,8 @@ router.post(
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
           ...req.body,
-          services
+          services,
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().createSubscription(value);
@@ -110,7 +113,8 @@ router.post(
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
         ...req.body,
-        services
+        services,
+        isAdmin: isAdmin(req)
       });
     }
   }

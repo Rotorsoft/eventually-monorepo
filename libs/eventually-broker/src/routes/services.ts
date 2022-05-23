@@ -1,6 +1,7 @@
-import { log, isAdmin } from "@rotorsoft/eventually";
+import { log } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
+import { isAdmin } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -18,8 +19,8 @@ router.get("/", async (req, res) => {
   res.render("services", { isAdmin: isAdmin(req), rows: prepare(services) });
 });
 
-router.get("/_add", (_, res) => {
-  res.render("add-service", { ...defaultService });
+router.get("/_add", (req, res) => {
+  res.render("add-service", { ...defaultService, isAdmin: isAdmin(req) });
 });
 
 router.post(
@@ -34,7 +35,8 @@ router.post(
         res.render("add-service", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...req.body
+          ...req.body,
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().createService(value);
@@ -45,7 +47,8 @@ router.post(
       res.render("add-service", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...req.body
+        ...req.body,
+        isAdmin: isAdmin(req)
       });
     }
   }
