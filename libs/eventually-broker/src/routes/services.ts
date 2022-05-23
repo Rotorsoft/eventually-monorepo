@@ -1,4 +1,4 @@
-import { log, Actor, isAdmin } from "@rotorsoft/eventually";
+import { log, isAdmin } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import * as schemas from "./schemas";
@@ -51,7 +51,7 @@ router.post(
   }
 );
 
-router.get("/:id", async (req: Request & { user: Actor }, res) => {
+router.get("/:id", async (req, res) => {
   const id = req.params.id;
   const err = {
     class: "alert-danger",

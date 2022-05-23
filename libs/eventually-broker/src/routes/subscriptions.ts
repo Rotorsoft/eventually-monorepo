@@ -1,4 +1,4 @@
-import { log, randomId, Actor, isAdmin } from "@rotorsoft/eventually";
+import { log, randomId, isAdmin } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
@@ -61,7 +61,7 @@ router.get("/_graph", async (_, res) => {
   res.render("subscriptions-graph", rows(subs));
 });
 
-router.get("/", async (req: Request & { user: Actor }, res) => {
+router.get("/", async (req, res) => {
   const subs = await subscriptions().loadSubscriptions();
   res.render("subscriptions", {isAdmin: isAdmin(req), ...rows(subs)});
 });
@@ -141,7 +141,7 @@ router.get("/_wait/:id", (req, res) => {
   res.render("wait", { id });
 });
 
-router.get("/:id", async (req: Request & { user: Actor }, res) => {
+router.get("/:id", async (req, res) => {
   const id = req.params.id;
   const props = {
     shortid: shortId(id),
