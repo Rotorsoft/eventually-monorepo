@@ -64,7 +64,7 @@ router.get("/:id", async (req, res) => {
     const [service] = await subscriptions().loadServices(id);
     service
       ? res.render("edit-service", { ...service, isAdmin: isAdmin(req) })
-      : res.render("edit-service", { ...err, iisAdmin: isAdmin(req) });
+      : res.render("edit-service", { ...err, isAdmin: isAdmin(req) });
   } catch (error) {
     log().error(error);
     res.render("edit-service", { ...err, isAdmin: isAdmin(req) });

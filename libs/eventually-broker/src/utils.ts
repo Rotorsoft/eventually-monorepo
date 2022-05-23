@@ -9,5 +9,5 @@ import { Actor } from "@rotorsoft/eventually";
  */
 export const isAdmin = (req: Request): boolean | undefined => {
   const { user } = req as Request & { user: Actor };
-  return user && user.roles.includes("admin");
+  return user && user?.roles?.includes("admin");
 };
