@@ -1,4 +1,4 @@
-import { log, randomId, Actor } from "@rotorsoft/eventually";
+import { log, randomId, Actor, isAdmin } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
@@ -63,8 +63,7 @@ router.get("/_graph", async (_, res) => {
 
 router.get("/", async (req: Request & { user: Actor }, res) => {
   const subs = await subscriptions().loadSubscriptions();
-  const isAdmin = req.user && req.user.roles.includes("admin");
-  res.render("subscriptions", {isAdmin, ...rows(subs)});
+  res.render("subscriptions", {isAdmin: isAdmin(req), ...rows(subs)});
 });
 
 router.post(
@@ -153,7 +152,6 @@ router.get("/:id", async (req: Request & { user: Actor }, res) => {
     class: "alert-danger",
     message: `Could not load subscription ${id}`
   };
-  const isAdmin = req.user && req.user.roles.includes("admin");
   try {
     const [sub] = await subscriptions().loadSubscriptions(id);
     sub
@@ -161,7 +159,7 @@ router.get("/:id", async (req: Request & { user: Actor }, res) => {
           ...props,
           ...sub
         })
-      : res.render("edit-subscription", { ...props, ...err, isAdmin});
+      : res.render("edit-subscription", { ...props, ...err, isAdmin: isAdmin(req)});
   } catch (error) {
     log().error(error);
     res.render("edit-subscription", { ...props, ...err, isAdmin });
@@ -189,7 +187,8 @@ router.post(
         res.render("edit-subscription", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...props
+          ...props, 
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().updateSubscription({ ...value, id });
@@ -200,7 +199,8 @@ router.post(
       res.render("edit-subscription", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...props
+        ...props,
+        isAdmin: isAdmin(req)
       });
     }
   }

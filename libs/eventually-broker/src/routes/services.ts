@@ -1,4 +1,4 @@
-import { log, Actor } from "@rotorsoft/eventually";
+import { log, Actor, isAdmin } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import * as schemas from "./schemas";
@@ -13,10 +13,9 @@ const defaultService = {
   url: "http://service"
 };
 
-router.get("/", async (req: Request & { user: Actor }, res) => {
+router.get("/", async (req, res) => {
   const services = await subscriptions().loadServices();
-  const isAdmin = req.user && req.user.roles.includes("admin");
-  res.render("services", { isAdmin, rows: prepare(services) });
+  res.render("services", { isAdmin: isAdmin(req), rows: prepare(services) });
 });
 
 router.get("/_add", (_, res) => {
@@ -58,15 +57,14 @@ router.get("/:id", async (req: Request & { user: Actor }, res) => {
     class: "alert-danger",
     message: `Could not load service ${id}`
   };
-  const isAdmin = req.user && req.user.roles.includes("admin");
   try {
     const [service] = await subscriptions().loadServices(id);
     service
-      ? res.render("edit-service", { ...service, isAdmin })
-      : res.render("edit-service", { ...err, isAdmin });
+      ? res.render("edit-service", { ...service, isAdmin: isAdmin(req) })
+      : res.render("edit-service", { ...err, iisAdmin: isAdmin(req) });
   } catch (error) {
     log().error(error);
-    res.render("edit-service", { ...err });
+    res.render("edit-service", { ...err, isAdmin: isAdmin(req) });
   }
 });
 
@@ -83,7 +81,8 @@ router.post(
         res.render("edit-service", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...req.body
+          ...req.body,
+          isAdmin: isAdmin(req)
         });
       } else {
         await subscriptions().updateService({ ...value, id });
@@ -94,7 +93,8 @@ router.post(
       res.render("edit-service", {
         class: "alert-danger",
         message: "Oops, something went wrong! Please check your logs.",
-        ...req.body
+        ...req.body,
+        isAdmin: isAdmin(req)
       });
     }
   }

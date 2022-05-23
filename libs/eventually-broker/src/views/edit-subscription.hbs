@@ -69,7 +69,7 @@
 
 {{#if isAdmin}}
 <form class="row my-3" method="post" action="/{{this.id}}">
-  {{> subscription-form edit=true}}
+  {{> subscription-form edit=isAdmin}}
 </form>
 {{/if}}
 

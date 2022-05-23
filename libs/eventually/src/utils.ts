@@ -1,4 +1,5 @@
 import * as crypto from "crypto";
+import { Request } from "express";
 import * as joi from "joi";
 import { app } from ".";
 import { Store } from "./interfaces";
@@ -211,4 +212,15 @@ export const validateMessage = (
     return value;
   }
   return message.data;
+};
+
+/**
+ * Validates admin user
+ *
+ * @param req Request payload
+ * @returns boolean when is an Admin
+ */
+export const isAdmin = (req: Request): boolean | undefined => {
+  const { user } = req as Request & { user: Actor };
+  return user && user.roles.includes("admin");
 };
