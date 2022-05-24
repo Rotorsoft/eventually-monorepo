@@ -64,7 +64,7 @@ router.get("/_graph", async (_, res) => {
 
 router.get("/", async (req, res) => {
   const subs = await subscriptions().loadSubscriptions();
-  res.render("subscriptions", {isAdmin: isAdmin(req), ...rows(subs)});
+  res.render("subscriptions", { isAdmin: isAdmin(req), ...rows(subs) });
 });
 
 router.post(
@@ -161,12 +161,21 @@ router.get("/:id", async (req, res) => {
     sub
       ? res.render("edit-subscription", {
           ...props,
-          ...sub
+          ...sub,
+          isAdmin: isAdmin(req)
         })
-      : res.render("edit-subscription", { ...props, ...err, isAdmin: isAdmin(req)});
+      : res.render("edit-subscription", {
+          ...props,
+          ...err,
+          isAdmin: isAdmin(req)
+        });
   } catch (error) {
     log().error(error);
-    res.render("edit-subscription", { ...props, ...err, isAdmin: isAdmin(req) });
+    res.render("edit-subscription", {
+      ...props,
+      ...err,
+      isAdmin: isAdmin(req)
+    });
   }
 });
 
@@ -191,7 +200,7 @@ router.post(
         res.render("edit-subscription", {
           class: "alert-warning",
           message: error.details.map((m) => m.message).join(", "),
-          ...props, 
+          ...props,
           isAdmin: isAdmin(req)
         });
       } else {
