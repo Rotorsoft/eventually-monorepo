@@ -44,7 +44,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     command: Command<keyof C & string, Payload>,
     metadata?: CommittedEventMetadata
   ): Promise<Snapshot<M>[]> {
-    const { actor, name, id } = command;
+    const { actor, name, id, expectedVersion } = command;
     const msg = this.messages[name];
     if (!msg || !msg.commandHandlerFactory)
       throw Error(`Invalid command "${name}"`);
@@ -60,7 +60,8 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
         correlation: metadata?.correlation || randomId(),
         causation: {
           ...metadata?.causation,
-          ...{ command }
+          command: { actor, name, id, expectedVersion }
+          // TODO: flag to include command.data in metadata
         }
       }
     );

@@ -187,6 +187,8 @@ describe("in memory", () => {
       const id = chance.guid();
       const actor: Actor = { name: "the-actor", roles: [] };
       const command = bind("PressKey", { key: "1" }, id, -1, actor);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { data, ...cmdmeta } = command;
 
       // WHEN
       await app().command(command);
@@ -194,7 +196,7 @@ describe("in memory", () => {
       // THEN
       const snap = await app().load(Calculator(id));
       expect(snap.event.metadata.correlation.length).toEqual(24);
-      expect(snap.event.metadata.causation).toEqual({ command });
+      expect(snap.event.metadata.causation.command).toEqual(cmdmeta);
     });
 
     it("should throw concurrency error", async () => {
