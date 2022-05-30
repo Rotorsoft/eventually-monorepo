@@ -1,8 +1,6 @@
-name: CI
+name: CI-CD
 on:
   push:
-    branches: [master]
-  pull_request:
     branches: [master]
 
   workflow_dispatch:
@@ -48,3 +46,8 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: semantic release
+        run: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
