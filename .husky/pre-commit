@@ -1,13 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-echo ">>> lint..."
+echo ">>> lint and pretty before commit..."
 yarn lint
-
-echo ">>> pretty..."
 yarn pretty
-
-echo ">>> test..."
-yarn test --coverage --bail
-
-

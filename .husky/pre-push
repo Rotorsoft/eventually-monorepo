@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo ">>> unit testing before pushing..."
+yarn test --coverage --bail
