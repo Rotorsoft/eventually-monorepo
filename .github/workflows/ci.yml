@@ -1,16 +1,16 @@
 name: CI
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
-  workflow_dispatch:  
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:12.3-alpine
@@ -26,25 +26,25 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v2
-      
-    - name: install node 14.x
-      uses: actions/setup-node@v1
-      with:
-        node-version: 14.x
+      - uses: actions/checkout@v3
 
-    - run: yarn install
-    - run: yarn build
+      - name: install node 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
 
-    - name: run unit tests
-      run: yarn test --coverage
-      env:
+      - run: yarn install
+      - run: yarn build
+
+      - name: run unit tests
+        run: yarn test --coverage
+        env:
           PG_HOST: localhost
           PG_USER: postgres
           PG_PASSWORD: postgres
           PG_DATABASE: postgres
 
-    - name: coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
