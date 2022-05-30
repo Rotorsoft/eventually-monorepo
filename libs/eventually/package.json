@@ -15,7 +15,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "release": "semantic-release -e semantic-release-monorepo"
   },
   "dependencies": {
     "chalk": "~4",
