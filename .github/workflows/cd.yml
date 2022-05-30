@@ -22,5 +22,3 @@ jobs:
 
       - name: semantic release
         run: yarn release
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
