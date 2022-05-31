@@ -18,8 +18,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build",
-    "release": "semantic-release -e semantic-release-monorepo"
+    "build": "tsc --build"
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^4",

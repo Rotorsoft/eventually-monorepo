@@ -15,8 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build && cp -R ./src/views ./dist/views && cp -R ./src/public ./dist/public",
-    "release": "semantic-release -e semantic-release-monorepo"
+    "build": "tsc --build && cp -R ./src/views ./dist/views && cp -R ./src/public ./dist/public"
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^4",
