@@ -60,5 +60,4 @@ jobs:
         env:
           npm_config_yes: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_USERNAME: "rotorsoft"
           GIT_USEREMAIL: "rotorsoft@outlook.com"

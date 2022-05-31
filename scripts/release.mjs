@@ -57,11 +57,14 @@ const SEMANTIC_RULES = [
   };
 
   const analyze = async () => {
-    const tags = (await $`git tag -l --sort=-v:refname`)
+    const tags = (
+      await $`git tag -l --sort=-v:refname @rotorsoft/${workspace}-v*`
+    )
       .toString()
       .split("\n")
-      .map((tag) => tag.trim());
-    const lastTag = tags.find((tag) => TAG_REGEX.test(tag));
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+    const lastTag = tags.length ? tags[0] : undefined;
     const commitsRange = lastTag
       ? `${(await $`git rev-list -1 ${lastTag}`).toString().trim()}..HEAD`
       : "HEAD";
@@ -95,7 +98,7 @@ const SEMANTIC_RULES = [
       return acc;
     }, []);
 
-    return { newCommits, changes, lastTag };
+    return { tags, newCommits, changes, lastTag };
   };
 
   const bump = (tag, type) => {
@@ -182,16 +185,17 @@ const SEMANTIC_RULES = [
   console.log();
   console.log(
     `SemRel (${dryRun ? chalk.yellow("Dry Run!") : ""}):`,
-    chalk.green(workspace)
+    chalk.green(workspace),
+    chalk.grey(lastTag)
   );
+  console.log(TAG_REGEX);
   console.log(newCommits.map((c) => c.message));
-  console.log(chalk.bgGrey("Last Tag:"), lastTag);
   console.log(
     changes.length
       ? changes.map((c) => `${c.type.toString().toUpperCase()} - ${c.message}`)
       : chalk.red("No semantic changes found!")
   );
-  nextTag && console.log(chalk.bgGrey("Next Tag:"), nextTag);
+  nextTag && console.log(chalk.bgGrey(nextTag));
 
   if (!dryRun && nextVersion) {
     await gitCommitAndTag(nextVersion, nextTag, releaseNotes);
