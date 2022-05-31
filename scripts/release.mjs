@@ -1,5 +1,3 @@
-import { $, chalk } from "zx";
-
 const PRIORITY = ["major", "minor", "patch"];
 const SEMANTIC_RULES = [
   {
