@@ -47,10 +47,18 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: semantic release
-        run: yarn release
+      - name: create .npmrc
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: semantic release
+        run: yarn release
+        env:
+          npm_config_yes: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_USERNAME: "rotorsoft"
           GIT_USEREMAIL: "rotorsoft@outlook.com"

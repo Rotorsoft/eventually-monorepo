@@ -2,7 +2,7 @@
 
 set -e
 
-node ./scripts/release.mjs eventually   
-node ./scripts/release.mjs eventually-pg   
-node ./scripts/release.mjs eventually-express   
-node ./scripts/release.mjs eventually-broker
+npx zx ./scripts/release.mjs eventually   
+npx zx ./scripts/release.mjs eventually-pg   
+npx zx ./scripts/release.mjs eventually-express   
+npx zx ./scripts/release.mjs eventually-broker

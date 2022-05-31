@@ -14,8 +14,9 @@ const SEMANTIC_RULES = [
 ];
 
 (async () => {
-  const [, , workspace] = process.argv;
-  if (!workspace) throw Error("Invalid arguments. Expecting workspace name!");
+  const workspace = process.argv[process.argv.length - 1];
+  if (!workspace || !workspace.startsWith("eventually"))
+    throw Error("Invalid arguments. Expecting workspace name!");
   const TAG_REGEX = new RegExp(
     `^@rotorsoft/${workspace}-v(\\d+)\.(\\d+)\.(\\d+)$`
   );
@@ -173,6 +174,8 @@ const SEMANTIC_RULES = [
   const npmPublish = async () => {
     await $`npm config set registry https://registry.npmjs.org`;
     await $`yarn libs/${workspace} npm publish --no-git-tag-version --access public`;
+    //await $`npm config set registry https://npm.pkg.github.com`
+    //await $`yarn libs/${workspace} npm publish --no-git-tag-version`
   };
 
   const { gitUser, GITHUB_TOKEN, gitRepoName, gitUrl, dryRun } = await config();
