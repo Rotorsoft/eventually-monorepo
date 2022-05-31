@@ -30,16 +30,11 @@ const SEMANTIC_RULES = [
   };
 
   const config = async () => {
-    const gitUser = (await $`git config user.name`).toString().trim();
-    const gitEmail = (await $`git config user.email`).toString().trim();
-    const dryRun = !!(gitUser || gitEmail);
-
     const { GIT_USERNAME, GIT_USEREMAIL, GITHUB_TOKEN } = process.env;
-    if (!gitUser && !GIT_USERNAME) throw new Error("Missing GIT_USERNAME");
-    if (!gitEmail && !GIT_USEREMAIL) throw new Error("Missing GIT_USEREMAIL");
+    const dryRun = !(GIT_USERNAME && GIT_USEREMAIL);
     if (!GITHUB_TOKEN) throw new Error("Missing GITHUB_TOKEN");
 
-    const gitAuth = `${gitUser}:${GITHUB_TOKEN}`;
+    const gitAuth = `${GIT_USERNAME}:${GITHUB_TOKEN}`;
     const gitOriginUrl = (await $`git config --get remote.origin.url`)
       .toString()
       .trim();
@@ -58,7 +53,7 @@ const SEMANTIC_RULES = [
       await $`git remote set-url origin ${gitAuthUrl}`;
     }
 
-    return { gitUser, gitEmail, gitRepoName, GITHUB_TOKEN, gitUrl, dryRun };
+    return { gitRepoName, GITHUB_TOKEN, gitUrl, dryRun };
   };
 
   const analyze = async () => {
@@ -155,7 +150,7 @@ const SEMANTIC_RULES = [
   };
 
   const githubRelease = async (
-    gitUser,
+    GIT_USERNAME,
     GITHUB_TOKEN,
     repoName,
     nextTag,
@@ -166,7 +161,7 @@ const SEMANTIC_RULES = [
       tag_name: nextTag,
       body: releaseNotes
     });
-    await $`curl -u ${gitUser}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${repoName}/releases -d ${releaseData}`;
+    await $`curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${repoName}/releases -d ${releaseData}`;
   };
 
   const npmPublish = async () => {
@@ -176,7 +171,8 @@ const SEMANTIC_RULES = [
     //await $`yarn libs/${workspace} npm publish --no-git-tag-version`
   };
 
-  const { gitUser, GITHUB_TOKEN, gitRepoName, gitUrl, dryRun } = await config();
+  const { GIT_USERNAME, GITHUB_TOKEN, gitRepoName, gitUrl, dryRun } =
+    await config();
   const { newCommits, changes, lastTag } = await analyze();
   const { nextVersion, nextTag, releaseNotes } = await prepare(
     gitUrl,
@@ -200,7 +196,7 @@ const SEMANTIC_RULES = [
   if (!dryRun && nextVersion) {
     await gitCommitAndTag(nextVersion, nextTag, releaseNotes);
     await githubRelease(
-      gitUser,
+      GIT_USERNAME,
       GITHUB_TOKEN,
       gitRepoName,
       nextTag,
