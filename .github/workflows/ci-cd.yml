@@ -54,6 +54,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: fetch all remote tags
+        run: |
+          git tag -l && git fetch --all --tags && git tag -l
 
       - name: semantic release
         run: yarn release
