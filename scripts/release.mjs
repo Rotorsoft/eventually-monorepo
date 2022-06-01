@@ -138,12 +138,12 @@ const SEMANTIC_RULES = [
 
   const gitCommitAndTag = async (nextVersion, nextTag, releaseNotes) => {
     await $`echo ${releaseNotes}"\n$(cat ./CHANGELOG.md)" > ./CHANGELOG.md`;
-    await $`npm --no-git-tag-version version ${nextVersion}`;
+    await $`npm --no-git-tag-version version ${nextVersion} --workspace @rotorsoft/${workspace}`;
     const releaseMessage = `chore(release): ${nextVersion} [skip ci]`;
     await $`git add -A .`;
-    await $`git commit -am ${releaseMessage}`;
+    await $`HUSKY=0 git commit -am ${releaseMessage}`;
     await $`git tag -a ${nextTag} HEAD -m ${releaseMessage}`;
-    await $`git push --follow-tags origin HEAD:refs/heads/master`;
+    await $`HUSKY=0 git push --follow-tags origin HEAD:refs/heads/master`;
   };
 
   const githubRelease = async (
