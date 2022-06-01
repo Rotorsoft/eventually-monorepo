@@ -57,6 +57,8 @@ const SEMANTIC_RULES = [
   };
 
   const analyze = async () => {
+    const HEADER = "+-+-+";
+    const SEPARATOR = "-+-+-";
     const tags = (
       await $`git tag -l --sort=-version:refname '@rotorsoft/${workspace}-v*'`
     )
@@ -69,31 +71,23 @@ const SEMANTIC_RULES = [
       ? `${(await $`git rev-list -1 ${lastTag}`).toString().trim()}..HEAD`
       : "HEAD";
     const newCommits = (
-      await $.noquote`git log --format=+++%s__%b__%H ${commitsRange} -- libs/${workspace}`
+      await $.noquote`git log --format=${HEADER}%H${SEPARATOR}%s ${commitsRange} -- libs/${workspace}`
     )
       .toString()
-      .split("+++")
+      .split(HEADER)
       .filter(Boolean)
-      .map((msg) => {
-        const [message, body, sha] = msg.split("__").map((raw) => raw.trim());
-        return { message, body, sha };
+      .map((commit) => {
+        const [sha, message] = commit.split(SEPARATOR).map((raw) => raw.trim());
+        return { sha, message };
       });
-
-    const changes = newCommits.reduce((acc, { message, body, sha }) => {
+    const changes = newCommits.reduce((acc, { sha, message }) => {
       SEMANTIC_RULES.forEach(({ type, prefix, text }) => {
         const prefixMatcher =
           prefix && new RegExp(`^(${prefix.join("|")})(\\(.*\\))?:\\s.+$`);
         const textMatcher = text && new RegExp(`(${text.join("|")}):\\s(.+)`);
         const change =
-          message.match(prefixMatcher)?.[0] || body.match(textMatcher)?.[2];
-
-        change &&
-          acc.push({
-            type,
-            message,
-            body,
-            sha
-          });
+          message.match(prefixMatcher)?.[0] || message.match(textMatcher)?.[2];
+        change && acc.push({ type, message, sha });
       });
       return acc;
     }, []);
