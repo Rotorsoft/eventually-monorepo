@@ -10,6 +10,7 @@
       name="id"
       value="{{id}}"
       required
+      {{#if isAdmin}}{{else}}disabled{{/if}}
     />
     <label class="px-4" for="floatingId">Id</label>
   </div>
@@ -24,6 +25,7 @@
     name="channel"
     value="{{channel}}"
     required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
   />
   <label class="px-4" for="floatingChannel">Channel</label>
 </div>
@@ -37,11 +39,12 @@
     name="url"
     value="{{url}}"
     required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
   />
   <label class="px-4" for="floatingUrl">Url</label>
 </div>
 
-{{#if edit}}
+{{#if isAdmin}}
   <div class="mb-3">
     <button class="btn btn-primary" type="submit">Submit</button>
   </div>

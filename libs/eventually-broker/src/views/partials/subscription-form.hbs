@@ -10,6 +10,7 @@
       name="id"
       value="{{id}}"
       required
+      {{#if isAdmin}}{{else}}disabled{{/if}}
     />
     <label class="px-4" for="floatingId">Id</label>
   </div>
@@ -21,6 +22,7 @@
     id="floatingProducer"
     placeholder="Producer"
     name="producer"
+    {{#if isAdmin}}{{else}}disabled{{/if}}
   >
     <option value="{{producer}}" selected>{{producer}}</option>
     {{#each services}}
@@ -36,6 +38,7 @@
     id="floatingConsumer"
     placeholder="Consumer"
     name="consumer"
+    {{#if isAdmin}}{{else}}disabled{{/if}}
   >
     <option value="{{consumer}}" selected>{{consumer}}</option>
     {{#each services}}
@@ -54,6 +57,7 @@
     name="path"
     value="{{path}}"
     required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
   />
   <label class="px-4" for="floatingPath">Path</label>
 </div>
@@ -67,6 +71,7 @@
     name="streams"
     value="{{streams}}"
     required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
   />
   <label class="px-4" for="floatingStreams">Streams</label>
 </div>
@@ -80,11 +85,12 @@
     name="names"
     value="{{names}}"
     required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
   />
   <label class="px-4" for="floatingNames">Names</label>
 </div>
 
-{{#if edit}}
+{{#if isAdmin}}
   <div class="mb-3">
     <button class="btn btn-primary" type="submit">Submit</button>
   </div>
