@@ -38,7 +38,8 @@ export const app = async ({
       extname: ".hbs",
       helpers: {
         json: (context: any) => JSON.stringify(context),
-        title: () => `${config().service} ${config().version}`,
+        title: () => config().service,
+        version: () => config().version,
         dateFormat: (date: Date) =>
           date.toISOString().substring(0, 19).replace("T", " ")
       }
