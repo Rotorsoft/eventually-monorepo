@@ -49,8 +49,6 @@
     "@typescript-eslint/eslint-plugin": "^5.18.0",
     "@typescript-eslint/parser": "^5.18.0",
     "chance": "^1.1.8",
-    "commitizen": "^4.2.4",
-    "cz-conventional-changelog": "3.3.0",
     "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jest": "^24.3.6",
@@ -69,10 +67,5 @@
     "handlebars": "^4.7.7",
     "minimist": "^1.2.6"
   },
-  "packageManager": "yarn@3.2.0",
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  }
+  "packageManager": "yarn@3.2.0"
 }

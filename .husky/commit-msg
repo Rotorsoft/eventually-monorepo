@@ -1,0 +1,46 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Reset
+Color_Off='\033[0m'       # Text Reset
+
+# Regular Colors
+Black='\033[0;30m'        # Black
+Red='\033[0;31m'          # Red
+Green='\033[0;32m'        # Green
+Yellow='\033[0;33m'       # Yellow
+Blue='\033[0;34m'         # Blue
+Purple='\033[0;35m'       # Purple
+Cyan='\033[0;36m'         # Cyan
+White='\033[0;37m'        # White
+
+# Bold
+BBlack='\033[1;30m'       # Black
+BRed='\033[1;31m'         # Red
+BGreen='\033[1;32m'       # Green
+BYellow='\033[1;33m'      # Yellow
+BBlue='\033[1;34m'        # Blue
+BPurple='\033[1;35m'      # Purple
+BCyan='\033[1;36m'        # Cyan
+BWhite='\033[1;37m'       # White
+
+readonly PREFIX="build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test";
+readonly REGEX="^((${PREFIX}|¯\\_\(ツ\)_/¯)(\(\w+\))?(!)?(: (.*\s*)*))|(Merge (.*\s*)*)|(Initial commit$)"
+
+echo ">>> checking conventional commit message..."
+
+readonly msg=$(head -1 "$1");
+readonly match=$(echo ${msg} | grep -qE "${REGEX}" && echo 0 || echo 1);
+echo ${msg};
+echo ${match};
+
+if [[ ${match} -eq 0 ]]; then
+    echo "${Green}Validated conventional commit!${Color_Off}"
+    exit 0;
+else
+    echo "${Red}\"${msg}\" ${BRed}IS NOT CONVENTIONAL!${Color_Off}";
+    echo "Use ${Green}${PREFIX}${Color_Off}";
+    echo "   ${Green}<prefix>${Color_Off}: message";
+    echo "   ${Green}<prefix>${Red}!${Color_Off}: BREAKING CHANGES message";
+    exit 1;
+fi;
