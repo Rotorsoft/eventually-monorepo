@@ -31,8 +31,6 @@ echo ">>> checking conventional commit message..."
 
 readonly msg=$(head -1 "$1");
 readonly match=$(echo ${msg} | grep -qE "${REGEX}" && echo 0 || echo 1);
-echo ${msg};
-echo ${match};
 
 if [[ ${match} -eq 0 ]]; then
     echo "${Green}Validated conventional commit!${Color_Off}"
