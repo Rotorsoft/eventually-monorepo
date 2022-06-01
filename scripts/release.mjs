@@ -193,12 +193,7 @@ const SEMANTIC_RULES = [
         )
       )
     : console.log(chalk.red("No semantic changes found!"));
-  nextTag &&
-    console.log(
-      "NextTag:",
-      chalk.bgBlue(nextTag),
-      chalk.bgBlue(dryRun ? "[dry-run]" : "")
-    );
+  nextTag && console.log("NextTag:", chalk.bgBlue(nextTag), dryRun ? "🧪" : "");
 
   if (!dryRun && nextVersion) {
     await gitCommitAndTag(nextVersion, nextTag, releaseNotes);
