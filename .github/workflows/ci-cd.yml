@@ -41,6 +41,7 @@ jobs:
       - name: unit test
         run: yarn test --coverage
         env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           PG_HOST: localhost
           PG_USER: postgres
           PG_PASSWORD: postgres
