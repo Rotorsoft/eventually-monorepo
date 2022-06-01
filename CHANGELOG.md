@@ -1,3 +1,7 @@
+## [@rotorsoft/eventually-broker-v0.2.34](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v0.2.33...@rotorsoft/eventually-broker-v0.2.34) (2022-06-01)
+
+### [patch]
+* [[bdee7e0c](https://github.com/Rotorsoft/eventually-monorepo/commit/bdee7e0ce958e41759af367fcc448db9cc477d51)] fix: show ids to add services and subscriptions and disable forms when not admin
 ## [@rotorsoft/eventually-broker-v0.2.33](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v0.2.32...@rotorsoft/eventually-broker-v0.2.33) (2022-06-01)
 
 ### [patch]
