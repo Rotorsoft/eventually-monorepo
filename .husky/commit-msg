@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo ">>> checking commit message is conventional..."
+node ./scripts/commit.js $1   
