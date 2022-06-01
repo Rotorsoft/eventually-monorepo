@@ -19,7 +19,7 @@ const SEMANTIC_RULES = [
     `^@rotorsoft/${workspace}-v(\\d+)\.(\\d+)\.(\\d+)$`
   );
 
-  $.verbose = !!process.env.VERBOSE;
+  $.verbose = (process.env.VERBOSE || "true") === "true";
   $.noquote = async (...args) => {
     const q = $.quote;
     $.quote = (v) => v;
@@ -174,28 +174,31 @@ const SEMANTIC_RULES = [
     //await $`yarn libs/${workspace} npm publish --no-git-tag-version`
   };
 
+  console.log();
+  console.log("Sem-Rel:", chalk.green(workspace));
   const { GIT_USERNAME, GITHUB_TOKEN, gitRepoName, gitUrl, dryRun } =
     await config();
-  const { newCommits, changes, lastTag } = await analyze();
+  const { changes, lastTag } = await analyze();
+  console.log("LastTag:", chalk.blue(lastTag));
   const { nextVersion, nextTag, releaseNotes } = await prepare(
     gitUrl,
     changes,
     lastTag
   );
-  console.log();
-  console.log(
-    `SemRel (${dryRun ? chalk.yellow("Dry Run!") : ""}):`,
-    chalk.green(workspace),
-    chalk.grey(lastTag)
-  );
-  console.log(TAG_REGEX);
-  console.log(newCommits.map((c) => c.message));
-  console.log(
-    changes.length
-      ? changes.map((c) => `${c.type.toString().toUpperCase()} - ${c.message}`)
-      : chalk.red("No semantic changes found!")
-  );
-  nextTag && console.log(chalk.bgGrey(nextTag));
+  changes.length
+    ? changes.map((c) =>
+        console.log(
+          chalk.red(c.type.toString().toUpperCase()),
+          chalk.grey(c.message)
+        )
+      )
+    : console.log(chalk.red("No semantic changes found!"));
+  nextTag &&
+    console.log(
+      "NextTag:",
+      chalk.bgBlue(nextTag),
+      chalk.bgBlue(dryRun ? "[dry-run]" : "")
+    );
 
   if (!dryRun && nextVersion) {
     await gitCommitAndTag(nextVersion, nextTag, releaseNotes);
