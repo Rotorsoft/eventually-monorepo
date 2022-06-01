@@ -1,3 +1,7 @@
+## [@rotorsoft/eventually-broker-v0.2.33](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v0.2.32...@rotorsoft/eventually-broker-v0.2.33) (2022-06-01)
+
+### [patch]
+* [[5bead6c7](https://github.com/Rotorsoft/eventually-monorepo/commit/5bead6c7f0663658196dbca2dcc7836621b766ee)] fix: just test ci/cd
 ## [@rotorsoft/eventually-broker-v0.2.32](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v0.2.31...@rotorsoft/eventually-broker-v0.2.32) (2022-06-01)
 
 ### [patch]
