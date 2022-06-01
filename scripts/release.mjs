@@ -58,7 +58,7 @@ const SEMANTIC_RULES = [
 
   const analyze = async () => {
     const tags = (
-      await $`git tag -l --sort=-v:refname @rotorsoft/${workspace}-v*`
+      await $`git tag -l --sort=-version:refname '@rotorsoft/${workspace}-v*'`
     )
       .toString()
       .split("\n")
