@@ -195,6 +195,6 @@ const SEMANTIC_RULES = [
       releaseNotes
     );
     await npmPublish();
-    console.log("🚀", chalk.blue("Released!!!"));
+    console.log("🚀", chalk.blue(`${nextTag} released succesfully!`));
   }
 })();
