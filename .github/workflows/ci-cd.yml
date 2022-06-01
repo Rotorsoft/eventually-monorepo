@@ -7,11 +7,6 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  PG_HOST: localhost
-  PG_USER: postgres
-  PG_PASSWORD: postgres
-  PG_DATABASE: postgres
-  POSTGRES_PASSWORD: postgres
   GIT_USERNAME: rotorsoft
   GIT_USEREMAIL: "rotorsoft@outlook.com"
 
@@ -22,6 +17,8 @@ jobs:
     services:
       postgres:
         image: postgres:12.3-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
         # health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -46,6 +43,11 @@ jobs:
 
       - name: unit test
         run: yarn test --coverage
+        env:
+          PG_HOST: localhost
+          PG_USER: postgres
+          PG_PASSWORD: postgres
+          PG_DATABASE: postgres
 
       - name: coveralls
         uses: coverallsapp/github-action@master
