@@ -116,22 +116,18 @@ const SEMANTIC_RULES = [
       .slice(0, 10)})`;
     const releaseDetails = Object.values(
       changes.reduce((acc, { type, message, sha }) => {
-        const { commits } = acc[type] || (acc[type] = { commits: [], type });
-        const commitRef = `* ${message} ([${sha.substr(
+        const { commits } = acc[type] || (acc[type] = { type, commits: [] });
+        const commitRef = `* [[${sha.substr(
           0,
           8
-        )}](${gitUrl}/commit/${sha}))`;
+        )}](${gitUrl}/commit/${sha})] ${message}`;
         commits.push(commitRef);
         return acc;
       }, {})
     )
-      .map(
-        ({ type, commits }) => `
-    ### ${type}
-    ${commits.join("\n")}`
-      )
-      .join("\n");
-    const releaseNotes = releaseDiffRef + "\n" + releaseDetails + "\n";
+      .map(({ type, commits }) => `\n\n### [${type}]\n${commits.join("\n")}`)
+      .join("\n\n");
+    const releaseNotes = releaseDiffRef + releaseDetails;
 
     return { nextVersion, nextTag, releaseNotes };
   };
@@ -163,7 +159,7 @@ const SEMANTIC_RULES = [
 
   const npmPublish = async () => {
     await $`npm config set registry https://registry.npmjs.org`;
-    await $`yarn libs/${workspace} npm publish --no-git-tag-version --access public`;
+    await $`yarn libs/${workspace} npm publish --access public`;
     //await $`npm config set registry https://npm.pkg.github.com`
     //await $`yarn libs/${workspace} npm publish --no-git-tag-version`
   };
