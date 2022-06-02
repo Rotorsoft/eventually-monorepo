@@ -7,6 +7,7 @@ const SEMANTIC_RULES = [
   { type: "minor", prefix: ["feat"] },
   {
     type: "major",
+    prefix: ["fix!", "feat!"],
     text: ["BREAKING CHANGE", "BREAKING CHANGES"]
   }
 ];
@@ -16,7 +17,7 @@ const SEMANTIC_RULES = [
   if (!workspace || !workspace.startsWith("eventually"))
     throw Error("Invalid arguments. Expecting workspace name!");
   const TAG_REGEX = new RegExp(
-    `^@rotorsoft/${workspace}-v(\\d+)\.(\\d+)\.(\\d+)$`
+    `^@rotorsoft/${workspace}-v(\\d+).(\\d+).(\\d+)$`
   );
 
   $.verbose = (process.env.VERBOSE || "true") === "true";
@@ -165,7 +166,7 @@ const SEMANTIC_RULES = [
   };
 
   console.log();
-  console.log("Sem-Rel:", chalk.green(workspace));
+  console.log("SemRel:", chalk.bold.green(workspace));
   const { GIT_USERNAME, GITHUB_TOKEN, gitRepoName, gitUrl, dryRun } =
     await config();
   const { changes, lastTag } = await analyze();
@@ -182,7 +183,7 @@ const SEMANTIC_RULES = [
           chalk.grey(c.message)
         )
       )
-    : console.log(chalk.red("No semantic changes found!"));
+    : console.log(chalk.bold.red("No semantic changes found!"));
   nextTag && console.log("NextTag:", chalk.bgBlue(nextTag), dryRun ? "🧪" : "");
 
   if (!dryRun && nextVersion) {
@@ -195,6 +196,6 @@ const SEMANTIC_RULES = [
       releaseNotes
     );
     await npmPublish();
-    console.log("🚀", chalk.blue(`${nextTag} released succesfully!`));
+    console.log("🚀", chalk.bold.blue(`${nextTag} released succesfully!`));
   }
 })();

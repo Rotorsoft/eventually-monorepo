@@ -2,7 +2,7 @@
 
 set -e
 
-npx zx ./scripts/release.mjs eventually   
-npx zx ./scripts/release.mjs eventually-pg   
-npx zx ./scripts/release.mjs eventually-express   
-npx zx ./scripts/release.mjs eventually-broker
+npx zx ./scripts/semantic-release/release.mjs eventually   
+npx zx ./scripts/semantic-release/release.mjs eventually-pg   
+npx zx ./scripts/semantic-release/release.mjs eventually-express   
+npx zx ./scripts/semantic-release/release.mjs eventually-broker
