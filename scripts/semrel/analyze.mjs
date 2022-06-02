@@ -23,25 +23,18 @@ $.noquote = async (...args) => {
   return p;
 };
 
-const USE = `Use: zx <script>.mjs -p package -d directory
-    (i.e. zx <script>.mjs -p @rotorsoft/eventually -d libs/eventually)
-`;
-
 (async () => {
-  const pkg = argv.p;
-  if (!pkg) {
-    console.log(chalk.bold.red("Missing package"));
-    console.log(chalk.gray(USE));
+  const { PACKAGE, DIRECTORY } = process.env;
+  if (!PACKAGE) {
+    console.log(chalk.bold.red("Missing PACKAGE"));
     process.exit(1);
   }
-  const dir = argv.d;
-  if (!dir) {
-    console.log(chalk.bold.red("Missing directory"));
-    console.log(chalk.gray(USE));
+  if (!DIRECTORY) {
+    console.log(chalk.bold.red("Missing DIRECTORY"));
     process.exit(1);
   }
 
-  const TAG_REGEX = new RegExp(`^${pkg}-v(\\d+).(\\d+).(\\d+)$`);
+  const TAG_REGEX = new RegExp(`^${PACKAGE}-v(\\d+).(\\d+).(\\d+)$`);
   const bump = (tag, type) => {
     if (!tag) return "0.1.0";
     const [, c1, c2, c3] = TAG_REGEX.exec(tag);
@@ -50,7 +43,7 @@ const USE = `Use: zx <script>.mjs -p package -d directory
     if (type === "patch") return `${c1}.${c2}.${-~c3}`;
   };
 
-  const tags = (await $`git tag -l --sort=-version:refname ${pkg + "-v*"}`)
+  const tags = (await $`git tag -l --sort=-version:refname ${PACKAGE + "-v*"}`)
     .toString()
     .split("\n")
     .map((tag) => tag.trim())
@@ -62,7 +55,7 @@ const USE = `Use: zx <script>.mjs -p package -d directory
     ? `${(await $`git rev-list -1 ${lastTag}`).toString().trim()}..HEAD`
     : "HEAD";
   const newCommits = (
-    await $.noquote`git log --format=${HEADER}%H${SEPARATOR}%s ${commitsRange} -- ${dir}`
+    await $.noquote`git log --format=${HEADER}%H${SEPARATOR}%s ${commitsRange} -- ${DIRECTORY}`
   )
     .toString()
     .split(HEADER)
@@ -92,7 +85,7 @@ const USE = `Use: zx <script>.mjs -p package -d directory
 
   if (nextReleaseType) {
     const nextVersion = (results.nextVersion = bump(lastTag, nextReleaseType));
-    const nextTag = (results.nextTag = `${pkg}-v${nextVersion}`);
+    const nextTag = (results.nextTag = `${PACKAGE}-v${nextVersion}`);
     const remoteOriginUrl = (await $`git config --get remote.origin.url`)
       .toString()
       .trim();
@@ -124,5 +117,8 @@ const USE = `Use: zx <script>.mjs -p package -d directory
       );
   }
 
-  console.log(JSON.stringify(results));
+  console.log("LastTag:", lastTag);
+  console.log("NextTag:", results.nextTag || "");
+  console.log("NextVer:", results.nextVersion || "");
+  console.log("RelNote:", results.releaseNotes || "No semantic changes found!");
 })();

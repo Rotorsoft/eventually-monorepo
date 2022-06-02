@@ -11,12 +11,9 @@
     .replace(/\.git/, "")
     .match(/.+(@|\/\/)([^/]+)\/(.+)$/);
 
-  // update user config
   if (!dryRun) {
     await $`git config user.name ${GIT_USERNAME}`;
     await $`git config user.email ${GIT_USEREMAIL}`;
     await $`git remote set-url origin https://${GIT_USERNAME}:${GITHUB_TOKEN}@${host}/${repo}`;
   }
-
-  console.log(JSON.stringify({ repo, dryRun }));
 })();
