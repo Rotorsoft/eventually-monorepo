@@ -93,9 +93,9 @@ $.noquote = async (...args) => {
       .replace(":", "/")
       .replace(/\.git/, "")
       .match(/.+(@|\/\/)([^/]+)\/(.+)$/);
-
+    const url = `https://${host}/${repo}`;
     results.releaseNotes =
-      `## [${nextTag}](https://${host}/${repo}/compare/${lastTag}...${nextTag}) (${new Date()
+      `## [${nextTag}](${url}/compare/${lastTag}...${nextTag}) (${new Date()
         .toISOString()
         .slice(0, 10)})`.concat(
         Object.values(
@@ -105,7 +105,7 @@ $.noquote = async (...args) => {
             const commitRef = `* [[${sha.substring(
               0,
               8
-            )}](${gitUrl}/commit/${sha})] ${message}`;
+            )}](${url}/commit/${sha})] ${message}`;
             commits.push(commitRef);
             return acc;
           }, {})
