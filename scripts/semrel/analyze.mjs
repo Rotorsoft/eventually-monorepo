@@ -97,7 +97,7 @@ $.noquote = async (...args) => {
     results.releaseNotes =
       `## [${nextTag}](${url}/compare/${lastTag}...${nextTag}) (${new Date()
         .toISOString()
-        .slice(0, 10)})`.concat(
+        .slice(0, 10)})\n`.concat(
         Object.values(
           changes.reduce((acc, { type, message, sha }) => {
             const { commits } =
@@ -110,15 +110,13 @@ $.noquote = async (...args) => {
             return acc;
           }, {})
         )
-          .map(
-            ({ type, commits }) => `\n\n### [${type}]\n${commits.join("\n")}`
-          )
-          .join("\n\n")
+          .map(({ type, commits }) => `### [${type}]\n${commits.join("\n")}`)
+          .join("\n")
       );
   }
 
   console.log("LastTag:", lastTag);
   console.log("NextTag:", results.nextTag || "");
   console.log("NextVer:", results.nextVersion || "");
-  console.log("RelNote:", results.releaseNotes || "No semantic changes found!");
+  console.log(results.releaseNotes || "No semantic changes found!");
 })();
