@@ -70,6 +70,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: install node 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: install
+        run: yarn install
+
       - name: create .npmrc
         run: |
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
@@ -86,7 +94,7 @@ jobs:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
-          read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
+          read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tee /dev/tty | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
           echo "${lastTag} -> ${nextTag}"
           echo "LAST_TAG=${lastTag}" >> $GITHUB_ENV
           echo "NEXT_TAG=${nextTag}" >> $GITHUB_ENV

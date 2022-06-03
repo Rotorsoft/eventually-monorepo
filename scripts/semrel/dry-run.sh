@@ -14,7 +14,7 @@ do
     export DIRECTORY=libs/$lib    
     echo "-----------------------------------------------------------------------------------------------------"
     echo "${BGreen}${PACKAGE}${Color_Off}"
-    read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
+    read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tee /dev/tty | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
     echo "lastTag = $lastTag"
     echo "nextTag = $nextTag"
     echo "nextVersion = $nextVersion"
