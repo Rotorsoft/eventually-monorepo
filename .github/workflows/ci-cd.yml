@@ -70,9 +70,9 @@ jobs:
 
       - name: config git
         run: |
-          git config user.name ${{ env.GIT_USERNAME }}
-          git config user.email ${{ env.GIT_USEREMAIL }}
-          git remote set-url origin https://${{ GIT_USERNAME }}:${{ GITHUB_TOKEN }}@${{ GIT_HOST }}/${{ GIT_REPO }}
+          git config user.name $GIT_USERNAME
+          git config user.email $GIT_USEREMAIL
+          git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}"
 
       - name: semrel analyze ${{ matrix.lib }}
         env:
