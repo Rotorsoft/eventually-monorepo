@@ -96,8 +96,9 @@ $.noquote = async (...args) => {
 
   const nextReleaseType = changes.max && RULES[changes.max].type;
   const giturl = `https://${GIT_HOST}/${GIT_REPO}`;
-  const nextVersion = nextReleaseType && bump(lastTag, nextReleaseType);
-  const nextTag = nextReleaseType && `${PACKAGE}-v${nextVersion}`;
+  const nextVersion =
+    (nextReleaseType && bump(lastTag, nextReleaseType)) || "-";
+  const nextTag = (nextReleaseType && `${PACKAGE}-v${nextVersion}`) || "-";
   const releaseNotes =
     (nextReleaseType &&
       `## [${nextTag}](${giturl}/compare/${lastTag}...${nextTag}) (${new Date()

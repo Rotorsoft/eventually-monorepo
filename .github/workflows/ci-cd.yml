@@ -96,10 +96,11 @@ jobs:
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
           echo "::set-output name=result::$(npx zx ./scripts/semrel/analyze.mjs | tail -n -1)"
-      
+          echo ${{ steps.analyze.outputs.result }}
+
       - name: semrel release ${{ matrix.lib }}
         shell: sh
-        if: ${{ env.NEXT_TAG != '' }}
+        if: ${{ startsWith(env.NEXT_TAG, env.PACKAGE) }}
         run: |
           msg="chore(release): ${NEXT_TAG} [skip ci]"
           echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
