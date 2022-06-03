@@ -96,19 +96,16 @@ jobs:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
-          echo "::set-output name=semrel::$(npx zx ./scripts/semrel/analyze.mjs | tail -n -1)"
+          read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
+          echo "::set-output name=lastTag::${lastTag}"
+          echo "::set-output name=nextTag::${nextTag}"
+          echo "::set-output name=nextVersion::${nextVersion}"
+          echo "::set-output name=releaseNotes::${releaseNotes}"
 
       - name: semrel release ${{ matrix.lib }}
         shell: sh
         run: |
-          ::debug::{env.SEMREL}
-
-          lastTag=${{ fromJSON(env.SEMREL.lastTag) }}
-          nextTag=${{ fromJSON(env.SEMREL.nextTag) }}
-          nextVersion=${{ fromJSON(env.SEMREL.nextVersion) }}
-          releaseNotes=${{ fromJSON(env.SEMREL.releaseNotes) }}
-
-          if [[ $lastTag == "${PACKAGE}*" ]]; then
+          if [[ $NEXT_TAG == "${PACKAGE}*" ]]; then
             msg="chore(release): ${NEXT_TAG} [skip ci]"
             echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
             npm --no-git-tag-version version ${NEXT_VERSION} --workspace ${PACKAGE}
@@ -132,4 +129,7 @@ jobs:
           fi
         env:
           npm_config_yes: true
-          SEMREL: ${{ fromJSON(steps.analyze.outputs.semrel) }}
+          LAST_TAG: ${{ steps.analyze.outputs.lastTag }}
+          NEXT_TAG: ${{ steps.analyze.outputs.nextTag }}
+          NEXT_VERSION: ${{ steps.analyze.outputs.nextVersion }}
+          RELEASE_NOTES: ${{ steps.analyze.outputs.releaseNotes }}
