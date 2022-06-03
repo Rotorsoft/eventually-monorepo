@@ -91,7 +91,6 @@ jobs:
 
       - name: semrel analyze ${{ matrix.lib }}
         id: analyze
-
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
@@ -132,4 +131,4 @@ jobs:
           fi
         env:
           npm_config_yes: true
-          SEMREL: ${{ fromJSON(steps.analyze.outputs.semrel) }}
+          SEMREL: ${{ steps.analyze.outputs.semrel }}
