@@ -91,7 +91,7 @@ jobs:
 
       - name: semrel analyze ${{ matrix.lib }}
         id: analyze
-
+        shell: sh
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
@@ -104,6 +104,12 @@ jobs:
 
       - name: semrel release ${{ matrix.lib }}
         shell: sh
+        env:
+          npm_config_yes: true
+          LAST_TAG: ${{ steps.analyze.outputs.lastTag }}
+          NEXT_TAG: ${{ steps.analyze.outputs.nextTag }}
+          NEXT_VERSION: ${{ steps.analyze.outputs.nextVersion }}
+          RELEASE_NOTES: ${{ steps.analyze.outputs.releaseNotes }}
         run: |
           if [[ $NEXT_TAG == "${PACKAGE}*" ]]; then
             msg="chore(release): ${NEXT_TAG} [skip ci]"
@@ -127,9 +133,3 @@ jobs:
           else
             echo "No semantic changes found!"
           fi
-        env:
-          npm_config_yes: true
-          LAST_TAG: ${{ steps.analyze.outputs.lastTag }}
-          NEXT_TAG: ${{ steps.analyze.outputs.nextTag }}
-          NEXT_VERSION: ${{ steps.analyze.outputs.nextVersion }}
-          RELEASE_NOTES: ${{ steps.analyze.outputs.releaseNotes }}
