@@ -94,7 +94,7 @@ jobs:
 
       - name: semrel release ${{ matrix.lib }}
         shell: sh
-        if: ${{ env.NEXT_TAG != 'null' }}
+        if: ${{ env.NEXT_TAG != "" }}
         run: |
           msg="chore(release): ${NEXT_TAG} [skip ci]"
           echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
