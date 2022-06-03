@@ -8,7 +8,6 @@ BGreen='\033[1;32m'       # Green
 libs=(eventually eventually-pg eventually-express eventually-broker)
 for lib in "${libs[@]}"
 do
-    export DRY_RUN=1
     export GIT_HOST=github.com
     export GIT_REPO=rotorsoft/eventually-monorepo
     export PACKAGE=@rotorsoft/$lib
@@ -20,15 +19,6 @@ do
     echo "nextTag = $nextTag"
     echo "nextVersion = $nextVersion"
     echo "releaseNotes = $releaseNotes"
-
-    if [[ ! $nextTag = "null" ]]; then
-       export NEXT_TAG=$nextTag
-       export NEXT_VERSION=$nextVersion
-       export RELEASE_NOTES=$releaseNotes
-       sh ./scripts/semrel/log-commit-tag.sh
-       sh ./scripts/semrel/github-release.sh
-       sh ./scripts/semrel/npm-publish.sh
-    fi
     echo "-----------------------------------------------------------------------------------------------------"
     echo
 done
@@ -39,4 +29,3 @@ export NEXT_TAG=
 export RELEASE_NOTES=
 export GIT_HOST=
 export GIT_REPO=
-export DRY_RUN=

@@ -69,7 +69,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          
+
       - name: create .npmrc
         run: |
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
@@ -80,7 +80,7 @@ jobs:
           git config user.name $GIT_USERNAME
           git config user.email $GIT_USEREMAIL
           git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}"
-          
+
       - name: semrel analyze ${{ matrix.lib }}
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
@@ -96,8 +96,23 @@ jobs:
         shell: sh
         if: ${{ env.NEXT_TAG != 'null' }}
         run: |
-          ./scripts/semrel/log-commit-tag.sh
-          ./scripts/semrel/github-release.sh
-          ./scripts/semrel/npm-publish.sh
+          msg="chore(release): ${NEXT_TAG} [skip ci]"
+          echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
+          npm --no-git-tag-version version ${NEXT_VERSION} --workspace ${PACKAGE}
+          git add -A .
+          HUSKY=0 git commit -am ${msg}
+          git tag -a ${NEXT_TAG} HEAD -m ${msg}
+          HUSKY=0 git push --follow-tags origin HEAD:refs/heads/master
+
+          data=$(jq -n \
+            --arg tag "$NEXT_TAG" \
+            --arg notes "$RELEASE_NOTES" \
+            '{name: $tag, tag_name: $tag, body: $notes}')
+          curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${GIT_REPO}/releases -d ${data}
+
+          npm config set registry https://registry.npmjs.org
+          yarn ${DIRECTORY} npm publish --access public
+          echo "🚀 ${NEXT_TAG} released succesfully!"
         env:
           npm_config_yes: true
