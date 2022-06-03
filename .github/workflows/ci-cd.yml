@@ -8,7 +8,9 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
   GIT_USERNAME: rotorsoft
-  GIT_USEREMAIL: "rotorsoft@outlook.com"
+  GIT_USEREMAIL: rotorsoft@outlook.com
+  GIT_HOST: github.com
+  GIT_REPO: rotorsoft/eventually-monorepo
 
 jobs:
   ci-cd:
@@ -60,6 +62,30 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
 
       - name: semantic release
-        run: yarn release
+        run: |
+          git config user.name ${GIT_USERNAME}
+          git config user.email ${GIT_USEREMAIL}
+          git remote set-url origin https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}
+
+          libs=(eventually eventually-pg eventually-express eventually-broker)
+          for lib in "${libs[@]}"
+            do
+              export PACKAGE=@rotorsoft/$lib
+              export DIRECTORY=libs/$lib    
+              
+              echo "-----------------------------------------------------------------------------------------------------"
+              echo ${PACKAGE}
+              read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ../scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
+              if [[ ! $nextTag = "null" ]]; then
+                export NEXT_TAG=$nextTag
+                export NEXT_VERSION=$nextVersion
+                export RELEASE_NOTES=$releaseNotes
+                sh ../scripts/semrel/log-commit-tag.sh
+                sh ../scripts/semrel/github-release.sh
+                sh ../scripts/semrel/npm-publish.sh
+              fi
+              echo "-----------------------------------------------------------------------------------------------------"
+              echo
+            done
         env:
           npm_config_yes: true

@@ -1,7 +1,6 @@
 const HEADER = "+-+-+";
 const SEPARATOR = "-+-+-";
-const PRIORITY = ["major", "minor", "patch"];
-const SEMANTIC_RULES = [
+const RULES = [
   {
     type: "patch",
     prefix: ["fix", "perf", "refactor"]
@@ -9,7 +8,6 @@ const SEMANTIC_RULES = [
   { type: "minor", prefix: ["feat"] },
   {
     type: "major",
-    prefix: ["fix!", "feat!"],
     text: ["BREAKING CHANGE", "BREAKING CHANGES"]
   }
 ];
@@ -24,13 +22,21 @@ $.noquote = async (...args) => {
 };
 
 (async () => {
-  const { PACKAGE, DIRECTORY } = process.env;
+  const { PACKAGE, DIRECTORY, GIT_HOST, GIT_REPO } = process.env;
   if (!PACKAGE) {
     console.log(chalk.bold.red("Missing PACKAGE"));
     process.exit(1);
   }
   if (!DIRECTORY) {
     console.log(chalk.bold.red("Missing DIRECTORY"));
+    process.exit(1);
+  }
+  if (!GIT_HOST) {
+    console.log(chalk.bold.red("Missing GIT_HOST"));
+    process.exit(1);
+  }
+  if (!GIT_REPO) {
+    console.log(chalk.bold.red("Missing GIT_REPO"));
     process.exit(1);
   }
 
@@ -65,58 +71,53 @@ $.noquote = async (...args) => {
       return { sha, message };
     });
 
-  const changes = newCommits.reduce((acc, { sha, message }) => {
-    SEMANTIC_RULES.forEach(({ type, prefix, text }) => {
-      const prefixMatcher =
-        prefix && new RegExp(`^(${prefix.join("|")})(\\(.*\\))?:\\s.+$`);
-      const textMatcher = text && new RegExp(`(${text.join("|")}):\\s(.+)`);
-      const change =
-        message.match(prefixMatcher)?.[0] || message.match(textMatcher)?.[2];
-      change && acc.push({ type, message, sha });
-    });
-    return acc;
-  }, []);
-
-  const nextReleaseType = PRIORITY.find((priority) =>
-    changes.find(({ type }) => type === priority)
+  const changes = Object.values(
+    newCommits.reduce((acc, { sha, message }) => {
+      RULES.forEach(({ type, prefix, text }, priority) => {
+        const prefixMatcher =
+          prefix && new RegExp(`^(${prefix.join("|")})(\\(.*\\))?:\\s.+$`);
+        const textMatcher =
+          text && new RegExp(`^.*(\\(.*\\))?:.*(${text.join("|")}).*$`);
+        (message.match(prefixMatcher)?.[0] ||
+          message.match(textMatcher)?.[2]) &&
+          !(acc[sha] && acc[sha].priority > priority) &&
+          (acc[sha] = { type, priority, message, sha });
+      });
+      return acc;
+    }, {})
+  ).reduce(
+    (p, { type, sha, message, priority }) => {
+      p[type].push({ sha, message });
+      p.max = Math.max(p.max || 0, priority);
+      return p;
+    },
+    { major: [], minor: [], patch: [], max: undefined }
   );
 
-  const results = { lastTag, changes };
-
-  if (nextReleaseType) {
-    const nextVersion = (results.nextVersion = bump(lastTag, nextReleaseType));
-    const nextTag = (results.nextTag = `${PACKAGE}-v${nextVersion}`);
-    const remoteOriginUrl = (await $`git config --get remote.origin.url`)
-      .toString()
-      .trim();
-    const [, , host, repo] = remoteOriginUrl
-      .replace(":", "/")
-      .replace(/\.git/, "")
-      .match(/.+(@|\/\/)([^/]+)\/(.+)$/);
-    const url = `https://${host}/${repo}`;
-    results.releaseNotes =
-      `## [${nextTag}](${url}/compare/${lastTag}...${nextTag}) (${new Date()
+  const nextReleaseType = changes.max && RULES[changes.max].type;
+  const giturl = `https://${GIT_HOST}/${GIT_REPO}`;
+  const nextVersion = nextReleaseType && bump(lastTag, nextReleaseType);
+  const nextTag = nextReleaseType && `${PACKAGE}-v${nextVersion}`;
+  const releaseNotes =
+    (nextReleaseType &&
+      `## [${nextTag}](${giturl}/compare/${lastTag}...${nextTag}) (${new Date()
         .toISOString()
         .slice(0, 10)})\n`.concat(
-        Object.values(
-          changes.reduce((acc, { type, message, sha }) => {
-            const { commits } =
-              acc[type] || (acc[type] = { type, commits: [] });
-            const commitRef = `* [[${sha.substring(
-              0,
-              8
-            )}](${url}/commit/${sha})] ${message}`;
-            commits.push(commitRef);
-            return acc;
-          }, {})
-        )
-          .map(({ type, commits }) => `### [${type}]\n${commits.join("\n")}`)
+        Object.keys(changes)
+          .filter((key) => key !== "max")
+          .map((key) =>
+            `### ${key.toUpperCase()}\n`.concat(
+              changes[key]
+                .map(
+                  ({ sha, message }) =>
+                    `* [${sha.slice(0, 8)}](${giturl}/commit/${sha}) ${message}`
+                )
+                .join("\n")
+            )
+          )
           .join("\n")
-      );
-  }
+      )) ||
+    "No semantic changes found!";
 
-  console.log("LastTag:", lastTag);
-  console.log("NextTag:", results.nextTag || "");
-  console.log("NextVer:", results.nextVersion || "");
-  console.log(results.releaseNotes || "No semantic changes found!");
+  console.log(JSON.stringify({ lastTag, nextTag, nextVersion, releaseNotes }));
 })();
