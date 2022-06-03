@@ -90,17 +90,13 @@ jobs:
           git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}"
 
       - name: semrel analyze ${{ matrix.lib }}
+        id: analyze
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
-          read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
-          echo "${lastTag} -> ${nextTag}"
-          echo "LAST_TAG=${lastTag}" >> $GITHUB_ENV
-          echo "NEXT_TAG=${nextTag}" >> $GITHUB_ENV
-          echo "NEXT_VERSION=${nextVersion}" >> $GITHUB_ENV
-          echo "RELEASE_NOTES=${releaseNotes}" >> $GITHUB_ENV
-
+          echo "::set-output name=result::$(npx zx ./scripts/semrel/analyze.mjs | tail -n -1)"
+      
       - name: semrel release ${{ matrix.lib }}
         shell: sh
         if: ${{ env.NEXT_TAG != '' }}
@@ -125,3 +121,7 @@ jobs:
           echo "🚀 ${NEXT_TAG} released succesfully!"
         env:
           npm_config_yes: true
+          LAST_TAG: ${{ fromJSON(steps.analyze.outputs.result.lastTag) }}
+          NEXT_TAG: ${{ fromJSON(steps.analyze.outputs.result.nextTag) }}
+          NEXT_VERSION: ${{ fromJSON(steps.analyze.outputs.result.nextVersion) }}
+          RELEASE_NOTES: ${{ fromJSON(steps.analyze.outputs.result.releaseNotes) }}
