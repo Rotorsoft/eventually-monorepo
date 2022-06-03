@@ -64,9 +64,6 @@ jobs:
       - name: semantic release
         shell: sh
         run: |
-          pwd 
-          sudo apt-get install jq
-
           git config user.name ${GIT_USERNAME}
           git config user.email ${GIT_USEREMAIL}
           git remote set-url origin https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}
