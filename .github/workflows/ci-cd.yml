@@ -91,38 +91,45 @@ jobs:
 
       - name: semrel analyze ${{ matrix.lib }}
         id: analyze
+
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
-          echo "::set-output name=result::$(npx zx ./scripts/semrel/analyze.mjs | tail -n -1)"
-          echo ${{ steps.analyze.outputs.result }}
+          echo "::set-output name=semrel::$(npx zx ./scripts/semrel/analyze.mjs | tail -n -1)"
 
       - name: semrel release ${{ matrix.lib }}
         shell: sh
-        if: ${{ startsWith(env.NEXT_TAG, env.PACKAGE) }}
         run: |
-          msg="chore(release): ${NEXT_TAG} [skip ci]"
-          echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
-          npm --no-git-tag-version version ${NEXT_VERSION} --workspace ${PACKAGE}
-          git add -A .
-          HUSKY=0 git commit -am ${msg}
-          git tag -a ${NEXT_TAG} HEAD -m ${msg}
-          HUSKY=0 git push --follow-tags origin HEAD:refs/heads/master
+          ::debug::{env.SEMREL}
 
-          data=$(jq -n \
-            --arg tag "$NEXT_TAG" \
-            --arg notes "$RELEASE_NOTES" \
-            '{name: $tag, tag_name: $tag, body: $notes}')
-          curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${GIT_REPO}/releases -d ${data}
+          lastTag=${{ fromJSON(env.SEMREL.lastTag) }}
+          nextTag=${{ fromJSON(env.SEMREL.nextTag) }}
+          nextVersion=${{ fromJSON(env.SEMREL.nextVersion) }}
+          releaseNotes=${{ fromJSON(env.SEMREL.releaseNotes) }}
 
-          npm config set registry https://registry.npmjs.org
-          yarn ${DIRECTORY} npm publish --access public
-          echo "🚀 ${NEXT_TAG} released succesfully!"
+          if [[ $lastTag == "${PACKAGE}*" ]]; then
+            msg="chore(release): ${NEXT_TAG} [skip ci]"
+            echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
+            npm --no-git-tag-version version ${NEXT_VERSION} --workspace ${PACKAGE}
+            git add -A .
+            HUSKY=0 git commit -am ${msg}
+            git tag -a ${NEXT_TAG} HEAD -m ${msg}
+            HUSKY=0 git push --follow-tags origin HEAD:refs/heads/master
+
+            data=$(jq -n \
+              --arg tag "$NEXT_TAG" \
+              --arg notes "$RELEASE_NOTES" \
+              '{name: $tag, tag_name: $tag, body: $notes}')
+            curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${GIT_REPO}/releases -d ${data}
+
+            npm config set registry https://registry.npmjs.org
+            yarn ${DIRECTORY} npm publish --access public
+            echo "🚀 ${NEXT_TAG} released succesfully!"
+          else
+            echo "No semantic changes found!"
+          fi
         env:
           npm_config_yes: true
-          LAST_TAG: ${{ fromJSON(steps.analyze.outputs.result.lastTag) }}
-          NEXT_TAG: ${{ fromJSON(steps.analyze.outputs.result.nextTag) }}
-          NEXT_VERSION: ${{ fromJSON(steps.analyze.outputs.result.nextVersion) }}
-          RELEASE_NOTES: ${{ fromJSON(steps.analyze.outputs.result.releaseNotes) }}
+          SEMREL: ${{ fromJSON(steps.analyze.outputs.semrel) }}
