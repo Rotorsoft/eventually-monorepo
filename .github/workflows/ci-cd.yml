@@ -13,15 +13,8 @@ env:
   GIT_REPO: rotorsoft/eventually-monorepo
 
 jobs:
-  ci-cd:
+  ci:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lib:
-          - eventually
-          - eventually-pg
-          - eventually-express
-          - eventually-broker
 
     services:
       postgres:
@@ -63,6 +56,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+  git-config:
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
       - name: create .npmrc
         run: |
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
@@ -74,21 +71,35 @@ jobs:
           git config user.email $GIT_USEREMAIL
           git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}"
 
+  cd:
+    runs-on: ubuntu-latest
+    needs: git-config
+    strategy:
+      matrix:
+        lib:
+          - eventually
+          - eventually-pg
+          - eventually-express
+          - eventually-broker
+
+    steps:
       - name: semrel analyze ${{ matrix.lib }}
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
           read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
-          echo "NEXT_TAG=$nextTag" >> $GITHUB_ENV
-          echo "NEXT_VERSION=$nextVersion" >> $GITHUB_ENV
-          echo "RELEASE_NOTES=$releaseNotes" >> $GITHUB_ENV
+          echo "LAST_TAG=${lastTag}" >> $GITHUB_ENV
+          echo "NEXT_TAG=${nextTag}" >> $GITHUB_ENV
+          echo "NEXT_VERSION=${nextVersion}" >> $GITHUB_ENV
+          echo "RELEASE_NOTES=${releaseNotes}" >> $GITHUB_ENV
 
       - name: semrel release ${{ matrix.lib }}
+        shell: sh
         if: ${{ env.NEXT_TAG != 'null' }}
         run: |
-          sh ./scripts/semrel/log-commit-tag.sh
-          sh ./scripts/semrel/github-release.sh
-          sh ./scripts/semrel/npm-publish.sh
+          ./scripts/semrel/log-commit-tag.sh
+          ./scripts/semrel/github-release.sh
+          ./scripts/semrel/npm-publish.sh
         env:
           npm_config_yes: true
