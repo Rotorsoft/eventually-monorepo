@@ -87,6 +87,7 @@ jobs:
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
           read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
+          echo "${lastTag} -> ${nextTag}"
           echo "LAST_TAG=${lastTag}" >> $GITHUB_ENV
           echo "NEXT_TAG=${nextTag}" >> $GITHUB_ENV
           echo "NEXT_VERSION=${nextVersion}" >> $GITHUB_ENV
@@ -94,7 +95,7 @@ jobs:
 
       - name: semrel release ${{ matrix.lib }}
         shell: sh
-        if: ${{ env.NEXT_TAG }}
+        if: ${{ env.NEXT_TAG != '' }}
         run: |
           msg="chore(release): ${NEXT_TAG} [skip ci]"
           echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
