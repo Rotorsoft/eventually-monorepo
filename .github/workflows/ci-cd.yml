@@ -32,8 +32,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: install node 16
         uses: actions/setup-node@v3
@@ -56,10 +54,22 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  git-config:
+  cd:
     runs-on: ubuntu-latest
     needs: ci
+    strategy:
+      matrix:
+        lib:
+          - eventually
+          - eventually-pg
+          - eventually-express
+          - eventually-broker
+
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
       - name: create .npmrc
         run: |
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
@@ -70,19 +80,7 @@ jobs:
           git config user.name $GIT_USERNAME
           git config user.email $GIT_USEREMAIL
           git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}"
-
-  cd:
-    runs-on: ubuntu-latest
-    needs: git-config
-    strategy:
-      matrix:
-        lib:
-          - eventually
-          - eventually-pg
-          - eventually-express
-          - eventually-broker
-
-    steps:
+          
       - name: semrel analyze ${{ matrix.lib }}
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
