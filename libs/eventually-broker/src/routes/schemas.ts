@@ -39,7 +39,7 @@ export const editSubscription = joi
   .object<Subscription>({
     producer: joi.string().trim().max(100).regex(regex.name),
     consumer: joi.string().trim().max(100).regex(regex.name),
-    path: joi.string().trim().max(100).regex(regex.name),
+    path: joi.string().trim().max(100).regex(regex.path),
     streams: joi.string().trim().max(100),
     names: joi.string().trim().max(250)
   })

@@ -28,7 +28,6 @@
     "lint": "yarn eslint '**/src/**/*.ts'",
     "pretty": "yarn prettier --check '**/src/*.{ts,js,json,css,md,yaml,yml}'",
     "fix": "yarn lint --fix && yarn pretty --write --ignore-path ./.prettierignore",
-    "release": "sh ./scripts/release.sh",
     "bump": "sh ./scripts/bump.sh",
     "publish": "sh ./scripts/publish.sh",
     "postinstall": "husky install",
