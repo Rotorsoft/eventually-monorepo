@@ -15,6 +15,13 @@ env:
 jobs:
   ci-cd:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib:
+          - eventually
+          - eventually-pg
+          - eventually-express
+          - eventually-broker
 
     services:
       postgres:
@@ -61,32 +68,27 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
 
-      - name: semantic release
-        shell: sh
+      - name: config git
         run: |
-          git config user.name ${GIT_USERNAME}
-          git config user.email ${GIT_USEREMAIL}
-          git remote set-url origin https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}
+          git config user.name ${{ env.GIT_USERNAME }}
+          git config user.email ${{ env.GIT_USEREMAIL }}
+          git remote set-url origin https://${{ GIT_USERNAME }}:${{ GITHUB_TOKEN }}@${{ GIT_HOST }}/${{ GIT_REPO }}
 
-          libs=(eventually eventually-pg eventually-express eventually-broker)
-          for lib in "${libs[@]}"
-            do
-              export PACKAGE=@rotorsoft/$lib
-              export DIRECTORY=libs/$lib    
-              
-              echo "-----------------------------------------------------------------------------------------------------"
-              echo ${PACKAGE}
-              read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
-              if [[ ! $nextTag = "null" ]]; then
-                export NEXT_TAG=$nextTag
-                export NEXT_VERSION=$nextVersion
-                export RELEASE_NOTES=$releaseNotes
-                sh ./scripts/semrel/log-commit-tag.sh
-                sh ./scripts/semrel/github-release.sh
-                sh ./scripts/semrel/npm-publish.sh
-              fi
-              echo "-----------------------------------------------------------------------------------------------------"
-              echo
-            done
+      - name: semrel analyze ${{ matrix.lib }}
+        env:
+          PACKAGE: "@rotorsoft/${{ matrix.lib }}"
+          DIRECTORY: "libs/${{ matrix.lib }}"
+        run: |
+          read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
+          echo "NEXT_TAG=$nextTag" >> $GITHUB_ENV
+          echo "NEXT_VERSION=$nextVersion" >> $GITHUB_ENV
+          echo "RELEASE_NOTES=$releaseNotes" >> $GITHUB_ENV
+
+      - name: semrel release ${{ matrix.lib }}
+        if: ${{ env.NEXT_TAG != 'null' }}
+        run: |
+          sh ./scripts/semrel/log-commit-tag.sh
+          sh ./scripts/semrel/github-release.sh
+          sh ./scripts/semrel/npm-publish.sh
         env:
           npm_config_yes: true
