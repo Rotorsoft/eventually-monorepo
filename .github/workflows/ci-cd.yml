@@ -118,7 +118,7 @@ jobs:
         run: |
           if [[ ! $NEXT_TAG == "-" ]]; then
             msg="chore(release): ${NEXT_TAG} [skip ci]"
-            notes="$(echo ${RELEASE_NOTES} | awk '{gsub(/\\n/,"\n")}1')"
+            notes=$(echo "${RELEASE_NOTES}" | awk '{gsub(/\\n/,"\n")}1')
 
             echo "changelog..."
             echo "${notes}\n" $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
