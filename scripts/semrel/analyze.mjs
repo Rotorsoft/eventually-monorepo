@@ -21,24 +21,16 @@ $.noquote = async (...args) => {
   return p;
 };
 
+const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
+
 (async () => {
+  REQUIRED_ENV.forEach((env) => {
+    if (!process.env[env]) {
+      console.log(chalk.bold.red(`Missing ${env}`));
+      process.exit(1);
+    }
+  });
   const { PACKAGE, DIRECTORY, GIT_HOST, GIT_REPO } = process.env;
-  if (!PACKAGE) {
-    console.log(chalk.bold.red("Missing PACKAGE"));
-    process.exit(1);
-  }
-  if (!DIRECTORY) {
-    console.log(chalk.bold.red("Missing DIRECTORY"));
-    process.exit(1);
-  }
-  if (!GIT_HOST) {
-    console.log(chalk.bold.red("Missing GIT_HOST"));
-    process.exit(1);
-  }
-  if (!GIT_REPO) {
-    console.log(chalk.bold.red("Missing GIT_REPO"));
-    process.exit(1);
-  }
 
   const TAG_REGEX = new RegExp(`^${PACKAGE}-v(\\d+).(\\d+).(\\d+)$`);
   const bump = (tag, type) => {
@@ -54,8 +46,7 @@ $.noquote = async (...args) => {
     .split("\n")
     .map((tag) => tag.trim())
     .filter(Boolean);
-
-  const lastTag = tags.length ? tags[0] : undefined;
+  const lastTag = tags.length && tags[0];
 
   const commitsRange = lastTag
     ? `${(await $`git rev-list -1 ${lastTag}`).toString().trim()}..HEAD`
@@ -72,24 +63,23 @@ $.noquote = async (...args) => {
     });
 
   const changes = Object.values(
-    newCommits.reduce((acc, { sha, message }) => {
+    newCommits.reduce((changes, { sha, message }) => {
       RULES.forEach(({ type, prefix, text }, priority) => {
-        const prefixMatcher =
+        const byPrefix =
           prefix && new RegExp(`^(${prefix.join("|")})(\\(.*\\))?:\\s.+$`);
-        const textMatcher =
+        const byText =
           text && new RegExp(`^.*(\\(.*\\))?:.*(${text.join("|")}).*$`);
-        (message.match(prefixMatcher)?.[0] ||
-          message.match(textMatcher)?.[2]) &&
-          !(acc[sha] && acc[sha].priority > priority) &&
-          (acc[sha] = { type, priority, message, sha });
+        (message.match(byPrefix)?.[0] || message.match(byText)?.[2]) &&
+          !(changes[sha] && changes[sha].priority > priority) &&
+          (changes[sha] = { type, priority, message, sha });
       });
-      return acc;
+      return changes;
     }, {})
   ).reduce(
-    (p, { type, sha, message, priority }) => {
-      p[type].push({ sha, message });
-      p.max = Math.max(p.max || 0, priority);
-      return p;
+    (changes, { type, sha, message, priority }) => {
+      changes[type].push({ sha, message });
+      changes.max = Math.max(changes.max || 0, priority);
+      return changes;
     },
     { major: [], minor: [], patch: [], max: undefined }
   );
@@ -103,22 +93,25 @@ $.noquote = async (...args) => {
     (nextReleaseType &&
       `## [${nextTag}](${giturl}/compare/${lastTag}...${nextTag}) (${new Date()
         .toISOString()
-        .slice(0, 10)})\n`.concat(
+        .slice(0, 10)})<br/>`.concat(
         Object.keys(changes)
           .filter((key) => key !== "max")
           .map((key) =>
-            `### ${key.toUpperCase()}\n`.concat(
+            `### ${key.toUpperCase()}<br/>`.concat(
               changes[key]
                 .map(
                   ({ sha, message }) =>
                     `* [${sha.slice(0, 8)}](${giturl}/commit/${sha}) ${message}`
                 )
-                .join("\n")
+                .join("<br/>")
             )
           )
-          .join("\n")
+          .join("<br/>")
       )) ||
     "No semantic changes found!";
 
-  console.log(JSON.stringify({ lastTag, nextTag, nextVersion, releaseNotes }));
+  console.log(lastTag);
+  console.log(nextTag);
+  console.log(nextVersion);
+  console.log(releaseNotes);
 })();

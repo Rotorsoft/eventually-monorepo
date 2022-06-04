@@ -96,7 +96,7 @@ jobs:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
-          read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -n -1 | jq '.lastTag,.nextTag,.nextVersion,.releaseNotes' | cut -d "\"" -f 2)
+          read lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -4)
           echo "::set-output name=lastTag::${lastTag}"
           echo "::set-output name=nextTag::${nextTag}"
           echo "::set-output name=nextVersion::${nextVersion}"
