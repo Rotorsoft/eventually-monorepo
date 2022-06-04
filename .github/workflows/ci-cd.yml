@@ -103,7 +103,7 @@ jobs:
             echo "::set-output name=lastTag::${lastTag}";
             echo "::set-output name=nextTag::${nextTag}";
             echo "::set-output name=nextVersion::${nextVersion}";
-            echo "::set-output name=releaseNotes::$(echo $releaseNotes | awk '{gsub(/\\n/,"\n")}1')";
+            echo "::set-output name=releaseNotes::${releaseNotes})";
           )
 
       - name: semrel release ${{ matrix.lib }}
@@ -118,9 +118,10 @@ jobs:
         run: |
           if [[ ! $NEXT_TAG == "-" ]]; then
             msg="chore(release): ${NEXT_TAG} [skip ci]"
-            
+            notes="$(echo ${RELEASE_NOTES} | awk '{gsub(/\\n/,"\n")}1')"
+
             echo "changelog..."
-            echo "${RELEASE_NOTES}\n" $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
+            echo "${notes}\n" $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
             echo "bumping..."
             npm --prefix ${DIRECTORY} --no-git-tag-version version "${NEXT_VERSION}"
             echo "committing..."
@@ -133,7 +134,7 @@ jobs:
 
             data=$(jq -n \
               --arg tag "${NEXT_TAG}" \
-              --arg notes "${RELEASE_NOTES}" \
+              --arg notes "${notes}" \
               '{name: $tag, tag_name: $tag, body: $notes}')
             echo "releasing..."
             curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" \
