@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 set -e
 
@@ -11,7 +11,7 @@ do
     export DIRECTORY=libs/$lib    
     echo "-----------------------------------------------------------------------------------------------------"
     echo $PACKAGE
-    read lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -4)
+    read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -4)
     echo "lastTag = $lastTag"
     echo "nextTag = $nextTag"
     echo "nextVersion = $nextVersion"

@@ -93,25 +93,25 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
     (nextReleaseType &&
       `## [${nextTag}](${giturl}/compare/${lastTag}...${nextTag}) (${new Date()
         .toISOString()
-        .slice(0, 10)})<br/>`.concat(
+        .slice(0, 10)})\n`.concat(
         Object.keys(changes)
           .filter((key) => key !== "max")
           .map((key) =>
-            `### ${key.toUpperCase()}<br/>`.concat(
+            `### ${key.toUpperCase()}\n`.concat(
               changes[key]
                 .map(
                   ({ sha, message }) =>
                     `* [${sha.slice(0, 8)}](${giturl}/commit/${sha}) ${message}`
                 )
-                .join("<br/>")
+                .join("\n")
             )
           )
-          .join("<br/>")
+          .join("\n")
       )) ||
     "No semantic changes found!";
 
   console.log(lastTag);
   console.log(nextTag);
   console.log(nextVersion);
-  console.log(releaseNotes);
+  console.log(JSON.stringify(releaseNotes));
 })();
