@@ -91,7 +91,6 @@ jobs:
 
       - name: semrel analyze ${{ matrix.lib }}
         id: analyze
-        shell: sh
         env:
           PACKAGE: "@rotorsoft/${{ matrix.lib }}"
           DIRECTORY: "libs/${{ matrix.lib }}"
@@ -103,7 +102,6 @@ jobs:
           echo "::set-output name=releaseNotes::${releaseNotes}"
 
       - name: semrel release ${{ matrix.lib }}
-        shell: sh
         env:
           npm_config_yes: true
           LAST_TAG: ${{ steps.analyze.outputs.lastTag }}
