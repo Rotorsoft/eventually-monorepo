@@ -109,6 +109,8 @@ jobs:
       - name: semrel release ${{ matrix.lib }}
         env:
           npm_config_yes: true
+          PACKAGE: "@rotorsoft/${{ matrix.lib }}"
+          DIRECTORY: "libs/${{ matrix.lib }}"
           LAST_TAG: ${{ steps.analyze.outputs.lastTag }}
           NEXT_TAG: ${{ steps.analyze.outputs.nextTag }}
           NEXT_VERSION: ${{ steps.analyze.outputs.nextVersion }}
@@ -117,7 +119,7 @@ jobs:
           if [[ ! $NEXT_TAG == "-" ]]; then
             msg="chore(release): ${NEXT_TAG} [skip ci]"
             echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
-            npm --no-git-tag-version version ${NEXT_VERSION} --prefix ${DIRECTORY}
+            npm --prefix ${DIRECTORY} --no-git-tag-version version ${NEXT_VERSION}
             git add -A .
             HUSKY=0 git commit -am ${msg}
             git tag -a ${NEXT_TAG} HEAD -m ${msg}
