@@ -11,11 +11,16 @@ do
     export DIRECTORY=libs/$lib    
     echo "-----------------------------------------------------------------------------------------------------"
     echo $PACKAGE
-    read -r lastTag nextTag nextVersion releaseNotes <<< $(npx zx ./scripts/semrel/analyze.mjs | tail -4)
-    echo "lastTag = $lastTag"
-    echo "nextTag = $nextTag"
-    echo "nextVersion = $nextVersion"
-    echo "releaseNotes = $releaseNotes"
+    npx zx ./scripts/semrel/analyze.mjs | tail -4 | (
+        read -r lastTag;
+        read -r nextTag;
+        read -r nextVersion;
+        read -r releaseNotes;
+        echo "lastTag = $lastTag";
+        echo "nextTag = $nextTag";
+        echo "nextVersion = $nextVersion";
+        echo "releaseNotes = $releaseNotes";
+    )
     echo "-----------------------------------------------------------------------------------------------------"
     echo
 done
