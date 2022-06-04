@@ -783,7 +783,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
-    "@rotorsoft/eventually-broker": "workspace:^0"
+    "@rotorsoft/eventually-broker": "workspace:^1"
   languageName: unknown
   linkType: soft
 
@@ -798,7 +798,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-broker@workspace:^0, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
+"@rotorsoft/eventually-broker@workspace:^1, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-broker@workspace:libs/eventually-broker"
   dependencies:
