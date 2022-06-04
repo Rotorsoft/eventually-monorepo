@@ -121,7 +121,7 @@ jobs:
             notes=$(echo "${RELEASE_NOTES}" | awk '{gsub(/\\n/,"\n")}1')
 
             echo "changelog..."
-            echo "${notes}\n" $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
+            echo "${notes}\n$(cat ./CHANGELOG.md)" > ./CHANGELOG.md
             echo "bumping..."
             npm --prefix ${DIRECTORY} --no-git-tag-version version "${NEXT_VERSION}"
             echo "committing..."
