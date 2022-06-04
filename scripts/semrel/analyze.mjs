@@ -64,8 +64,7 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
 
   const changes = Object.values(
     newCommits.reduce((changes, { sha, message }) => {
-      RULES.forEach(({ type, prefix, text }, index) => {
-        const priority = index + 1;
+      RULES.forEach(({ type, prefix, text }, priority) => {
         const byPrefix =
           prefix && new RegExp(`^(${prefix.join("|")})(\\(.*\\))?:\\s.+$`);
         const byText =
@@ -85,7 +84,7 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
     { major: [], minor: [], patch: [], max: undefined }
   );
 
-  const nextReleaseType = changes.max && RULES[changes.max].type;
+  const nextReleaseType = changes.max !== undefined && RULES[changes.max].type;
   const giturl = `https://${GIT_HOST}/${GIT_REPO}`;
   const nextVersion =
     (nextReleaseType && bump(lastTag, nextReleaseType)) || "-";
@@ -96,7 +95,7 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
         .toISOString()
         .slice(0, 10)})\n`.concat(
         Object.keys(changes)
-          .filter((key) => key !== "max")
+          .filter((key) => changes[key].length)
           .map((key) =>
             `### ${key.toUpperCase()}\n`.concat(
               changes[key]

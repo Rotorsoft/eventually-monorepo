@@ -19,7 +19,7 @@ do
         echo "lastTag = $lastTag";
         echo "nextTag = $nextTag";
         echo "nextVersion = $nextVersion";
-        echo "releaseNotes = $releaseNotes";
+        echo "releaseNotes = $(echo $releaseNotes | awk '{gsub(/\\n/,"\n")}1')";
     )
     echo "-----------------------------------------------------------------------------------------------------"
     echo

@@ -103,7 +103,7 @@ jobs:
             echo "::set-output name=lastTag::${lastTag}";
             echo "::set-output name=nextTag::${nextTag}";
             echo "::set-output name=nextVersion::${nextVersion}";
-            echo "::set-output name=releaseNotes::${releaseNotes}";
+            echo "::set-output name=releaseNotes::$(echo $releaseNotes | awk '{gsub(/\\n/,"\n")}1')";
           )
 
       - name: semrel release ${{ matrix.lib }}
@@ -120,9 +120,9 @@ jobs:
             msg="chore(release): ${NEXT_TAG} [skip ci]"
             
             echo "changelog..."
-            echo $'${RELEASE_NOTES}\n' $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
+            echo "${RELEASE_NOTES}\n" $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
             echo "bumping..."
-            npm --prefix ${DIRECTORY} --no-git-tag-version version ${NEXT_VERSION}
+            npm --prefix ${DIRECTORY} --no-git-tag-version version "${NEXT_VERSION}"
             echo "committing..."
             git add -A .
             HUSKY=0 git commit -am "${msg}"
