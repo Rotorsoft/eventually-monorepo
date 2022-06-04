@@ -114,7 +114,7 @@ jobs:
           NEXT_VERSION: ${{ steps.analyze.outputs.nextVersion }}
           RELEASE_NOTES: ${{ steps.analyze.outputs.releaseNotes }}
         run: |
-          if [[ $NEXT_TAG == $PACKAGE* ]]; then
+          if [[ ! $NEXT_TAG == "-" ]]; then
             msg="chore(release): ${NEXT_TAG} [skip ci]"
             echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
             npm --no-git-tag-version version ${NEXT_VERSION} --workspace ${PACKAGE}
