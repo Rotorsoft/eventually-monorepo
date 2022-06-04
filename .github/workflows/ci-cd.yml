@@ -10,7 +10,7 @@ env:
   GIT_USERNAME: rotorsoft
   GIT_USEREMAIL: rotorsoft@outlook.com
   GIT_HOST: github.com
-  GIT_REPO: rotorsoft/eventually-monorepo
+  GIT_REPO: Rotorsoft/eventually-monorepo
 
 jobs:
   ci:
@@ -87,7 +87,7 @@ jobs:
         run: |
           git config user.name $GIT_USERNAME
           git config user.email $GIT_USEREMAIL
-          git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}"
+          git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}.git"
 
       - name: semrel analyze ${{ matrix.lib }}
         id: analyze
@@ -120,7 +120,7 @@ jobs:
             msg="chore(release): ${NEXT_TAG} [skip ci]"
             
             echo "changelog..."
-            echo "${RELEASE_NOTES}\n $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
+            echo $'${RELEASE_NOTES}\n' $(cat ./CHANGELOG.md)" > ./CHANGELOG.md
             echo "bumping..."
             npm --prefix ${DIRECTORY} --no-git-tag-version version ${NEXT_VERSION}
             echo "committing..."
@@ -132,12 +132,12 @@ jobs:
             HUSKY=0 git push --follow-tags origin HEAD:refs/heads/master
 
             data=$(jq -n \
-              --arg tag "$NEXT_TAG" \
-              --arg notes "$RELEASE_NOTES" \
+              --arg tag "${NEXT_TAG}" \
+              --arg notes "${RELEASE_NOTES}" \
               '{name: $tag, tag_name: $tag, body: $notes}')
             echo "releasing..."
             curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${GIT_REPO}/releases -d ${data}
+              https://api.github.com/repos/${GIT_REPO}/releases -d "${data}""
 
             echo "publishing..."
             npm config set registry https://registry.npmjs.org
