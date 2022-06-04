@@ -64,7 +64,8 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
 
   const changes = Object.values(
     newCommits.reduce((changes, { sha, message }) => {
-      RULES.forEach(({ type, prefix, text }, priority) => {
+      RULES.forEach(({ type, prefix, text }, index) => {
+        const priority = index + 1;
         const byPrefix =
           prefix && new RegExp(`^(${prefix.join("|")})(\\(.*\\))?:\\s.+$`);
         const byText =
