@@ -125,9 +125,9 @@ jobs:
             npm --prefix ${DIRECTORY} --no-git-tag-version version ${NEXT_VERSION}
             echo "committing..."
             git add -A .
-            HUSKY=0 git commit -am ${msg}
+            HUSKY=0 git commit -m ${msg}
             echo "tagging..."
-            git tag -a ${NEXT_TAG} -m ${msg}
+            git tag -a ${NEXT_TAG} HEAD -m ${msg}
             echo "pushing..."
             HUSKY=0 git push --follow-tags origin HEAD:refs/heads/master
 
