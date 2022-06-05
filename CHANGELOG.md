@@ -1,7 +1,10 @@
-"## [@rotorsoft/eventually-broker-v1.0.1](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.0...@rotorsoft/eventually-broker-v1.0.1) (2022-06-05)
+## [@rotorsoft/eventually-broker-v1.0.1](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.0...@rotorsoft/eventually-broker-v1.0.1) (2022-06-05)
+
 ### PATCH
+
 * [f91691c5](https://github.com/Rotorsoft/eventually-monorepo/commit/f91691c5472d002290b39fc86e2cd6664b80ae42) fix: trigger cd
-* [fd8894f5](https://github.com/Rotorsoft/eventually-monorepo/commit/fd8894f5e1082000722ff736ef60e5418de98d4a) fix: test cd")
+* [fd8894f5](https://github.com/Rotorsoft/eventually-monorepo/commit/fd8894f5e1082000722ff736ef60e5418de98d4a) fix: test cd
+
 ## [@rotorsoft/eventually-broker-v1.0.0](https://github.com/rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v0.2.34...@rotorsoft/eventually-broker-v1.0.0) (2022-06-04)
 
 ### MAJOR
