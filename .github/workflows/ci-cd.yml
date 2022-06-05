@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: build service
+      - name: install and build
         run: yarn install && yarn build
 
       - name: unit test
@@ -78,8 +78,8 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: install
-        run: yarn install
+      - name: install and build
+        run: yarn install && yarn "${DIRECTORY}" build
 
       - name: create .npmrc
         run: |
