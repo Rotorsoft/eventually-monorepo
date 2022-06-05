@@ -138,7 +138,7 @@ jobs:
               '{name: $tag, tag_name: $tag, body: $notes}')
             echo "releasing..."
             curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${GIT_REPO}/releases -d "${data}""
+              https://api.github.com/repos/${GIT_REPO}/releases -d "${data}"
 
             echo "publishing..."
             npm config set registry https://registry.npmjs.org
