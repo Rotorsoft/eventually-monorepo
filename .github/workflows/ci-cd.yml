@@ -7,10 +7,9 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-  GIT_USERNAME: rotorsoft
-  GIT_USEREMAIL: rotorsoft@outlook.com
-  GIT_HOST: github.com
-  GIT_REPO: Rotorsoft/eventually-monorepo
+  GITURL: "${{ github.server_url }}/${{ github.repository }}"
+  OWNER: "${{ github.repository_owner }}"
+  REPO: "${{ github.repository }}"
 
 jobs:
   ci:
@@ -64,6 +63,9 @@ jobs:
           - eventually-pg
           - eventually-express
           - eventually-broker
+    env:
+      PACKAGE: "@rotorsoft/${{ matrix.lib }}"
+      DIRECTORY: "libs/${{ matrix.lib }}"
 
     steps:
       - uses: actions/checkout@v3
@@ -83,17 +85,8 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
           echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
 
-      - name: config git
-        run: |
-          git config user.name $GIT_USERNAME
-          git config user.email $GIT_USEREMAIL
-          git remote set-url origin "https://${GIT_USERNAME}:${GITHUB_TOKEN}@${GIT_HOST}/${GIT_REPO}.git"
-
       - name: semrel analyze ${{ matrix.lib }}
         id: analyze
-        env:
-          PACKAGE: "@rotorsoft/${{ matrix.lib }}"
-          DIRECTORY: "libs/${{ matrix.lib }}"
         run: |
           npx zx ./scripts/semrel/analyze.mjs | tail -4 | (
             read -r lastTag;
@@ -109,41 +102,42 @@ jobs:
       - name: semrel release ${{ matrix.lib }}
         env:
           npm_config_yes: true
-          PACKAGE: "@rotorsoft/${{ matrix.lib }}"
-          DIRECTORY: "libs/${{ matrix.lib }}"
           LAST_TAG: ${{ steps.analyze.outputs.lastTag }}
           NEXT_TAG: ${{ steps.analyze.outputs.nextTag }}
           NEXT_VERSION: ${{ steps.analyze.outputs.nextVersion }}
           RELEASE_NOTES: ${{ steps.analyze.outputs.releaseNotes }}
         run: |
           if [[ ! $NEXT_TAG == "-" ]]; then
-            msg="chore(release): ${NEXT_TAG} [skip ci]"
+            msg="chore(release): ${NEXT_TAG}"
             notes=$(echo "${RELEASE_NOTES}" | awk '{gsub(/\\n/,"\n")}1')
 
-            echo "changelog..."
+            echo ">>> changelog..."
             echo "${notes}"$'\n'"$(cat ./CHANGELOG.md)" > ./CHANGELOG.md
-            echo "bumping..."
+
+            echo ">>> bumping..."
             npm --prefix ${DIRECTORY} --no-git-tag-version version "${NEXT_VERSION}"
-            echo "committing..."
+
+            echo ">>> committing..."
             git add -A .
             HUSKY=0 git commit -am "${msg}"
-            echo "tagging..."
+
+            echo ">>> tagging..."
             git tag -a ${NEXT_TAG} HEAD -m "${msg}"
-            echo "pushing..."
+
+            echo ">>> pushing..."
             HUSKY=0 git push --follow-tags origin HEAD:refs/heads/master
 
+            echo ">>> releasing..."
             data=$(jq -n \
               --arg tag "${NEXT_TAG}" \
               --arg notes "${notes}" \
               '{name: $tag, tag_name: $tag, body: $notes}')
-            echo "releasing..."
-            curl -u ${GIT_USERNAME}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${GIT_REPO}/releases -d "${data}"
+            curl -u ${OWNER}:${GITHUB_TOKEN} -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${REPO}/releases -d "${data}"
 
-            echo "publishing..."
+            echo ">>> publishing..."
             npm config set registry https://registry.npmjs.org
             yarn ${DIRECTORY} npm publish --access public
             echo "🚀 ${NEXT_TAG} released succesfully!"
           else
-            echo "No semantic changes found!"
+            echo ">>> No semantic changes found!"
           fi

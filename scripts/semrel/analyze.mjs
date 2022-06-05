@@ -21,7 +21,7 @@ $.noquote = async (...args) => {
   return p;
 };
 
-const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
+const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GITURL"];
 
 (async () => {
   REQUIRED_ENV.forEach((env) => {
@@ -30,7 +30,7 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
       process.exit(1);
     }
   });
-  const { PACKAGE, DIRECTORY, GIT_HOST, GIT_REPO } = process.env;
+  const { PACKAGE, DIRECTORY, GITURL } = process.env;
 
   const TAG_REGEX = new RegExp(`^${PACKAGE}-v(\\d+).(\\d+).(\\d+)$`);
   const bump = (tag, type) => {
@@ -85,15 +85,14 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
   );
 
   const nextReleaseType = changes.max !== undefined && RULES[changes.max].type;
-  const giturl = `https://${GIT_HOST}/${GIT_REPO}`;
   const nextVersion =
     (nextReleaseType && bump(lastTag, nextReleaseType)) || "-";
   const nextTag = (nextReleaseType && `${PACKAGE}-v${nextVersion}`) || "-";
   const releaseNotes =
     (nextReleaseType &&
-      `## [${nextTag}](${giturl}/compare/${lastTag}...${nextTag}) (${new Date()
+      `## [${new Date()
         .toISOString()
-        .slice(0, 10)})\n`.concat(
+        .slice(0, 10)}](${GITURL}/compare/${lastTag}...${nextTag})\n`.concat(
         Object.keys(changes)
           .filter((key) => changes[key].length)
           .map((key) =>
@@ -101,7 +100,7 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
               changes[key]
                 .map(
                   ({ sha, message }) =>
-                    `* [${sha.slice(0, 8)}](${giturl}/commit/${sha}) ${message}`
+                    `* [${sha.slice(0, 8)}](${GITURL}/commit/${sha}) ${message}`
                 )
                 .join("\n")
             )
@@ -113,5 +112,5 @@ const REQUIRED_ENV = ["PACKAGE", "DIRECTORY", "GIT_HOST", "GIT_REPO"];
   console.log(lastTag);
   console.log(nextTag);
   console.log(nextVersion);
-  console.log(JSON.stringify(releaseNotes));
+  console.log(JSON.stringify(releaseNotes).slice(1, -1));
 })();
