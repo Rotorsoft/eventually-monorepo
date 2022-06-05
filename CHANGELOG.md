@@ -1,3 +1,6 @@
+"## [@rotorsoft/eventually-broker-v1.0.2](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.1...@rotorsoft/eventually-broker-v1.0.2) (2022-06-05)
+### PATCH
+* [207d110d](https://github.com/Rotorsoft/eventually-monorepo/commit/207d110d4acb3cc3afe15fe912331eee1c3d078e) fix: test fix with patch"
 ## [@rotorsoft/eventually-broker-v1.0.1](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.0...@rotorsoft/eventually-broker-v1.0.1) (2022-06-05)
 
 ### PATCH
