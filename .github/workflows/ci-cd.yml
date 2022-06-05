@@ -8,7 +8,8 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
   GITURL: "${{ github.server_url }}/${{ github.repository }}"
-  OWNER: "${{ github.repository_owner }}"
+  OWNER: rotorsoft
+  EMAIL: rotorsoft@outlook.com
   REPO: "${{ github.repository }}"
 
 jobs:
@@ -118,6 +119,10 @@ jobs:
             npm --prefix ${DIRECTORY} --no-git-tag-version version "${NEXT_VERSION}"
 
             echo ">>> committing..."
+            git config user.name "${OWNER}"
+            git config user.email "${EMAIL}"
+            git remote set-url origin "${GITURL}.git"
+
             git add -A .
             HUSKY=0 git commit -am "${msg}"
 
