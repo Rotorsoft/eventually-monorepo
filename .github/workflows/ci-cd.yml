@@ -4,6 +4,10 @@ on:
     branches: [master]
   workflow_dispatch:
 
+env:
+  # .yarnrc.yml needs this
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 jobs:
   ci:
     runs-on: ubuntu-latest
