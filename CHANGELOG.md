@@ -1,3 +1,6 @@
+## [2022-06-07](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.5...@rotorsoft/eventually-broker-v1.0.6)
+### PATCH
+* [eec559e2](https://github.com/Rotorsoft/eventually-monorepo/commit/eec559e27ed9f5c5019a9b1cd4f4d11b09f4acd8) fix: reset error message only when stats position is higher, improve stats log
 ## [2022-06-07](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.24...@rotorsoft/eventually-express-v4.0.25)
 ### PATCH
 * [e978b4a9](https://github.com/Rotorsoft/eventually-monorepo/commit/e978b4a922e9d1810fcc508531eeac48da42a21c) refactor: improve error handling
