@@ -36,22 +36,25 @@ export const state = singleton(function state(): State {
     workerId?: number,
     active = false,
     position = -1
-  ): SubscriptionState => ({
-    workerId,
-    active,
-    position,
-    channelStatus: "",
-    endpointStatus: {
-      code: 200,
-      color: "success"
-    },
-    errorMessage: "",
-    stats: {
-      total: 0,
-      batches: 0,
-      events: {}
-    }
-  });
+  ): SubscriptionState => {
+    return {
+      workerId,
+      active,
+      position,
+      channelStatus: "",
+      endpointStatus: {
+        code: 200,
+        color: "success"
+      },
+      errorMessage: "",
+      errorPosition: -1,
+      stats: {
+        total: 0,
+        batches: 0,
+        events: {}
+      }
+    };
+  };
 
   const subConfig = ({
     id,
@@ -109,7 +112,8 @@ export const state = singleton(function state(): State {
       stats,
       channelStatus,
       endpointStatus,
-      errorMessage
+      errorMessage,
+      errorPosition
     } = _states[id] || resetState();
     const channel = _channels[workerId];
     const eventsMap: Record<string, EventsViewModel> = {};
@@ -148,6 +152,7 @@ export const state = singleton(function state(): State {
             : ""
       },
       errorMessage,
+      errorPosition,
       total: stats.total,
       events: Object.values(events),
       lastEventName: stats.lastEventName
@@ -201,8 +206,10 @@ export const state = singleton(function state(): State {
       _states[id] || resetState(workerId, true, position));
     state.active = active;
     state.position = Math.max(state.position, position);
-    state.errorMessage = "";
-    state.endpointStatus = { code: 200, color: "success" };
+    if (position > state.errorPosition) {
+      state.errorMessage = "";
+      state.endpointStatus = { code: 200, color: "success" };
+    }
 
     const acc = state.stats;
     acc.batches += batches;

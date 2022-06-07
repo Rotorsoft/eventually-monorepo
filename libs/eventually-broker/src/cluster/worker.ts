@@ -33,6 +33,7 @@ export const sendTrigger = (trigger: TriggerPayload): boolean =>
 
 export const sendError = (
   message: string,
+  position: number,
   config?: SubscriptionConfig,
   code = 500,
   color = "danger",
@@ -41,6 +42,7 @@ export const sendError = (
   log().error(Error(message));
   const error: ErrorMessage = {
     message,
+    position,
     config,
     code,
     color,
@@ -55,9 +57,8 @@ export const sendStats = (
 ): void => {
   log().info(
     "blue",
-    `[${process.pid}]`,
-    `📊${config.id} at=${config.position} total=${stats.total} batches=${stats.batches}`,
-    stats.events
+    `[${process.pid}] 📊${config.id} at=${config.position} total=${stats.total} batches=${stats.batches}`,
+    JSON.stringify(stats.events)
   );
   process.send({ stats: { ...stats, ...config } });
 };
@@ -83,7 +84,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl, config.id));
   } catch (error) {
-    error instanceof Error && sendError(error.message);
+    error instanceof Error && sendError(error.message, -1);
     await dispose()(ExitCodes.ERROR);
   }
 
@@ -92,7 +93,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     try {
       _subs[config.id] = build(config);
     } catch (error) {
-      error instanceof Error && sendError(error.message, config);
+      error instanceof Error && sendError(error.message, -1, config);
       await dispose()(ExitCodes.ERROR);
     }
   });
@@ -147,6 +148,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
             retryable && (retry = (trigger.retries || 0) < 3);
             sendError(
               `${triggerLog(trigger)} HTTP ${status} ${statusText}`,
+              e.id,
               sub,
               status,
               retryable ? "warning" : "danger",
@@ -158,7 +160,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       }
       sendStats(sub, stats);
     } catch (error) {
-      sendError(`${triggerLog(trigger)} ${error.message}`, sub);
+      sendError(`${triggerLog(trigger)} ${error.message}`, sub.position, sub);
       await dispose()(ExitCodes.ERROR);
     }
   };
@@ -209,7 +211,8 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
           const sub = (_subs[config.id] = build(config));
           await pumpRetry([sub], { operation, id: config.id });
         } catch (error) {
-          error instanceof Error && sendError(error.message, config);
+          error instanceof Error &&
+            sendError(error.message, config.position, config);
         }
       }
       sendStats(config, { batches: 0, total: 0, events: {} });

@@ -63,7 +63,7 @@ describe("cluster", () => {
         }
       }
     };
-    sendError("Error message", config);
+    sendError("Error message", -1, config);
     sendStats(config, stats);
     await state().refreshSubscription("DELETE", "s1");
     await state().refreshSubscription("INSERT", "s1");
@@ -71,7 +71,9 @@ describe("cluster", () => {
     await state().refreshService("DELETE", "s1");
     await state().refreshService("INSERT", "s1");
     await state().refreshService("UPDATE", "s1");
-    state().onMessage(1, { error: { message: "Error message", config } });
+    state().onMessage(1, {
+      error: { message: "Error message", position: -1, config }
+    });
     state().onMessage(1, {
       trigger: { id: "s1", operation: "RESTART", position: 1 }
     });

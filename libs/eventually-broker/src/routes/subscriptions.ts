@@ -137,7 +137,7 @@ router.get("/_refresh/:id", async (req, res) => {
   } catch (error) {
     log().error(error);
   }
-  res.redirect(`/${id}`);
+  res.redirect(`/_wait/${id}`);
 });
 
 router.get("/_wait/:id", (req, res) => {

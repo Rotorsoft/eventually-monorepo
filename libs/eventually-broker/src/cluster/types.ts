@@ -37,11 +37,13 @@ export type SubscriptionState = {
     color: string;
   };
   errorMessage: string;
+  errorPosition: number;
   stats: SubscriptionStats;
 };
 
 export type ErrorMessage = {
   message: string;
+  position: number;
   config?: SubscriptionConfig;
   code?: number;
   color?: string;
@@ -68,6 +70,7 @@ export type SubscriptionViewModel = {
     icon: string;
   };
   errorMessage: string;
+  errorPosition: number;
   total: number;
   events: EventsViewModel[];
   lastEventName: string;
@@ -75,9 +78,9 @@ export type SubscriptionViewModel = {
 
 //TODO: Improve types for commands events and errors
 export type ContractsViewModel = {
-  commands: any[],
-  events: any[],
-  errors: any[]
+  commands: any[];
+  events: any[];
+  errors: any[];
 };
 
 export type WorkerMessage = {
