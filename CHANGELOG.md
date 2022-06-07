@@ -1,3 +1,6 @@
+## [2022-06-07](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.20...@rotorsoft/eventually-pg-v4.0.21)
+### PATCH
+* [e978b4a9](https://github.com/Rotorsoft/eventually-monorepo/commit/e978b4a922e9d1810fcc508531eeac48da42a21c) refactor: improve error handling
 ## [2022-06-07](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.30...@rotorsoft/eventually-v4.0.31)
 ### PATCH
 * [e978b4a9](https://github.com/Rotorsoft/eventually-monorepo/commit/e978b4a922e9d1810fcc508531eeac48da42a21c) refactor: improve error handling
