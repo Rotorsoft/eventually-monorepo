@@ -78,6 +78,13 @@ jobs:
           package: "@rotorsoft/${{ matrix.lib }}"
           directory: "libs/${{ matrix.lib }}"
 
+      - name: analysis
+        run: |
+          echo "last-tag: ${{ steps.analyze.outputs.last-tag }}"
+          echo "next-tag: ${{ steps.analyze.outputs.next-tag }}"
+          echo "next-version: ${{ steps.analyze.outputs.next-version }}"
+          echo "${{ steps.analyze.outputs.change-log }}"
+
       - name: release ${{ matrix.lib }}
         uses: rotorsoft/semrel-release@v1
         with:
