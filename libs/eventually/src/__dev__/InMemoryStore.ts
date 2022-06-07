@@ -1,4 +1,4 @@
-import { app } from "..";
+import { app, ConcurrencyError } from "..";
 import { Store } from "../interfaces";
 import {
   AllQuery,
@@ -82,7 +82,11 @@ export const InMemoryStore = (): Store => {
     ): Promise<CommittedEvent<string, Payload>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
-        throw Error("Concurrency Error");
+        throw new ConcurrencyError(
+          aggregate.length - 1,
+          events,
+          expectedVersion
+        );
 
       let version = aggregate.length;
       const committed = events.map(({ name, data }) => {

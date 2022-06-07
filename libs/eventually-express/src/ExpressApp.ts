@@ -239,15 +239,9 @@ export class ExpressApp extends AppBase {
             next: NextFunction
           ) => {
             try {
-              const message = req.body;
-              const meta = this.messages[message.name];
-              if (meta && meta.eventHandlerFactories[path]) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                const response = await this.event(factory, message as any);
-                return res.status(200).send(response);
-              }
-              // ignore events not handled by this handler
-              return res.send(`Ignored ${message.name}`);
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+              const response = await this.event(factory, req.body as any);
+              return res.status(200).send(response);
             } catch (error) {
               next(error);
             }
@@ -344,11 +338,16 @@ export class ExpressApp extends AppBase {
         this.log.error(error);
         // eslint-disable-next-line
         const { message, stack, ...other } = error;
-        if (message === Errors.ValidationError)
-          res.status(400).send({ message, ...other });
-        else if (message === Errors.ConcurrencyError)
-          res.status(409).send({ message, ...other });
-        else res.status(500).send({ message });
+        switch (message) {
+          case Errors.ValidationError:
+            return res.status(400).send({ message, ...other });
+          case Errors.RegistrationError:
+            return res.status(404).send({ message, ...other });
+          case Errors.ConcurrencyError:
+            return res.status(409).send({ message, ...other });
+          default:
+            return res.status(500).send({ message });
+        }
       }
     );
 

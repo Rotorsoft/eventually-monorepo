@@ -24,7 +24,10 @@ type Tester = {
   event: <M extends Payload, C, E>(
     handler: EventHandlerFactory<M, C, E>,
     event: Message<keyof E & string, Payload>
-  ) => Promise<Message<keyof C & string, Payload> | undefined>;
+  ) => Promise<{
+    status: number;
+    data: Message<keyof C & string, Payload> | undefined;
+  }>;
   load: <M extends Payload, C, E>(
     reducible: ReducibleFactory<M, C, E>,
     id: string
@@ -67,12 +70,15 @@ export const tester = (port = 3000): Tester => {
     event: async <M extends Payload, C, E>(
       handler: EventHandlerFactory<M, C, E>,
       event: Message<keyof E & string, Payload>
-    ): Promise<Message<keyof C & string, Payload> | undefined> => {
-      const { data } = await axios.post<
+    ): Promise<{
+      status: number;
+      data: Message<keyof C & string, Payload> | undefined;
+    }> => {
+      const { status, data } = await axios.post<
         Payload,
         AxiosResponse<Message<keyof C & string, Payload> | undefined>
       >(url(eventHandlerPath(handler)), event);
-      return data;
+      return { status, data };
     },
 
     load: async <M extends Payload, C, E>(

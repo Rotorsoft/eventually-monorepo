@@ -14,7 +14,13 @@ import {
   Reducible,
   Snapshot
 } from "./types";
-import { bind, randomId, store, validateMessage } from "./utils";
+import {
+  bind,
+  randomId,
+  RegistrationError,
+  store,
+  validateMessage
+} from "./utils";
 
 interface Reader {
   load: Getter;
@@ -47,7 +53,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const { actor, name, id, expectedVersion } = command;
     const msg = this.messages[name];
     if (!msg || !msg.commandHandlerFactory)
-      throw Error(`Invalid command "${name}"`);
+      throw new RegistrationError(command);
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);

@@ -166,8 +166,9 @@ export const eventHandlerPath = <M extends Payload, C, E>(
 ): string => "/".concat(decamelize(handler.name));
 
 export enum Errors {
-  ValidationError = "Validation Error",
-  ConcurrencyError = "Concurrency Error"
+  ValidationError = "ERR_VALIDATION",
+  ConcurrencyError = "ERR_CONCURRENCY",
+  RegistrationError = "ERR_REGISTRATION"
 }
 
 export class ValidationError extends Error {
@@ -191,6 +192,14 @@ export class ConcurrencyError extends Error {
   }
 }
 
+export class RegistrationError extends Error {
+  public readonly details;
+  constructor(message: Message<string, Payload>) {
+    super(Errors.RegistrationError);
+    this.details = `Message [${message.name}] not registered with app builder!`;
+  }
+}
+
 /**
  * Validates message payloads
  *
@@ -201,7 +210,7 @@ export const validateMessage = (
   message: Message<string, Payload>
 ): Payload | undefined => {
   const metadata = app().messages[message.name];
-  if (!metadata) throw Error(`Please register message: ${message.name}`);
+  if (!metadata) throw new RegistrationError(message);
   if (metadata.schema) {
     const { value, error } = metadata.schema.validate(message.data, {
       abortEarly: false,

@@ -1,4 +1,9 @@
-import { CommittedEvent, dispose, Payload } from "@rotorsoft/eventually";
+import {
+  CommittedEvent,
+  dispose,
+  Errors,
+  Payload
+} from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";
@@ -118,7 +123,7 @@ describe("pg", () => {
 
     await expect(
       db.commit(a1, [event("test2")], { correlation: "", causation: {} }, 1)
-    ).rejects.toThrowError("Concurrency Error");
+    ).rejects.toThrowError(Errors.ConcurrencyError);
   });
 
   it("should get store stats", async () => {

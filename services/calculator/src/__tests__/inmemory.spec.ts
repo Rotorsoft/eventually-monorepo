@@ -392,7 +392,7 @@ describe("in memory", () => {
 
     it("should throw invalid command error", async () => {
       await expect(app().command(bind("Forget2"))).rejects.toThrow(
-        'Invalid command "Forget2"'
+        Errors.RegistrationError
       );
     });
 
@@ -401,7 +401,7 @@ describe("in memory", () => {
       await app().command(bind("Whatever", undefined, id));
       await expect(
         app().command(bind("Forget", undefined, id))
-      ).rejects.toThrow("Please register message: Forgotten");
+      ).rejects.toThrow(Errors.RegistrationError);
     });
   });
 });

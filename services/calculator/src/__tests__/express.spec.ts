@@ -180,20 +180,22 @@ describe("express app", () => {
 
     it("should return no command", async () => {
       const snapshots = await pressKey(chance.guid(), "1");
-      const response = await t.event(
+      const { status, data } = await t.event(
         StatelessCounter,
         snapshots[0].event as Message<"DigitPressed", Payload>
       );
-      expect(response).toStrictEqual({});
+      expect(status).toBe(200);
+      expect(data).toStrictEqual({});
     });
 
     it("should return no command 2", async () => {
       const snapshots = await pressKey(chance.guid(), ".");
-      const response = await t.event(
+      const { status, data } = await t.event(
         StatelessCounter,
         snapshots[0].event as Message<"DotPressed", Payload>
       );
-      expect(response).toStrictEqual({});
+      expect(status).toBe(200);
+      expect(data).toStrictEqual({});
     });
 
     it("should throw validation error", async () => {
@@ -211,12 +213,13 @@ describe("express app", () => {
       ).rejects.toThrowError("Request failed with status code 400");
     });
 
-    it("should return nothing but OK", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const response = await t.event(StatelessCounter, {
-        name: "IgnoreThis"
-      } as any);
-      expect(response).toBe("Ignored IgnoreThis");
+    it("should throw registration error", async () => {
+      await expect(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        t.event(StatelessCounter, {
+          name: "IgnoreThis"
+        } as any)
+      ).rejects.toThrowError("Request failed with status code 404");
     });
   });
 

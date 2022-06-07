@@ -1,6 +1,7 @@
 import {
   Builder,
   config,
+  Errors,
   eventsOf,
   getReducible,
   MessageHandlerFactory,
@@ -260,11 +261,11 @@ export const swagger = (app: Builder): any => {
                 }
               }
             },
-            "409": {
-              description: "Concurrency Error",
+            "404": {
+              description: "Registration Error",
               content: {
                 "application/json": {
-                  schema: { $ref: "#/components/schemas/ConcurrencyError" }
+                  schema: { $ref: "#/components/schemas/RegistrationError" }
                 }
               }
             },
@@ -336,7 +337,7 @@ export const swagger = (app: Builder): any => {
         properties: {
           message: {
             type: "string",
-            enum: ["Validation Error"]
+            enum: [Errors.ValidationError]
           },
           details: {
             type: "array",
@@ -345,12 +346,22 @@ export const swagger = (app: Builder): any => {
         },
         required: ["message", "details"]
       },
+      RegistrationError: {
+        type: "object",
+        properties: {
+          message: {
+            type: "string",
+            enum: [Errors.RegistrationError]
+          },
+          details: { type: "string" }
+        }
+      },
       ConcurrencyError: {
         type: "object",
         properties: {
           message: {
             type: "string",
-            enum: ["Concurrency Error"]
+            enum: [Errors.ConcurrencyError]
           },
           lastVersion: { type: "integer" },
           events: {
