@@ -1,3 +1,6 @@
+## [2022-06-07](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.30...@rotorsoft/eventually-v4.0.31)
+### PATCH
+* [e978b4a9](https://github.com/Rotorsoft/eventually-monorepo/commit/e978b4a922e9d1810fcc508531eeac48da42a21c) refactor: improve error handling
 ## [2022-06-06](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.4...@rotorsoft/eventually-broker-v1.0.5)
 ### PATCH
 * [6acfc0eb](https://github.com/Rotorsoft/eventually-monorepo/commit/6acfc0eb9f32aa197d9d507e131de1e4e5c5e394) fix: fix readme to test semrel
