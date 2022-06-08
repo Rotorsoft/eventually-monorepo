@@ -86,10 +86,13 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     command: Command<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
-    this.log.trace("magenta", `\n>>> ${factory.name}`, event);
-    const data = validateMessage(event);
-    const handler = factory(event);
     const { name, stream, id } = event;
+    this.log.trace("magenta", `\n>>> ${factory.name}`, event);
+    const handler = factory(event);
+    const on = (handler as any)["on".concat(name)];
+    if (!on) throw new RegistrationError(event);
+    const data = validateMessage(event);
+
     const metadata: CommittedEventMetadata = {
       correlation: event.metadata?.correlation || randomId(),
       causation: { event: { name, stream, id } }
@@ -98,7 +101,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const snapshots = await handleMessage(
       handler,
       async (state: M) => {
-        command = await (handler as any)["on".concat(name)](event, state);
+        command = await on(event, state);
         // handle commands synchronously
         command && (await this.command<M, C, E>(command, metadata));
         return [bind(name, data)];
