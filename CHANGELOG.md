@@ -1,3 +1,5 @@
+#### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.32...@rotorsoft/eventually-v4.0.33) @rotorsoft/eventually-v4.0.33
+  - PATCH [8065ca77](https://github.com/Rotorsoft/eventually-monorepo/commit/8065ca77b8567fdd712fdad033eff11dc2848195) fix: return registration error when event handler not found
 #### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.25...@rotorsoft/eventually-express-v4.0.26) @rotorsoft/eventually-express-v4.0.26
   - PATCH [835c0000](https://github.com/Rotorsoft/eventually-monorepo/commit/835c0000f04ce70ad8b920fd0fda1c55adb5925f) fix: expose app endpoints in api
 #### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.31...@rotorsoft/eventually-v4.0.32) @rotorsoft/eventually-v4.0.32
