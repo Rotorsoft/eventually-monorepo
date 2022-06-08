@@ -1,3 +1,5 @@
+#### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.6...@rotorsoft/eventually-broker-v1.0.7) @rotorsoft/eventually-broker-v1.0.7
+  - PATCH [055ba59e](https://github.com/Rotorsoft/eventually-monorepo/commit/055ba59e5f45b6f45a841f0d116e0b54c5ad4ffd) fix: add 201 status to committable codes
 ## [2022-06-07](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.5...@rotorsoft/eventually-broker-v1.0.6)
 ### PATCH
 * [eec559e2](https://github.com/Rotorsoft/eventually-monorepo/commit/eec559e27ed9f5c5019a9b1cd4f4d11b09f4acd8) fix: reset error message only when stats position is higher, improve stats log

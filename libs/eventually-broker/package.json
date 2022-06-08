@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-broker",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Eventually Framework Broker Service",
   "author": "rotorsoft",
   "license": "MIT",
