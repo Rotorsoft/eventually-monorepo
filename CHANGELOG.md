@@ -1,3 +1,5 @@
+#### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.25...@rotorsoft/eventually-express-v4.0.26) @rotorsoft/eventually-express-v4.0.26
+  - PATCH [835c0000](https://github.com/Rotorsoft/eventually-monorepo/commit/835c0000f04ce70ad8b920fd0fda1c55adb5925f) fix: expose app endpoints in api
 #### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.31...@rotorsoft/eventually-v4.0.32) @rotorsoft/eventually-v4.0.32
   - PATCH [835c0000](https://github.com/Rotorsoft/eventually-monorepo/commit/835c0000f04ce70ad8b920fd0fda1c55adb5925f) fix: expose app endpoints in api
 #### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.6...@rotorsoft/eventually-broker-v1.0.7) @rotorsoft/eventually-broker-v1.0.7
