@@ -302,6 +302,12 @@ export class ExpressApp extends AppBase {
       res.type("html");
       res.send(rapidoc(config().service));
     });
+    this._app.get("/_endpoints", (_, res) => {
+      res.json(this.endpoints);
+    });
+    this._app.get("/_health", (_, res) => {
+      res.status(200).json({ status: "OK" });
+    });
     return this._app;
   }
 
@@ -313,9 +319,7 @@ export class ExpressApp extends AppBase {
   async listen(silent = false, port?: number): Promise<void> {
     const { service, version, env, logLevel } = config();
     port = port || config().port;
-    this._app.get("/_health", (_, res: Response) => {
-      res.status(200).json({ status: "OK" });
-    });
+
     this._app.get("/", (_: Request, res: Response) => {
       res.status(200).json({
         env,
@@ -324,10 +328,12 @@ export class ExpressApp extends AppBase {
         logLevel,
         mem: process.memoryUsage(),
         uptime: formatTime(process.uptime()),
+        swagger: "/swagger",
         "swagger-ui": "/swagger-ui",
         redoc: "/redoc",
         rapidoc: "/rapidoc",
-        health: "/_health"
+        health: "/_health",
+        endpoints: "/_endpoints"
       });
     });
 

@@ -42,6 +42,7 @@ export type Endpoints = {
       type: "policy" | "process-manager";
       factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
+      events: string[];
     };
   };
 };
@@ -246,16 +247,17 @@ export class Builder {
       const reducible = getReducible(handler);
       const type = reducible ? "process-manager" : "policy";
       const path = eventHandlerPath(factory);
-      this.endpoints.eventHandlers[path] = {
-        type,
-        factory,
-        path
-      };
       const events = messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.eventHandlerFactories[path] = factory;
         return name;
       });
+      this.endpoints.eventHandlers[path] = {
+        type,
+        factory,
+        path,
+        events
+      };
       reducible && this.withStreams();
       log().info("bgMagenta", " POST ", path, events);
     });
