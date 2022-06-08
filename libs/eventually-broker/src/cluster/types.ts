@@ -108,5 +108,6 @@ export interface State extends Disposable {
 export const RetryableHttpStatus = [404, 429, 503, 504];
 
 // 200 - Ok
+// 201 - Created
 // 204 - No Content (Ignored by RegEx filters)
-export const CommittableHttpStatus = [200, 204];
+export const CommittableHttpStatus = [200, 201, 204];
