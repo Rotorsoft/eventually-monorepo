@@ -1,3 +1,5 @@
+#### 2022-06-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.33...@rotorsoft/eventually-v4.0.34) @rotorsoft/eventually-v4.0.34
+  - PATCH [dd05f9fa](https://github.com/Rotorsoft/eventually-monorepo/commit/dd05f9fa2d85f19a779693528b1d268fe4698f14) fix: refactor builder metadata
 #### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.32...@rotorsoft/eventually-v4.0.33) @rotorsoft/eventually-v4.0.33
   - PATCH [8065ca77](https://github.com/Rotorsoft/eventually-monorepo/commit/8065ca77b8567fdd712fdad033eff11dc2848195) fix: return registration error when event handler not found
 #### 2022-06-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.25...@rotorsoft/eventually-express-v4.0.26) @rotorsoft/eventually-express-v4.0.26
