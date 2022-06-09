@@ -1,3 +1,5 @@
+#### 2022-06-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.7...@rotorsoft/eventually-broker-v1.0.8) @rotorsoft/eventually-broker-v1.0.8
+  - PATCH [80d2f280](https://github.com/Rotorsoft/eventually-monorepo/commit/80d2f2807759c8fb44c99b6622abf23bdcee35d1) fix: change path regex to allow multiple segments
 #### 2022-06-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.26...@rotorsoft/eventually-express-v4.0.27) @rotorsoft/eventually-express-v4.0.27
   - PATCH [dd05f9fa](https://github.com/Rotorsoft/eventually-monorepo/commit/dd05f9fa2d85f19a779693528b1d268fe4698f14) fix: refactor builder metadata
 #### 2022-06-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.33...@rotorsoft/eventually-v4.0.34) @rotorsoft/eventually-v4.0.34
