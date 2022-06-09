@@ -171,40 +171,43 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this.endpoints.commands).map(
-      ({ type, factory, name, path }) => {
+    Object.values(this.endpoints.commandHandlers).map(
+      ({ type, factory, commands }) => {
         type === "aggregate" && (aggregates[factory.name] = factory as any);
-        this._router.post(
-          path,
-          async (
-            req: Request<{ id: string }, any, Payload, never> & {
-              actor?: Actor;
-            },
-            res: Response,
-            next: NextFunction
-          ) => {
-            try {
-              const ifMatch = req.headers["if-match"] || undefined;
-              const snapshots = await this.command(
-                bind(
-                  name,
-                  req.body,
-                  req.params.id,
-                  type === "aggregate" && ifMatch ? +ifMatch : undefined,
-                  req.actor
-                )
-              );
-              snapshots.length &&
-                res.setHeader(
-                  "ETag",
-                  snapshots[snapshots.length - 1].event.version
+        Object.entries(commands).map(([name, path]) => {
+          this._router.post(
+            path,
+            async (
+              req: Request<{ id: string }, any, Payload, never> & {
+                actor?: Actor;
+              },
+              res: Response,
+              next: NextFunction
+            ) => {
+              try {
+                const ifMatch = req.headers["if-match"] || undefined;
+                const snapshots = await this.command(
+                  bind(
+                    name,
+                    req.body,
+                    req.params.id,
+                    type === "aggregate" && ifMatch ? +ifMatch : undefined,
+                    req.actor
+                  )
                 );
-              return res.status(200).send(snapshots);
-            } catch (error) {
-              next(error);
+                snapshots.length &&
+                  res.setHeader(
+                    "ETag",
+                    snapshots[snapshots.length - 1].event.version
+                  );
+                return res.status(200).send(snapshots);
+              } catch (error) {
+                next(error);
+              }
             }
-          }
-        );
+          );
+          this.log.info("bgBlue", " POST ", path);
+        });
       }
     );
 
@@ -229,7 +232,7 @@ export class ExpressApp extends AppBase {
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
     Object.values(this.endpoints.eventHandlers).map(
-      ({ type, factory, path }) => {
+      ({ type, factory, path, events }) => {
         type === "process-manager" && (managers[factory.name] = factory as any);
         this._router.post(
           path,
@@ -247,6 +250,7 @@ export class ExpressApp extends AppBase {
             }
           }
         );
+        this.log.info("bgMagenta", " POST ", path, events);
       }
     );
 

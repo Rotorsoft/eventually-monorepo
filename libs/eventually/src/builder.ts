@@ -8,7 +8,6 @@ import {
   eventsOf,
   ExternalSystemFactory,
   getReducible,
-  log,
   messagesOf,
   Payload,
   PolicyFactory,
@@ -29,12 +28,12 @@ export type Factories = {
 };
 
 export type Endpoints = {
-  commands: {
+  commandHandlers: {
     [name: string]: {
       type: "aggregate" | "external-system";
-      name: string;
       factory: CommandHandlerFactory<Payload, unknown, unknown>;
-      path: string;
+      commands: Record<string, string>;
+      events: string[];
     };
   };
   eventHandlers: {
@@ -68,7 +67,7 @@ export class Builder {
     eventHandlers: {}
   };
   readonly endpoints: Endpoints = {
-    commands: {},
+    commandHandlers: {},
     eventHandlers: {}
   };
   readonly messages: Record<string, MessageMetadata> = {};
@@ -85,8 +84,8 @@ export class Builder {
     });
   }
 
-  private _registerEventHandlerFactory(
-    factory: EventHandlerFactory<Payload, unknown, unknown>,
+  private _registerEventHandlerFactory<C, E>(
+    factory: EventHandlerFactory<Payload, C, E>,
     description?: string
   ): void {
     if (this._factories.eventHandlers[factory.name])
@@ -95,8 +94,8 @@ export class Builder {
     this.documentation[factory.name] = { description };
   }
 
-  private _registerCommandHandlerFactory(
-    factory: CommandHandlerFactory<Payload, unknown, unknown>,
+  private _registerCommandHandlerFactory<C, E>(
+    factory: CommandHandlerFactory<Payload, C, E>,
     description?: string
   ): void {
     if (this._factories.commandHandlers[factory.name])
@@ -140,10 +139,7 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withPolicy(
-    factory: PolicyFactory<unknown, unknown>,
-    description?: string
-  ): this {
+  withPolicy<C, E>(factory: PolicyFactory<C, E>, description?: string): this {
     this._registerEventHandlerFactory(factory, description);
     return this;
   }
@@ -153,8 +149,8 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withProcessManager(
-    factory: ProcessManagerFactory<Payload, unknown, unknown>,
+  withProcessManager<C, E>(
+    factory: ProcessManagerFactory<Payload, C, E>,
     description?: string
   ): this {
     this._registerEventHandlerFactory(factory, description);
@@ -177,8 +173,8 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withAggregate(
-    factory: AggregateFactory<Payload, unknown, unknown>,
+  withAggregate<C, E>(
+    factory: AggregateFactory<Payload, C, E>,
     description?: string
   ): this {
     this._registerCommandHandlerFactory(factory, description);
@@ -190,8 +186,8 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withExternalSystem(
-    factory: ExternalSystemFactory<unknown, unknown>,
+  withExternalSystem<C, E>(
+    factory: ExternalSystemFactory<C, E>,
     description?: string
   ): this {
     this._registerCommandHandlerFactory(factory, description);
@@ -225,19 +221,23 @@ export class Builder {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
       const type = reducible ? "aggregate" : "external-system";
+      const events =
+        reducible &&
+        eventsOf(reducible).map((name) => {
+          this._msg(name);
+          return name;
+        });
+      const endpoint = (this.endpoints.commandHandlers[factory.name] = {
+        type,
+        factory,
+        commands: {} as Record<string, string>,
+        events
+      });
       messagesOf(handler).map((name) => {
         const msg = this._msg(name);
         msg.commandHandlerFactory = factory;
-        const path = commandHandlerPath(factory, name);
-        this.endpoints.commands[path] = {
-          type,
-          name,
-          factory,
-          path
-        };
-        log().info("bgBlue", " POST ", path);
+        endpoint.commands[name] = commandHandlerPath(factory, name);
       });
-      reducible && eventsOf(reducible).map((name) => this._msg(name));
       this.withStreams();
     });
 
@@ -252,14 +252,13 @@ export class Builder {
         msg.eventHandlerFactories[path] = factory;
         return name;
       });
-      this.endpoints.eventHandlers[path] = {
+      this.endpoints.eventHandlers[factory.name] = {
         type,
         factory,
         path,
         events
       };
       reducible && this.withStreams();
-      log().info("bgMagenta", " POST ", path, events);
     });
 
     return;

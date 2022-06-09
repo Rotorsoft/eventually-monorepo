@@ -130,7 +130,7 @@ export const swagger = (app: Builder): any => {
       type: "object",
       properties: {
         event: {
-          oneOf: eventsOf(reducible).map((name) => ({
+          anyOf: eventsOf(reducible).map((name) => ({
             $ref: `#/components/schemas/${name}`
           }))
         },
@@ -141,69 +141,76 @@ export const swagger = (app: Builder): any => {
   };
 
   const getPaths = (): void => {
-    Object.values(app.endpoints.commands).map(({ factory, name, path }) => {
-      const reducible = getReducibleComponent(factory);
-      getReducibleGetters(paths, factory);
-      tags.push({
-        name: factory.name,
-        description: app.documentation[factory.name].description
-      });
-      const description =
-        components.schemas[name]?.description || `Handles **${name}** Command`;
-      delete components.schemas[name]?.description;
-      paths[path.replace("/:id/", "/{id}/")] = {
-        parameters: reducible ? [{ $ref: "#/components/parameters/id" }] : [],
-        post: {
-          operationId: name,
-          tags: [factory.name],
-          summary: name,
-          description,
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
-                schema: { $ref: `#/components/schemas/${name}` }
-              }
-            }
-          },
-          responses: {
-            "200": {
-              description: "OK",
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "array",
-                    items: reducible
-                      ? {
-                          $ref: `#/components/schemas/${factory.name}Snapshot`
-                        }
-                      : {}
+    Object.values(app.endpoints.commandHandlers).map(
+      ({ factory, commands }) => {
+        const reducible = getReducibleComponent(factory);
+        getReducibleGetters(paths, factory);
+        tags.push({
+          name: factory.name,
+          description: app.documentation[factory.name].description
+        });
+        Object.entries(commands).map(([name, path]) => {
+          const description =
+            components.schemas[name]?.description ||
+            `Handles **${name}** Command`;
+          delete components.schemas[name]?.description;
+          paths[path.replace("/:id/", "/{id}/")] = {
+            parameters: reducible
+              ? [{ $ref: "#/components/parameters/id" }]
+              : [],
+            post: {
+              operationId: name,
+              tags: [factory.name],
+              summary: name,
+              description,
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: { $ref: `#/components/schemas/${name}` }
                   }
                 }
-              }
-            },
-            "400": {
-              description: "Validation Error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ValidationError" }
-                }
-              }
-            },
-            "409": {
-              description: "Concurrency Error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ConcurrencyError" }
-                }
-              }
-            },
-            default: { description: "Internal Server Error" }
-          },
-          security: sec.operations[name] || [{}]
-        }
-      };
-    });
+              },
+              responses: {
+                "200": {
+                  description: "OK",
+                  content: {
+                    "application/json": {
+                      schema: {
+                        type: "array",
+                        items: reducible
+                          ? {
+                              $ref: `#/components/schemas/${factory.name}Snapshot`
+                            }
+                          : {}
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  description: "Validation Error",
+                  content: {
+                    "application/json": {
+                      schema: { $ref: "#/components/schemas/ValidationError" }
+                    }
+                  }
+                },
+                "409": {
+                  description: "Concurrency Error",
+                  content: {
+                    "application/json": {
+                      schema: { $ref: "#/components/schemas/ConcurrencyError" }
+                    }
+                  }
+                },
+                default: { description: "Internal Server Error" }
+              },
+              security: sec.operations[name] || [{}]
+            }
+          };
+        });
+      }
+    );
 
     Object.values(app.endpoints.eventHandlers).map(({ factory, path }) => {
       getReducibleComponent(factory);
