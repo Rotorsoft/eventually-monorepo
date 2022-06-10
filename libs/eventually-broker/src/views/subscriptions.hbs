@@ -37,8 +37,24 @@
         </td>
         <td id="status-{{this.id}}"></td>
         <td id="session-{{this.id}}"></td>
-        <td><a href="/_services/{{this.producer}}">{{this.producer}}</a></td>
-        <td><a href="/_services/{{this.consumer}}">{{this.consumer}}</a></td>
+        <td>
+          <a href="/_services/{{this.producer}}">{{this.producer}}</a>
+          {{#if this.pll}}
+            <a href="{{this.pll}}" target="_blank" rel="noopener noreferrer"><img src="/_public/assets/external-link.svg"
+            alt="Logs"
+            width="12"
+            height="12" /></a>
+          {{/if}}
+        </td>
+        <td>
+          <a href="/_services/{{this.consumer}}">{{this.consumer}}</a>
+          {{#if this.cll}}
+            <a href="{{this.cll}}" target="_blank" rel="noopener noreferrer"><img src="/_public/assets/external-link.svg"
+            alt="Logs"
+            width="12"
+            height="12" /></a>
+          {{/if}}
+        </td>
         <td>{{this.path}}</td>
         <td>{{this.streams}}</td>
         <td>{{this.names}}</td>

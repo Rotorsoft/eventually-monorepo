@@ -25,6 +25,12 @@
       <tr>
         <td scope="row">
           <a href="/_services/{{this.id}}">{{this.id}}</a>
+          {{#if this.sll}}
+            <a href="{{this.sll}}" target="_blank" rel="noopener noreferrer"><img src="/_public/assets/external-link.svg"
+            alt="Logs"
+            width="12"
+            height="12" /></a>
+          {{/if}}
         </td>
         <td>{{this.channel}}</td>
         <td><a href="{{this.url}}">{{this.url}}</a></td>

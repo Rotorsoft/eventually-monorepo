@@ -2,14 +2,19 @@ import { log, randomId } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
-import { isAdmin } from "../utils";
+import { isAdmin, serviceLink } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
 
 const rows = (subs: Subscription[]): { rows: SubscriptionViewModel[] } => ({
   rows: subs
-    .map((sub) => ({ ...sub, ...state().viewModel(sub.id) }))
+    .map((sub) => ({
+      ...sub,
+      ...state().viewModel(sub.id),
+      pll: serviceLink(sub.producer),
+      cll: serviceLink(sub.consumer)
+    }))
     .sort((a, b) =>
       a.active < b.active
         ? 1

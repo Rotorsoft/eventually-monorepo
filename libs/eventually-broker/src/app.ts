@@ -1,5 +1,5 @@
 import { config, dispose, log } from "@rotorsoft/eventually";
-import express, { RequestHandler } from "express";
+import express, { Express, RequestHandler } from "express";
 import { engine } from "express-handlebars";
 import { Server } from "http";
 import path from "path";
@@ -15,7 +15,7 @@ type AppConfig = {
 export const app = async ({
   port,
   middleware = []
-}: AppConfig): Promise<void> => {
+}: AppConfig): Promise<Express> => {
   port = port || config().port;
 
   await subscriptions().seed();
@@ -65,4 +65,6 @@ export const app = async ({
       server.close(reject);
     });
   });
+
+  return app;
 };

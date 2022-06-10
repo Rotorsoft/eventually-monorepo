@@ -1,13 +1,18 @@
 import { log } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
-import { isAdmin } from "../utils";
+import { isAdmin, serviceLink } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
 
 const prepare = (services: Service[]): Service[] =>
-  services.sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0));
+  services
+    .sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
+    .map((s) => ({
+      ...s,
+      sll: serviceLink(s.id)
+    }));
 
 const defaultService = {
   channel: "pg://table_name",
