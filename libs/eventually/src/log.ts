@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { config } from "./config";
 import { Color, Environments, Log, LogLevels } from "./interfaces";
 import { singleton } from "./singleton";
-import { ValidationError } from "./utils";
+import { RegistrationError, ValidationError } from "./utils";
 
 /** Uncolored and stringified for deployed non-dev envs */
 const plain = (
@@ -11,7 +11,13 @@ const plain = (
   details?: any,
   ...params: any[]
 ): void => {
-  console.log(JSON.stringify({ severity: "INFO", message, details, params }));
+  console.log(
+    JSON.stringify({
+      severity: "INFO",
+      message: `${message}: ${details}`,
+      params
+    })
+  );
 };
 
 const trace = (
@@ -54,12 +60,11 @@ const devLog = (): Log => ({
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error: (error: unknown): void => {
-    if (error instanceof ValidationError)
+    if (error instanceof ValidationError || error instanceof RegistrationError)
       console.error(chalk.red(error.name), error.message, error.details);
-    else {
-      const { name, message, stack } = error as Error;
-      console.error(chalk.red(name), message, stack);
-    }
+    else if (error instanceof Error)
+      console.error(chalk.red(error.name), error.message, error.stack);
+    else console.error(chalk.red(error));
   }
 });
 
@@ -69,7 +74,7 @@ const plainLog = (): Log => ({
   trace: config().logLevel === LogLevels.trace ? plain : nolog,
   info: config().logLevel !== LogLevels.error ? plain : nolog,
   error: (error: unknown): void => {
-    if (error instanceof ValidationError)
+    if (error instanceof ValidationError || error instanceof RegistrationError)
       console.error(
         JSON.stringify({
           severity: "ERROR",
@@ -78,12 +83,9 @@ const plainLog = (): Log => ({
           details: error.details
         })
       );
-    else {
-      const { name, message, stack } = error as Error;
-      console.error(
-        JSON.stringify({ severity: "ERROR", name, message, stack })
-      );
-    }
+    else if (error instanceof Error)
+      console.error(JSON.stringify({ severity: "ERROR", ...error }));
+    else console.error(error);
   }
 });
 

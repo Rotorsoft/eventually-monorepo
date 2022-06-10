@@ -157,8 +157,8 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
             return retry ? sub : undefined;
           }
         }
+        sendStats(sub, stats);
       }
-      sendStats(sub, stats);
     } catch (error) {
       sendError(`${triggerLog(trigger)} ${error.message}`, sub.position, sub);
       await dispose()(ExitCodes.ERROR);
