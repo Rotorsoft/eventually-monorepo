@@ -1,3 +1,5 @@
+#### 2022-06-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.9...@rotorsoft/eventually-broker-v1.0.10) @rotorsoft/eventually-broker-v1.0.10
+  - PATCH [dc800340](https://github.com/Rotorsoft/eventually-monorepo/commit/dc800340261fb4b5e99a2ac06860b1cca705ec9a) fix: expose broker express app, display external log links to services
 #### 2022-06-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.8...@rotorsoft/eventually-broker-v1.0.9) @rotorsoft/eventually-broker-v1.0.9
   - PATCH [98a64c99](https://github.com/Rotorsoft/eventually-monorepo/commit/98a64c99cc6a05890b09cc8dca547f5ec10b325d) fix: improve logging
 #### 2022-06-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.34...@rotorsoft/eventually-v4.0.35) @rotorsoft/eventually-v4.0.35
