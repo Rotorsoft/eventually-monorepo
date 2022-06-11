@@ -42,42 +42,13 @@ This project is also trying to address the following issues:
 
 From a technical perspective, reactive microservices encapsulate a small number of protocol-agnostic message handlers in charge of solving specific business problems. These handlers are grouped together logically according to a domain model, and can be optionally streamable and reducible to some kind of pesistent state. The table below presents all available options and their proper mapping to DDD:
 
-<table>
-    <tr>
-        <th>Message Handler</th>
-        <th>Consumes</th>
-        <th>Produces</th>
-        <th style="text-align:center">Streamable</th>
-        <th style="text-align:center">Reducible</th>
-        <th>DDD Artifact</th>
-    </tr>
-    <tr>
-        <td rowspan="2">Command Handlers</td>
-        <td rowspan="2" style="color:cyan">Commands</td>
-        <td rowspan="2" style="color:orange">Events</td>
-        <td style="text-align:center">Yes</td>
-        <td style="text-align:center">Yes</td>
-        <td style="color:yellow">Aggregate</td>
-    </tr>
-    <tr>
-        <td style="text-align:center">Yes</td>
-        <td style="text-align:center">No</td>
-        <td style="color:pink">External System</td>
-    </tr>
-    <tr>
-        <td rowspan="2">Event Handlers</td>
-        <td rowspan="2" style="color:orange">Events</td>
-        <td rowspan="2" style="color:cyan">Commands</td>
-        <td style="text-align:center">Yes</td>
-        <td style="text-align:center">Yes</td>
-        <td style="color:purple">Process Manager</td>
-    </tr>
-    </tr>
-        <td style="text-align:center">No</td>
-        <td style="text-align:center">No</td>
-        <td style="color:purple">Policy</td>
-    </tr>
-</table>
+Message Handler | Consumes | Produces | Streamable | Reducible | DDD Artifact
+--- | :---: | :---: | :---: | :---: | :---:
+Command Handler | ![Command](./assets/command.png) | ![Event](./assets/event.png) | Yes | Yes | ![Aggregate](./assets/aggregate.png)
+Command Handler | ![Command](./assets/command.png) | ![Event](./assets/event.png) | Yes | No | ![External System](./assets/system.png)
+Event Handler | ![Event](./assets/event.png) | ![Command](./assets/command.png) | Yes | Yes | ![Process Manager](./assets/process-manager.png)
+Event Handler | ![Event](./assets/event.png) | ![Command](./assets/command.png) | No | No | ![Policy](./assets/policy.png)
+Event Handler | ![Event](./assets/event.png) | ![Read Model](./assets/read-model.png) | No | No | ![Projector](./assets/projector.png)
 
 > - `Aggregates` define the consistency boundaries of business entities
 > - `Process Managers` can expand those boundaries across many aggregates or systems
@@ -102,19 +73,28 @@ As system architects we need to decide how information flows from service to ser
 
 ### Integration Patterns
 
+Event Storming Models are like Lego games where there is only one way to connect the pieces (DDD artifacts)
+
+![Event Storming Lego](./assets/lego.png)
+
+But those pieces live inside domain contexts and physical services. In DDD you build larger systems by connecting domain contexts in [Context Maps](https://github.com/ddd-crew/context-mapping) following well-known integration patterns.
+
 ![Service Patterns](./assets/patterns.png)
+
+![Service Patterns](./assets/broker.png)
 
 ## Routing conventions (using REST protocol by default)
 
 Message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling:
 
-| Artifact        | Handler                         | Getters                                                                  |
-| --------------- | ------------------------------- | ------------------------------------------------------------------------ |
-| Aggregate       | `POST /aggregate/:id/command`   | `GET /aggregate/:id`<br/>`GET /aggregate/:id/stream`                     |
-| Process Manager | `POST /process-manager`         | `GET /process-manager/:stream`<br/>`GET /process-manager/:stream/stream` |
-| External System | `POST /external-system/command` | `GET /all?stream=external-system`                                        |
-| Policy          | `POST /policy`                  | `N/A`                                                                    |
-| All Stream      | `N/A`                           | `GET /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]`             |
+Artifact | Handler | Getters
+| --- | --- | --- |
+| ![Aggregate](./assets/aggregate.png) | `POST /aggregate/:id/command` | `GET /aggregate/:id`<br/>`GET /aggregate/:id/stream` |
+| ![Process Manager](./assets/process-manager.png) | `POST /process-manager` | `GET /process-manager/:stream`<br/>`GET /process-manager/:stream/stream` |
+| ![External System](./assets/system.png) | `POST /external-system/command` | `GET /all?stream=external-system` |
+| ![Policy](./assets/policy.png) | `POST /policy` | `NA` |
+| **All** Stream | `N/A` | `GET /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]` |
+| ![Projector](./assets/projector.png) | `POST /projector` | `TBD: Fee form query API` |
 
 ## Testing your code
 
