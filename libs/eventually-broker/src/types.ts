@@ -24,6 +24,9 @@ export type Service = {
  * - `names`: regex rules to filter by event names
  * - `position` The position in the stream - last acked id
  * - `updated` The last update timestamp
+ * - `batch_size` The pull batch size (default 100)
+ * - `retries` The number of retries before pausing (default 3)
+ * - `retry_timeout_sec` Seconds between retries with exponential backoff (default 10)
  */
 export type Subscription = {
   id: string;
@@ -35,6 +38,9 @@ export type Subscription = {
   names: string;
   position: number;
   updated: Date;
+  batch_size: number;
+  retries: number;
+  retry_timeout_secs: number;
 };
 
 export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
@@ -44,14 +50,14 @@ export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
  * - `operation`: triggering operation
  * - `position`: optional position in stream
  * - `payload`: optional trigger payload
- * - `retries`: optional retry counter
+ * - `retry_count`: optional retry counter
  */
 export type TriggerPayload = {
   id: string;
   operation: Operation;
   position?: number;
   payload?: any;
-  retries?: number;
+  retry_count?: number;
 };
 
 /**

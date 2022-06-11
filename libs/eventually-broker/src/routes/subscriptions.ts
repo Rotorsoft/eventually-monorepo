@@ -34,7 +34,10 @@ const defaultSubscription = {
   consumer: "",
   path: "",
   streams: ".*",
-  names: ".*"
+  names: ".*",
+  batch_size: 100,
+  retries: 3,
+  retry_timeout_secs: 10
 };
 
 router.get("/_monitor-all", (req, res) => {

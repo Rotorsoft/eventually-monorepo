@@ -21,10 +21,18 @@ type Sub = SubscriptionConfig & {
   pushChannel: PushChannel;
   streamsRegExp: RegExp;
   namesRegExp: RegExp;
+  retries: number;
+  retryTimeoutSecs: number;
+  pumping: boolean;
+  retryTimeout: NodeJS.Timeout;
 };
 
-const triggerLog = ({ operation, retries, position }: TriggerPayload): string =>
-  `[${operation}${retries || ""}${
+const triggerLog = ({
+  operation,
+  retry_count,
+  position
+}: TriggerPayload): string =>
+  `[${operation}${retry_count || ""}${
     position ? `@${position}` : ""
   } ${new Date().toISOString()}]`;
 
@@ -74,7 +82,9 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       ...config,
       streamsRegExp: RegExp(config.streams),
       namesRegExp: RegExp(config.names),
-      pushChannel: pushFactory(pushUrl, config.id)
+      pushChannel: pushFactory(pushUrl, config.id),
+      pumping: false,
+      retryTimeout: undefined
     };
   };
 
@@ -98,16 +108,13 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     }
   });
 
-  const BATCH_SIZE = 100;
-  const RETRY_TIMEOUT = 10000;
   let position = -1;
-
   const pumpSub = async (
     sub: Sub,
     trigger: TriggerPayload
-  ): Promise<Sub | undefined> => {
+  ): Promise<boolean> => {
+    log().trace("magenta", "pumpSub", sub.id, trigger);
     const stats: SubscriptionStats = { batches: 0, total: 0, events: {} };
-    let retry = false;
     try {
       if (trigger.position > position) {
         await subscriptions().commitServicePosition(
@@ -117,10 +124,10 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         position = trigger.position;
       }
 
-      let count = BATCH_SIZE;
-      while (count === BATCH_SIZE) {
+      let count = sub.batchSize;
+      while (count === sub.batchSize) {
         stats.batches++;
-        const events = await pullchannel().pull(sub.position, BATCH_SIZE);
+        const events = await pullchannel().pull(sub.position, sub.batchSize);
         count = events.length;
         for (const e of events) {
           const { status, statusText } =
@@ -145,7 +152,6 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
             sub.position = e.id;
           } else {
             const retryable = RetryableHttpStatus.includes(status);
-            retryable && (retry = (trigger.retries || 0) < 3);
             sendError(
               `${triggerLog(trigger)} HTTP ${status} ${statusText}`,
               e.id,
@@ -154,7 +160,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
               retryable ? "warning" : "danger",
               stats
             );
-            return retry ? sub : undefined;
+            return retryable && (trigger.retry_count || 0) < sub.retries;
           }
         }
         sendStats(sub, stats);
@@ -165,39 +171,34 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     }
   };
 
-  let pumping = false;
-  let retryTimeout: NodeJS.Timeout;
   const pumpRetry = async (
-    subs: Sub[],
+    sub: Sub,
     trigger: TriggerPayload
   ): Promise<void> => {
-    if (pumping) return;
-    pumping = true;
-    sendTrigger(trigger);
-    clearTimeout(retryTimeout);
-    const retrySubs = (
-      await Promise.all(subs.map((sub) => pumpSub(sub, trigger)))
-    ).filter((s) => s);
-    const retries = (trigger.retries || 0) + 1;
-    retrySubs.length &&
-      (retryTimeout = setTimeout(
-        async () =>
-          await pumpRetry(
-            retrySubs.filter((p) => p),
-            {
-              operation: "RETRY",
-              id: trigger.id,
-              retries,
-              position: trigger.position
-            }
-          ),
-        RETRY_TIMEOUT * retries
-      ));
-    pumping = false;
+    if (sub.pumping) return;
+    sub.pumping = true;
+    clearTimeout(sub.retryTimeout);
+    const retry = await pumpSub(sub, trigger);
+    const retry_count = (trigger.retry_count || 0) + 1;
+    retry &&
+      (sub.retryTimeout = setTimeout(async () => {
+        const retry_trigger: TriggerPayload = {
+          operation: "RETRY",
+          id: trigger.id,
+          retry_count,
+          position: trigger.position
+        };
+        sendTrigger(retry_trigger);
+        await pumpRetry(sub, retry_trigger);
+      }, sub.retryTimeoutSecs * 1000 * retry_count));
+    sub.pumping = false;
   };
 
   const pumpChannel: TriggerCallback = async (trigger) => {
-    await pumpRetry(Object.values(_subs), trigger);
+    sendTrigger(trigger);
+    await Promise.all(
+      Object.values(_subs).map((sub) => pumpRetry(sub, trigger))
+    );
   };
 
   type MasterMessage = { operation: Operation; config: SubscriptionConfig };
@@ -209,7 +210,9 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       } else {
         try {
           const sub = (_subs[config.id] = build(config));
-          await pumpRetry([sub], { operation, id: config.id });
+          const trigger: TriggerPayload = { operation, id: config.id };
+          sendTrigger(trigger);
+          await pumpRetry(sub, trigger);
         } catch (error) {
           error instanceof Error &&
             sendError(error.message, config.position, config);

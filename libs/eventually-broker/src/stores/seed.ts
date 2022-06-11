@@ -22,6 +22,9 @@ create table if not exists public.subscriptions (
 ) tablespace pg_default;
 
 alter table public.subscriptions add column if not exists updated timestamptz not null default now();
+alter table public.subscriptions add column if not exists batch_size int not null default 100;
+alter table public.subscriptions add column if not exists retries int not null default 3;
+alter table public.subscriptions add column if not exists retry_timeout_secs int not null default 100;
 
 create or replace function notify() returns trigger as
 $trigger$
@@ -62,8 +65,8 @@ execute procedure public.notify();
 drop trigger if exists on_subscription_updated on public.subscriptions;
 create trigger on_subscription_updated after UPDATE on public.subscriptions for each row
 when (
-  (OLD.active, OLD.path, OLD.streams, OLD.names) is distinct from
-  (NEW.active, NEW.path, NEW.streams, NEW.names)
+  (OLD.active, OLD.path, OLD.streams, OLD.names, OLD.batch_size, OLD.retries, OLD.retry_timeout_secs) is distinct from
+  (NEW.active, NEW.path, NEW.streams, NEW.names, NEW.batch_size, NEW.retries, NEW.retry_timeout_secs)
 )
 execute procedure public.notify();
 `;

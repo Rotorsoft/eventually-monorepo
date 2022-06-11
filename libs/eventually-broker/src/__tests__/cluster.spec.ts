@@ -7,6 +7,7 @@ import {
   sendError,
   sendStats,
   state,
+  SubscriptionConfig,
   SubscriptionStats,
   work
 } from "../cluster";
@@ -46,7 +47,10 @@ describe("cluster", () => {
       endpoint: "void://",
       streams: ".*",
       names: ".*",
-      position: 2
+      position: 2,
+      batchSize: 100,
+      retries: 3,
+      retryTimeoutSecs: 10
     };
     const stats: SubscriptionStats = {
       batches: 1,
@@ -84,13 +88,16 @@ describe("cluster", () => {
   });
 
   it("should work", async () => {
-    const subConfig = {
+    const subConfig: SubscriptionConfig = {
       id: "s1",
       active: true,
       endpoint: "void://",
       streams: ".*",
       names: ".*",
-      position: 2
+      position: 2,
+      batchSize: 100,
+      retries: 3,
+      retryTimeoutSecs: 10
     };
     const chanConfig: ChannelConfig = {
       id: "s1",

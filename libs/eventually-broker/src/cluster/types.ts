@@ -9,6 +9,9 @@ export type SubscriptionConfig = {
   streams: string;
   names: string;
   position: number;
+  batchSize: number;
+  retries: number;
+  retryTimeoutSecs: number;
 };
 
 export type ChannelConfig = {

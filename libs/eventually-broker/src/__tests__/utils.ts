@@ -36,7 +36,10 @@ export const subscriptionBody = (
   streams: ".*",
   names: ".*",
   position: -1,
-  updated: new Date()
+  updated: new Date(),
+  batch_size: 100,
+  retries: 3,
+  retry_timeout_secs: 10
 });
 
 export const createService = (id: string): Promise<void> =>

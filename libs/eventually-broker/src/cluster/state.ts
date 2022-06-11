@@ -63,14 +63,20 @@ export const state = singleton(function state(): State {
     path,
     streams,
     names,
-    position
+    position,
+    batch_size,
+    retries,
+    retry_timeout_secs
   }: Subscription): SubscriptionConfig => ({
     id,
     active,
     endpoint: `${_services[consumer].url}/${path}`,
     streams,
     names,
-    position
+    position,
+    batchSize: batch_size,
+    retries,
+    retryTimeoutSecs: retry_timeout_secs
   });
 
   const run = async (id: string, runs = 0): Promise<void> => {
@@ -336,7 +342,10 @@ export const state = singleton(function state(): State {
               endpoint: "",
               streams: "",
               names: "",
-              position: -1
+              position: -1,
+              batchSize: 100,
+              retries: 3,
+              retryTimeoutSecs: 10
             };
 
         const { workerId } = _states[id] || resetState();

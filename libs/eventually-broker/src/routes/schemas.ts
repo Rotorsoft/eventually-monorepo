@@ -27,13 +27,13 @@ export const editService = joi
       .try(pgChannel, outboxChannel, voidChannel, cronChannel),
     url: joi.string().trim().uri().max(100)
   })
-  .options({ presence: "required" });
+  .presence("required");
 
 export const addService = editService
   .append({
     id: joi.string().trim().max(100).regex(regex.name)
   })
-  .options({ presence: "required" });
+  .presence("required");
 
 export const editSubscription = joi
   .object<Subscription>({
@@ -41,12 +41,15 @@ export const editSubscription = joi
     consumer: joi.string().trim().max(100).regex(regex.name),
     path: joi.string().trim().max(100).regex(regex.path),
     streams: joi.string().trim().max(100),
-    names: joi.string().trim().max(250)
+    names: joi.string().trim().max(250),
+    batch_size: joi.number().integer().min(0).max(1000),
+    retries: joi.number().integer().min(0).max(10),
+    retry_timeout_secs: joi.number().integer().min(3).max(100)
   })
-  .options({ presence: "required" });
+  .presence("required");
 
 export const addSubscription = editSubscription
   .append({
     id: joi.string().trim().max(100).regex(regex.name)
   })
-  .options({ presence: "required" });
+  .presence("required");

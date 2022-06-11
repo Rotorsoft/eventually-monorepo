@@ -114,12 +114,25 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       consumer,
       path,
       streams,
-      names
+      names,
+      batch_size,
+      retries,
+      retry_timeout_secs
     }): Promise<void> => {
       await pool.query(
-        `insert into public.subscriptions(id, active, producer, consumer, path, streams, names)
-        values($1, false, $2, $3, $4, $5, $6)`,
-        [id, producer, consumer, path, streams, names]
+        `insert into public.subscriptions(id, active, producer, consumer, path, streams, names, batch_size, retries, retry_timeout_secs)
+        values($1, false, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          id,
+          producer,
+          consumer,
+          path,
+          streams,
+          names,
+          batch_size,
+          retries,
+          retry_timeout_secs
+        ]
       );
     },
 
@@ -129,11 +142,24 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       consumer,
       path,
       streams,
-      names
+      names,
+      batch_size,
+      retries,
+      retry_timeout_secs
     }): Promise<void> => {
       await pool.query(
-        "update public.subscriptions set producer=$2, consumer=$3, path=$4, streams=$5, names=$6 where id=$1",
-        [id, producer, consumer, path, streams, names]
+        "update public.subscriptions set producer=$2, consumer=$3, path=$4, streams=$5, names=$6, batch_size=$7, retries=$8, retry_timeout_secs=$9 where id=$1",
+        [
+          id,
+          producer,
+          consumer,
+          path,
+          streams,
+          names,
+          batch_size,
+          retries,
+          retry_timeout_secs
+        ]
       );
     },
 

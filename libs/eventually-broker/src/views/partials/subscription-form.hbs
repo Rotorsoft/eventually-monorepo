@@ -16,7 +16,7 @@
   </div>
 {{/if}}
 
-<div class="form-floating mb-3">
+<div class="col-6 form-floating mb-3">
   <select
     class="form-control"
     id="floatingProducer"
@@ -32,7 +32,7 @@
   <label class="px-4" for="floatingProducer">Producer</label>
 </div>
 
-<div class="form-floating mb-3">
+<div class="col-6 form-floating mb-3">
   <select
     class="form-control"
     id="floatingConsumer"
@@ -48,7 +48,7 @@
   <label class="px-4" for="floatingConsumer">Consumer</label>
 </div>
 
-<div class="form-floating mb-3">
+<div class="col-6 form-floating mb-3">
   <input
     type="text"
     class="form-control"
@@ -62,7 +62,7 @@
   <label class="px-4" for="floatingPath">Path</label>
 </div>
 
-<div class="form-floating mb-3">
+<div class="col-6 form-floating mb-3">
   <input
     type="text"
     class="form-control"
@@ -88,6 +88,48 @@
     {{#if isAdmin}}{{else}}disabled{{/if}}
   />
   <label class="px-4" for="floatingNames">Names</label>
+</div>
+
+<div class="col-4 form-floating mb-3">
+  <input
+    type="number"
+    class="form-control"
+    id="batchSize"
+    placeholder="batchSize"
+    name="batch_size"
+    value="{{batch_size}}"
+    required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
+  />
+  <label class="px-4" for="batchSize">Batch Size</label>
+</div>
+
+<div class="col-4 form-floating mb-3">
+  <input
+    type="number"
+    class="form-control"
+    id="retries"
+    placeholder="retries"
+    name="retries"
+    value="{{retries}}"
+    required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
+  />
+  <label class="px-4" for="retries">Retries</label>
+</div>
+
+<div class="col-4 form-floating mb-3">
+  <input
+    type="number"
+    class="form-control"
+    id="retryTimeout"
+    placeholder="retryTimeout"
+    name="retry_timeout_secs"
+    value="{{retry_timeout_secs}}"
+    required
+    {{#if isAdmin}}{{else}}disabled{{/if}}
+  />
+  <label class="px-4" for="retryTimeout">Retry Timeout (Secs)</label>
 </div>
 
 {{#if isAdmin}}
