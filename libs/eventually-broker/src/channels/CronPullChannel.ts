@@ -11,13 +11,15 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
 
   let counter = 0;
   const decodedHref = decodeURI(channel.href);
-  const decodedHostname = decodeURI(channel.hostname);
+  const decodedHostPathname = decodeURI(channel.hostname) + decodeURI(channel.pathname);
 
   return {
     name: `CronPullChannel:${decodedHref}`,
     // eslint-disable-next-line @typescript-eslint/require-await
     dispose: async () => {
-      return job.stop();
+      if (job) {
+        return job.stop();
+      }
     },
     listen: async (callback: TriggerCallback) => {
       const [service]  = await subscriptions().loadServices(id);
@@ -26,13 +28,13 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
         currentDate: lastUpdated,
         utc: true,
       }
-      const interval = CronParser.parseExpression(decodedHostname, options);
+      const interval = CronParser.parseExpression(decodedHostPathname, options);
       const cronNextRun = interval.next().toDate();
       if (cronNextRun.getTime() < new Date().getTime()) {
         await callback({ id, operation: "RESTART", position: service.position + 1})
       }
       job = new CronJob({
-        cronTime: decodedHostname,
+        cronTime: decodedHostPathname,
         onTick: async () => {
           await callback({ id, operation: "RESTART", position: service.position + 1 });
         },
