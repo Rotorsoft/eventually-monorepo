@@ -1,3 +1,5 @@
+#### 2022-06-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.11...@rotorsoft/eventually-broker-v1.1.0) @rotorsoft/eventually-broker-v1.1.0
+  - MINOR [f2d6d4c4](https://github.com/Rotorsoft/eventually-monorepo/commit/f2d6d4c486be02871a0aef928d02cfb6fa486b5f) feat: add batch size, retries, and retry timeout options to subscriptions
 #### 2022-06-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.10...@rotorsoft/eventually-broker-v1.0.11) @rotorsoft/eventually-broker-v1.0.11
   - PATCH [de500a07](https://github.com/Rotorsoft/eventually-monorepo/commit/de500a0726023943e9d46312dcd595ee1efc30dc) fix: Add pathname to hostname, and fix stop of undefined (#26)
 #### 2022-06-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.9...@rotorsoft/eventually-broker-v1.0.10) @rotorsoft/eventually-broker-v1.0.10
