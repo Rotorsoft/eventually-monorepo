@@ -24,7 +24,7 @@ create table if not exists public.subscriptions (
 alter table public.subscriptions add column if not exists updated timestamptz not null default now();
 alter table public.subscriptions add column if not exists batch_size int not null default 100;
 alter table public.subscriptions add column if not exists retries int not null default 3;
-alter table public.subscriptions add column if not exists retry_timeout_secs int not null default 100;
+alter table public.subscriptions add column if not exists retry_timeout_secs int not null default 10;
 
 create or replace function notify() returns trigger as
 $trigger$
