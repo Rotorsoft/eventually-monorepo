@@ -1,3 +1,5 @@
+#### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.27...@rotorsoft/eventually-express-v4.0.28) @rotorsoft/eventually-express-v4.0.28
+  - PATCH [78da5387](https://github.com/Rotorsoft/eventually-monorepo/commit/78da5387e636ae852d10f0b809f794bf17de408e) fix: add __killme endpoint to restart pod
 #### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.3...@rotorsoft/eventually-broker-v1.1.4) @rotorsoft/eventually-broker-v1.1.4
   - PATCH [9fc66a65](https://github.com/Rotorsoft/eventually-monorepo/commit/9fc66a65794d4bd3fe8d2edc929b6a34cceae865) fix: protect for replaceAll
 #### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.2...@rotorsoft/eventually-broker-v1.1.3) @rotorsoft/eventually-broker-v1.1.3
