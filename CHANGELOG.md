@@ -1,3 +1,5 @@
+#### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.0...@rotorsoft/eventually-broker-v1.1.1) @rotorsoft/eventually-broker-v1.1.1
+  - PATCH [06c5c022](https://github.com/Rotorsoft/eventually-monorepo/commit/06c5c022ea29c989f4f4b035a69b9dd8ebd47195) fix: set retries default to 10
 #### 2022-06-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.11...@rotorsoft/eventually-broker-v1.1.0) @rotorsoft/eventually-broker-v1.1.0
   - MINOR [f2d6d4c4](https://github.com/Rotorsoft/eventually-monorepo/commit/f2d6d4c486be02871a0aef928d02cfb6fa486b5f) feat: add batch size, retries, and retry timeout options to subscriptions
 #### 2022-06-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.0.10...@rotorsoft/eventually-broker-v1.0.11) @rotorsoft/eventually-broker-v1.0.11
