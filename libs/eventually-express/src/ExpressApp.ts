@@ -312,6 +312,10 @@ export class ExpressApp extends AppBase {
     this._app.get("/_health", (_, res) => {
       res.status(200).json({ status: "OK" });
     });
+    this._app.get("/__killme", () => {
+      this.log.info("red", "KILLME");
+      process.exit(0);
+    });
     return this._app;
   }
 
