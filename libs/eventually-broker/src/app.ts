@@ -1,5 +1,5 @@
 import { config, dispose, log } from "@rotorsoft/eventually";
-import express, { Express, RequestHandler } from "express";
+import express, { Express, RequestHandler, Router } from "express";
 import { engine } from "express-handlebars";
 import { Server } from "http";
 import path from "path";
@@ -10,11 +10,13 @@ import * as routes from "./routes";
 type AppConfig = {
   port?: number;
   middleware?: RequestHandler[];
+  prerouters?: Array<{ path: string; router: Router }>;
 };
 
 export const app = async ({
   port,
-  middleware = []
+  middleware = [],
+  prerouters
 }: AppConfig): Promise<Express> => {
   port = port || config().port;
 
@@ -47,6 +49,7 @@ export const app = async ({
   );
   app.set("view engine", "hbs");
   app.set("views", path.resolve(__dirname, "./views"));
+  prerouters && prerouters.map(({ path, router }) => app.use(path, router));
   app.use("/_services", middleware, routes.services);
   app.use("/_contracts", middleware, routes.contracts);
   app.use("/", middleware, routes.subscriptions);
