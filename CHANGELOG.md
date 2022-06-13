@@ -1,3 +1,5 @@
+#### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.2...@rotorsoft/eventually-broker-v1.1.3) @rotorsoft/eventually-broker-v1.1.3
+  - PATCH [e68a5e13](https://github.com/Rotorsoft/eventually-monorepo/commit/e68a5e13ea9e0895ea58c708afd567eb922219f9) fix: expose prerouters
 #### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.1...@rotorsoft/eventually-broker-v1.1.2) @rotorsoft/eventually-broker-v1.1.2
   - PATCH [6e85f65f](https://github.com/Rotorsoft/eventually-monorepo/commit/6e85f65fe9e72364dcc04efdfa8f091f0e9c16f1) fix: add app prerouters
 #### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.0...@rotorsoft/eventually-broker-v1.1.1) @rotorsoft/eventually-broker-v1.1.1
