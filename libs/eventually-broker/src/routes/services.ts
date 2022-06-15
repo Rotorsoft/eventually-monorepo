@@ -1,7 +1,8 @@
 import { log } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
-import { isAdmin, serviceLink } from "../utils";
+import { state } from "../cluster";
+import { isAdmin } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -11,7 +12,7 @@ const prepare = (services: Service[]): Service[] =>
     .sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0))
     .map((s) => ({
       ...s,
-      sll: serviceLink(s.id)
+      sll: state().serviceLogLink(s.id)
     }));
 
 const defaultService = {

@@ -2,7 +2,7 @@ import { log, randomId } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
-import { isAdmin, serviceLink } from "../utils";
+import { isAdmin } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -10,10 +10,10 @@ export const router = Router();
 const rows = (subs: Subscription[]): { rows: SubscriptionViewModel[] } => ({
   rows: subs
     .map((sub) => ({
-      ...sub,
       ...state().viewModel(sub.id),
-      pll: serviceLink(sub.producer),
-      cll: serviceLink(sub.consumer)
+      ...sub,
+      pll: state().serviceLogLink(sub.producer),
+      cll: state().serviceLogLink(sub.consumer)
     }))
     .sort((a, b) =>
       a.active < b.active
@@ -44,9 +44,6 @@ router.get("/_monitor-all", (req, res) => {
   const session = randomId();
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-store");
-  req.on("error", (error) => {
-    log().error(error);
-  });
   req.on("close", () => state().unsubscribeSSE(session));
   state().subscribeSSE(session, res);
 });
@@ -56,9 +53,6 @@ router.get("/_monitor/:id", (req, res) => {
   const id = req.params.id;
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-store");
-  req.on("error", (error) => {
-    log().error(error);
-  });
   req.on("close", () => {
     state().unsubscribeSSE(session);
   });

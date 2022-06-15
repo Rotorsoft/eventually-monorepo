@@ -1,3 +1,5 @@
+import { RequestHandler, Router } from "express";
+
 /**
  * Services
  * - `id` The service unique id
@@ -71,4 +73,14 @@ export type TriggerCallback = (trigger: TriggerPayload) => Promise<void>;
 export type PushResponse = {
   status: number;
   statusText: string;
+};
+
+/**
+ * App options
+ */
+export type AppOptions = {
+  port?: number;
+  middleware?: RequestHandler[];
+  prerouters?: Array<{ path: string; router: Router }>;
+  serviceLogLinkTemplate?: string;
 };
