@@ -1,25 +1,16 @@
-import { Disposable } from "@rotorsoft/eventually";
-import { Writable } from "stream";
-import { Operation, Service, TriggerPayload } from "../types";
+import { PushChannel } from "../interfaces";
+import { Operation, Subscription, TriggerPayload } from "../types";
 
-export type SubscriptionConfig = {
-  id: string;
-  active: boolean;
-  endpoint: string;
-  streams: string;
-  names: string;
-  position: number;
-  batchSize: number;
-  retries: number;
-  retryTimeoutSecs: number;
-};
+// 404 - Not Found
+// 429 - Too Many Requests
+// 503 - Service Unavailable
+// 504 - Gateway Timeout
+export const RetryableHttpStatus = [404, 429, 503, 504];
 
-export type ChannelConfig = {
-  id: string;
-  channel: string;
-  subscriptions: SubscriptionConfig[];
-  runs: number;
-};
+// 200 - Ok
+// 201 - Created
+// 204 - No Content (Ignored by RegEx filters)
+export const CommittableHttpStatus = [200, 201, 204];
 
 export type EventStats = { count: number; min: number; max: number };
 
@@ -27,30 +18,58 @@ export type SubscriptionStats = {
   batches: number;
   total: number;
   events: Record<string, Record<number, EventStats>>;
-  lastEventName?: string;
 };
 
+export type Color = "success" | "warning" | "danger";
+export type Icon = "bi-cone-striped" | "bi-activity" | "";
 export type SubscriptionState = {
-  workerId?: number;
+  id: string;
   active: boolean;
+  endpoint: string;
   position: number;
-  channelStatus: string;
+  batchSize: number;
+  retries: number;
+  retryTimeoutSecs: number;
+  pushChannel: PushChannel;
+  streamsRegExp: RegExp;
+  namesRegExp: RegExp;
+  pumping: boolean;
+  retryTimeout?: NodeJS.Timeout;
+  stats: SubscriptionStats;
   endpointStatus: {
-    code: number;
-    color: string;
+    name?: string;
+    code?: number;
+    color: Color;
+    icon: Icon;
   };
   errorMessage: string;
   errorPosition: number;
-  stats: SubscriptionStats;
+};
+
+export type SubscriptionWithEndpoint = Subscription & { endpoint: string };
+
+export type ChannelConfig = {
+  id: string;
+  channel: string;
+  subscriptions: Record<string, SubscriptionWithEndpoint>;
+  runs: number;
+  status: string;
 };
 
 export type ErrorMessage = {
   message: string;
-  position: number;
-  config?: SubscriptionConfig;
-  code?: number;
-  color?: string;
-  stats?: SubscriptionStats;
+  state?: SubscriptionState;
+};
+
+export type MasterMessage = {
+  operation: Operation;
+  sub: SubscriptionWithEndpoint;
+};
+
+export type WorkerMessage = {
+  error?: ErrorMessage;
+  state?: SubscriptionState;
+  trigger?: TriggerPayload;
 };
 
 export type EventsViewModel = {
@@ -68,15 +87,15 @@ export type SubscriptionViewModel = {
   channelStatus: string;
   channelPosition: number;
   endpointStatus: {
-    code: number;
-    color: string;
-    icon: string;
+    name?: string;
+    code?: number;
+    color: Color;
+    icon: Icon;
   };
   errorMessage: string;
   errorPosition: number;
   total: number;
   events: EventsViewModel[];
-  lastEventName: string;
 };
 
 //TODO: Improve types for commands events and errors
@@ -85,32 +104,3 @@ export type ContractsViewModel = {
   events: any[];
   errors: any[];
 };
-
-export type WorkerMessage = {
-  error?: ErrorMessage;
-  stats?: SubscriptionStats & SubscriptionConfig;
-  trigger?: TriggerPayload;
-};
-
-export interface State extends Disposable {
-  init: (services: Service[]) => Promise<void>;
-  refreshService: (operation: Operation, id: string) => Promise<void>;
-  refreshSubscription: (operation: Operation, id: string) => Promise<void>;
-  subscribeSSE: (session: string, stream: Writable, id?: string) => void;
-  unsubscribeSSE: (session: string) => void;
-  services: () => Service[];
-  viewModel: (id: string) => SubscriptionViewModel;
-  onMessage: (workerId: number, message: WorkerMessage) => void;
-  onExit: (workerId: number, code: number, signal: string) => void;
-}
-
-// 404 - Not Found
-// 429 - Too Many Requests
-// 503 - Service Unavailable
-// 504 - Gateway Timeout
-export const RetryableHttpStatus = [404, 429, 503, 504];
-
-// 200 - Ok
-// 201 - Created
-// 204 - No Content (Ignored by RegEx filters)
-export const CommittableHttpStatus = [200, 201, 204];

@@ -1,11 +1,12 @@
 import cluster from "cluster";
-import { Express, RequestHandler, Router } from "express";
+import { Express } from "express";
 import {
   ChannelResolvers,
   PostgresPullChannel,
   HttpPostPushChannel,
   VoidPullChannel,
-  VoidPushChannel
+  VoidPushChannel,
+  AppOptions
 } from ".";
 import { app } from "./app";
 import { CronPullChannel } from "./channels/CronPullChannel";
@@ -24,22 +25,15 @@ export const defaultResolvers: ChannelResolvers = {
   }
 };
 
-type Options = {
-  port?: number;
-  resolvers?: ChannelResolvers;
-  middleware?: RequestHandler[];
-  prerouters?: Array<{ path: string; router: Router }>;
+export const broker = async (
+  options: AppOptions & {
+    resolvers?: ChannelResolvers;
+  } = {}
+): Promise<Express> | undefined => {
+  if (cluster.isWorker)
+    await work({
+      push: { ...defaultResolvers.push, ...options.resolvers.push },
+      pull: { ...defaultResolvers.pull, ...options.resolvers.pull }
+    });
+  else return app(options);
 };
-
-export const broker = ({
-  port,
-  resolvers,
-  middleware,
-  prerouters
-}: Options = {}): Promise<void> | Promise<Express> =>
-  cluster.isWorker
-    ? work({
-        push: { ...defaultResolvers.push, ...resolvers.push },
-        pull: { ...defaultResolvers.pull, ...resolvers.pull }
-      })
-    : app({ port, middleware, prerouters });

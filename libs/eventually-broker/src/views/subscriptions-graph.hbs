@@ -136,7 +136,7 @@
     window.onresize = refresh;
 
     const animate = async (state) => {
-        const { id, position, lastEventName } = state;
+        const { id, position, endpointStatus } = state;
 
         d3.select(`#link-${id}`).style("stroke", color(state));
 
@@ -147,7 +147,7 @@
             .duration(2000)
             .style("font-size", "100%");
 
-        d3.select(`#last-event-${id}`).text(lastEventName)
+        d3.select(`#last-event-${id}`).text(endpointStatus.name)
             .interrupt()
             .attr("startOffset", "0%")
             .transition()

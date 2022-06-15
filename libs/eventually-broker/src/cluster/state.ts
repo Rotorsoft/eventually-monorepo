@@ -9,120 +9,40 @@ import {
   RetryableHttpStatus
 } from ".";
 import { Operation, Service, Subscription, subscriptions } from "..";
+import { State, StateOptions } from "./interfaces";
 import {
   ChannelConfig,
-  State,
-  SubscriptionConfig,
   SubscriptionState,
-  SubscriptionStats,
   SubscriptionViewModel,
+  SubscriptionWithEndpoint,
   WorkerMessage
 } from "./types";
 
-export const state = singleton(function state(): State {
-  const _services: Record<string, Service> = {};
-  const _channels: Record<number, ChannelConfig> = {};
-  const _states: Record<string, SubscriptionState> = {};
-  const _sse: Record<string, { stream: Writable; id?: string }> = {};
-
-  const findWorkerId = (producer: string): number | undefined => {
-    const [workerId] = Object.entries(_channels)
-      .filter(([, value]) => value.id === producer)
-      .map(([id]) => parseInt(id));
-    return workerId;
-  };
-
-  const resetState = (
-    workerId?: number,
-    active = false,
-    position = -1
-  ): SubscriptionState => {
-    return {
-      workerId,
-      active,
-      position,
-      channelStatus: "",
-      endpointStatus: {
-        code: 200,
-        color: "success"
-      },
-      errorMessage: "",
-      errorPosition: -1,
-      stats: {
-        total: 0,
-        batches: 0,
-        events: {}
-      }
-    };
-  };
-
-  const subConfig = ({
+type SubscriptionViewState = Pick<
+  SubscriptionState,
+  | "id"
+  | "active"
+  | "position"
+  | "endpointStatus"
+  | "errorMessage"
+  | "errorPosition"
+  | "stats"
+>;
+export const toViewModel = (
+  {
     id,
     active,
-    consumer,
-    path,
-    streams,
-    names,
     position,
-    batch_size,
-    retries,
-    retry_timeout_secs
-  }: Subscription): SubscriptionConfig => ({
-    id,
-    active,
-    endpoint: `${_services[consumer].url}/${path}`,
-    streams,
-    names,
-    position,
-    batchSize: batch_size,
-    retries,
-    retryTimeoutSecs: retry_timeout_secs
-  });
-
-  const run = async (id: string, runs = 0): Promise<void> => {
-    if (++runs > 10) {
-      log().error(Error(`Too many runs in session for channel ${id}`));
-      return;
-    }
-    try {
-      _services[id] = (await subscriptions().loadServices(id))[0];
-      const subs = await subscriptions().loadSubscriptionsByProducer(id);
-      const config: ChannelConfig = {
-        id,
-        channel: encodeURI(_services[id].channel),
-        subscriptions: subs
-          .map((sub) => subConfig(sub))
-          .filter((p) => p.active),
-        runs
-      };
-      let workerId: number = undefined;
-      if (config.subscriptions.length) {
-        const worker = cluster.fork({ WORKER_ENV: JSON.stringify(config) });
-        workerId = worker.id;
-        _channels[worker.id] = config;
-      }
-      subs.map(({ id, active, position }) => {
-        _states[id] = resetState(workerId, active, position);
-        emitSSE(id);
-      });
-    } catch (error) {
-      log().error(error);
-    }
-  };
-
-  const viewModel = (id: string): SubscriptionViewModel => {
-    const {
-      workerId,
-      active,
-      position,
-      stats,
-      channelStatus,
-      endpointStatus,
-      errorMessage,
-      errorPosition
-    } = _states[id] || resetState();
-    const channel = _channels[workerId];
-    const eventsMap: Record<string, EventsViewModel> = {};
+    endpointStatus,
+    errorMessage,
+    errorPosition,
+    stats
+  }: SubscriptionViewState,
+  channelStatus = "",
+  channelPosition = -1
+): SubscriptionViewModel => {
+  const eventsMap: Record<string, EventsViewModel> = {};
+  stats &&
     Object.entries(stats.events).map(([name, value]) => {
       const event = (eventsMap[name] = eventsMap[name] || {
         name,
@@ -141,28 +61,87 @@ export const state = singleton(function state(): State {
         stat.max = Math.max(stat.max, stats.max);
       });
     });
-    const events = Object.values(eventsMap);
-    return {
-      id,
-      active,
-      position,
-      channelStatus,
-      channelPosition: channel ? _services[channel.id].position : -1,
-      endpointStatus: {
-        ...endpointStatus,
-        icon:
-          errorMessage || channelStatus
-            ? "bi-cone-striped"
-            : active
-            ? "bi-activity"
-            : ""
-      },
-      errorMessage,
-      errorPosition,
-      total: stats.total,
-      events: Object.values(events),
-      lastEventName: stats.lastEventName
-    };
+  const events = Object.values(eventsMap);
+  return {
+    channelStatus,
+    channelPosition,
+    id,
+    active,
+    position,
+    endpointStatus,
+    errorMessage,
+    errorPosition,
+    total: stats?.total,
+    events: Object.values(events)
+  };
+};
+
+export const state = singleton(function state(): State {
+  const _services: Record<string, Service> = {};
+  const _channels: Record<number, ChannelConfig> = {};
+  const _sse: Record<string, { stream: Writable; id?: string }> = {};
+  const _views: Record<string, SubscriptionViewModel> = {};
+  let _options: StateOptions = {};
+
+  const findWorkerId = (producer: string): number | undefined => {
+    const [workerId] = Object.entries(_channels)
+      .filter(([, value]) => value.id === producer)
+      .map(([id]) => parseInt(id));
+    return workerId;
+  };
+
+  const endpoint = (consumer: string, path: string): string =>
+    `${_services[consumer].url}/${path}`;
+
+  const run = async (id: string, runs = 0): Promise<void> => {
+    if (++runs > 10) {
+      log().error(Error(`Too many runs in session for channel ${id}`));
+      return;
+    }
+    try {
+      _services[id] = (await subscriptions().loadServices(id))[0];
+      const subs = await subscriptions().loadSubscriptionsByProducer(id);
+      const config: ChannelConfig = {
+        id,
+        channel: encodeURI(_services[id].channel),
+        subscriptions: subs.reduce((obj, s) => {
+          obj[s.id] = {
+            ...s,
+            endpoint: endpoint(s.consumer, s.path)
+          };
+          return obj;
+        }, {} as Record<string, SubscriptionWithEndpoint>),
+        runs,
+        status: ""
+      };
+      subs.forEach(({ id, active, position }) => {
+        _views[id] = {
+          id,
+          active,
+          position,
+          channelStatus: "",
+          channelPosition: -1,
+          endpointStatus: {
+            name: "",
+            code: undefined,
+            color: "success",
+            icon: active ? "bi-activity" : ""
+          },
+          errorMessage: "",
+          errorPosition: -1,
+          total: 0,
+          events: []
+        };
+      });
+      if (Object.values(config.subscriptions).length) {
+        const worker = cluster.fork({
+          WORKER_ENV: JSON.stringify(config)
+        });
+        _channels[worker.id] = config;
+      }
+    } catch (error) {
+      log().error(error);
+    }
   };
 
   const subscribeSSE = (
@@ -177,96 +156,89 @@ export const state = singleton(function state(): State {
     delete _sse[session];
   };
 
-  const emitSSE = (id: string): void => {
+  const emitState = (
+    workerId: number,
+    state?: SubscriptionViewState,
+    view?: SubscriptionViewModel
+  ): void => {
+    const subid = (state && state.id) || (view && view.id);
     const found = Object.values(_sse).filter(
-      ({ id: subid }) => id === (subid || id)
+      ({ id }) => subid === (id || subid)
     );
     if (found.length) {
-      const props = viewModel(id);
+      if (!view) {
+        const channel = _channels[workerId];
+        view = _views[state.id] = toViewModel(
+          state,
+          channel ? channel.status : "",
+          channel ? _services[channel.id].position : -1
+        );
+      }
       found.map(({ stream }) => {
-        stream.write(`id: ${props.id}\n`);
+        stream.write(`id: ${view.id}\n`);
         stream.write(`event: message\n`);
-        stream.write(`data: ${JSON.stringify(props)}\n\n`);
+        stream.write(`data: ${JSON.stringify(view)}\n\n`);
       });
     }
   };
 
-  const _stats = (
+  const emitError = (
+    workerId: number,
+    { id, active, position }: Subscription,
+    message: string
+  ): void => {
+    const view = _views[id];
+    view.active = active;
+    view.position = Math.max(view.position, position);
+    view.endpointStatus = {
+      name: undefined,
+      code: undefined,
+      color: "danger",
+      icon: "bi-cone-striped"
+    };
+    view.errorMessage = view.errorMessage || message;
+    view.errorPosition =
+      view.errorPosition > 0 ? view.errorPosition : view.position;
+    emitState(workerId, undefined, view);
+  };
+
+  const _state = (
     workerId: number,
     channel: ChannelConfig,
-    {
-      id,
-      active,
-      position,
-      total,
-      batches,
-      events,
-      lastEventName
-    }: SubscriptionConfig & SubscriptionStats
+    state: SubscriptionState
   ): void => {
+    channel.status = "";
     _services[channel.id].position = Math.max(
       _services[channel.id].position,
-      position
+      state.position
     );
-    const state = (_states[id] =
-      _states[id] || resetState(workerId, true, position));
-    state.active = active;
-    state.position = Math.max(state.position, position);
-    if (position > state.errorPosition) {
-      state.errorMessage = "";
-      state.endpointStatus = { code: 200, color: "success" };
-    }
-
-    const acc = state.stats;
-    acc.batches += batches;
-    acc.total += total;
-    acc.lastEventName = lastEventName;
-    Object.entries(events).map(([name, codes]) => {
-      Object.entries(codes).map(([code, estats]) => {
-        const event = (acc.events[name] = acc.events[name] || {});
-        const stats = (event[parseInt(code)] = event[parseInt(code)] || {
-          count: 0,
-          min: Number.MAX_SAFE_INTEGER,
-          max: -1
-        });
-        stats.count += estats.count;
-        stats.min = Math.min(stats.min, estats.min);
-        stats.max = Math.max(stats.max, estats.max);
-      });
-    });
-    emitSSE(id);
+    emitState(workerId, state);
   };
 
   const _error = (
     workerId: number,
     channel: ChannelConfig,
-    id: string,
-    { message, config, code = 500, color = "danger", stats }: ErrorMessage
+    { state, message }: ErrorMessage
   ): void => {
-    config && stats && _stats(workerId, channel, { ...config, ...stats });
-    _states[id].errorMessage = message;
-    _states[id].position = Math.max(
-      _states[id].position,
-      config.position || -1
-    );
-    _states[id].endpointStatus = { code, color };
-    emitSSE(id);
+    if (state) {
+      const view = _views[state.id];
+      view.errorMessage = message;
+      view.errorPosition = state.position;
+      _state(workerId, channel, state);
+    } else
+      Object.values(channel.subscriptions).map((sub) =>
+        emitError(workerId, sub, message)
+      );
   };
 
   const onMessage = (
     workerId: number,
-    { error, stats, trigger }: WorkerMessage
+    { error, state, trigger }: WorkerMessage
   ): void => {
     const channel = _channels[workerId];
     if (!channel) return;
-
-    if (error) {
-      error.config?.id
-        ? _error(workerId, channel, error.config?.id, error)
-        : channel.subscriptions.map(({ id }) =>
-            _error(workerId, channel, id, error)
-          );
-    } else if (stats) _stats(workerId, channel, stats);
+    if (error) _error(workerId, channel, error);
+    else if (state) _state(workerId, channel, state);
     else if (trigger)
       _services[channel.id].position = Math.max(
         _services[channel.id].position,
@@ -278,15 +250,12 @@ export const state = singleton(function state(): State {
     const channel = _channels[workerId];
     if (!channel) return;
     delete _channels[workerId];
-    log().info(
-      "bgRed",
-      `[${process.pid}]`,
-      `exit ${channel.id} ${signal ? signal : `code ${code}`}`
-    );
-    channel.subscriptions.map(({ id }) => {
-      _states[id].channelStatus = signal || `E${code}`;
-      emitSSE(id);
-    });
+    const message = `Channel ${channel.id} exited with ${
+      signal ? signal : `code ${code}`
+    }`;
+    log().info("bgRed", `[${process.pid}]`, message);
+    channel.status = message;
+    _error(workerId, channel, { message: channel.status });
     // re-run when exit code == 0
     !code && void run(channel.id, channel.runs);
   };
@@ -306,9 +275,14 @@ export const state = singleton(function state(): State {
       Object.values(_services).sort((a, b) =>
         a.id > b.id ? 1 : a.id < b.id ? -1 : 0
       ),
-    init: async (services: Service[]): Promise<void> => {
+    init: async (services: Service[], options: StateOptions): Promise<void> => {
+      _options = options || {};
       const cores = cpus().length;
-      log().info("green", `Cluster started with ${cores} cores`);
+      log().info(
+        "green",
+        `Cluster started with ${cores} cores`,
+        JSON.stringify(_options)
+      );
       await Promise.all(
         services.map((service) => {
           _services[service.id] = service;
@@ -316,9 +290,12 @@ export const state = singleton(function state(): State {
         })
       );
     },
+    serviceLogLink: (id: string): string =>
+      _options.serviceLogLinkTemplate &&
+      encodeURI(_options.serviceLogLinkTemplate.replaceAll("<<SERVICE>>", id)),
     subscribeSSE,
     unsubscribeSSE,
-    viewModel,
+    viewModel: (id: string): SubscriptionViewModel => _views[id],
     onMessage,
     onExit,
     refreshService: async (operation: Operation, id: string) => {
@@ -334,33 +311,28 @@ export const state = singleton(function state(): State {
     refreshSubscription: async (operation: Operation, id: string) => {
       try {
         const [sub] = await subscriptions().loadSubscriptions(id);
-        const config: SubscriptionConfig = sub
-          ? subConfig(sub)
-          : {
-              id,
-              active: false,
-              endpoint: "",
-              streams: "",
-              names: "",
-              position: -1,
-              batchSize: 100,
-              retries: 3,
-              retryTimeoutSecs: 10
-            };
+        if (sub) {
+          const workerId = findWorkerId(sub.producer);
+          if (workerId) {
+            const channel = _channels[workerId];
+            const subWithEndpoint = (channel.subscriptions[id] = {
+              ...sub,
+              endpoint: endpoint(sub.consumer, sub.path)
+            });
+            const worker = cluster.workers[workerId];
+            worker && worker.send({ operation, sub: subWithEndpoint });
 
-        const { workerId } = _states[id] || resetState();
-        const worker = cluster.workers[workerId];
-        worker && worker.send({ operation, config });
+            if (operation !== "DELETE") {
+              const newWorkerId = findWorkerId(sub.producer);
+              const newWorker = cluster.workers[newWorkerId];
 
-        if (operation !== "DELETE") {
-          const newWorkerId = findWorkerId(sub.producer);
-          const newWorker = cluster.workers[newWorkerId];
-
-          (newWorkerId || -1) !== (workerId || -2)
-            ? newWorker
-              ? newWorker.send({ operation, config })
-              : await run(sub.producer)
-            : undefined;
+              (newWorkerId || -1) !== (workerId || -2)
+                ? newWorker
+                  ? newWorker.send({ operation, sub: subWithEndpoint })
+                  : await run(sub.producer)
+                : undefined;
+            }
+          } else await run(sub.producer);
         }
       } catch (error) {
         log().error(error);

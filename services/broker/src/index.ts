@@ -18,4 +18,8 @@ const logHandler = (
   next();
 };
 
-void broker({ middleware: [logHandler], resolvers: { pull: {}, push: {} } });
+void broker({
+  middleware: [logHandler],
+  resolvers: { pull: {}, push: {} },
+  serviceLogLinkTemplate: process.env.BROKER_SERVICE_LOG_LINK_TEMPLATE
+});

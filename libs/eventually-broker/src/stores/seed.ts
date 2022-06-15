@@ -1,4 +1,9 @@
 export const seed = (): string => `
+drop trigger if exists on_service_inserted_deleted on public.services;
+drop trigger if exists on_service_updated on public.services;
+drop trigger if exists on_subscription_inserted_deleted on public.subscriptions;
+drop trigger if exists on_subscription_updated on public.subscriptions;
+
 create table if not exists public.services (
   id varchar(100) primary key,
   channel varchar(100) not null,
@@ -15,7 +20,7 @@ create table if not exists public.subscriptions (
   consumer varchar(100) not null,
   path varchar(100) not null,
   streams varchar(100) not null,
-  names varchar(250) not null,
+  names varchar(500) not null,
   position integer not null default -1,
   constraint fk_producer_service foreign key(producer) references services(id),
   constraint fk_consumer_service foreign key(consumer) references services(id)
@@ -25,6 +30,7 @@ alter table public.subscriptions add column if not exists updated timestamptz no
 alter table public.subscriptions add column if not exists batch_size int not null default 100;
 alter table public.subscriptions add column if not exists retries int not null default 3;
 alter table public.subscriptions add column if not exists retry_timeout_secs int not null default 10;
+alter table public.subscriptions alter column names type varchar(500);
 
 create or replace function notify() returns trigger as
 $trigger$
@@ -46,11 +52,9 @@ begin
 end;
 $trigger$ language plpgsql;
 
-drop trigger if exists on_service_inserted_deleted on public.services;
 create trigger on_service_inserted_deleted after INSERT or DELETE on public.services for each row
 execute procedure public.notify();
 
-drop trigger if exists on_service_updated on public.services;
 create trigger on_service_updated after UPDATE on public.services for each row
 when (
   (OLD.channel, OLD.url) is distinct from
@@ -58,11 +62,9 @@ when (
 )
 execute procedure public.notify();
 
-drop trigger if exists on_subscription_inserted_deleted on public.subscriptions;
 create trigger on_subscription_inserted_deleted after INSERT or DELETE on public.subscriptions for each row
 execute procedure public.notify();
 
-drop trigger if exists on_subscription_updated on public.subscriptions;
 create trigger on_subscription_updated after UPDATE on public.subscriptions for each row
 when (
   (OLD.active, OLD.path, OLD.streams, OLD.names, OLD.batch_size, OLD.retries, OLD.retry_timeout_secs) is distinct from

@@ -1,29 +1,24 @@
 import { config, dispose, log } from "@rotorsoft/eventually";
-import express, { Express, RequestHandler, Router } from "express";
+import express, { Express, RequestHandler } from "express";
 import { engine } from "express-handlebars";
 import { Server } from "http";
 import path from "path";
-import { subscriptions } from ".";
+import { AppOptions, subscriptions } from ".";
 import { state } from "./cluster";
 import * as routes from "./routes";
 
-type AppConfig = {
-  port?: number;
-  middleware?: RequestHandler[];
-  prerouters?: Array<{ path: string; router: Router }>;
-};
-
 export const app = async ({
   port,
-  middleware = [],
-  prerouters
-}: AppConfig): Promise<Express> => {
+  middleware = [] as RequestHandler[],
+  prerouters,
+  serviceLogLinkTemplate
+}: AppOptions): Promise<Express> => {
   port = port || config().port;
 
   await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
-  await state().init(services);
+  await state().init(services, { serviceLogLinkTemplate });
 
   subscriptions().listen(
     ({ operation, id }) => state().refreshService(operation, id),
@@ -50,6 +45,9 @@ export const app = async ({
   app.set("view engine", "hbs");
   app.set("views", path.resolve(__dirname, "./views"));
   prerouters && prerouters.map(({ path, router }) => app.use(path, router));
+  app.use("/favicon.ico", (_, res) => {
+    res.sendFile(path.resolve(__dirname, "./public/assets/broker.png"));
+  });
   app.use("/_services", middleware, routes.services);
   app.use("/_contracts", middleware, routes.contracts);
   app.use("/", middleware, routes.subscriptions);
