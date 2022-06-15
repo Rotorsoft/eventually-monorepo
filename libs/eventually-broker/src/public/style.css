@@ -63,3 +63,11 @@ text {
     font-size: 9px;
     color: #6c757d;
 }
+
+.sorted-asc a::before {
+    content: "\2193";
+}
+
+.sorted-desc a::before {
+    content: "\2191";
+}

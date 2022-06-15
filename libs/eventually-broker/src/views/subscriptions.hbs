@@ -16,17 +16,17 @@
   </div>
 </div>
 
-<table class="table align-middle">
+<table id="subscriptions-table" class="table align-middle">
   <thead>
     <tr>
-      <th scope="col">Id</th>
-      <th>Status</th>
-      <th>Session</th>
-      <th scope="col">Producer</th>
-      <th scope="col">Consumer</th>
-      <th scope="col">Path</th>
-      <th scope="col">Streams</th>
-      <th scope="col">Names</th>
+      <th scope="col"><a href="javascript:sort(0)">Id</a></th>
+      <th><a href="javascript:sort(1)">Status</a></th>
+      <th><a href="javascript:sort(2)">Session</a></th>
+      <th scope="col"><a href="javascript:sort(3)">Producer</a></th>
+      <th scope="col"><a href="javascript:sort(4)">Consumer</a></th>
+      <th scope="col"><a href="javascript:sort(5)">Path</a></th>
+      <th scope="col"><a href="javascript:sort(6)">Streams</a></th>
+      <th scope="col"><a href="javascript:sort(7)">Names</a></th>
     </tr>
   </thead>
   <tbody>
@@ -64,6 +64,30 @@
 </table>
 
 <script>
+  let sortCol = -1, sortOrder = 0;
+  const sort = (col) => {
+    const table = document.getElementById("subscriptions-table");
+    sortCol >= 0 && table.rows[0].cells[sortCol].classList.remove("sorted-asc", "sorted-desc");
+    sortOrder = sortCol === col ? 1 - sortOrder : 0;
+    sortCol = col;
+    table.rows[0].cells[col].classList.add(sortOrder ? "sorted-desc" : "sorted-asc");
+
+    while (true) {
+      let swap = false;
+      for (i = 1; i < rows.length; i++) {
+        const v1 = table.rows[i].cells[col].innerHTML;
+        const v2 = table.rows[i+1].cells[col].innerHTML;
+        if (v1 == v2) continue;
+        swap = Boolean(+(v1 > v2) - sortOrder);
+        if (swap) break;
+      }
+      if (swap)
+        table.rows[i].parentNode.insertBefore(table.rows[i+1], table.rows[i]);
+      else
+        break;
+    }
+  }
+
   const badge = (count, cls) => 
     count > 0 ? `<span class="${cls}">${count}</span>` : "";
 
