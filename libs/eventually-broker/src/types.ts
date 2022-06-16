@@ -1,4 +1,5 @@
 import { RequestHandler, Router } from "express";
+import { SubscriptionStore } from "./interfaces";
 
 /**
  * Services
@@ -79,6 +80,7 @@ export type PushResponse = {
  * App options
  */
 export type AppOptions = {
+  subscriptionStoreFactory: () => SubscriptionStore;
   port?: number;
   middleware?: RequestHandler[];
   prerouters?: Array<{ path: string; router: Router }>;

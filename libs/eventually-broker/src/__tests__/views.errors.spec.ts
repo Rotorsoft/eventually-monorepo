@@ -30,7 +30,7 @@ describe("views", () => {
     store.commitSubscriptionPosition = undefined;
     store.commitServicePosition = undefined;
     subscriptions(store);
-    await broker({ port });
+    await broker({ subscriptionStoreFactory: InMemorySubscriptionStore, port });
   });
 
   afterAll(async () => {

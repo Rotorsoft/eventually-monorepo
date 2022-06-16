@@ -25,16 +25,24 @@ const triggerLog = ({
     position ? `@${position}` : ""
   } ${new Date().toISOString()}]`;
 
-const sendTrigger = (trigger: TriggerPayload): boolean =>
-  process.send({ trigger });
+const sendTrigger = (trigger: TriggerPayload): void => {
+  try {
+    process.send({ trigger });
+  } catch (error) {
+    log().error(error);
+  }
+};
 
 const sendError = (message: string, state?: SubscriptionState): void => {
-  log().error(Error(message));
   const error: ErrorMessage = {
     message,
     state
   };
-  process.send({ error });
+  try {
+    process.send({ error });
+  } catch (error) {
+    log().error(error);
+  }
 };
 
 const sendState = (state: SubscriptionState): void => {
@@ -43,7 +51,11 @@ const sendState = (state: SubscriptionState): void => {
     `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
     JSON.stringify(state.stats.events)
   );
-  process.send({ state });
+  try {
+    process.send({ state });
+  } catch (error) {
+    log().error(error);
+  }
 };
 
 export const work = async (
@@ -100,6 +112,7 @@ export const work = async (
       (sub) => (subStates[sub.id] = toState(sub))
     );
   } catch (error) {
+    log().error(error);
     error instanceof Error && sendError(error.message);
     await dispose()(ExitCodes.ERROR);
   }
@@ -175,6 +188,7 @@ export const work = async (
         sendState(subState);
       }
     } catch (error) {
+      log().error(error);
       subState.errorMessage = `${triggerLog(trigger)} ${error.message}`;
       subState.errorPosition = subState.position;
       subState.endpointStatus = {
@@ -232,6 +246,7 @@ export const work = async (
           sendTrigger(trigger);
           await pumpRetry(subState, trigger);
         } catch (error) {
+          log().error(error);
           if (error instanceof Error) {
             subState.errorMessage = error.message;
             subState.errorPosition = subState.position;

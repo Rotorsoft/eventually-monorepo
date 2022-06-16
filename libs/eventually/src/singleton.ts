@@ -53,7 +53,7 @@ export const dispose = (
 
 ["SIGINT", "SIGTERM", "uncaughtException", "unhandledRejection"].map((e) => {
   process.once(e, async (arg?: any) => {
-    console.error(`[${process.pid}]`, arg || e);
+    console.error(`[${process.pid}] ${e}`, arg);
     await disposeAndExit(e === "SIGINT" ? ExitCodes.OK : ExitCodes.ERROR);
   });
 });

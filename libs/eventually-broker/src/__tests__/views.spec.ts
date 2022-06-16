@@ -2,6 +2,7 @@ import { dispose } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { subscriptions } from "..";
 import { broker } from "../broker";
+import { InMemorySubscriptionStore } from "../__dev__";
 import {
   FakeChildProcess,
   get,
@@ -35,7 +36,7 @@ describe("views", () => {
     await subscriptions().createSubscription(
       subscriptionBody("s5", "s1", "s5")
     );
-    await broker({ port });
+    await broker({ subscriptionStoreFactory: InMemorySubscriptionStore, port });
   });
 
   afterAll(async () => {

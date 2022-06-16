@@ -72,19 +72,17 @@
     sortCol = col;
     table.rows[0].cells[col].classList.add(sortOrder ? "sorted-desc" : "sorted-asc");
 
-    while (true) {
-      let swap = false;
-      for (i = 1; i < rows.length; i++) {
-        const v1 = table.rows[i].cells[col].innerHTML;
-        const v2 = table.rows[i+1].cells[col].innerHTML;
-        if (v1 == v2) continue;
-        swap = Boolean(+(v1 > v2) - sortOrder);
-        if (swap) break;
+    const swap = (row) => {
+      const v1 = table.rows[row].cells[col].innerHTML.toLowerCase();
+      const v2 = table.rows[row+1].cells[col].innerHTML.toLowerCase();
+      return (v1 == v2) ? false : Boolean(+(v1 > v2) - sortOrder);
+    };
+
+    for (row = 1; row < rows.length; row++) {
+      while (row > 0 && swap(row)) {
+        table.rows[row].parentNode.insertBefore(table.rows[row+1], table.rows[row]);
+        row--;
       }
-      if (swap)
-        table.rows[i].parentNode.insertBefore(table.rows[i+1], table.rows[i]);
-      else
-        break;
     }
   }
 

@@ -1,12 +1,9 @@
 import { Actor } from "@rotorsoft/eventually";
 import {
   broker,
-  PostgresSubscriptionStore,
-  subscriptions
+  PostgresSubscriptionStore
 } from "@rotorsoft/eventually-broker";
 import { NextFunction, Request, Response } from "express";
-
-subscriptions(PostgresSubscriptionStore());
 
 const logHandler = (
   req: Request & { user: Actor },
@@ -19,6 +16,7 @@ const logHandler = (
 };
 
 void broker({
+  subscriptionStoreFactory: PostgresSubscriptionStore,
   middleware: [logHandler],
   resolvers: { pull: {}, push: {} },
   serviceLogLinkTemplate: process.env.BROKER_SERVICE_LOG_LINK_TEMPLATE
