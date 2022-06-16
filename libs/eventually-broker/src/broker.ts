@@ -7,7 +7,8 @@ import {
   VoidPullChannel,
   VoidPushChannel,
   AppOptions,
-  PostgresSubscriptionStore
+  PostgresSubscriptionStore,
+  subscriptions
 } from ".";
 import { app } from "./app";
 import { CronPullChannel } from "./channels/CronPullChannel";
@@ -31,6 +32,7 @@ export const broker = async (
     resolvers?: ChannelResolvers;
   } = { subscriptionStoreFactory: PostgresSubscriptionStore }
 ): Promise<Express> | undefined => {
+  subscriptions(options.subscriptionStoreFactory());
   if (cluster.isWorker)
     await work({
       push: { ...defaultResolvers.push, ...options?.resolvers?.push },

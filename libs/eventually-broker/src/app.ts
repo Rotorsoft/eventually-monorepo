@@ -8,7 +8,6 @@ import { state } from "./cluster";
 import * as routes from "./routes";
 
 export const app = async ({
-  subscriptionStoreFactory,
   port,
   middleware = [] as RequestHandler[],
   prerouters,
@@ -16,7 +15,6 @@ export const app = async ({
 }: AppOptions): Promise<Express> => {
   port = port || config().port;
 
-  subscriptions(subscriptionStoreFactory());
   await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
