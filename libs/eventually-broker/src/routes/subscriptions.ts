@@ -44,6 +44,7 @@ router.get("/_monitor-all", (req, res) => {
   const session = randomId();
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Accel-Buffering", "no");
   req.on("close", () => state().unsubscribeSSE(session));
   state().subscribeSSE(session, res);
 });
@@ -53,6 +54,7 @@ router.get("/_monitor/:id", (req, res) => {
   const id = req.params.id;
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Accel-Buffering", "no");
   req.on("close", () => {
     state().unsubscribeSSE(session);
   });

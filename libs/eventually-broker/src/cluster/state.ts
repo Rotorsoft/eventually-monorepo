@@ -61,7 +61,6 @@ export const toViewModel = (
         stat.max = Math.max(stat.max, stats.max);
       });
     });
-  const events = Object.values(eventsMap);
   return {
     channelStatus,
     channelPosition,
@@ -72,7 +71,7 @@ export const toViewModel = (
     errorMessage,
     errorPosition,
     total: stats?.total,
-    events: Object.values(events)
+    events: Object.values(eventsMap)
   };
 };
 

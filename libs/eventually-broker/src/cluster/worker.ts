@@ -16,14 +16,14 @@ import {
   SubscriptionWithEndpoint
 } from "./types";
 
-const triggerLog = ({
-  operation,
-  retry_count,
-  position
-}: TriggerPayload): string =>
-  `[${operation}${retry_count || ""}${
-    position ? `@${position}` : ""
-  } ${new Date().toISOString()}]`;
+let channel_position = -1;
+const triggerLog = (
+  { operation, retry_count }: TriggerPayload,
+  sub_position: number
+): string =>
+  `[${operation}${
+    retry_count || ""
+  } @${sub_position}/${channel_position} ${new Date().toISOString()}]`;
 
 const sendTrigger = (trigger: TriggerPayload): void => {
   try {
@@ -77,6 +77,7 @@ export const work = async (
     const pushUrl = new URL(endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
+    // TODO: discover consumer /_endpoints to match path to events
     return {
       id,
       active,
@@ -117,19 +118,19 @@ export const work = async (
     await dispose()(ExitCodes.ERROR);
   }
 
-  let position = -1;
   const pumpSub = async (
     subState: SubscriptionState,
     trigger: TriggerPayload
   ): Promise<boolean> => {
     log().trace("magenta", "pumpSub", subState.id, trigger);
     try {
-      if (trigger.position > position) {
+      channel_position = Math.max(channel_position, subState.position);
+      if (trigger.position > channel_position) {
         await subscriptions().commitServicePosition(
           config.id,
           trigger.position
         );
-        position = trigger.position;
+        channel_position = trigger.position;
       }
 
       let count = subState.batchSize;
@@ -178,7 +179,8 @@ export const work = async (
               icon: "bi-cone-striped"
             };
             subState.errorMessage = `${triggerLog(
-              trigger
+              trigger,
+              e.id
             )} HTTP ${status} ${statusText}`;
             subState.errorPosition = e.id;
             sendError(subState.errorMessage, subState);
@@ -189,7 +191,9 @@ export const work = async (
       }
     } catch (error) {
       log().error(error);
-      subState.errorMessage = `${triggerLog(trigger)} ${error.message}`;
+      subState.errorMessage = `${triggerLog(trigger, subState.position)} ${
+        error.message
+      }`;
       subState.errorPosition = subState.position;
       subState.endpointStatus = {
         name: undefined,
