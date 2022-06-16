@@ -1,3 +1,5 @@
+#### 2022-06-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.5...@rotorsoft/eventually-broker-v1.1.6) @rotorsoft/eventually-broker-v1.1.6
+  - PATCH [7551bdb1](https://github.com/Rotorsoft/eventually-monorepo/commit/7551bdb18563ccb75f2d601b07598e8c13f8d112) fix: add subscription sorting
 #### 2022-06-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.4...@rotorsoft/eventually-broker-v1.1.5) @rotorsoft/eventually-broker-v1.1.5
   - PATCH [f8c1e199](https://github.com/Rotorsoft/eventually-monorepo/commit/f8c1e199a367c20b99ba470118948af69405615b) fix: refactor counters (#27)
 #### 2022-06-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.27...@rotorsoft/eventually-express-v4.0.28) @rotorsoft/eventually-express-v4.0.28
