@@ -1,3 +1,7 @@
+#### 2022-06-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.6...@rotorsoft/eventually-broker-v1.2.0) @rotorsoft/eventually-broker-v1.2.0
+  - MINOR [944fc028](https://github.com/Rotorsoft/eventually-monorepo/commit/944fc028462711677b34905092e2a2bd2858d300) feat: add subscription store factory to broker app options to avoid init in workers
+#### 2022-06-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.0.35...@rotorsoft/eventually-v4.1.0) @rotorsoft/eventually-v4.1.0
+  - MINOR [944fc028](https://github.com/Rotorsoft/eventually-monorepo/commit/944fc028462711677b34905092e2a2bd2858d300) feat: add subscription store factory to broker app options to avoid init in workers
 #### 2022-06-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.5...@rotorsoft/eventually-broker-v1.1.6) @rotorsoft/eventually-broker-v1.1.6
   - PATCH [7551bdb1](https://github.com/Rotorsoft/eventually-monorepo/commit/7551bdb18563ccb75f2d601b07598e8c13f8d112) fix: add subscription sorting
 #### 2022-06-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.4...@rotorsoft/eventually-broker-v1.1.5) @rotorsoft/eventually-broker-v1.1.5
