@@ -2,8 +2,8 @@ import { Actor, Endpoints } from "@rotorsoft/eventually";
 import axios from "axios";
 import { Request } from "express";
 import { OpenAPIV3_1 } from "openapi-types";
-import { Service } from "..";
 import { ContractsViewModel } from "./cluster";
+import { Service } from "./types";
 
 /**
  * Validates admin user
