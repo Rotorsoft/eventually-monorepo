@@ -1,3 +1,5 @@
+#### 2022-06-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.3...@rotorsoft/eventually-broker-v1.2.4) @rotorsoft/eventually-broker-v1.2.4
+  - PATCH [0d81554a](https://github.com/Rotorsoft/eventually-monorepo/commit/0d81554a2c015a6cc2106bfb5299d916c8ed33b7) fix: improve broker monitoring
 #### 2022-06-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.2...@rotorsoft/eventually-broker-v1.2.3) @rotorsoft/eventually-broker-v1.2.3
   - PATCH [a60c3896](https://github.com/Rotorsoft/eventually-monorepo/commit/a60c389683555be72c7cd5615c23b95ecf955572) fix: fix import
   - PATCH [1bda79f8](https://github.com/Rotorsoft/eventually-monorepo/commit/1bda79f82c039466de85a5587b26478d71cac51b) fix: improve error messages and counters, inspect endpoints
