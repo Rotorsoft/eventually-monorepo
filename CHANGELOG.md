@@ -1,3 +1,5 @@
+#### 2022-06-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.1...@rotorsoft/eventually-broker-v1.2.2) @rotorsoft/eventually-broker-v1.2.2
+  - PATCH [2834fec3](https://github.com/Rotorsoft/eventually-monorepo/commit/2834fec3906333fd8d9009b2230460ecc777061e) fix: event map
 #### 2022-06-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.0...@rotorsoft/eventually-broker-v1.2.1) @rotorsoft/eventually-broker-v1.2.1
   - PATCH [b7e862db](https://github.com/Rotorsoft/eventually-monorepo/commit/b7e862dbc781abdfe9aaf5f02a0a390a45d97e1c) fix: move subscriptions init to broker
 #### 2022-06-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.1.6...@rotorsoft/eventually-broker-v1.2.0) @rotorsoft/eventually-broker-v1.2.0
