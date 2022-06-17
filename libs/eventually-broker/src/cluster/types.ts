@@ -22,6 +22,20 @@ export type SubscriptionStats = {
 
 export type Color = "success" | "warning" | "danger";
 export type Icon = "bi-cone-striped" | "bi-activity" | "";
+
+export type EndpointStatus = {
+  name?: string;
+  code?: number;
+  color: Color;
+  icon: Icon;
+  status?: string;
+  error?: {
+    trigger?: string;
+    message?: string;
+    position?: number;
+  };
+};
+
 export type SubscriptionState = {
   id: string;
   active: boolean;
@@ -36,14 +50,8 @@ export type SubscriptionState = {
   pumping: boolean;
   retryTimeout?: NodeJS.Timeout;
   stats: SubscriptionStats;
-  endpointStatus: {
-    name?: string;
-    code?: number;
-    color: Color;
-    icon: Icon;
-  };
-  errorMessage: string;
-  errorPosition: number;
+  endpointStatus: EndpointStatus;
+  events: string[];
 };
 
 export type SubscriptionWithEndpoint = Subscription & { endpoint: string };
@@ -58,7 +66,6 @@ export type ChannelConfig = {
 
 export type ErrorMessage = {
   message: string;
-  state?: SubscriptionState;
 };
 
 export type MasterMessage = {
@@ -74,6 +81,7 @@ export type WorkerMessage = {
 
 export type EventsViewModel = {
   name: string;
+  found: boolean;
   ok: EventStats;
   ignored: EventStats;
   retryable: EventStats;
@@ -86,14 +94,7 @@ export type SubscriptionViewModel = {
   position: number;
   channelStatus: string;
   channelPosition: number;
-  endpointStatus: {
-    name?: string;
-    code?: number;
-    color: Color;
-    icon: Icon;
-  };
-  errorMessage: string;
-  errorPosition: number;
+  endpointStatus: EndpointStatus;
   total: number;
   events: EventsViewModel[];
 };

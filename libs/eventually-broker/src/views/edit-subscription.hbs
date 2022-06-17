@@ -72,6 +72,8 @@
 </form>
 
 <script>
+  const usnf = new Intl.NumberFormat("en-US");
+
   const state = {{{json this}}};
   if(state.isAdmin) {
     const delId = document.getElementById("deleteId");
@@ -104,15 +106,15 @@
   const triggerInput = document.getElementById("floatingChannelPosition");
   const statsDiv = document.getElementById("stats");
   const renderStats = (stats, color) => stats && stats.count ? `
-    <th class="text-end table-${color}">${stats.count}</th>
-    <td class="text-end table-${color} stat">${stats.min}</td>
-    <td class="text-end table-${color} stat">${stats.max}</td>
+    <th class="text-end table-${color}">${usnf.format(stats.count)}</th>
+    <td class="text-end table-${color} stat">${usnf.format(stats.min)}</td>
+    <td class="text-end table-${color} stat">${usnf.format(stats.max)}</td>
   ` : "<td/><td/><td/>";
-  const refresh = ({ id, active, position, channelPosition, channelStatus, endpointStatus, errorMessage, events }) => {
-    const _events = events.map(({ name, ok, ignored, retryable, critical }) => {
+  const refresh = ({ id, active, position, channelPosition, channelStatus, endpointStatus, events }) => {
+    const _events = events.map(({ name, found, ok, ignored, retryable, critical }) => {
       return `
         <tr>
-          <th>${name}</th>
+          ${found ? `<th>${name}</th>` : `<td>${name}</td>`}
           ${renderStats(ok, "success")}
           ${renderStats(retryable, "warning")}
           ${renderStats(critical, "danger")}
@@ -129,8 +131,8 @@
         </a>` : "";
 
     statusInput.value = status;
-    positionInput.value = position;
-    triggerInput.value = channelPosition || "";
+    positionInput.value = usnf.format(position);
+    triggerInput.value = usnf.format(channelPosition) || "";
 
     const toggleIcon = active ? "bi-toggle-on" : "bi-toggle-off";
     const toggleTitle = active ? "Stop" : "Start";
@@ -139,13 +141,18 @@
         type="button"
         class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${endpointStatus.color}"></i>
       </a>` : '';
+    const errorBlock = endpointStatus.error ? 
+    `<div class="error-block">
+      <span>${endpointStatus.error.trigger}</span><br/>
+      <i><b>${endpointStatus.name} ${usnf.format(endpointStatus.error.position)}</b> ${endpointStatus.error.message}</i>
+    </div>` : "";  
 
     statsDiv.innerHTML=`
     <div class="card p-0">
       <div class="card-header row p-2 m-0">
         <h6 class="card-title m-0 col-11">
-          ${toggleButton}
-          <small class="text-muted">${errorMessage}</small>
+          ${toggleButton}<b> ${endpointStatus.code||""} ${endpointStatus.status||""}</b>
+          ${errorBlock}
         </h6> 
         <div class="col-1 text-end">
           ${refreshBtn}

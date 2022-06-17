@@ -20,13 +20,7 @@ import {
 
 type SubscriptionViewState = Pick<
   SubscriptionState,
-  | "id"
-  | "active"
-  | "position"
-  | "endpointStatus"
-  | "errorMessage"
-  | "errorPosition"
-  | "stats"
+  "id" | "active" | "position" | "endpointStatus" | "stats" | "events"
 >;
 export const toViewModel = (
   {
@@ -34,23 +28,30 @@ export const toViewModel = (
     active,
     position,
     endpointStatus,
-    errorMessage,
-    errorPosition,
-    stats
+    stats,
+    events
   }: SubscriptionViewState,
   channelStatus = "",
   channelPosition = -1
 ): SubscriptionViewModel => {
-  const eventsMap: Record<string, EventsViewModel> = {};
+  const emptyEventModel = (name: string, found: boolean): EventsViewModel => ({
+    name,
+    found,
+    ok: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 },
+    ignored: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 },
+    retryable: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 },
+    critical: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 }
+  });
+  const eventsMap = events.reduce((map, name) => {
+    map[name] = emptyEventModel(name, true);
+    return map;
+  }, {} as Record<string, EventsViewModel>);
   stats &&
     Object.entries(stats.events).map(([name, value]) => {
-      const event = (eventsMap[name] = eventsMap[name] || {
-        name,
-        ok: value[200],
-        ignored: value[204],
-        retryable: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 },
-        critical: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 }
-      });
+      const event = (eventsMap[name] =
+        eventsMap[name] || emptyEventModel(name, false));
+      event.ok = value[200];
+      event.ignored = value[204];
       Object.entries(value).map(([status, stats]) => {
         if (CommittableHttpStatus.includes(+status)) return;
         const stat = RetryableHttpStatus.includes(+status)
@@ -68,8 +69,6 @@ export const toViewModel = (
     active,
     position,
     endpointStatus,
-    errorMessage,
-    errorPosition,
     total: stats?.total,
     events: Object.values(eventsMap)
   };
@@ -126,8 +125,6 @@ export const state = singleton(function state(): State {
             color: "success",
             icon: active ? "bi-activity" : ""
           },
-          errorMessage: "",
-          errorPosition: -1,
           total: 0,
           events: []
         };
@@ -193,11 +190,14 @@ export const state = singleton(function state(): State {
       name: undefined,
       code: undefined,
       color: "danger",
-      icon: "bi-cone-striped"
+      icon: "bi-cone-striped",
+      error: view.endpointStatus.error || {
+        message,
+        position: view.position
+      }
     };
-    view.errorMessage = view.errorMessage || message;
-    view.errorPosition =
-      view.errorPosition > 0 ? view.errorPosition : view.position;
+    view.endpointStatus.error.position < 0 &&
+      (view.endpointStatus.error.position = view.position);
     emitState(workerId, undefined, view);
   };
 
@@ -217,17 +217,11 @@ export const state = singleton(function state(): State {
   const _error = (
     workerId: number,
     channel: ChannelConfig,
-    { state, message }: ErrorMessage
+    { message }: ErrorMessage
   ): void => {
-    if (state) {
-      const view = _views[state.id];
-      view.errorMessage = message;
-      view.errorPosition = state.position;
-      _state(workerId, channel, state);
-    } else
-      Object.values(channel.subscriptions).map((sub) =>
-        emitError(workerId, sub, message)
-      );
+    Object.values(channel.subscriptions).map((sub) =>
+      emitError(workerId, sub, message)
+    );
   };
 
   const onMessage = (

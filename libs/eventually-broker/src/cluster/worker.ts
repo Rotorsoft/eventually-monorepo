@@ -7,6 +7,7 @@ import {
   TriggerCallback,
   TriggerPayload
 } from "..";
+import { getServiceEndpoints } from "../utils";
 import {
   ChannelConfig,
   CommittableHttpStatus,
@@ -21,9 +22,9 @@ const triggerLog = (
   { operation, retry_count }: TriggerPayload,
   sub_position: number
 ): string =>
-  `[${operation}${
+  `${operation}${
     retry_count || ""
-  } @${sub_position}/${channel_position} ${new Date().toISOString()}]`;
+  } [${sub_position}/${channel_position}] ${new Date().toISOString()}`;
 
 const sendTrigger = (trigger: TriggerPayload): void => {
   try {
@@ -33,16 +34,9 @@ const sendTrigger = (trigger: TriggerPayload): void => {
   }
 };
 
-const sendError = (message: string, state?: SubscriptionState): void => {
-  const error: ErrorMessage = {
-    message,
-    state
-  };
-  try {
-    process.send({ error });
-  } catch (error) {
-    log().error(error);
-  }
+const sendError = (message: string): void => {
+  const error: ErrorMessage = { message };
+  process.send({ error });
 };
 
 const sendState = (state: SubscriptionState): void => {
@@ -51,11 +45,7 @@ const sendState = (state: SubscriptionState): void => {
     `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
     JSON.stringify(state.stats.events)
   );
-  try {
-    process.send({ state });
-  } catch (error) {
-    log().error(error);
-  }
+  process.send({ state });
 };
 
 export const work = async (
@@ -63,9 +53,10 @@ export const work = async (
 ): Promise<Record<string, SubscriptionState>> => {
   const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
 
-  const toState = ({
+  const toState = async ({
     id,
     active,
+    path,
     endpoint,
     streams,
     names,
@@ -73,11 +64,18 @@ export const work = async (
     batch_size,
     retries,
     retry_timeout_secs
-  }: SubscriptionWithEndpoint): SubscriptionState => {
+  }: SubscriptionWithEndpoint): Promise<SubscriptionState> => {
     const pushUrl = new URL(endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
-    // TODO: discover consumer /_endpoints to match path to events
+
+    const endpoints = await getServiceEndpoints(pushUrl);
+    const found =
+      endpoints &&
+      Object.values(endpoints.eventHandlers).find(
+        (e) => e.path === "/".concat(path)
+      );
+
     return {
       id,
       active,
@@ -95,11 +93,11 @@ export const work = async (
         name: "",
         code: 200,
         color: "success",
-        icon: active ? "bi-activity" : ""
+        icon: active ? "bi-activity" : "",
+        status: "OK"
       },
       stats: { batches: 0, total: 0, events: {} },
-      errorMessage: "",
-      errorPosition: -1
+      events: found ? found.events : []
     };
   };
 
@@ -109,9 +107,9 @@ export const work = async (
     const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl, config.id));
-    Object.values(config.subscriptions).forEach(
-      (sub) => (subStates[sub.id] = toState(sub))
-    );
+    for await (const sub of Object.values(config.subscriptions)) {
+      subStates[sub.id] = await toState(sub);
+    }
   } catch (error) {
     log().error(error);
     error instanceof Error && sendError(error.message);
@@ -142,11 +140,11 @@ export const work = async (
         );
         count = events.length;
         for (const e of events) {
-          const { status, statusText } =
+          const { status, statusText, details } =
             subState.streamsRegExp.test(e.stream) &&
             subState.namesRegExp.test(e.name)
               ? await subState.pushChannel.push(e)
-              : { status: 204, statusText: "Not Matched" };
+              : { status: 204, statusText: "Not Matched", details: undefined };
 
           subState.stats.total++;
           const event = (subState.stats.events[e.name] =
@@ -167,23 +165,25 @@ export const work = async (
               name: e.name,
               code: status,
               color: "success",
-              icon: "bi-activity"
+              icon: "bi-activity",
+              status: statusText || "OK",
+              error: undefined
             };
-            subState.errorMessage = "";
           } else {
             const retryable = RetryableHttpStatus.includes(status);
             subState.endpointStatus = {
               name: e.name,
               code: status,
               color: retryable ? "warning" : "danger",
-              icon: "bi-cone-striped"
+              icon: "bi-cone-striped",
+              status: statusText || "Retryable Error",
+              error: {
+                trigger: `${triggerLog(trigger, e.id)}`,
+                message: details,
+                position: e.id
+              }
             };
-            subState.errorMessage = `${triggerLog(
-              trigger,
-              e.id
-            )} HTTP ${status} ${statusText}`;
-            subState.errorPosition = e.id;
-            sendError(subState.errorMessage, subState);
+            sendState(subState);
             return retryable && (trigger.retry_count || 0) < subState.retries;
           }
         }
@@ -191,17 +191,19 @@ export const work = async (
       }
     } catch (error) {
       log().error(error);
-      subState.errorMessage = `${triggerLog(trigger, subState.position)} ${
-        error.message
-      }`;
-      subState.errorPosition = subState.position;
       subState.endpointStatus = {
         name: undefined,
         code: 500,
         color: "danger",
-        icon: "bi-cone-striped"
+        icon: "bi-cone-striped",
+        status: "Internal Server Error",
+        error: {
+          trigger: `${triggerLog(trigger, subState.position)}`,
+          message: error.message,
+          position: subState.position
+        }
       };
-      sendError(subState.errorMessage, subState);
+      sendState(subState);
       await dispose()(ExitCodes.ERROR);
     }
   };
@@ -239,11 +241,15 @@ export const work = async (
   process.on(
     "message",
     async ({ operation, sub }: MasterMessage): Promise<void> => {
+      const currentState = subStates[sub.id];
+      currentState &&
+        currentState.retryTimeout &&
+        clearTimeout(currentState.retryTimeout);
+
       if (!sub.active || operation === "DELETE") {
         delete subStates[sub.id];
       } else {
-        const currentState = subStates[sub.id];
-        const subState = (subStates[sub.id] = toState(sub));
+        const subState = (subStates[sub.id] = await toState(sub));
         currentState && Object.assign(subState.stats, currentState.stats);
         try {
           const trigger: TriggerPayload = { operation, id: sub.id };
@@ -252,15 +258,18 @@ export const work = async (
         } catch (error) {
           log().error(error);
           if (error instanceof Error) {
-            subState.errorMessage = error.message;
-            subState.errorPosition = subState.position;
             subState.endpointStatus = {
               name: undefined,
               code: 500,
               color: "danger",
-              icon: "bi-cone-striped"
+              icon: "bi-cone-striped",
+              status: "Internal Server Error",
+              error: {
+                message: error.message,
+                position: subState.position
+              }
             };
-            sendError(error.message, subState);
+            sendState(subState);
           }
         }
       }

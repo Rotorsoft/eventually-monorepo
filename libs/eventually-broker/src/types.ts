@@ -74,6 +74,7 @@ export type TriggerCallback = (trigger: TriggerPayload) => Promise<void>;
 export type PushResponse = {
   status: number;
   statusText: string;
+  details?: string;
 };
 
 /**

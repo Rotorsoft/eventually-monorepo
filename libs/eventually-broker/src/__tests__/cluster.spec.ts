@@ -94,8 +94,7 @@ describe("cluster", () => {
         name: undefined,
         icon: "bi-activity"
       },
-      errorMessage: "",
-      errorPosition: -1
+      events: []
     };
     await state().refreshSubscription("DELETE", "s1");
     await state().refreshSubscription("INSERT", "s1");
@@ -107,7 +106,7 @@ describe("cluster", () => {
       error: { message: "Error message" }
     });
     state().onMessage(1, {
-      error: { message: "Error message", state: subState }
+      error: { message: "Error message" }
     });
     state().onMessage(1, {
       trigger: { id: "s1", operation: "RESTART", position: 1 }

@@ -14,14 +14,21 @@ export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
         log().error(error);
         if (axios.isAxiosError(error)) {
           if (error.response) {
-            const { status, statusText } = error.response;
-            return { status, statusText };
+            const { status, statusText, data } = error.response;
+            return {
+              status,
+              statusText,
+              details: data
+                ? `${data.message} ${data.details || ""}`
+                : undefined
+            };
           }
           return { status: 503, statusText: error.code };
         }
         return {
           status: 503,
-          statusText:
+          statusText: "Internal Server Error",
+          details:
             error instanceof Error ? error.message : JSON.stringify(error)
         };
       }

@@ -12,7 +12,7 @@ body {
 }
 
 .counters span {
-    font-size: 80%;
+    font-size: 60%;
     color: rgb(39, 38, 38);
     padding: 0px 4px 0px 4px;
     margin: 0 1px 0 1px;
@@ -32,7 +32,7 @@ body {
 
 .counters .retryable {
     border:
-        solid 1px #ffc107;
+    solid 1px #ffc107;
     background-color: #fff3cd;
 }
 
@@ -70,4 +70,14 @@ text {
 
 .sorted-desc a::before {
     content: "\2191";
+}
+
+.error-block span {
+    font-size: 90%;
+    color: gray;
+}
+
+.error-block i {
+    font-size: 80%;
+    color: red;
 }
