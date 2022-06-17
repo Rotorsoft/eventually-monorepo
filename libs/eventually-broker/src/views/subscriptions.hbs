@@ -70,11 +70,10 @@
     sortCol = col;
     table.rows[0].cells[col].classList.add(sortOrder ? "sorted-desc" : "sorted-asc");
 
-    const compare = (a, b) => {
-      if (col === 1) return a.length === b.length ? a > b : a.length > b.length;
-      if (col === 2) return a.length > b.length;
-      return a > b;
-    }
+    const compare = (a, b) => 
+      (col === 1 || col === 2) 
+        ? (a.length === b.length ? a > b : a.length > b.length)
+        : a > b;
 
     const swap = (row) => {
       const a = table.rows[row].cells[col].innerHTML.toLowerCase();
