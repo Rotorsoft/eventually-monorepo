@@ -143,8 +143,8 @@
       </a>` : '';
     const errorBlock = endpointStatus.error ? 
     `<div class="error-block">
-      <span>${endpointStatus.error.trigger}</span><br/>
-      <i><b>${endpointStatus.name} ${usnf.format(endpointStatus.error.position)}</b> ${endpointStatus.error.message}</i>
+      <span>${endpointStatus.error.trigger||""}</span><br/>
+      <i><b>${endpointStatus.name && endpointStatus.name.concat(" ", usnf.format(endpointStatus.error.position)) || ""}</b> ${endpointStatus.error.message||""}</i>
     </div>` : "";  
 
     statsDiv.innerHTML=`

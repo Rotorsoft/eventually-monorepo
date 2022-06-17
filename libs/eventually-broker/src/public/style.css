@@ -9,6 +9,8 @@ body {
 .counters {
     display: flex;
     flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: right;
 }
 
 .counters span {

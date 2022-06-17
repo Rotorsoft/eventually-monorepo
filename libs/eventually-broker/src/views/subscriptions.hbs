@@ -20,22 +20,21 @@
   <thead>
     <tr>
       <th scope="col"><a href="javascript:sort(0)">Id</a></th>
-      <th><a href="javascript:sort(1)">Status</a></th>
-      <th><a href="javascript:sort(2)">Session</a></th>
+      <th class="text-end"><a href="javascript:sort(1)">Position</a></th>
+      <th class="text-end"><a href="javascript:sort(2)">Session</a></th>
       <th scope="col"><a href="javascript:sort(3)">Producer</a></th>
       <th scope="col"><a href="javascript:sort(4)">Consumer</a></th>
       <th scope="col"><a href="javascript:sort(5)">Path</a></th>
       <th scope="col"><a href="javascript:sort(6)">Streams</a></th>
+      <th scope="col" class="text-end"><a href="javascript:sort(7)">Updated</a></th>
     </tr>
   </thead>
   <tbody>
     {{#each rows}}
       <tr class="{{#unless this.active}}table-secondary{{/unless}}">
-        <td scope="row">
-          <a href="/{{this.id}}">{{this.id}}</a>
-        </td>
-        <td id="status-{{this.id}}"></td>
-        <td id="session-{{this.id}}"></td>
+        <td id="status-{{this.id}}" scope="row"></td>
+        <td class="text-end" id="position-{{this.id}}"></td>
+        <td class="text-end" id="session-{{this.id}}"></td>
         <td>
           <a href="/_services/{{this.producer}}">{{this.producer}}</a>
           {{#if this.pll}}
@@ -56,6 +55,7 @@
         </td>
         <td>{{this.path}}</td>
         <td>{{this.streams}}</td>
+        <td class="text-end">{{dateFormat this.updated}}</td>
       </tr>
     {{/each}}
   </tbody>
@@ -70,10 +70,16 @@
     sortCol = col;
     table.rows[0].cells[col].classList.add(sortOrder ? "sorted-desc" : "sorted-asc");
 
+    const compare = (a, b) => {
+      if (col === 1) return a.length === b.length ? a > b : a.length > b.length;
+      if (col === 2) return a.length > b.length;
+      return a > b;
+    }
+
     const swap = (row) => {
-      const v1 = table.rows[row].cells[col].innerHTML.toLowerCase();
-      const v2 = table.rows[row+1].cells[col].innerHTML.toLowerCase();
-      return (v1 != v2) && Boolean(+(v1 > v2) - sortOrder);
+      const a = table.rows[row].cells[col].innerHTML.toLowerCase();
+      const b = table.rows[row+1].cells[col].innerHTML.toLowerCase();
+      return (a != b) && Boolean(+compare(a, b) - sortOrder);
     };
 
     for (row = 1; row < rows.length; row++) {
@@ -93,12 +99,15 @@
     const { id, position, channelPosition, endpointStatus, total, events } = state;
 
     const statusTd = document.getElementById(`status-${id}`);
-    statusTd && (statusTd.innerHTML=`
-      <div class="counters text-${endpointStatus.color}">
-        <i class="bi ${endpointStatus.icon}"></i>&nbsp;
-        ${position < channelPosition 
-          ? `<b style='color:silver'>${usnf.format(position)}</b><b>/${usnf.format(channelPosition)}</b>` 
-          : `<b>${usnf.format(position)}</b>`}
+    statusTd && (statusTd.innerHTML=`<i class="bi ${endpointStatus.icon} text-${endpointStatus.color}"></i>&nbsp;<a href="/${id}">${id}</a>`);
+          
+    const positionSpan = position < channelPosition 
+          ? `${usnf.format(position)} /${usnf.format(channelPosition)}` 
+          : usnf.format(position);
+    const positionTd = document.getElementById(`position-${id}`);
+    positionTd && (positionTd.innerHTML=`
+      <div class="text-${endpointStatus.color}">
+        ${positionSpan}
       </div>`
     );
 

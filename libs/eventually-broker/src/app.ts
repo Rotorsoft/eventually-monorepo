@@ -6,6 +6,7 @@ import path from "path";
 import { AppOptions, subscriptions } from ".";
 import { state } from "./cluster";
 import * as routes from "./routes";
+import { formatDate, formatInt } from "./utils";
 
 export const app = async ({
   port,
@@ -37,8 +38,8 @@ export const app = async ({
         json: (context: any) => JSON.stringify(context),
         title: () => config().service,
         version: () => config().version,
-        dateFormat: (date: Date) =>
-          date.toISOString().substring(0, 19).replace("T", " ")
+        dateFormat: (date: Date) => formatDate(date),
+        intFormat: (int: number) => formatInt(int)
       }
     })
   );

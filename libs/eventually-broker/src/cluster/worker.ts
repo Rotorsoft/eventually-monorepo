@@ -7,7 +7,7 @@ import {
   TriggerCallback,
   TriggerPayload
 } from "..";
-import { getServiceEndpoints } from "../utils";
+import { formatDate, getServiceEndpoints } from "../utils";
 import {
   ChannelConfig,
   CommittableHttpStatus,
@@ -24,7 +24,7 @@ const triggerLog = (
 ): string =>
   `${operation}${
     retry_count || ""
-  } [${sub_position}/${channel_position}] ${new Date().toISOString()}`;
+  } [${sub_position}/${channel_position}] ${formatDate(new Date())}`;
 
 const sendTrigger = (trigger: TriggerPayload): void => {
   try {
@@ -72,6 +72,7 @@ export const work = async (
     const endpoints = await getServiceEndpoints(pushUrl);
     const found =
       endpoints &&
+      endpoints.eventHandlers &&
       Object.values(endpoints.eventHandlers).find(
         (e) => e.path === "/".concat(path)
       );

@@ -76,8 +76,14 @@ export const post = async (
   body: Record<string, unknown>,
   port: number
 ): Promise<AxiosResponse<any, any>> => {
-  const url = `http://localhost:${port}${path}`;
-  return axios.post<any>(url, body);
+  try {
+    const url = `http://localhost:${port}${path}`;
+    const response = await axios.post<any>(url, body);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
 
 export const _delete = (

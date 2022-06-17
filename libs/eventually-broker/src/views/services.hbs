@@ -17,7 +17,7 @@
       <th scope="col">Channel</th>
       <th scope="col">Url</th>
       <th scope="col" class="text-end">Position</th>
-      <th scope="col">Updated</th>
+      <th scope="col" class="text-end">Updated</th>
     </tr>
   </thead>
   <tbody>
@@ -34,8 +34,8 @@
         </td>
         <td>{{this.channel}}</td>
         <td><a href="{{this.url}}">{{this.url}}</a></td>
-        <td class="text-end">{{this.position}}</td>
-        <td>{{dateFormat this.updated}}</td>
+        <td class="text-end">{{intFormat this.position}}</td>
+        <td class="text-end">{{dateFormat this.updated}}</td>
       </tr>
     {{/each}}
   </tbody>

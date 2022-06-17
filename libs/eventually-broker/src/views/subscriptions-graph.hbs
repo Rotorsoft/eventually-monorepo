@@ -4,6 +4,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script>
+    const usnf = new Intl.NumberFormat("en-US");
+
     const { rows } = {{{json this}}};
     const COLORS = {
         secondary: "#c0c0c0",
@@ -92,7 +94,7 @@
         .attr("id", d => `position-${d.id}`)
         .attr("xlink:href", d => `#path-${d.id}`)
         .attr("startOffset", 33)
-        .text(d => d.position);  
+        .text(d => usnf.format(d.position));  
 
     const node = svg.append("g").selectAll("g")
         .data(nodes).enter()
@@ -140,7 +142,7 @@
 
         d3.select(`#link-${id}`).style("stroke", color(state));
 
-        d3.select(`#position-${id}`).text(position)
+        d3.select(`#position-${id}`).text(usnf.format(position))
             .interrupt()
             .style("font-size", "150%")
             .transition()

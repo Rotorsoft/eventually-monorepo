@@ -74,6 +74,27 @@ export const toViewModel = (
   };
 };
 
+const _emptyView = (
+  id: string,
+  active = false,
+  position = -1
+): SubscriptionViewModel => ({
+  id,
+  active,
+  position,
+  channelStatus: "",
+  channelPosition: -1,
+  endpointStatus: {
+    name: "",
+    code: 200,
+    color: "success",
+    icon: active ? "bi-activity" : "",
+    status: "OK"
+  },
+  total: 0,
+  events: []
+});
+
 export const state = singleton(function state(): State {
   const _services: Record<string, Service> = {};
   const _channels: Record<number, ChannelConfig> = {};
@@ -113,21 +134,7 @@ export const state = singleton(function state(): State {
         status: ""
       };
       subs.forEach(({ id, active, position }) => {
-        _views[id] = {
-          id,
-          active,
-          position,
-          channelStatus: "",
-          channelPosition: -1,
-          endpointStatus: {
-            name: "",
-            code: undefined,
-            color: "success",
-            icon: active ? "bi-activity" : ""
-          },
-          total: 0,
-          events: []
-        };
+        _views[id] = _emptyView(id, active, position);
       });
       if (Object.values(config.subscriptions).length) {
         const worker = cluster.fork({
@@ -188,9 +195,10 @@ export const state = singleton(function state(): State {
     view.position = Math.max(view.position, position);
     view.endpointStatus = {
       name: undefined,
-      code: undefined,
+      code: 500,
       color: "danger",
       icon: "bi-cone-striped",
+      status: "Internal Server Error",
       error: view.endpointStatus.error || {
         message,
         position: view.position
@@ -288,7 +296,8 @@ export const state = singleton(function state(): State {
       encodeURI(_options.serviceLogLinkTemplate.replaceAll("<<SERVICE>>", id)),
     subscribeSSE,
     unsubscribeSSE,
-    viewModel: (id: string): SubscriptionViewModel => _views[id],
+    viewModel: (id: string): SubscriptionViewModel =>
+      _views[id] || _emptyView(id),
     onMessage,
     onExit,
     refreshService: async (operation: Operation, id: string) => {

@@ -5,6 +5,34 @@ import { OpenAPIV3_1 } from "openapi-types";
 import { ContractsViewModel } from "./cluster";
 import { Service } from "./types";
 
+const usnf = new Intl.NumberFormat("en-US");
+const usdf = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  timeZone: "UTC",
+  timeZoneName: "short"
+});
+
+export const formatInt = (int: number): string => {
+  try {
+    usnf.format(int);
+  } catch {
+    return "-";
+  }
+};
+
+export const formatDate = (date: Date): string => {
+  try {
+    return usdf.format(date);
+  } catch {
+    return "-";
+  }
+};
+
 /**
  * Validates admin user
  *
