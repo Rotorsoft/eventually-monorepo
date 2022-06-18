@@ -52,6 +52,7 @@ export const work = async (
   resolvers: ChannelResolvers
 ): Promise<Record<string, SubscriptionState>> => {
   const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
+  const subStates: Record<string, SubscriptionState> = {};
 
   const toState = async ({
     id,
@@ -101,21 +102,6 @@ export const work = async (
       events: found ? found.events : []
     };
   };
-
-  const subStates: Record<string, SubscriptionState> = {};
-  try {
-    const pullUrl = new URL(config.channel);
-    const pullFactory = resolvers.pull[pullUrl.protocol];
-    if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
-    pullchannel(pullFactory(pullUrl, config.id));
-    for await (const sub of Object.values(config.subscriptions)) {
-      subStates[sub.id] = await toState(sub);
-    }
-  } catch (error) {
-    log().error(error);
-    error instanceof Error && sendError(error.message);
-    await dispose()(ExitCodes.ERROR);
-  }
 
   const pumpSub = async (
     subState: SubscriptionState,
@@ -214,76 +200,92 @@ export const work = async (
     trigger: TriggerPayload
   ): Promise<void> => {
     if (subState.pumping) return;
-    subState.pumping = true;
-    clearTimeout(subState.retryTimeout);
-    const retry = await pumpSub(subState, trigger);
-    const retry_count = (trigger.retry_count || 0) + 1;
-    retry &&
-      (subState.retryTimeout = setTimeout(async () => {
-        const retry_trigger: TriggerPayload = {
-          operation: "RETRY",
-          id: trigger.id,
-          retry_count,
-          position: trigger.position
+    try {
+      subState.pumping = true;
+      clearTimeout(subState.retryTimeout);
+      const retry = await pumpSub(subState, trigger);
+      const retry_count = (trigger.retry_count || 0) + 1;
+      retry &&
+        (subState.retryTimeout = setTimeout(async () => {
+          const retry_trigger: TriggerPayload = {
+            operation: "RETRY",
+            id: trigger.id,
+            retry_count,
+            position: trigger.position
+          };
+          sendTrigger(retry_trigger);
+          await pumpRetry(subState, retry_trigger);
+        }, subState.retryTimeoutSecs * 1000 * retry_count));
+    } catch (error) {
+      log().error(error);
+      if (error instanceof Error) {
+        subState.endpointStatus = {
+          name: undefined,
+          code: 500,
+          color: "danger",
+          icon: "bi-cone-striped",
+          status: "Internal Server Error",
+          error: {
+            message: error.message,
+            position: subState.position
+          }
         };
-        sendTrigger(retry_trigger);
-        await pumpRetry(subState, retry_trigger);
-      }, subState.retryTimeoutSecs * 1000 * retry_count));
-    subState.pumping = false;
+        sendState(subState);
+      }
+    } finally {
+      subState.pumping = false;
+    }
   };
 
-  const pumpChannel: TriggerCallback = async (trigger) => {
+  const pumpChannel: TriggerCallback = (trigger) => {
     sendTrigger(trigger);
-    await Promise.all(
-      Object.values(subStates).map((sub) => pumpRetry(sub, trigger))
-    );
+    for (const sub of Object.values(subStates)) {
+      void pumpRetry(sub, trigger);
+    }
   };
 
   process.on(
     "message",
     async ({ operation, sub }: MasterMessage): Promise<void> => {
       const currentState = subStates[sub.id];
+      if (operation === "REFRESH") {
+        currentState && sendState(currentState);
+        return;
+      }
+
       currentState &&
         currentState.retryTimeout &&
         clearTimeout(currentState.retryTimeout);
 
-      if (!sub.active || operation === "DELETE") {
-        delete subStates[sub.id];
-      } else {
+      if (!sub.active || operation === "DELETE") delete subStates[sub.id];
+      else {
         const subState = (subStates[sub.id] = await toState(sub));
         currentState && Object.assign(subState.stats, currentState.stats);
-        try {
-          const trigger: TriggerPayload = { operation, id: sub.id };
-          sendTrigger(trigger);
-          await pumpRetry(subState, trigger);
-        } catch (error) {
-          log().error(error);
-          if (error instanceof Error) {
-            subState.endpointStatus = {
-              name: undefined,
-              code: 500,
-              color: "danger",
-              icon: "bi-cone-striped",
-              status: "Internal Server Error",
-              error: {
-                message: error.message,
-                position: subState.position
-              }
-            };
-            sendState(subState);
-          }
-        }
+        const trigger: TriggerPayload = { operation, id: sub.id };
+        sendTrigger(trigger);
+        void pumpRetry(subState, trigger);
       }
       !Object.keys(subStates).length && (await dispose()(ExitCodes.ERROR));
     }
   );
 
-  await pumpChannel({
-    operation: "RESTART",
-    id: config.id
-  });
-
-  await pullchannel().listen(pumpChannel);
-
-  return subStates;
+  try {
+    const pullUrl = new URL(config.channel);
+    const pullFactory = resolvers.pull[pullUrl.protocol];
+    if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
+    pullchannel(pullFactory(pullUrl, config.id));
+    await Promise.all(
+      Object.values(config.subscriptions).map(async (sub) => {
+        subStates[sub.id] = await toState(sub);
+        sendState(subStates[sub.id]);
+      })
+    );
+    pumpChannel({ operation: "RESTART", id: config.id });
+    await pullchannel().listen(pumpChannel);
+    return subStates;
+  } catch (error) {
+    log().error(error);
+    error instanceof Error && sendError(error.message);
+    await dispose()(ExitCodes.ERROR);
+  }
 };

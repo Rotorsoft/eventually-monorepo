@@ -20,18 +20,20 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
       service.updated = new Date();
       services[service.id] = service;
       _servicesCallback &&
-        (await _servicesCallback({ operation: "INSERT", id: service.id }));
+        _servicesCallback({ operation: "INSERT", id: service.id });
+      return Promise.resolve();
     },
     updateService: async (service: Service) => {
       service.updated = new Date();
       services[service.id] = service;
       _servicesCallback &&
-        (await _servicesCallback({ operation: "UPDATE", id: service.id }));
+        _servicesCallback({ operation: "UPDATE", id: service.id });
+      return Promise.resolve();
     },
     deleteService: async (id: string) => {
       delete services[id];
-      _servicesCallback &&
-        (await _servicesCallback({ operation: "DELETE", id }));
+      _servicesCallback && _servicesCallback({ operation: "DELETE", id });
+      return Promise.resolve();
     },
     commitServicePosition: (id: string, position: number) => {
       const service = services[id];
@@ -48,29 +50,33 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
     createSubscription: async (subscription: Subscription) => {
       subscriptions[subscription.id] = subscription;
       _subscriptionsCallback &&
-        (await _subscriptionsCallback({
+        _subscriptionsCallback({
           operation: "INSERT",
           id: subscription.id
-        }));
+        });
+      return Promise.resolve();
     },
     updateSubscription: async (subscription: Subscription) => {
       subscriptions[subscription.id] = subscription;
       _subscriptionsCallback &&
-        (await _subscriptionsCallback({
+        _subscriptionsCallback({
           operation: "UPDATE",
           id: subscription.id
-        }));
+        });
+      return Promise.resolve();
     },
     deleteSubscription: async (id: string) => {
       delete subscriptions[id];
       _subscriptionsCallback &&
-        (await _subscriptionsCallback({ operation: "DELETE", id }));
+        _subscriptionsCallback({ operation: "DELETE", id });
+      return Promise.resolve();
     },
     toggleSubscription: async (id: string) => {
       const sub = subscriptions[id];
       sub.active = !sub.active;
       _subscriptionsCallback &&
-        (await _subscriptionsCallback({ operation: "UPDATE", id }));
+        _subscriptionsCallback({ operation: "UPDATE", id });
+      return Promise.resolve();
     },
     commitSubscriptionPosition: (id: string, position: number) => {
       const sub = subscriptions[id];

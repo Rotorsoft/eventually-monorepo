@@ -16,13 +16,10 @@ export const PostgresStreamListener = (stream: string): StreamListener => {
         await dispose()(ExitCodes.ERROR);
       });
 
-      subscriber.notifications.on(
-        stream,
-        async (trigger: TriggerPayload): Promise<void> => {
-          log().info("magenta", `[${process.pid}]`, "⚡", trigger);
-          await callback(trigger);
-        }
-      );
+      subscriber.notifications.on(stream, (trigger: TriggerPayload): void => {
+        log().info("magenta", `[${process.pid}]`, "⚡", trigger);
+        callback(trigger);
+      });
 
       await subscriber.connect();
       await subscriber.listenTo(stream);

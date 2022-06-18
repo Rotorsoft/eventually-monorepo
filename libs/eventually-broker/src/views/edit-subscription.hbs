@@ -111,7 +111,7 @@
     <td class="text-end table-${color} stat">${usnf.format(stats.max)}</td>
   ` : "<td/><td/><td/>";
   const refresh = ({ id, active, position, channelPosition, channelStatus, endpointStatus, events }) => {
-    const _events = events.map(({ name, found, ok, ignored, retryable, critical }) => {
+    const _events = (events || []).map(({ name, found, ok, ignored, retryable, critical }) => {
       return `
         <tr>
           ${found ? `<th>${name}</th>` : `<td>${name}</td>`}
@@ -136,18 +136,18 @@
 
     const toggleIcon = active ? "bi-toggle-on" : "bi-toggle-off";
     const toggleTitle = active ? "Stop" : "Start";
-    const toggleButton = state.isAdmin ? 
+    const toggleButton = state.isAdmin && endpointStatus ? 
       `<a href="/_toggle/${id}" title=${toggleTitle}
         type="button"
         class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${endpointStatus.color}"></i>
       </a>` : '';
-    const errorBlock = endpointStatus.error ? 
+    const errorBlock = endpointStatus && endpointStatus.error ? 
     `<div class="error-block">
       <span>${endpointStatus.error.trigger||""}</span><br/>
       <i><b>${endpointStatus.name && endpointStatus.name.concat(" ", usnf.format(endpointStatus.error.position)) || ""}</b> ${endpointStatus.error.message||""}</i>
     </div>` : "";  
 
-    statsDiv.innerHTML=`
+    endpointStatus && (statsDiv.innerHTML=`
     <div class="card p-0">
       <div class="card-header row p-2 m-0">
         <h6 class="card-title m-0 col-11">
@@ -189,7 +189,7 @@
           </tbody>
         </table>
       </div>
-    </div>`
+    </div>`)
   }
 
   const connect = () => {

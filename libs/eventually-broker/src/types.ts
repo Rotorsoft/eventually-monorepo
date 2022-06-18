@@ -46,7 +46,13 @@ export type Subscription = {
   retry_timeout_secs: number;
 };
 
-export type Operation = "RESTART" | "INSERT" | "UPDATE" | "DELETE" | "RETRY";
+export type Operation =
+  | "REFRESH"
+  | "RESTART"
+  | "INSERT"
+  | "UPDATE"
+  | "DELETE"
+  | "RETRY";
 /**
  * Trigger payload
  * - `id`: trigger id (record id, event name)
@@ -66,7 +72,7 @@ export type TriggerPayload = {
 /**
  * Subscription trigger callback to signal integration
  */
-export type TriggerCallback = (trigger: TriggerPayload) => Promise<void>;
+export type TriggerCallback = (trigger: TriggerPayload) => void;
 
 /**
  * Push response

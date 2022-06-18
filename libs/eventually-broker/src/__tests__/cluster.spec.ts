@@ -112,7 +112,9 @@ describe("cluster", () => {
       trigger: { id: "s1", operation: "RESTART", position: 1 }
     });
     state().onMessage(1, { state: subState });
-    const viewModel = state().viewModel("s1");
+    const viewModel = state().viewModel(
+      (await subscriptions().loadSubscriptions("s1"))[0]
+    );
     expect(viewModel.id).toBe("s1");
     state().onExit(1, 1, "");
     toViewModel(subState);

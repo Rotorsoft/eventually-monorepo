@@ -296,8 +296,12 @@ export const state = singleton(function state(): State {
       encodeURI(_options.serviceLogLinkTemplate.replaceAll("<<SERVICE>>", id)),
     subscribeSSE,
     unsubscribeSSE,
-    viewModel: (id: string): SubscriptionViewModel =>
-      _views[id] || _emptyView(id),
+    viewModel: (sub: Subscription): SubscriptionViewModel => {
+      const workerId = findWorkerId(sub.producer);
+      const worker = cluster.workers[workerId];
+      worker && worker.send({ operation: "REFRESH", sub });
+      return _views[sub.id] || _emptyView(sub.id);
+    },
     onMessage,
     onExit,
     refreshService: async (operation: Operation, id: string) => {

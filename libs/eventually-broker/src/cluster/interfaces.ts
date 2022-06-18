@@ -1,6 +1,6 @@
 import { Disposable } from "@rotorsoft/eventually";
 import { Writable } from "stream";
-import { Operation, Service } from "../types";
+import { Operation, Service, Subscription } from "../types";
 import { SubscriptionViewModel, WorkerMessage } from "./types";
 
 export type StateOptions = { serviceLogLinkTemplate?: string };
@@ -13,7 +13,7 @@ export interface State extends Disposable {
   subscribeSSE: (session: string, stream: Writable, id?: string) => void;
   unsubscribeSSE: (session: string) => void;
   services: () => Service[];
-  viewModel: (id: string) => SubscriptionViewModel;
+  viewModel: (sub: Subscription) => SubscriptionViewModel;
   onMessage: (workerId: number, message: WorkerMessage) => void;
   onExit: (workerId: number, code: number, signal: string) => void;
 }
