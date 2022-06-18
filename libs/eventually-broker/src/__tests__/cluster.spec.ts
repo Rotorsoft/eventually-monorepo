@@ -149,8 +149,10 @@ describe("cluster", () => {
       ...defaultResolvers,
       ...{ push: { "test:": () => TestPushChannel() } }
     });
+    // await for pump to finish async
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     Object.values(subStates).forEach((s) => {
-      s.retryTimeout && clearTimeout(s.retryTimeout);
+      clearTimeout(s.retryTimeout);
     });
     expect(1).toBe(1);
   });
