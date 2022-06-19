@@ -1,0 +1,48 @@
+<div class="row">
+  <div class="col-6">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Correlation Explorer</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+<h5>{{this.correlation_id}}</h5>
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Created</th>
+      <th scope="col">Service</th>
+      <th scope="col">Causation</th>
+      <th scope="col">Event</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each this.correlation}}
+      <tr>
+        <td>{{dateFormat this.created}}</td>
+        <td>{{this.service}}</td>
+        <td scope="row">
+          {{#if this.causation}}
+            <table>
+              <tr><td><b
+                  >{{this.causation.name}}</b>@{{this.causation.id}}</td></tr>
+              <tr><td><i>{{this.causation.stream}}</i><b
+                  >{{this.causation.actor}}</b></td></tr>
+            </table>
+          {{/if}}
+        </td>
+        <td scope="row">
+          <table>
+            <tr><td><b>{{this.name}}</b>{{#if
+                  this.stream
+                }}@{{this.id}}{{/if}}</td></tr>
+            {{#if this.stream}}
+              <tr><td><i>{{this.stream}}</i></td></tr>
+            {{/if}}
+          </table>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

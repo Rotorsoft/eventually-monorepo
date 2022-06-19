@@ -1,4 +1,9 @@
-import { Actor, Endpoints } from "@rotorsoft/eventually";
+import {
+  Actor,
+  CommittedEvent,
+  Endpoints,
+  Payload
+} from "@rotorsoft/eventually";
 import axios from "axios";
 import { Request } from "express";
 import { OpenAPIV3_1 } from "openapi-types";
@@ -54,6 +59,63 @@ export const getServiceEndpoints = async (
   } catch {
     return undefined;
   }
+};
+
+type CorrelationMessage = {
+  name: string;
+  id: number | string;
+  stream?: string;
+  actor?: string;
+};
+type Correlation = CorrelationMessage & {
+  created: Date;
+  service: string;
+  causation?: CorrelationMessage;
+};
+export const getCorrelation = async (
+  correlation: string,
+  services: Service[]
+): Promise<Correlation[]> => {
+  const all = await Promise.all(
+    services.map(async (s) => {
+      if (!s.url.startsWith("http"))
+        return [
+          {
+            created: new Date(),
+            service: s.id,
+            id: -1,
+            name: "Invalid Service"
+          }
+        ];
+      try {
+        const { data } = await axios.get<CommittedEvent<string, Payload>[]>(
+          `${s.url}/all?correlation=${correlation}&limit=10`
+        );
+        return data.map(({ id, name, stream, created, metadata }) => {
+          const { command, event } = metadata.causation;
+          return {
+            created: new Date(created),
+            service: s.id,
+            id,
+            name,
+            stream,
+            causation: event
+              ? {
+                  name: event.name,
+                  id: event.id,
+                  stream: event.stream
+                }
+              : { name: command.name, id: command.id }
+          };
+        });
+      } catch (error) {
+        return [
+          { created: new Date(), service: s.id, id: -1, name: error.message }
+        ];
+      }
+    })
+  );
+  return all.flat().sort((a, b) => a.created.getTime() - b.created.getTime());
 };
 
 export const getServiceContracts = (

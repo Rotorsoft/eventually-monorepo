@@ -50,6 +50,7 @@ export const app = async ({
     res.sendFile(path.resolve(__dirname, "./public/assets/broker.png"));
   });
   app.use("/_services", middleware, routes.services);
+  app.use("/_correlation", middleware, routes.correlation);
   app.use("/_contracts", middleware, routes.contracts);
   app.use("/", middleware, routes.subscriptions);
 
