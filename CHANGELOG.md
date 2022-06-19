@@ -1,3 +1,5 @@
+#### 2022-06-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.6...@rotorsoft/eventually-broker-v1.2.7) @rotorsoft/eventually-broker-v1.2.7
+  - PATCH [e68881ac](https://github.com/Rotorsoft/eventually-monorepo/commit/e68881ac8fb399843787093bd5dbf532018e6888) fix: add correlation view
 #### 2022-06-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.5...@rotorsoft/eventually-broker-v1.2.6) @rotorsoft/eventually-broker-v1.2.6
   - PATCH [3d3fcad3](https://github.com/Rotorsoft/eventually-monorepo/commit/3d3fcad338002eebe01d5cadc5bc317b0db271b5) fix: refresh states
 #### 2022-06-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.4...@rotorsoft/eventually-broker-v1.2.5) @rotorsoft/eventually-broker-v1.2.5
