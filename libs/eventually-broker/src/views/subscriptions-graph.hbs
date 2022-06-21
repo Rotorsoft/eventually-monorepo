@@ -26,8 +26,10 @@
 
     const ids = {};
     links.forEach(link => {
-        ids[link.source] = ids[link.source] || { id: link.source };
-        ids[link.target] = ids[link.target] || { id: link.target };
+        ids[link.source] = ids[link.source] || { id: link.source, producers: 0, consumers: 0 };
+        ids[link.target] = ids[link.target] || { id: link.target, producers: 0, producers: 0 };
+        ids[link.source].consumers++;
+        ids[link.target].producers++;
         link.validated && (ids[link.target].validated = true);
         link.source =  link.source;
         link.target =  link.target;
@@ -106,7 +108,7 @@
         .attr("transform", `translate(${width/2},${height/2})`)
         .call(drag);
     node.append("circle")
-        .style("fill", d => d.validated ? "#ffc107" : "white")
+        .style("fill", d => d.validated ? "#ffc107" : d.producers === 0 ? "pink" : "white")
         .attr("r", R);
     node.append("text")
         .attr("x", d => -Math.min(R, R * d.id.length / 11))
