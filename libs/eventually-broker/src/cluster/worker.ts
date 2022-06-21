@@ -7,7 +7,7 @@ import {
   TriggerCallback,
   TriggerPayload
 } from "..";
-import { formatDate, getServiceEndpoints } from "../utils";
+import { formatDate, getServiceEndpoints, safeStringify } from "../utils";
 import {
   ChannelConfig,
   CommittableHttpStatus,
@@ -45,6 +45,13 @@ const sendState = (state: SubscriptionState): void => {
     `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
     JSON.stringify(state.stats.events)
   );
+  try {
+    JSON.stringify(state);
+  } catch (error) {
+    log().error(error);
+    console.log(safeStringify(state));
+    return;
+  }
   process.send({ state });
 };
 
