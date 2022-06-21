@@ -1,3 +1,5 @@
+#### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.7...@rotorsoft/eventually-broker-v1.2.8) @rotorsoft/eventually-broker-v1.2.8
+  - PATCH [b75b7fa2](https://github.com/Rotorsoft/eventually-monorepo/commit/b75b7fa27d28d39dc5a783095584c7cb07cc1e4b) fix: color validated services
 #### 2022-06-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.6...@rotorsoft/eventually-broker-v1.2.7) @rotorsoft/eventually-broker-v1.2.7
   - PATCH [e68881ac](https://github.com/Rotorsoft/eventually-monorepo/commit/e68881ac8fb399843787093bd5dbf532018e6888) fix: add correlation view
 #### 2022-06-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.5...@rotorsoft/eventually-broker-v1.2.6) @rotorsoft/eventually-broker-v1.2.6
