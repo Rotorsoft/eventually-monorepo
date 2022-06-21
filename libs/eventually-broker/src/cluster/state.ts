@@ -70,7 +70,8 @@ export const toViewModel = (
     position,
     endpointStatus,
     total: stats?.total,
-    events: Object.values(eventsMap)
+    events: Object.values(eventsMap),
+    validated: events.length > 0
   };
 };
 
@@ -92,7 +93,8 @@ const _emptyView = (
     status: "OK"
   },
   total: 0,
-  events: []
+  events: [],
+  validated: false
 });
 
 export const state = singleton(function state(): State {

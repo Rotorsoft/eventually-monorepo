@@ -19,7 +19,9 @@ export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
               status,
               statusText,
               details: data
-                ? `${data.message} ${data.details || ""}`
+                ? `${data.message} ${
+                    data.details ? JSON.stringify(data.details) : ""
+                  }`
                 : undefined
             };
           }

@@ -97,6 +97,7 @@ export type SubscriptionViewModel = {
   endpointStatus: EndpointStatus;
   total: number;
   events: EventsViewModel[];
+  validated: boolean;
 };
 
 //TODO: Improve types for commands events and errors

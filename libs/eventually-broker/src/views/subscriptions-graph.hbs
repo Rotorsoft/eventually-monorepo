@@ -20,15 +20,19 @@
         source: row.producer,
         target: row.consumer,
         color: color(row),
-        position: row.active ? row.position : ""
+        position: row.active ? row.position : "",
+        validated: row.validated
     }));
 
     const ids = {};
     links.forEach(link => {
-        link.source = ids[link.source] || (ids[link.source] = link.source);
-        link.target = ids[link.target] || (ids[link.target] = link.target);
+        ids[link.source] = ids[link.source] || { id: link.source };
+        ids[link.target] = ids[link.target] || { id: link.target };
+        link.validated && (ids[link.target].validated = true);
+        link.source =  link.source;
+        link.target =  link.target;
     });
-    const nodes = Object.keys(ids).map(id => ({ id }));
+    const nodes = Object.values(ids);
 
     const simulation = d3.forceSimulation(nodes)
         .force("charge", d3.forceManyBody().strength(-300))
@@ -101,7 +105,9 @@
         .append("g")
         .attr("transform", `translate(${width/2},${height/2})`)
         .call(drag);
-    node.append("circle").attr("r", R);
+    node.append("circle")
+        .style("fill", d => d.validated ? "#ffc107" : "white")
+        .attr("r", R);
     node.append("text")
         .attr("x", d => -Math.min(R, R * d.id.length / 11))
         .attr("y", 3)

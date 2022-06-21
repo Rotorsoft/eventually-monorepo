@@ -56,7 +56,8 @@ describe("views", () => {
       "/_refresh/s1",
       "/_toggle/s1",
       "/_graph",
-      "/_contracts"
+      "/_contracts",
+      "/_correlation/aZCNKNr3HP5pQRWIxvj3XeoZ"
     ];
     const responses = await Promise.all(paths.map((path) => get(path, port)));
     responses.map((response) => {
