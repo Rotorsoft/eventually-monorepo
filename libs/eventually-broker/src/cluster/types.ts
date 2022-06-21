@@ -48,7 +48,6 @@ export type SubscriptionState = {
   streamsRegExp: RegExp;
   namesRegExp: RegExp;
   pumping: boolean;
-  retryTimeout?: NodeJS.Timeout;
   stats: SubscriptionStats;
   endpointStatus: EndpointStatus;
   events: string[];

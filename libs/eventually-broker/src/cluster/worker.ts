@@ -7,7 +7,7 @@ import {
   TriggerCallback,
   TriggerPayload
 } from "..";
-import { formatDate, getServiceEndpoints, safeStringify } from "../utils";
+import { formatDate, getServiceEndpoints } from "../utils";
 import {
   ChannelConfig,
   CommittableHttpStatus,
@@ -45,21 +45,15 @@ const sendState = (state: SubscriptionState): void => {
     `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
     JSON.stringify(state.stats.events)
   );
-  try {
-    JSON.stringify(state);
-  } catch (error) {
-    log().error(error);
-    console.log(safeStringify(state));
-    return;
-  }
   process.send({ state });
 };
 
 export const work = async (
   resolvers: ChannelResolvers
-): Promise<Record<string, SubscriptionState>> => {
+): Promise<() => void> => {
   const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
   const subStates: Record<string, SubscriptionState> = {};
+  const retryTimeouts: Record<string, NodeJS.Timeout> = {};
 
   const toState = async ({
     id,
@@ -97,7 +91,6 @@ export const work = async (
       retries,
       retryTimeoutSecs: retry_timeout_secs,
       pumping: false,
-      retryTimeout: undefined,
       endpointStatus: {
         name: "",
         code: 200,
@@ -209,11 +202,11 @@ export const work = async (
     if (subState.pumping) return;
     try {
       subState.pumping = true;
-      clearTimeout(subState.retryTimeout);
+      clearTimeout(retryTimeouts[subState.id]);
       const retry = await pumpSub(subState, trigger);
       const retry_count = (trigger.retry_count || 0) + 1;
       retry &&
-        (subState.retryTimeout = setTimeout(async () => {
+        (retryTimeouts[subState.id] = setTimeout(async () => {
           const retry_trigger: TriggerPayload = {
             operation: "RETRY",
             id: trigger.id,
@@ -260,9 +253,7 @@ export const work = async (
         return;
       }
 
-      currentState &&
-        currentState.retryTimeout &&
-        clearTimeout(currentState.retryTimeout);
+      currentState && clearTimeout(retryTimeouts[currentState.id]);
 
       if (!sub.active || operation === "DELETE") delete subStates[sub.id];
       else {
@@ -289,7 +280,11 @@ export const work = async (
     );
     pumpChannel({ operation: "RESTART", id: config.id });
     await pullchannel().listen(pumpChannel);
-    return subStates;
+    return () => {
+      Object.values(retryTimeouts).forEach((t) => {
+        clearTimeout(t);
+      });
+    };
   } catch (error) {
     log().error(error);
     error instanceof Error && sendError(error.message);

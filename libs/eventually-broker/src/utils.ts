@@ -176,18 +176,18 @@ export const getServiceContracts = (
   });
 };
 
-export const safeStringify = (val: any): string => {
-  let cache: Array<any> = [];
-  const result = JSON.stringify(
-    val,
-    (key, value) =>
-      typeof value === "object" && value !== null
-        ? cache.includes(value)
-          ? `circular:${key}`
-          : cache.push(value) && value
-        : value,
-    2
-  );
-  cache = null;
-  return result;
-};
+// export const safeStringify = (val: any): string => {
+//   let cache: Array<any> = [];
+//   const result = JSON.stringify(
+//     val,
+//     (key, value) =>
+//       typeof value === "object" && value !== null
+//         ? cache.includes(value)
+//           ? `circular:${key}`
+//           : cache.push(value) && value
+//         : value,
+//     2
+//   );
+//   cache = null;
+//   return result;
+// };

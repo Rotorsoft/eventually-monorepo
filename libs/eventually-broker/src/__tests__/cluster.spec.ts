@@ -87,7 +87,6 @@ describe("cluster", () => {
       pushChannel: VoidPushChannel(),
       streamsRegExp: new RegExp(""),
       namesRegExp: new RegExp(""),
-      retryTimeout: undefined,
       endpointStatus: {
         code: undefined,
         color: "success",
@@ -145,15 +144,13 @@ describe("cluster", () => {
       status: ""
     };
     process.env.WORKER_ENV = JSON.stringify(chanConfig);
-    const subStates = await work({
+    const stop = await work({
       ...defaultResolvers,
       ...{ push: { "test:": () => TestPushChannel() } }
     });
     // await for pump to finish async
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    Object.values(subStates).forEach((s) => {
-      clearTimeout(s.retryTimeout);
-    });
+    stop();
     expect(1).toBe(1);
   });
 });
