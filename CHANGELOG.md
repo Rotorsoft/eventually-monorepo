@@ -1,3 +1,5 @@
+#### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.9...@rotorsoft/eventually-broker-v1.2.10) @rotorsoft/eventually-broker-v1.2.10
+  - PATCH [a9942343](https://github.com/Rotorsoft/eventually-monorepo/commit/a9942343eb75b24e4d57b1667d1417f60cd6b56b) fix: add safe stringify
 #### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.8...@rotorsoft/eventually-broker-v1.2.9) @rotorsoft/eventually-broker-v1.2.9
   - PATCH [94bd068c](https://github.com/Rotorsoft/eventually-monorepo/commit/94bd068c339001dd9daebeb15ef93113c0c618a8) fix: color pink roots
 #### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.7...@rotorsoft/eventually-broker-v1.2.8) @rotorsoft/eventually-broker-v1.2.8
