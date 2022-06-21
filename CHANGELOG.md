@@ -1,3 +1,5 @@
+#### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.8...@rotorsoft/eventually-broker-v1.2.9) @rotorsoft/eventually-broker-v1.2.9
+  - PATCH [94bd068c](https://github.com/Rotorsoft/eventually-monorepo/commit/94bd068c339001dd9daebeb15ef93113c0c618a8) fix: color pink roots
 #### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.7...@rotorsoft/eventually-broker-v1.2.8) @rotorsoft/eventually-broker-v1.2.8
   - PATCH [b75b7fa2](https://github.com/Rotorsoft/eventually-monorepo/commit/b75b7fa27d28d39dc5a783095584c7cb07cc1e4b) fix: color validated services
 #### 2022-06-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.6...@rotorsoft/eventually-broker-v1.2.7) @rotorsoft/eventually-broker-v1.2.7
