@@ -1,3 +1,5 @@
+#### 2022-06-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.12...@rotorsoft/eventually-broker-v1.2.13) @rotorsoft/eventually-broker-v1.2.13
+  - PATCH [6f84a2a8](https://github.com/Rotorsoft/eventually-monorepo/commit/6f84a2a871d4cdea0126167e05f252d0dbf43bba) fix: pin nodes in graph
 #### 2022-06-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.11...@rotorsoft/eventually-broker-v1.2.12) @rotorsoft/eventually-broker-v1.2.12
   - PATCH [eddf7365](https://github.com/Rotorsoft/eventually-monorepo/commit/eddf7365f11bf9cf3c992c697b48b611bbf9131a) fix: cache graph position in local storage
 #### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.10...@rotorsoft/eventually-broker-v1.2.11) @rotorsoft/eventually-broker-v1.2.11
