@@ -56,9 +56,12 @@ circle {
     z-index: 10;
 }
 
-g.active circle {
-    fill: #eee;
-    stroke-width: 2px;
+g.dragging circle {
+    stroke-width: 3px;
+}
+
+g.pinned circle {
+    stroke-width: 3px;
 }
 
 text {

@@ -40,6 +40,7 @@
         .force("charge", d3.forceManyBody().strength(-300))
         .force("link", d3.forceLink(links).id(d => d.id))
         .force("center", d3.forceCenter())
+        .alphaMin(.1)
         .stop();
 
     const graph = document.getElementById("graph");
@@ -49,20 +50,26 @@
     const R = 30, D = 2 * R;
     const drag = d3.drag()
         .on("start", function({ active }, d) {
-            !active && simulation.alphaTarget(0.3).restart();
-            d3.select(this).classed("active", true);
-            d.fx = d.x;
-            d.fy = d.y;
+            delete d.fx;
+            delete d.fy;
+            delete d.pin;
+            d3.select(this)
+                .classed("dragging", true)
+                .classed("pinned", false);
         })
         .on("drag", function({x, y}, d) {
+            simulation.alpha(0.3).restart();
             d.fx = Math.max(D, Math.min(width - D, x));
             d.fy = Math.max(D, Math.min(height - D, y));
         })
         .on("end", function({ active }, d) {
-            !active && simulation.alphaTarget(0);
-            d3.select(this).classed("active", false);
-            d.fx = null;
-            d.fy = null;
+            simulation.alpha(0).restart();
+            delete d.fx;
+            delete d.fy;
+            d.pin = { x: d.x, y: d.y };
+            d3.select(this)
+                .classed("dragging", false)
+                .classed("pinned", true);
         });
 
     svg.append("defs").selectAll("marker")
@@ -105,8 +112,16 @@
     const node = svg.append("g").selectAll("g")
         .data(nodes).enter()
         .append("g")
+        .attr("id", d => `g-${d.id}`)
         .attr("transform", `translate(${width/2},${height/2})`)
-        .call(drag);
+        .call(drag)
+        .on("click", function(event, d) {
+            delete d.fx;
+            delete d.fy;
+            delete d.pin;
+            d3.select(this).classed("pinned", false);
+            simulation.alphaTarget(0.3).restart();
+        });
     node.append("circle")
         .attr("id", d => `node-${d.id}`)
         .attr("r", R)
@@ -118,33 +133,34 @@
 
     simulation.on("tick", () => {
         node.attr("transform", d => {
+            if(d.pin) return `translate(${d.pin.x},${d.pin.y})`;
             const x = Math.max(D, Math.min(width - D, d.x));
             const y = Math.max(D, Math.min(height - D, d.y));
             return `translate(${x},${y})`
         });
         path.attr("d", d => {
-            const sx = Math.max(D, Math.min(width - D, d.source.x));
-            const sy = Math.max(D, Math.min(height - D, d.source.y));
-            const tx = Math.max(D, Math.min(width - D, d.target.x));
-            const ty = Math.max(D, Math.min(height - D, d.target.y));
+            const sx = d.source.pin ? d.source.pin.x : Math.max(D, Math.min(width - D, d.source.x));
+            const sy = d.source.pin ? d.source.pin.y : Math.max(D, Math.min(height - D, d.source.y));
+            const tx = d.target.pin ? d.target.pin.x : Math.max(D, Math.min(width - D, d.target.x));
+            const ty = d.target.pin ? d.target.pin.y : Math.max(D, Math.min(height - D, d.target.y));
             const r = Math.hypot(tx - sx, ty - sy);
             return `M${sx},${sy}A${r},${r} 0 0,1 ${tx},${ty}`;
         });
      });
 
-    const restart = (alpha) => {
+    const restart = (target = 0.3) => {
         simulation.stop();
         width = graph.offsetWidth;
         height = window.innerHeight - 200;
         svg.attr("height", height);
         simulation.force("center").x(width/2).y(height/2);
         simulation.force("link").distance(Math.min(width, height) / 3);
-        simulation.alpha(alpha).restart();
+        simulation.alpha(target).restart();
     } 
 
     const refresh = () => {
         clearTimeout(window.resizing);
-        window.resizing = setTimeout(() => restart(1), 250);
+        window.resizing = setTimeout(restart, 250);
     }
     window.onresize = refresh;
 
@@ -185,21 +201,28 @@
     if (cache) {
         const _nodes = JSON.parse(cache).nodes;
         let count = 0;
-        _nodes.forEach(({ id, x, y }) => {
+        _nodes.forEach(({ id, x, y, pin }) => {
             const found = nodes.find(n => n.id === id)
             if (found) {
                 found.x = x;
                 found.y = y;
+                pin && (found.pin = pin);
+                pin && d3.select(`#g-${id}`).classed("pinned", true);
                 count++;
             }
         });
-        restart(count === _nodes.length ? 0 : 1);
+        restart(count >= _nodes.length / 2 ? 0 : .3);
     }
-    else restart(1);
+    else restart();
 
-    simulation.on("end", () => {
-        localStorage.setItem("cache-graph", JSON.stringify({ nodes }));
-    });
+    const save = () => {
+        clearTimeout(window.saving);
+        window.saving = setTimeout(() => {
+            console.log("saving cache");
+            localStorage.setItem("cache-graph", JSON.stringify({ nodes }));
+        }, 3000);
+    }
+    simulation.on("end", save);
 
     connect();
 </script>
