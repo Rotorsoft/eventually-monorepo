@@ -1,3 +1,5 @@
+#### 2022-06-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.11...@rotorsoft/eventually-broker-v1.2.12) @rotorsoft/eventually-broker-v1.2.12
+  - PATCH [eddf7365](https://github.com/Rotorsoft/eventually-monorepo/commit/eddf7365f11bf9cf3c992c697b48b611bbf9131a) fix: cache graph position in local storage
 #### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.10...@rotorsoft/eventually-broker-v1.2.11) @rotorsoft/eventually-broker-v1.2.11
   - PATCH [b8477576](https://github.com/Rotorsoft/eventually-monorepo/commit/b84775765539317b8ff4501308a50d6c0db87383) fix: remove retry timeouts from state
 #### 2022-06-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.9...@rotorsoft/eventually-broker-v1.2.10) @rotorsoft/eventually-broker-v1.2.10
