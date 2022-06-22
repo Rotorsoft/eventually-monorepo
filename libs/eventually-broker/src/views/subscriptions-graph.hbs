@@ -108,8 +108,9 @@
         .attr("transform", `translate(${width/2},${height/2})`)
         .call(drag);
     node.append("circle")
-        .style("fill", d => d.validated ? "#ffc107" : d.producers === 0 ? "pink" : "white")
-        .attr("r", R);
+        .attr("id", d => `node-${d.id}`)
+        .attr("r", R)
+        .style("fill", d => d.validated ? "#ffc107" : d.producers === 0 ? "pink" : "white");
     node.append("text")
         .attr("x", d => -Math.min(R, R * d.id.length / 11))
         .attr("y", 3)
@@ -131,22 +132,26 @@
         });
      });
 
+    const restart = (alpha) => {
+        simulation.stop();
+        width = graph.offsetWidth;
+        height = window.innerHeight - 200;
+        svg.attr("height", height);
+        simulation.force("center").x(width/2).y(height/2);
+        simulation.force("link").distance(Math.min(width, height) / 3);
+        simulation.alpha(alpha).restart();
+    } 
+
     const refresh = () => {
         clearTimeout(window.resizing);
-        window.resizing = setTimeout(() => {
-            simulation.stop();
-            width = graph.offsetWidth;
-            height = window.innerHeight - 200;
-            svg.attr("height", height);
-            simulation.force("center").x(width/2).y(height/2);
-            simulation.force("link").distance(Math.min(width, height) / 3);
-            simulation.alpha(1).restart();
-        }, 250);
+        window.resizing = setTimeout(() => restart(1), 250);
     }
     window.onresize = refresh;
 
     const animate = async (state) => {
-        const { id, position, endpointStatus } = state;
+        const { id, position, endpointStatus, consumer, validated } = state;
+
+        validated && d3.select(`#node-${consumer}`).style("fill", "#ffc107");
 
         d3.select(`#link-${id}`).style("stroke", color(state));
 
@@ -176,6 +181,25 @@
         };
     }
 
-    refresh();
+    const cache = localStorage.getItem("cache-graph");
+    if (cache) {
+        const _nodes = JSON.parse(cache).nodes;
+        let count = 0;
+        _nodes.forEach(({ id, x, y }) => {
+            const found = nodes.find(n => n.id === id)
+            if (found) {
+                found.x = x;
+                found.y = y;
+                count++;
+            }
+        });
+        restart(count === _nodes.length ? 0 : 1);
+    }
+    else restart(1);
+
+    simulation.on("end", () => {
+        localStorage.setItem("cache-graph", JSON.stringify({ nodes }));
+    });
+
     connect();
 </script>

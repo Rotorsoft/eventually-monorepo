@@ -13,6 +13,7 @@
 <table class="table align-middle">
   <thead>
     <tr>
+      <th scope="col" class="text-end">#</th>
       <th scope="col">Id</th>
       <th scope="col">Channel</th>
       <th scope="col">Url</th>
@@ -23,6 +24,7 @@
   <tbody>
     {{#each rows}}
       <tr>
+        <td class="text-end">{{inc @index}}</td>
         <td scope="row">
           <a href="/_services/{{this.id}}">{{this.id}}</a>
           {{#if this.sll}}

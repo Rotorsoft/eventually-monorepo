@@ -2,7 +2,7 @@
   <div class="col-6">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item active">Subscriptions</li>
+        <li class="breadcrumb-item active">{{rows.length}} Subscriptions</li>
       </ol>
     </nav>
   </div>
@@ -20,8 +20,8 @@
   <thead>
     <tr>
       <th scope="col"><a href="javascript:sort(0)">Id</a></th>
-      <th class="text-end"><a href="javascript:sort(1)">Position</a></th>
-      <th class="text-end"><a href="javascript:sort(2)">Session</a></th>
+      <th scope="col" class="text-end"><a href="javascript:sort(1)">Position</a></th>
+      <th scope="col" class="text-end"><a href="javascript:sort(2)">Session</a></th>
       <th scope="col"><a href="javascript:sort(3)">Producer</a></th>
       <th scope="col"><a href="javascript:sort(4)">Consumer</a></th>
       <th scope="col"><a href="javascript:sort(5)">Path</a></th>

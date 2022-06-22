@@ -39,7 +39,8 @@ export const app = async ({
         title: () => config().service,
         version: () => config().version,
         dateFormat: (date: Date) => formatDate(date),
-        intFormat: (int: number) => formatInt(int)
+        intFormat: (int: number) => formatInt(int),
+        inc: (val: number) => val + 1
       }
     })
   );
