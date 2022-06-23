@@ -1,3 +1,5 @@
+#### 2022-06-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.13...@rotorsoft/eventually-broker-v1.2.14) @rotorsoft/eventually-broker-v1.2.14
+  - PATCH [dc317074](https://github.com/Rotorsoft/eventually-monorepo/commit/dc317074fe07b9a682d9465f62612ce3287d309b) fix: cancel pump when deactivating
 #### 2022-06-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.12...@rotorsoft/eventually-broker-v1.2.13) @rotorsoft/eventually-broker-v1.2.13
   - PATCH [6f84a2a8](https://github.com/Rotorsoft/eventually-monorepo/commit/6f84a2a871d4cdea0126167e05f252d0dbf43bba) fix: pin nodes in graph
 #### 2022-06-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.11...@rotorsoft/eventually-broker-v1.2.12) @rotorsoft/eventually-broker-v1.2.12
