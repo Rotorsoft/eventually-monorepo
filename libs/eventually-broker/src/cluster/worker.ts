@@ -71,12 +71,17 @@ export const work = async (
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
 
+    const full_path = "/".concat(path);
     const endpoints = await getServiceEndpoints(pushUrl);
-    const found =
+    const found_events =
       endpoints &&
       endpoints.eventHandlers &&
-      Object.values(endpoints.eventHandlers).find(
-        (e) => e.path === "/".concat(path)
+      Object.values(endpoints.eventHandlers).find((e) => e.path === full_path);
+    const found_command =
+      endpoints &&
+      endpoints.commandHandlers &&
+      Object.values(endpoints.commandHandlers).find((c) =>
+        Object.values(c.commands).find((p) => p === full_path)
       );
 
     return {
@@ -99,7 +104,10 @@ export const work = async (
         status: "OK"
       },
       stats: { batches: 0, total: 0, events: {} },
-      events: found ? found.events : []
+      events: found_events ? found_events.events : [],
+      command: found_command
+        ? Object.values(found_command.commands).find((p) => p === full_path)
+        : undefined
     };
   };
 
@@ -120,6 +128,7 @@ export const work = async (
 
       let count = subState.batchSize;
       while (count === subState.batchSize) {
+        if (subState.cancel) return;
         subState.stats.batches++;
         const events = await pullchannel().pull(
           subState.position,
@@ -127,6 +136,7 @@ export const work = async (
         );
         count = events.length;
         for (const e of events) {
+          if (subState.cancel) return;
           const { status, statusText, details } =
             subState.streamsRegExp.test(e.stream) &&
             subState.namesRegExp.test(e.name)
@@ -248,22 +258,28 @@ export const work = async (
     "message",
     async ({ operation, sub }: MasterMessage): Promise<void> => {
       const currentState = subStates[sub.id];
-      if (operation === "REFRESH") {
-        currentState && sendState(currentState);
-        return;
+      if (currentState) {
+        clearTimeout(retryTimeouts[currentState.id]);
+        while (currentState.pumping) {
+          currentState.cancel = true;
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          log().info("red", `Stopping pump of ${sub.id}...`);
+        }
+        currentState.cancel = false;
+        currentState.active = sub.active;
+        sendState(currentState);
+        if (operation === "REFRESH") return;
+        if (!sub.active || operation === "DELETE") {
+          delete subStates[sub.id];
+          !Object.keys(subStates).length && (await dispose()(ExitCodes.ERROR));
+          return;
+        }
       }
-
-      currentState && clearTimeout(retryTimeouts[currentState.id]);
-
-      if (!sub.active || operation === "DELETE") delete subStates[sub.id];
-      else {
-        const subState = (subStates[sub.id] = await toState(sub));
-        currentState && Object.assign(subState.stats, currentState.stats);
-        const trigger: TriggerPayload = { operation, id: sub.id };
-        sendTrigger(trigger);
-        void pumpRetry(subState, trigger);
-      }
-      !Object.keys(subStates).length && (await dispose()(ExitCodes.ERROR));
+      const subState = (subStates[sub.id] = await toState(sub));
+      currentState && Object.assign(subState.stats, currentState.stats);
+      const trigger: TriggerPayload = { operation, id: sub.id };
+      sendTrigger(trigger);
+      void pumpRetry(subState, trigger);
     }
   );
 

@@ -20,7 +20,13 @@ import {
 
 type SubscriptionViewState = Pick<
   SubscriptionState,
-  "id" | "active" | "position" | "endpointStatus" | "stats" | "events"
+  | "id"
+  | "active"
+  | "position"
+  | "endpointStatus"
+  | "stats"
+  | "events"
+  | "command"
 >;
 export const toViewModel = (
   {
@@ -29,7 +35,8 @@ export const toViewModel = (
     position,
     endpointStatus,
     stats,
-    events
+    events,
+    command
   }: SubscriptionViewState,
   channelStatus = "",
   channelPosition = -1
@@ -71,7 +78,7 @@ export const toViewModel = (
     endpointStatus,
     total: stats?.total,
     events: Object.values(eventsMap),
-    validated: events.length > 0
+    validated: events.length ? "event" : command ? "command" : undefined
   };
 };
 
@@ -93,8 +100,7 @@ const _emptyView = (
     status: "OK"
   },
   total: 0,
-  events: [],
-  validated: false
+  events: []
 });
 
 export const state = singleton(function state(): State {

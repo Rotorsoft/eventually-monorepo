@@ -30,7 +30,7 @@
         ids[link.target] = ids[link.target] || { id: link.target, producers: 0, producers: 0 };
         ids[link.source].consumers++;
         ids[link.target].producers++;
-        link.validated && (ids[link.target].validated = true);
+        link.validated && (ids[link.target].validated = link.validated);
         link.source =  link.source;
         link.target =  link.target;
     });
@@ -125,7 +125,7 @@
     node.append("circle")
         .attr("id", d => `node-${d.id}`)
         .attr("r", R)
-        .style("fill", d => d.validated ? "#ffc107" : d.producers === 0 ? "pink" : "white");
+        .style("fill", d => d.validated === 'event' ? "#ffc107" : d.validated === 'command' ? "#8ab2f2" : d.producers === 0 ? "pink" : "white");
     node.append("text")
         .attr("x", d => -Math.min(R, R * d.id.length / 11))
         .attr("y", 3)
@@ -167,7 +167,7 @@
     const animate = async (state) => {
         const { id, position, endpointStatus, consumer, validated } = state;
 
-        validated && d3.select(`#node-${consumer}`).style("fill", "#ffc107");
+        validated && d3.select(`#node-${consumer}`).style("fill", validated === "event" ? "#ffc107" : "#8ab2f2");
 
         d3.select(`#link-${id}`).style("stroke", color(state));
 
@@ -218,7 +218,6 @@
     const save = () => {
         clearTimeout(window.saving);
         window.saving = setTimeout(() => {
-            console.log("saving cache");
             localStorage.setItem("cache-graph", JSON.stringify({ nodes }));
         }, 3000);
     }

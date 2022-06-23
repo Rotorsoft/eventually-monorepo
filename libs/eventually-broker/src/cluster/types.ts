@@ -47,10 +47,12 @@ export type SubscriptionState = {
   pushChannel: PushChannel;
   streamsRegExp: RegExp;
   namesRegExp: RegExp;
-  pumping: boolean;
   stats: SubscriptionStats;
   endpointStatus: EndpointStatus;
   events: string[];
+  command?: string;
+  pumping: boolean;
+  cancel?: boolean;
 };
 
 export type SubscriptionWithEndpoint = Subscription & { endpoint: string };
@@ -96,7 +98,7 @@ export type SubscriptionViewModel = {
   endpointStatus: EndpointStatus;
   total: number;
   events: EventsViewModel[];
-  validated: boolean;
+  validated?: "event" | "command";
 };
 
 //TODO: Improve types for commands events and errors
