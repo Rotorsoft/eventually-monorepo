@@ -278,11 +278,15 @@ export const work = async (
           return;
         }
       }
-      const subState = (subStates[sub.id] = await toState(sub));
-      currentState && Object.assign(subState.stats, currentState.stats);
-      const trigger: TriggerPayload = { operation, id: sub.id };
-      sendTrigger(trigger);
-      void pumpRetry(subState, trigger);
+      try {
+        const subState = (subStates[sub.id] = await toState(sub));
+        currentState && Object.assign(subState.stats, currentState.stats);
+        const trigger: TriggerPayload = { operation, id: sub.id };
+        sendTrigger(trigger);
+        void pumpRetry(subState, trigger);
+      } catch (error) {
+        log().error(error);
+      }
     }
   );
 
