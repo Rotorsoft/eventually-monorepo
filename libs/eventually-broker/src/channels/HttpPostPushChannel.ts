@@ -7,7 +7,9 @@ export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
     init: () => undefined,
     push: async (event) => {
       try {
-        const response = await axios.post(endpoint.href, event);
+        const response = await axios.post(endpoint.href, event, {
+          timeout: 3000
+        });
         const { status, statusText } = response;
         return { status, statusText };
       } catch (error) {
