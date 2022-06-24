@@ -1,3 +1,5 @@
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.18...@rotorsoft/eventually-broker-v1.2.19) @rotorsoft/eventually-broker-v1.2.19
+  - PATCH [6fbe24f8](https://github.com/Rotorsoft/eventually-monorepo/commit/6fbe24f80e9e320c5c5ebbb8827df64058a77661) fix: add try catch
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.17...@rotorsoft/eventually-broker-v1.2.18) @rotorsoft/eventually-broker-v1.2.18
   - PATCH [b956dd86](https://github.com/Rotorsoft/eventually-monorepo/commit/b956dd86d54bda15b6ad715a17983b6851851ba5) fix: increase http post push timeout and add backoff to channel run retries
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.16...@rotorsoft/eventually-broker-v1.2.17) @rotorsoft/eventually-broker-v1.2.17
