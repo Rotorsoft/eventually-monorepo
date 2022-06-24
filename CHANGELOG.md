@@ -1,3 +1,5 @@
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.16...@rotorsoft/eventually-broker-v1.2.17) @rotorsoft/eventually-broker-v1.2.17
+  - PATCH [a1012bd3](https://github.com/Rotorsoft/eventually-monorepo/commit/a1012bd37df78dcf172d45e09fc216d27bf9fcfb) fix: add trigger log
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.15...@rotorsoft/eventually-broker-v1.2.16) @rotorsoft/eventually-broker-v1.2.16
   - PATCH [6d157677](https://github.com/Rotorsoft/eventually-monorepo/commit/6d157677043817ba671cb5526af7a513b689f847) fix: add 3s timeout to http push channel
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.14...@rotorsoft/eventually-broker-v1.2.15) @rotorsoft/eventually-broker-v1.2.15
