@@ -2,13 +2,15 @@ import { log } from "@rotorsoft/eventually";
 import axios from "axios";
 import { PushChannel } from "../interfaces";
 
+const TIMEOUT = 10000;
+
 export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
   return {
     init: () => undefined,
     push: async (event) => {
       try {
         const response = await axios.post(endpoint.href, event, {
-          timeout: 3000
+          timeout: TIMEOUT
         });
         const { status, statusText } = response;
         return { status, statusText };

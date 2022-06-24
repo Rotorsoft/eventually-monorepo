@@ -103,6 +103,9 @@ const _emptyView = (
   events: []
 });
 
+const MAX_CHANNEL_RUNS = 10;
+const CHANNEL_RUN_RETRY_TIMEOUT = 10000;
+
 export const state = singleton(function state(): State {
   const _services: Record<string, Service> = {};
   const _channels: Record<number, ChannelConfig> = {};
@@ -121,10 +124,6 @@ export const state = singleton(function state(): State {
     `${_services[consumer].url}/${path}`;
 
   const run = async (id: string, runs = 0): Promise<void> => {
-    if (++runs > 10) {
-      log().error(Error(`Too many runs in session for channel ${id}`));
-      return;
-    }
     try {
       _services[id] = (await subscriptions().loadServices(id))[0];
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
@@ -265,8 +264,18 @@ export const state = singleton(function state(): State {
     log().info("bgRed", `[${process.pid}]`, message);
     channel.status = message;
     _error(workerId, channel, { message: channel.status });
-    // re-run when exit code == 0
-    !code && void run(channel.id, channel.runs);
+
+    if (!code) {
+      // re-run when exit code == 0
+      const runs = channel.runs + 1;
+      if (runs > MAX_CHANNEL_RUNS) {
+        log().error(
+          Error(`Too many runs in session for channel ${channel.id}`)
+        );
+        return;
+      }
+      setTimeout(() => run(channel.id, runs), runs * CHANNEL_RUN_RETRY_TIMEOUT);
+    }
   };
 
   cluster.on("message", (worker, message: WorkerMessage) =>
