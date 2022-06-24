@@ -43,7 +43,8 @@ const sendState = (state: SubscriptionState): void => {
   log().info(
     "blue",
     `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
-    JSON.stringify(state.stats.events)
+    JSON.stringify(state.stats.events),
+    JSON.stringify(state.endpointStatus)
   );
   process.send({ state });
 };
@@ -115,7 +116,7 @@ export const work = async (
     subState: SubscriptionState,
     trigger: TriggerPayload
   ): Promise<boolean> => {
-    log().trace("magenta", "pumpSub", subState.id, trigger);
+    log().trace("magenta", `pumpSub ${subState.id} ${JSON.stringify(trigger)}`);
     try {
       channel_position = Math.max(channel_position, subState.position);
       if (trigger.position > channel_position) {
@@ -133,6 +134,10 @@ export const work = async (
         const events = await pullchannel().pull(
           subState.position,
           subState.batchSize
+        );
+        log().trace(
+          "magenta",
+          `pulled ${events.length} events from ${subState.position} [${subState.batchSize}]`
         );
         count = events.length;
         for (const e of events) {
@@ -260,10 +265,11 @@ export const work = async (
       const currentState = subStates[sub.id];
       if (currentState) {
         clearTimeout(retryTimeouts[currentState.id]);
-        while (currentState.pumping) {
+        let i = 0;
+        while (currentState.pumping && i <= 5) {
+          log().info("red", `Trying (${++i}) to stop pumping on ${sub.id}...`);
           currentState.cancel = true;
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          log().info("red", `Stopping pump of ${sub.id}...`);
         }
         currentState.cancel = false;
         currentState.active = sub.active;
