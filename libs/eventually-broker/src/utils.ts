@@ -132,12 +132,12 @@ export const getServiceContracts = (
           return Object.keys(schemas).reduce(
             (acc, name) => {
               if (
-                schemas[name].properties.name &&
-                schemas[name].properties.id &&
-                schemas[name].properties.stream &&
-                schemas[name].properties.version &&
-                schemas[name].properties.created &&
-                schemas[name].properties.data
+                schemas[name]?.properties?.name &&
+                schemas[name]?.properties?.id &&
+                schemas[name]?.properties?.stream &&
+                schemas[name]?.properties?.version &&
+                schemas[name]?.properties?.created &&
+                schemas[name]?.properties?.data
               )
                 acc.events.push({
                   name,
