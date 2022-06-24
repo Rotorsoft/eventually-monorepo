@@ -27,11 +27,8 @@ const triggerLog = (
   } [${sub_position}/${channel_position}] ${formatDate(new Date())}`;
 
 const sendTrigger = (trigger: TriggerPayload): void => {
-  try {
-    process.send({ trigger });
-  } catch (error) {
-    log().error(error);
-  }
+  log().info("blue", `[${process.pid}] ⚡ ${JSON.stringify(trigger)}`);
+  process.send({ trigger });
 };
 
 const sendError = (message: string): void => {
