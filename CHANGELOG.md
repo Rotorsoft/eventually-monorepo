@@ -1,3 +1,5 @@
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.14...@rotorsoft/eventually-broker-v1.2.15) @rotorsoft/eventually-broker-v1.2.15
+  - PATCH [bc38c8ef](https://github.com/Rotorsoft/eventually-monorepo/commit/bc38c8efb1cd82989f1289e272c2e6d13e9149d4) fix: add more traces to pump
 #### 2022-06-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.13...@rotorsoft/eventually-broker-v1.2.14) @rotorsoft/eventually-broker-v1.2.14
   - PATCH [dc317074](https://github.com/Rotorsoft/eventually-monorepo/commit/dc317074fe07b9a682d9465f62612ce3287d309b) fix: cancel pump when deactivating
 #### 2022-06-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.12...@rotorsoft/eventually-broker-v1.2.13) @rotorsoft/eventually-broker-v1.2.13
