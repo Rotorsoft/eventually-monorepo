@@ -261,6 +261,11 @@ export const work = async (
     async ({ operation, sub }: MasterMessage): Promise<void> => {
       const currentState = subStates[sub.id];
       if (currentState) {
+        if (operation === "REFRESH") {
+          sendState(currentState);
+          return;
+        }
+
         clearTimeout(retryTimeouts[currentState.id]);
         let i = 0;
         while (currentState.pumping && i <= 5) {
@@ -270,8 +275,6 @@ export const work = async (
         }
         currentState.cancel = false;
         currentState.active = sub.active;
-        sendState(currentState);
-        if (operation === "REFRESH") return;
         if (!sub.active || operation === "DELETE") {
           delete subStates[sub.id];
           !Object.keys(subStates).length && (await dispose()(ExitCodes.ERROR));

@@ -120,8 +120,10 @@ export const state = singleton(function state(): State {
     return workerId;
   };
 
-  const endpoint = (consumer: string, path: string): string =>
-    `${_services[consumer].url}/${path}`;
+  const addEndpoint = (sub: Subscription): SubscriptionWithEndpoint => ({
+    ...sub,
+    endpoint: `${_services[sub.consumer].url}/${sub.path}`
+  });
 
   const run = async (id: string, runs = 0): Promise<void> => {
     try {
@@ -131,10 +133,7 @@ export const state = singleton(function state(): State {
         id,
         channel: encodeURI(_services[id].channel),
         subscriptions: subs.reduce((obj, s) => {
-          obj[s.id] = {
-            ...s,
-            endpoint: endpoint(s.consumer, s.path)
-          };
+          obj[s.id] = addEndpoint(s);
           return obj;
         }, {} as Record<string, SubscriptionWithEndpoint>),
         runs,
@@ -316,7 +315,7 @@ export const state = singleton(function state(): State {
     viewModel: (sub: Subscription): SubscriptionViewModel => {
       const workerId = findWorkerId(sub.producer);
       const worker = cluster.workers[workerId];
-      worker && worker.send({ operation: "REFRESH", sub });
+      worker && worker.send({ operation: "REFRESH", sub: addEndpoint(sub) });
       return _views[sub.id] || _emptyView(sub.id);
     },
     onMessage,
@@ -338,12 +337,10 @@ export const state = singleton(function state(): State {
           const workerId = findWorkerId(sub.producer);
           if (workerId) {
             const channel = _channels[workerId];
-            const subWithEndpoint = (channel.subscriptions[id] = {
-              ...sub,
-              endpoint: endpoint(sub.consumer, sub.path)
-            });
+            channel.subscriptions[id] = addEndpoint(sub);
             const worker = cluster.workers[workerId];
-            worker && worker.send({ operation, sub: subWithEndpoint });
+            worker &&
+              worker.send({ operation, sub: channel.subscriptions[id] });
 
             if (operation !== "DELETE") {
               const newWorkerId = findWorkerId(sub.producer);
@@ -351,7 +348,10 @@ export const state = singleton(function state(): State {
 
               (newWorkerId || -1) !== (workerId || -2)
                 ? newWorker
-                  ? newWorker.send({ operation, sub: subWithEndpoint })
+                  ? newWorker.send({
+                      operation,
+                      sub: channel.subscriptions[id]
+                    })
                   : await run(sub.producer)
                 : undefined;
             }
