@@ -1,3 +1,5 @@
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.23...@rotorsoft/eventually-broker-v1.2.24) @rotorsoft/eventually-broker-v1.2.24
+  - PATCH [28174da5](https://github.com/Rotorsoft/eventually-monorepo/commit/28174da5e95eddedfdde61979b2c754a1294d7b3) fix: prevent contracts to not show if a message has no schema (#28)
 #### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.22...@rotorsoft/eventually-broker-v1.2.23) @rotorsoft/eventually-broker-v1.2.23
   - PATCH [fe24800b](https://github.com/Rotorsoft/eventually-monorepo/commit/fe24800bd0cab7805de24f6274fa6b2f50ed3976) fix: add more package.json config vars and about page to broker
 #### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.28...@rotorsoft/eventually-express-v4.0.29) @rotorsoft/eventually-express-v4.0.29
