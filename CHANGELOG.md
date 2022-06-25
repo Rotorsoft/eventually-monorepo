@@ -1,3 +1,5 @@
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.20...@rotorsoft/eventually-broker-v1.2.21) @rotorsoft/eventually-broker-v1.2.21
+  - PATCH [2dc53ccd](https://github.com/Rotorsoft/eventually-monorepo/commit/2dc53ccdc1d5b61b611c65db5cde53a6903c3150) fix: simplify logging and fix graph drag
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.19...@rotorsoft/eventually-broker-v1.2.20) @rotorsoft/eventually-broker-v1.2.20
   - PATCH [07d98a97](https://github.com/Rotorsoft/eventually-monorepo/commit/07d98a975b92e6fb972f91fc14bb43fe810a758c) fix: fix issue with url when refreshing view
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.18...@rotorsoft/eventually-broker-v1.2.19) @rotorsoft/eventually-broker-v1.2.19
