@@ -1,5 +1,4 @@
 import { dispose, ExitCodes, log } from "@rotorsoft/eventually";
-import { ErrorMessage } from ".";
 import {
   ChannelResolvers,
   pullchannel,
@@ -26,23 +25,14 @@ const triggerLog = (
     retry_count || ""
   } [${sub_position}/${channel_position}] ${formatDate(new Date())}`;
 
-const sendTrigger = (trigger: TriggerPayload): void => {
-  log().info("blue", `[${process.pid}] ⚡ ${JSON.stringify(trigger)}`);
-  process.send({ trigger });
-};
-
-const sendError = (message: string): void => {
-  const error: ErrorMessage = { message };
-  process.send({ error });
-};
-
-const sendState = (state: SubscriptionState): void => {
-  log().info(
-    "blue",
-    `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
-    JSON.stringify(state.stats.events),
-    JSON.stringify(state.endpointStatus)
-  );
+const sendState = (state: SubscriptionState, logit = true): void => {
+  logit &&
+    log().info(
+      "blue",
+      `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
+      JSON.stringify(state.stats.events),
+      JSON.stringify(state.endpointStatus)
+    );
   process.send({ state });
 };
 
@@ -113,7 +103,11 @@ export const work = async (
     subState: SubscriptionState,
     trigger: TriggerPayload
   ): Promise<boolean> => {
-    log().trace("magenta", `pumpSub ${subState.id} ${JSON.stringify(trigger)}`);
+    process.send({ trigger });
+    log().info(
+      "blue",
+      `[${process.pid}] ⚡ pump ${subState.id} ${JSON.stringify(trigger)}`
+    );
     try {
       channel_position = Math.max(channel_position, subState.position);
       if (trigger.position > channel_position) {
@@ -134,7 +128,7 @@ export const work = async (
         );
         log().trace(
           "magenta",
-          `pulled ${events.length} events from ${subState.position} [${subState.batchSize}]`
+          `[${process.pid}] pulled ${events.length} events from ${subState.position} [${subState.batchSize}]`
         );
         count = events.length;
         for (const e of events) {
@@ -218,15 +212,14 @@ export const work = async (
       const retry = await pumpSub(subState, trigger);
       const retry_count = (trigger.retry_count || 0) + 1;
       retry &&
-        (retryTimeouts[subState.id] = setTimeout(async () => {
+        (retryTimeouts[subState.id] = setTimeout(() => {
           const retry_trigger: TriggerPayload = {
             operation: "RETRY",
             id: trigger.id,
             retry_count,
             position: trigger.position
           };
-          sendTrigger(retry_trigger);
-          await pumpRetry(subState, retry_trigger);
+          void pumpRetry(subState, retry_trigger);
         }, subState.retryTimeoutSecs * 1000 * retry_count));
     } catch (error) {
       log().error(error);
@@ -250,7 +243,6 @@ export const work = async (
   };
 
   const pumpChannel: TriggerCallback = (trigger) => {
-    sendTrigger(trigger);
     for (const sub of Object.values(subStates)) {
       void pumpRetry(sub, trigger);
     }
@@ -262,14 +254,14 @@ export const work = async (
       const currentState = subStates[sub.id];
       if (currentState) {
         if (operation === "REFRESH") {
-          sendState(currentState);
+          sendState(currentState, false);
           return;
         }
 
         clearTimeout(retryTimeouts[currentState.id]);
         let i = 0;
-        while (currentState.pumping && i <= 5) {
-          log().info("red", `Trying (${++i}) to stop pumping on ${sub.id}...`);
+        while (currentState.pumping && i <= 10) {
+          log().info("red", `Trying (${++i}) to stop pump on ${sub.id}...`);
           currentState.cancel = true;
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
@@ -285,7 +277,6 @@ export const work = async (
         const subState = (subStates[sub.id] = await toState(sub));
         currentState && Object.assign(subState.stats, currentState.stats);
         const trigger: TriggerPayload = { operation, id: sub.id };
-        sendTrigger(trigger);
         void pumpRetry(subState, trigger);
       } catch (error) {
         log().error(error);
@@ -301,7 +292,7 @@ export const work = async (
     await Promise.all(
       Object.values(config.subscriptions).map(async (sub) => {
         subStates[sub.id] = await toState(sub);
-        sendState(subStates[sub.id]);
+        sendState(subStates[sub.id], false);
       })
     );
     pumpChannel({ operation: "RESTART", id: config.id });
@@ -313,7 +304,7 @@ export const work = async (
     };
   } catch (error) {
     log().error(error);
-    error instanceof Error && sendError(error.message);
+    process.send({ error: { message: error.message } });
     await dispose()(ExitCodes.ERROR);
   }
 };

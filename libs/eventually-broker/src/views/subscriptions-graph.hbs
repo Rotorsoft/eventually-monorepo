@@ -48,25 +48,23 @@
     const svg = d3.select("div#graph").append("svg").attr("height", height);
 
     const R = 30, D = 2 * R;
+    const clamp = (x, y, pin) => ({ 
+        x: pin ? pin.x : Math.max(D, Math.min(width - D, x)),
+        y: pin ? pin.y : Math.max(D, Math.min(height - D, y))
+    });
     const drag = d3.drag()
-        .on("start", function({ active }, d) {
-            delete d.fx;
-            delete d.fy;
-            delete d.pin;
+        .on("start", function({x, y}, d) {
             d3.select(this)
                 .classed("dragging", true)
                 .classed("pinned", false);
         })
         .on("drag", function({x, y}, d) {
-            simulation.alpha(0.3).restart();
-            d.fx = Math.max(D, Math.min(width - D, x));
-            d.fy = Math.max(D, Math.min(height - D, y));
-        })
-        .on("end", function({ active }, d) {
+            d.pin = clamp(x, y);
+            d.fx = d.pin.x;
+            d.fy = d.pin.y;
             simulation.alpha(0).restart();
-            delete d.fx;
-            delete d.fy;
-            d.pin = { x: d.x, y: d.y };
+        })
+        .on("end", function() {
             d3.select(this)
                 .classed("dragging", false)
                 .classed("pinned", true);
@@ -116,9 +114,9 @@
         .attr("transform", `translate(${width/2},${height/2})`)
         .call(drag)
         .on("click", function(event, d) {
+            delete d.pin;
             delete d.fx;
             delete d.fy;
-            delete d.pin;
             d3.select(this).classed("pinned", false);
             simulation.alphaTarget(0.3).restart();
         });
@@ -134,15 +132,12 @@
     simulation.on("tick", () => {
         node.attr("transform", d => {
             if(d.pin) return `translate(${d.pin.x},${d.pin.y})`;
-            const x = Math.max(D, Math.min(width - D, d.x));
-            const y = Math.max(D, Math.min(height - D, d.y));
+            const { x, y } = clamp(d.x, d.y);
             return `translate(${x},${y})`
         });
         path.attr("d", d => {
-            const sx = d.source.pin ? d.source.pin.x : Math.max(D, Math.min(width - D, d.source.x));
-            const sy = d.source.pin ? d.source.pin.y : Math.max(D, Math.min(height - D, d.source.y));
-            const tx = d.target.pin ? d.target.pin.x : Math.max(D, Math.min(width - D, d.target.x));
-            const ty = d.target.pin ? d.target.pin.y : Math.max(D, Math.min(height - D, d.target.y));
+            const { x: sx, y: sy } = clamp(d.source.x, d.source.y, d.source.pin);
+            const { x: tx, y: ty } = clamp(d.target.x, d.target.y, d.target.pin);
             const r = Math.hypot(tx - sx, ty - sy);
             return `M${sx},${sy}A${r},${r} 0 0,1 ${tx},${ty}`;
         });
@@ -206,8 +201,12 @@
             if (found) {
                 found.x = x;
                 found.y = y;
-                pin && (found.pin = pin);
-                pin && d3.select(`#g-${id}`).classed("pinned", true);
+                if(pin) {
+                    found.pin = pin;
+                    found.fx = pin.x;
+                    found.fy = pin.y;
+                    d3.select(`#g-${id}`).classed("pinned", true);
+                }
                 count++;
             }
         });
