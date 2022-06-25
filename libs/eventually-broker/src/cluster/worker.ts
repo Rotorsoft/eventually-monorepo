@@ -128,7 +128,7 @@ export const work = async (
         );
         log().trace(
           "magenta",
-          `[${process.pid}] pulled ${events.length} events from ${subState.position} [${subState.batchSize}]`
+          `[${process.pid}] pull ${subState.id} ${events.length} events @ ${subState.position} [${subState.batchSize}]`
         );
         count = events.length;
         for (const e of events) {
@@ -206,6 +206,7 @@ export const work = async (
     trigger: TriggerPayload
   ): Promise<void> => {
     if (subState.pumping) return;
+    if (!subState.active) return;
     try {
       subState.pumping = true;
       clearTimeout(retryTimeouts[subState.id]);
