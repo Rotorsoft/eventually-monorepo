@@ -1,3 +1,5 @@
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.21...@rotorsoft/eventually-broker-v1.2.22) @rotorsoft/eventually-broker-v1.2.22
+  - PATCH [e3a8a928](https://github.com/Rotorsoft/eventually-monorepo/commit/e3a8a928ddfa6fe679e9ce37dbe5793482b89a9b) fix: don't pump when inactive
 #### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.20...@rotorsoft/eventually-broker-v1.2.21) @rotorsoft/eventually-broker-v1.2.21
   - PATCH [2dc53ccd](https://github.com/Rotorsoft/eventually-monorepo/commit/2dc53ccdc1d5b61b611c65db5cde53a6903c3150) fix: simplify logging and fix graph drag
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.19...@rotorsoft/eventually-broker-v1.2.20) @rotorsoft/eventually-broker-v1.2.20
