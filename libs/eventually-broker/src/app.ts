@@ -53,6 +53,7 @@ export const app = async ({
   app.use("/_services", middleware, routes.services);
   app.use("/_correlation", middleware, routes.correlation);
   app.use("/_contracts", middleware, routes.contracts);
+  app.use("/_about", middleware, routes.about);
   app.use("/", middleware, routes.subscriptions);
 
   const server: Server = await new Promise((resolve) => {

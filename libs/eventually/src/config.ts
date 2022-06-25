@@ -10,6 +10,12 @@ type Package = {
   name: string;
   version: string;
   description: string;
+  author: {
+    name: string;
+    email: string;
+  };
+  license: string;
+  dependencies: Record<string, string>;
 };
 
 const getPackage = (): Package => {
@@ -40,14 +46,17 @@ export const config = singleton(function config() {
   return extend(
     {
       name: "config",
-      dispose: (): void => undefined,
+      dispose: (): Promise<void> => Promise.resolve(),
       env: (NODE_ENV as Environments) || Environments.development,
       host: HOST || "http://localhost",
       port: Number.parseInt(PORT || "3000"),
       logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error,
       service,
       version: pkg.version,
-      description: pkg.description
+      description: pkg.description,
+      author: `${pkg.author?.name} (${pkg.author?.email})`,
+      license: pkg.license,
+      dependencies: pkg.dependencies
     },
     joi
       .object<Config>({
@@ -57,7 +66,10 @@ export const config = singleton(function config() {
         logLevel: joi.string().valid(...Object.keys(LogLevels)),
         service: joi.string(),
         version: joi.string(),
-        description: joi.string()
+        description: joi.string(),
+        author: joi.string(),
+        license: joi.string(),
+        dependencies: joi.object({})
       })
       .options({ presence: "required" })
   );

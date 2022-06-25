@@ -325,7 +325,16 @@ export class ExpressApp extends AppBase {
    * @param port to override port in config
    */
   async listen(silent = false, port?: number): Promise<void> {
-    const { service, version, env, logLevel } = config();
+    const {
+      service,
+      version,
+      env,
+      logLevel,
+      description,
+      author,
+      license,
+      dependencies
+    } = config();
     port = port || config().port;
 
     this._app.get("/", (_: Request, res: Response) => {
@@ -333,6 +342,10 @@ export class ExpressApp extends AppBase {
         env,
         service,
         version,
+        description,
+        author,
+        license,
+        dependencies,
         logLevel,
         mem: process.memoryUsage(),
         uptime: formatTime(process.uptime()),
