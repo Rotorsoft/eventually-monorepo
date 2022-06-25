@@ -1,3 +1,5 @@
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.19...@rotorsoft/eventually-broker-v1.2.20) @rotorsoft/eventually-broker-v1.2.20
+  - PATCH [07d98a97](https://github.com/Rotorsoft/eventually-monorepo/commit/07d98a975b92e6fb972f91fc14bb43fe810a758c) fix: fix issue with url when refreshing view
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.18...@rotorsoft/eventually-broker-v1.2.19) @rotorsoft/eventually-broker-v1.2.19
   - PATCH [6fbe24f8](https://github.com/Rotorsoft/eventually-monorepo/commit/6fbe24f80e9e320c5c5ebbb8827df64058a77661) fix: add try catch
 #### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.17...@rotorsoft/eventually-broker-v1.2.18) @rotorsoft/eventually-broker-v1.2.18
