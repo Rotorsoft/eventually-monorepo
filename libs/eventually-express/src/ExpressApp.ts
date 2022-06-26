@@ -25,6 +25,7 @@ import express, {
   urlencoded
 } from "express";
 import { Server } from "http";
+import Joi from "joi";
 import * as swaggerUI from "swagger-ui-express";
 import { swagger } from "./swagger";
 
@@ -307,7 +308,13 @@ export class ExpressApp extends AppBase {
       res.send(rapidoc(config().service));
     });
     this._app.get("/_endpoints", (_, res) => {
-      res.json(this.endpoints);
+      res.json({
+        ...this.endpoints,
+        schemas: Object.values(this.messages).reduce((acc, msg) => {
+          acc[msg.name] = { name: msg.name, schema: msg.schema?.describe() };
+          return acc;
+        }, {} as Record<string, { name: string; schema?: Joi.Description }>)
+      });
     });
     this._app.get("/_health", (_, res) => {
       res.status(200).json({ status: "OK" });

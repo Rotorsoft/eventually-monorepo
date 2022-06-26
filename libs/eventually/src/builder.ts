@@ -70,7 +70,7 @@ export class Builder {
     commandHandlers: {},
     eventHandlers: {}
   };
-  readonly messages: Record<string, MessageMetadata> = {};
+  protected readonly messages: Record<string, MessageMetadata> = {};
   readonly documentation: Record<string, { description: string }> = {};
   private _hasStreams = false;
   get hasStreams(): boolean {

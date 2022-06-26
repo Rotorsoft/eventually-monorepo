@@ -32,6 +32,4 @@ void bootstrap(async (): Promise<void> => {
 
   _app.build();
   await _app.listen();
-
-  console.log(JSON.stringify(_app.endpoints));
 });
