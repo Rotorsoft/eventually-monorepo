@@ -1,3 +1,5 @@
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.21...@rotorsoft/eventually-pg-v4.0.22) @rotorsoft/eventually-pg-v4.0.22
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
 #### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.1...@rotorsoft/eventually-v4.1.2) @rotorsoft/eventually-v4.1.2
   - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
 #### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.23...@rotorsoft/eventually-broker-v1.2.24) @rotorsoft/eventually-broker-v1.2.24
