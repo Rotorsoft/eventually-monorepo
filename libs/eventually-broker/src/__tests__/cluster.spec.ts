@@ -170,13 +170,12 @@ describe("cluster", () => {
       runs: 0
     };
     process.env.WORKER_ENV = JSON.stringify(chanConfig);
-    const stop = await work({
+    await work({
       ...defaultResolvers,
       ...{ push: { "test:": () => TestPushChannel() } }
     });
     // await for pump to finish async
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    stop();
     expect(1).toBe(1);
   });
 });

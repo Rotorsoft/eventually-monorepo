@@ -36,12 +36,21 @@ const sendState = (state: SubscriptionState, logit = true): void => {
   process.send({ state });
 };
 
-export const work = async (
-  resolvers: ChannelResolvers
-): Promise<() => void> => {
+export const work = async (resolvers: ChannelResolvers): Promise<void> => {
   const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
   const subStates: Record<string, SubscriptionState> = {};
   const retryTimeouts: Record<string, NodeJS.Timeout> = {};
+
+  const exit = async (): Promise<void> => {
+    await dispose()(ExitCodes.ERROR);
+  };
+
+  dispose(() => {
+    Object.values(retryTimeouts).forEach((t) => {
+      clearTimeout(t);
+    });
+    return Promise.resolve();
+  });
 
   const toState = ({
     id,
@@ -184,7 +193,7 @@ export const work = async (
         }
       };
       sendState(subState);
-      await dispose()(ExitCodes.ERROR);
+      await exit();
     }
   };
 
@@ -257,7 +266,7 @@ export const work = async (
         currentState.active = sub.active;
         if (!sub.active || operation === "DELETE") {
           delete subStates[sub.id];
-          !Object.keys(subStates).length && (await dispose()(ExitCodes.ERROR));
+          !Object.keys(subStates).length && exit();
           return;
         }
       }
@@ -283,14 +292,9 @@ export const work = async (
     });
     pumpChannel({ operation: "RESTART", id: config.id });
     await pullchannel().listen(pumpChannel);
-    return () => {
-      Object.values(retryTimeouts).forEach((t) => {
-        clearTimeout(t);
-      });
-    };
   } catch (error) {
     log().error(error);
     process.send({ error: { message: error.message } });
-    await dispose()(ExitCodes.ERROR);
+    process.exit(0);
   }
 };

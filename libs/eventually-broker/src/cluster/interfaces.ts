@@ -18,6 +18,7 @@ export interface State extends Disposable {
   unsubscribeSSE: (session: string) => void;
   services: () => Service[];
   discoverServices: () => void;
+  discover: (service: Service) => Promise<void>;
   viewModel: (sub: Subscription) => SubscriptionViewModel;
   onMessage: (workerId: number, message: WorkerMessage) => void;
   onExit: (workerId: number, code: number, signal: string) => void;

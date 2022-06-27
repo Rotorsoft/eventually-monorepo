@@ -112,11 +112,13 @@ export const state = singleton(function state(): State {
   });
 
   const discover = async (service: Service): Promise<void> => {
+    service.discovered = false;
     service.eventHandlers = {};
     service.commandHandlers = {};
     service.schemas = {};
     const endpoints = await getServiceEndpoints(service);
     if (endpoints) {
+      service.discovered = true;
       endpoints.eventHandlers &&
         Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
           service.eventHandlers[value.path] = {
@@ -137,6 +139,11 @@ export const state = singleton(function state(): State {
               events: value.events
             };
           });
+        });
+
+      endpoints.schemas &&
+        Object.entries(endpoints.schemas).forEach(([name, value]) => {
+          service.schemas[name] = value;
         });
     }
   };
@@ -314,6 +321,7 @@ export const state = singleton(function state(): State {
         a.id > b.id ? 1 : a.id < b.id ? -1 : 0
       ),
     discoverServices,
+    discover,
     init: async (services: Service[], options: StateOptions): Promise<void> => {
       _options = options;
       const cores = cpus().length;

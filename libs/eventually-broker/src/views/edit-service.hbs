@@ -25,6 +25,91 @@
   {{> service-form edit=isAdmin}}
 </form>
 
+{{#if this.discovered}}
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Command Handler</th>
+      <th scope="col">Path</th>
+      <th scope="col">Type</th>
+      <th scope="row">Events</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each this.commandHandlers}}
+      <tr>
+        <td>{{this.name}}</td>
+        <td>{{this.path}}</td>
+        <td>{{this.type}}</td>
+        <td>
+          <table>
+            {{#each this.events}}
+            <tr><td>{{this}}</td></tr>
+            {{/each}}
+          </table>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Event Handler</th>
+      <th scope="col">Path</th>
+      <th scope="col">Type</th>
+      <th scope="row">Events</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each this.eventHandlers}}
+      <tr>
+        <td>{{this.name}}</td>
+        <td>{{this.path}}</td>
+        <td>{{this.type}}</td>
+        <td>
+          <table>
+            {{#each this.events}}
+            <tr><td>{{this}}</td></tr>
+            {{/each}}
+          </table>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Message</th>
+      <th scope="col">Description</th>
+      <th scope="row">Schema</th>
+      <th scope="col">JSON</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each this.schemas}}
+      <tr>
+        <td>{{@key}}</td>
+        <td>{{this.flags.description}}</td>
+        <td>
+          <table>
+            {{#each this.keys}}
+            <tr><td><b>{{@key}}</b>: {{this.type}}</td></tr>
+            <tr><td>{{{json this.flags}}}</td></tr>
+            <tr><td>{{{json this.allow}}}</td></tr>
+            {{/each}}
+          </table>
+        </td>
+        <td><small>{{{json this}}}</small></td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{/if}}
+
 <script>
   const { isAdmin } = {{{json this}}};
   if(isAdmin) {

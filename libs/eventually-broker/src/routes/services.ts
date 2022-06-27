@@ -68,6 +68,7 @@ router.get("/:id", async (req, res) => {
   };
   try {
     const [service] = await subscriptions().loadServices(id);
+    await state().discover(service);
     service
       ? res.render("edit-service", { ...service, isAdmin: isAdmin(req) })
       : res.render("edit-service", { ...err, isAdmin: isAdmin(req) });

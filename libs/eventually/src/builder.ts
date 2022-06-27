@@ -44,6 +44,9 @@ export type Endpoints = {
       events: string[];
     };
   };
+  schemas: {
+    [name: string]: Joi.Description;
+  };
 };
 
 export type MessageMetadata = {
@@ -68,7 +71,8 @@ export class Builder {
   };
   readonly endpoints: Endpoints = {
     commandHandlers: {},
-    eventHandlers: {}
+    eventHandlers: {},
+    schemas: {}
   };
   readonly messages: Record<string, MessageMetadata> = {};
   readonly documentation: Record<string, { description: string }> = {};
@@ -217,7 +221,7 @@ export class Builder {
    */
   build(): unknown | undefined {
     // command handlers
-    Object.values(this._factories.commandHandlers).map((factory) => {
+    Object.values(this._factories.commandHandlers).forEach((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
       const type = reducible ? "aggregate" : "external-system";
@@ -242,7 +246,7 @@ export class Builder {
     });
 
     // event handlers
-    Object.values(this._factories.eventHandlers).map((factory) => {
+    Object.values(this._factories.eventHandlers).forEach((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
       const type = reducible ? "process-manager" : "policy";
@@ -260,6 +264,11 @@ export class Builder {
       };
       reducible && this.withStreams();
     });
+
+    // schemas
+    Object.values(this.messages).forEach(
+      (msg) => (this.endpoints.schemas[msg.name] = msg.schema?.describe())
+    );
 
     return;
   }
