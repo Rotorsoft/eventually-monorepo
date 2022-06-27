@@ -1,3 +1,11 @@
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.24...@rotorsoft/eventually-broker-v1.2.25) @rotorsoft/eventually-broker-v1.2.25
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.29...@rotorsoft/eventually-express-v4.0.30) @rotorsoft/eventually-express-v4.0.30
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.21...@rotorsoft/eventually-pg-v4.0.22) @rotorsoft/eventually-pg-v4.0.22
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.1...@rotorsoft/eventually-v4.1.2) @rotorsoft/eventually-v4.1.2
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
 #### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.23...@rotorsoft/eventually-broker-v1.2.24) @rotorsoft/eventually-broker-v1.2.24
   - PATCH [28174da5](https://github.com/Rotorsoft/eventually-monorepo/commit/28174da5e95eddedfdde61979b2c754a1294d7b3) fix: prevent contracts to not show if a message has no schema (#28)
 #### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.22...@rotorsoft/eventually-broker-v1.2.23) @rotorsoft/eventually-broker-v1.2.23
