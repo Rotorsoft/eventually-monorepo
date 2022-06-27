@@ -1,5 +1,6 @@
 import { RequestHandler, Router } from "express";
-import { SubscriptionStore } from "./interfaces";
+import Joi from "joi";
+import { ChannelResolvers, SubscriptionStore } from "./interfaces";
 
 /**
  * Services
@@ -9,12 +10,23 @@ import { SubscriptionStore } from "./interfaces";
  * - `position` The position in the channel - last trigger id
  * - `updated` The last update timestamp
  */
+export type Contract = {
+  path: string;
+  name: string;
+  type: string;
+  events: string[];
+};
 export type Service = {
   id: string;
   channel: string;
   url: string;
   position: number;
   updated: Date;
+  status?: string;
+  label?: string;
+  eventHandlers?: Record<string, Contract>;
+  commandHandlers?: Record<string, Contract>;
+  schemas?: Record<string, Joi.Description>; // TODO: add joi descriptions
 };
 
 /**
@@ -88,6 +100,7 @@ export type PushResponse = {
  */
 export type AppOptions = {
   subscriptionStoreFactory: () => SubscriptionStore;
+  resolvers?: ChannelResolvers;
   port?: number;
   middleware?: RequestHandler[];
   prerouters?: Array<{ path: string; router: Router }>;

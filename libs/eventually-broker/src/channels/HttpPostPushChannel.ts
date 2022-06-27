@@ -6,6 +6,7 @@ const TIMEOUT = 10000;
 
 export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
   return {
+    label: "",
     init: () => undefined,
     push: async (event) => {
       try {

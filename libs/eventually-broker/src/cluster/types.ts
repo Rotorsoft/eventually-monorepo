@@ -38,6 +38,9 @@ export type EndpointStatus = {
 
 export type SubscriptionState = {
   id: string;
+  producer: string;
+  consumer: string;
+  path: string;
   active: boolean;
   endpoint: string;
   position: number;
@@ -49,8 +52,6 @@ export type SubscriptionState = {
   namesRegExp: RegExp;
   stats: SubscriptionStats;
   endpointStatus: EndpointStatus;
-  events: string[];
-  command?: string;
   pumping: boolean;
   cancel?: boolean;
 };
@@ -62,7 +63,6 @@ export type ChannelConfig = {
   channel: string;
   subscriptions: Record<string, SubscriptionWithEndpoint>;
   runs: number;
-  status: string;
 };
 
 export type ErrorMessage = {
@@ -98,7 +98,6 @@ export type SubscriptionViewModel = {
   endpointStatus: EndpointStatus;
   total: number;
   events: EventsViewModel[];
-  validated?: "event" | "command";
 };
 
 //TODO: Improve types for commands events and errors

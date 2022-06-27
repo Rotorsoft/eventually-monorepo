@@ -12,6 +12,7 @@ export const app = async ({
   port,
   middleware = [] as RequestHandler[],
   prerouters,
+  resolvers,
   serviceLogLinkTemplate
 }: AppOptions): Promise<Express> => {
   port = port || config().port;
@@ -19,7 +20,7 @@ export const app = async ({
   await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
-  await state().init(services, { serviceLogLinkTemplate });
+  await state().init(services, { resolvers, serviceLogLinkTemplate });
 
   subscriptions().listen(
     ({ operation, id }) => state().refreshService(operation, id),

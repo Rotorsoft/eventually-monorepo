@@ -1,9 +1,13 @@
 import { Disposable } from "@rotorsoft/eventually";
 import { Writable } from "stream";
+import { ChannelResolvers } from "../interfaces";
 import { Operation, Service, Subscription } from "../types";
 import { SubscriptionViewModel, WorkerMessage } from "./types";
 
-export type StateOptions = { serviceLogLinkTemplate?: string };
+export type StateOptions = {
+  resolvers: ChannelResolvers;
+  serviceLogLinkTemplate?: string;
+};
 
 export interface State extends Disposable {
   init: (services: Service[], options: StateOptions) => Promise<void>;
@@ -13,6 +17,7 @@ export interface State extends Disposable {
   subscribeSSE: (session: string, stream: Writable, id?: string) => void;
   unsubscribeSSE: (session: string) => void;
   services: () => Service[];
+  discoverServices: () => void;
   viewModel: (sub: Subscription) => SubscriptionViewModel;
   onMessage: (workerId: number, message: WorkerMessage) => void;
   onExit: (workerId: number, code: number, signal: string) => void;

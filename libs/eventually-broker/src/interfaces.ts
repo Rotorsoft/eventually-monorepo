@@ -13,6 +13,7 @@ export interface StreamListener {
  * Pull channels pull events from streams
  */
 export interface PullChannel extends Disposable {
+  label: string;
   listen: (callback: TriggerCallback) => Promise<void>;
   pull: (
     position: number,
@@ -25,6 +26,7 @@ export interface PullChannel extends Disposable {
  */
 
 export interface PushChannel {
+  label: string;
   init: (...args: any) => void;
   push: (event: CommittedEvent<string, Payload>) => Promise<PushResponse>;
 }

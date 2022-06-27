@@ -50,10 +50,11 @@ export const isAdmin = (req: Request): boolean | undefined => {
 };
 
 export const getServiceEndpoints = async (
-  url: URL
+  service: Service
 ): Promise<Endpoints | undefined> => {
-  if (!url.protocol.startsWith("http")) return undefined;
   try {
+    const url = new URL(service.url);
+    if (!url.protocol.startsWith("http")) return undefined;
     const { data } = await axios.get<Endpoints>(`${url.origin}/_endpoints`);
     return data;
   } catch {

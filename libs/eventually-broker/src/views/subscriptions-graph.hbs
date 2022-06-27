@@ -6,7 +6,7 @@
 <script>
     const usnf = new Intl.NumberFormat("en-US");
 
-    const { rows } = {{{json this}}};
+    const { services, rows } = {{{json this}}};
     const COLORS = {
         secondary: "#c0c0c0",
         success: "#198754",
@@ -20,21 +20,26 @@
         source: row.producer,
         target: row.consumer,
         color: color(row),
-        position: row.active ? row.position : "",
-        validated: row.validated
+        position: row.position
     }));
-
-    const ids = {};
     links.forEach(link => {
-        ids[link.source] = ids[link.source] || { id: link.source, producers: 0, consumers: 0 };
-        ids[link.target] = ids[link.target] || { id: link.target, producers: 0, producers: 0 };
-        ids[link.source].consumers++;
-        ids[link.target].producers++;
-        link.validated && (ids[link.target].validated = link.validated);
-        link.source =  link.source;
-        link.target =  link.target;
+        const consumer = services.find(s => s.id === link.target);
+        consumer && (consumer.producers = (consumer.producers || 0) + 1);
+        link.source = link.source;
+        link.target = link.target;
     });
-    const nodes = Object.values(ids);
+
+    const nodes = services.map(service => {
+        if(service.eventHandlers)
+            service.color = Object.keys(service.eventHandlers).length 
+            ? "#ffc107" 
+            : Object.keys(service.commandHandlers).length 
+                ? "#8ab2f2" 
+                : (service.producers || 0) === 0 
+                    ? "pink"
+                    : "white";
+        return service;
+    });
 
     const simulation = d3.forceSimulation(nodes)
         .force("charge", d3.forceManyBody().strength(-300))
@@ -47,7 +52,8 @@
     let width = graph.offsetWidth, height = window.innerHeight - 200;
     const svg = d3.select("div#graph").append("svg").attr("height", height);
 
-    const R = 30, D = 2 * R;
+    const R = 40, D = 2 * R;
+    const CHAR_W = 6;
     const clamp = (x, y, pin) => ({ 
         x: pin ? pin.x : Math.max(D, Math.min(width - D, x)),
         y: pin ? pin.y : Math.max(D, Math.min(height - D, y))
@@ -75,8 +81,8 @@
         .append("marker")
         .attr("id", "arrow")
         .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 42)
-        .attr("refY", -4)
+        .attr("refX", R+15)
+        .attr("refY", -R/10)
         .attr("markerWidth", 6)
         .attr("markerHeight", 6)
         .attr("orient", "auto")
@@ -95,16 +101,16 @@
         .attr("id", d => `path-${d.id}`)
         .attr("marker-end", "url(#arrow)")
     link.append("text")
-        .attr("dy", -3)
+        .attr("dy", -CHAR_W/2)
         .append("textPath")
         .attr("id", d => `last-event-${d.id}`)
         .attr("xlink:href", d => `#path-${d.id}`)
     link.append("text")
-        .attr("dy", 8)
+        .attr("dy", CHAR_W+2)
         .append("textPath")
         .attr("id", d => `position-${d.id}`)
         .attr("xlink:href", d => `#path-${d.id}`)
-        .attr("startOffset", 33)
+        .attr("startOffset", R+3)
         .text(d => usnf.format(d.position));  
 
     const node = svg.append("g").selectAll("g")
@@ -120,14 +126,20 @@
             d3.select(this).classed("pinned", false);
             simulation.alphaTarget(0.3).restart();
         });
+    const MAXL = Math.round(D/CHAR_W);
     node.append("circle")
         .attr("id", d => `node-${d.id}`)
         .attr("r", R)
-        .style("fill", d => d.validated === 'event' ? "#ffc107" : d.validated === 'command' ? "#8ab2f2" : d.producers === 0 ? "pink" : "white");
+        .style("fill", d => d.color);
     node.append("text")
-        .attr("x", d => -Math.min(R, R * d.id.length / 11))
-        .attr("y", 3)
-        .text(d => d.id.length <= 10 ? d.id : d.id.substring(0, 10) + "\u22ef");
+        .attr("x", d => -Math.min(R, R * d.id.length / (MAXL+2)))
+        .attr("y", CHAR_W/2)
+        .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef")
+        .style("font-weight", "bold");
+    node.append("text")
+        .attr("x", d => d.label ? -CHAR_W*d.label.length : 0)
+        .attr("y", -R+CHAR_W*2)
+        .text(d => d.label);
 
     simulation.on("tick", () => {
         node.attr("transform", d => {
@@ -160,9 +172,7 @@
     window.onresize = refresh;
 
     const animate = async (state) => {
-        const { id, position, endpointStatus, consumer, validated } = state;
-
-        validated && d3.select(`#node-${consumer}`).style("fill", validated === "event" ? "#ffc107" : "#8ab2f2");
+        const { id, position, endpointStatus, consumer } = state;
 
         d3.select(`#link-${id}`).style("stroke", color(state));
 

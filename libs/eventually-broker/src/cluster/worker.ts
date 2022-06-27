@@ -6,7 +6,7 @@ import {
   TriggerCallback,
   TriggerPayload
 } from "..";
-import { formatDate, getServiceEndpoints } from "../utils";
+import { formatDate } from "../utils";
 import {
   ChannelConfig,
   CommittableHttpStatus,
@@ -43,10 +43,12 @@ export const work = async (
   const subStates: Record<string, SubscriptionState> = {};
   const retryTimeouts: Record<string, NodeJS.Timeout> = {};
 
-  const toState = async ({
+  const toState = ({
     id,
-    active,
+    producer,
+    consumer,
     path,
+    active,
     endpoint,
     streams,
     names,
@@ -54,26 +56,15 @@ export const work = async (
     batch_size,
     retries,
     retry_timeout_secs
-  }: SubscriptionWithEndpoint): Promise<SubscriptionState> => {
+  }: SubscriptionWithEndpoint): SubscriptionState => {
     const pushUrl = new URL(endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
-
-    const full_path = "/".concat(path);
-    const endpoints = await getServiceEndpoints(pushUrl);
-    const found_events =
-      endpoints &&
-      endpoints.eventHandlers &&
-      Object.values(endpoints.eventHandlers).find((e) => e.path === full_path);
-    const found_command =
-      endpoints &&
-      endpoints.commandHandlers &&
-      Object.values(endpoints.commandHandlers).find((c) =>
-        Object.values(c.commands).find((p) => p === full_path)
-      );
-
     return {
       id,
+      producer,
+      consumer,
+      path,
       active,
       endpoint,
       position,
@@ -91,11 +82,7 @@ export const work = async (
         icon: active ? "bi-activity" : "",
         status: "OK"
       },
-      stats: { batches: 0, total: 0, events: {} },
-      events: found_events ? found_events.events : [],
-      command: found_command
-        ? Object.values(found_command.commands).find((p) => p === full_path)
-        : undefined
+      stats: { batches: 0, total: 0, events: {} }
     };
   };
 
@@ -275,7 +262,7 @@ export const work = async (
         }
       }
       try {
-        const subState = (subStates[sub.id] = await toState(sub));
+        const subState = (subStates[sub.id] = toState(sub));
         currentState && Object.assign(subState.stats, currentState.stats);
         const trigger: TriggerPayload = { operation, id: sub.id };
         void pumpRetry(subState, trigger);
@@ -286,16 +273,14 @@ export const work = async (
   );
 
   try {
-    const pullUrl = new URL(config.channel);
+    const pullUrl = new URL(encodeURI(config.channel));
     const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl, config.id));
-    await Promise.all(
-      Object.values(config.subscriptions).map(async (sub) => {
-        subStates[sub.id] = await toState(sub);
-        sendState(subStates[sub.id], false);
-      })
-    );
+    Object.values(config.subscriptions).map((sub) => {
+      subStates[sub.id] = toState(sub);
+      sendState(subStates[sub.id], false);
+    });
     pumpChannel({ operation: "RESTART", id: config.id });
     await pullchannel().listen(pumpChannel);
     return () => {
