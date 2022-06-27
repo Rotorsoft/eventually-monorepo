@@ -1,3 +1,5 @@
+#### 2022-06-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.25...@rotorsoft/eventually-broker-v1.2.26) @rotorsoft/eventually-broker-v1.2.26
+  - PATCH [e6da2fd7](https://github.com/Rotorsoft/eventually-monorepo/commit/e6da2fd7ea393bf8475be9d08db18ff9639ddf29) fix: improve service discovery
 #### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.24...@rotorsoft/eventually-broker-v1.2.25) @rotorsoft/eventually-broker-v1.2.25
   - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
 #### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.29...@rotorsoft/eventually-express-v4.0.30) @rotorsoft/eventually-express-v4.0.30
