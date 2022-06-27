@@ -1,3 +1,5 @@
+#### 2022-06-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.2...@rotorsoft/eventually-v4.1.3) @rotorsoft/eventually-v4.1.3
+  - PATCH [caae70cf](https://github.com/Rotorsoft/eventually-monorepo/commit/caae70cfe6dda89c6e966c965280ee779552811f) fix: add contract view to services
 #### 2022-06-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.25...@rotorsoft/eventually-broker-v1.2.26) @rotorsoft/eventually-broker-v1.2.26
   - PATCH [e6da2fd7](https://github.com/Rotorsoft/eventually-monorepo/commit/e6da2fd7ea393bf8475be9d08db18ff9639ddf29) fix: improve service discovery
 #### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.24...@rotorsoft/eventually-broker-v1.2.25) @rotorsoft/eventually-broker-v1.2.25
