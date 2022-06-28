@@ -38,7 +38,7 @@ const policy = async (
 
 export type CounterEvents = Omit<
   Events,
-  "Cleared" | "Ignored1" | "Ignored2" | "Ignored3" | "Forgotten"
+  "Cleared" | "Ignored1" | "Ignored2" | "Ignored3" | "Forgotten" | "Complex"
 >;
 
 export const Counter: ProcessManagerFactory<

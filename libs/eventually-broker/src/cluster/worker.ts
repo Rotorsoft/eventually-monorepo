@@ -118,6 +118,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       while (count === subState.batchSize) {
         if (subState.cancel) return;
         subState.stats.batches++;
+        subState.endpointStatus.name = undefined;
         const events = await pullchannel().pull(
           subState.position,
           subState.batchSize

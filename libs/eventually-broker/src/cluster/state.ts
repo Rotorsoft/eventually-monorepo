@@ -119,6 +119,7 @@ export const state = singleton(function state(): State {
     const endpoints = await getServiceEndpoints(service);
     if (endpoints) {
       service.discovered = true;
+      service.version = endpoints.version;
       endpoints.eventHandlers &&
         Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
           service.eventHandlers[value.path] = {

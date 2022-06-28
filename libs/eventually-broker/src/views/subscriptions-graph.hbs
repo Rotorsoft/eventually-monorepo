@@ -19,6 +19,7 @@
         id: row.id,
         source: row.producer,
         target: row.consumer,
+        path: row.path,
         color: color(row),
         position: row.position
     }));
@@ -52,7 +53,7 @@
     let width = graph.offsetWidth, height = window.innerHeight - 200;
     const svg = d3.select("div#graph").append("svg").attr("height", height);
 
-    const R = 40, D = 2 * R;
+    const R = 35, D = 2 * R;
     const CHAR_W = 6;
     const clamp = (x, y, pin) => ({ 
         x: pin ? pin.x : Math.max(D, Math.min(width - D, x)),
@@ -76,42 +77,40 @@
                 .classed("pinned", true);
         });
 
-    svg.append("defs").selectAll("marker")
-        .data(["arrow"]).enter()
-        .append("marker")
-        .attr("id", "arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", R+15)
-        .attr("refY", -R/10)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .style("fill", "#6c757d")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5");
-
     const link = svg.append("g").selectAll("g")
         .data(links).enter()
         .append("g")
         .attr("id", d => `link-${d.id}`)
-        .style("stroke", d => d.color)
+        .style("fill", d => d.color)
         .attr("class", "link");
-
     const path = link.append("path")
         .attr("id", d => `path-${d.id}`)
-        .attr("marker-end", "url(#arrow)")
+        .style("stroke", d => d.color);
     link.append("text")
-        .attr("dy", -CHAR_W/2)
+        .attr("dy", CHAR_W/2)
         .append("textPath")
         .attr("id", d => `last-event-${d.id}`)
-        .attr("xlink:href", d => `#path-${d.id}`)
+        .attr("xlink:href", d => `#path-${d.id}`);
     link.append("text")
         .attr("dy", CHAR_W+2)
         .append("textPath")
         .attr("id", d => `position-${d.id}`)
         .attr("xlink:href", d => `#path-${d.id}`)
         .attr("startOffset", R+3)
-        .text(d => usnf.format(d.position));  
+        .text(d => usnf.format(d.position));
+    const dots = link.append("text")
+        .attr("dy", CHAR_W/2)
+        .append("textPath")
+        .attr("xlink:href", d => `#path-${d.id}`)
+        .text("⬤");
+    link.append("text")
+        .attr("dy", -CHAR_W/2)
+        .append("textPath")
+        .attr("xlink:href", d => `#path-${d.id}`)
+        .attr("startOffset", "50%")
+        .style("font-size", "8")
+        .style("fill", "silver")
+        .text(d => d.path);
 
     const node = svg.append("g").selectAll("g")
         .data(nodes).enter()
@@ -137,6 +136,10 @@
         .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef")
         .style("font-weight", "bold");
     node.append("text")
+        .attr("x", d => d.version ? -Math.min(R, R * d.version.length / (MAXL+2)) : 0)
+        .attr("y", CHAR_W*2)
+        .text(d => d.version);
+    node.append("text")
         .attr("x", d => d.label ? -CHAR_W*d.label.length : 0)
         .attr("y", -R+CHAR_W*2)
         .text(d => d.label);
@@ -152,6 +155,10 @@
             const { x: tx, y: ty } = clamp(d.target.x, d.target.y, d.target.pin);
             const r = Math.hypot(tx - sx, ty - sy);
             return `M${sx},${sy}A${r},${r} 0 0,1 ${tx},${ty}`;
+        });
+        dots.attr("startOffset", d => {
+            const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
+            return r * Math.acos(.5) - R - CHAR_W*1.2;
         });
      });
 
@@ -173,22 +180,26 @@
 
     const animate = async (state) => {
         const { id, position, endpointStatus, consumer } = state;
+        const fill = color(state);
 
-        d3.select(`#link-${id}`).style("stroke", color(state));
+        d3.select(`#path-${id}`).style("stroke", fill);
+        d3.select(`#link-${id}`).style("fill", fill);
 
-        d3.select(`#position-${id}`).text(usnf.format(position))
+        d3.select(`#position-${id}`)
+            .text(usnf.format(position))
             .interrupt()
-            .style("font-size", "150%")
+            .style("font-size", "120%")
             .transition()
             .duration(2000)
             .style("font-size", "100%");
 
-        d3.select(`#last-event-${id}`).text(endpointStatus.name)
+        d3.select(`#last-event-${id}`)
+            .text(endpointStatus.name && "⬤")
             .interrupt()
             .attr("startOffset", "0%")
             .transition()
             .duration(2000)
-            .attr("startOffset", "150%");
+            .attr("startOffset", "100%");
     };
 
     const connect = () => {

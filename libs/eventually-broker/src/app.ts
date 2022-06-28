@@ -41,7 +41,9 @@ export const app = async ({
         version: () => config().version,
         dateFormat: (date: Date) => formatDate(date),
         intFormat: (int: number) => formatInt(int),
-        inc: (val: number) => val + 1
+        inc: (val: number) => val + 1,
+        or: (val1: any, val2: any) => val1 || val2,
+        eq: (val1: any, val2: any) => val1 === val2
       }
     })
   );

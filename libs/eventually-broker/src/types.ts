@@ -25,6 +25,7 @@ export type Service = {
   status?: string;
   label?: string;
   discovered?: boolean;
+  version?: string;
   eventHandlers?: Record<string, Contract>;
   commandHandlers?: Record<string, Contract>;
   schemas?: Record<string, Joi.Description>; // TODO: add joi descriptions

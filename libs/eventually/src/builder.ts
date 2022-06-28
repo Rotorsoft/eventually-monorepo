@@ -3,6 +3,7 @@ import {
   AggregateFactory,
   CommandHandlerFactory,
   commandHandlerPath,
+  config,
   EventHandlerFactory,
   eventHandlerPath,
   eventsOf,
@@ -28,6 +29,7 @@ export type Factories = {
 };
 
 export type Endpoints = {
+  version: string;
   commandHandlers: {
     [name: string]: {
       type: "aggregate" | "external-system";
@@ -70,6 +72,7 @@ export class Builder {
     eventHandlers: {}
   };
   readonly endpoints: Endpoints = {
+    version: "",
     commandHandlers: {},
     eventHandlers: {},
     schemas: {}
@@ -220,6 +223,7 @@ export class Builder {
    * @returns optional internal application object (e.g. express)
    */
   build(): unknown | undefined {
+    this.endpoints.version = config().version;
     // command handlers
     Object.values(this._factories.commandHandlers).forEach((factory) => {
       const handler = factory(undefined);

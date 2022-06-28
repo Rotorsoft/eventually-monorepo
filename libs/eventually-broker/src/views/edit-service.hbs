@@ -83,26 +83,14 @@
 <table class="table align-middle">
   <thead>
     <tr>
-      <th scope="col">Message</th>
-      <th scope="col">Description</th>
-      <th scope="row">Schema</th>
+      <th scope="row">Message</th>
       <th scope="col">JSON</th>
     </tr>
   </thead>
   <tbody>
     {{#each this.schemas}}
       <tr>
-        <td>{{@key}}</td>
-        <td>{{this.flags.description}}</td>
-        <td>
-          <table>
-            {{#each this.keys}}
-            <tr><td><b>{{@key}}</b>: {{this.type}}</td></tr>
-            <tr><td>{{{json this.flags}}}</td></tr>
-            <tr><td>{{{json this.allow}}}</td></tr>
-            {{/each}}
-          </table>
-        </td>
+        <td>{{> schema item=this presence="optional"}}</td>
         <td><small>{{{json this}}}</small></td>
       </tr>
     {{/each}}
