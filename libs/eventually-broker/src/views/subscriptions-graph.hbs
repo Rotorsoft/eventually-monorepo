@@ -13,14 +13,14 @@
         warning: "#ffc107",
         danger: "#dc3545"
     };
-    const color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
-    
+
+    const link_color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
     const links = rows.map(row => Object.create({
         id: row.id,
         source: row.producer,
         target: row.consumer,
         path: row.path,
-        color: color(row),
+        color: link_color(row),
         position: row.position
     }));
     links.forEach(link => {
@@ -30,15 +30,18 @@
         link.target = link.target;
     });
 
-    const nodes = services.map(service => {
-        if(service.eventHandlers)
-            service.color = Object.keys(service.eventHandlers).length 
+    const node_color = (service) => 
+        service.discovered
+        ? Object.keys(service.eventHandlers).length 
             ? "#ffc107" 
             : Object.keys(service.commandHandlers).length 
                 ? "#8ab2f2" 
                 : (service.producers || 0) === 0 
                     ? "pink"
-                    : "white";
+                    : "white"
+        : "white";
+    const nodes = services.map(service => {
+        service.color = node_color(service);
         return service;
     });
 
@@ -129,6 +132,7 @@
     node.append("circle")
         .attr("id", d => `node-${d.id}`)
         .attr("r", R)
+        .style("stroke", d => d.discovered ? "green" : "#6c757d")
         .style("fill", d => d.color);
     node.append("text")
         .attr("x", d => -Math.min(R, R * d.id.length / (MAXL+2)))
@@ -136,10 +140,12 @@
         .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef")
         .style("font-weight", "bold");
     node.append("text")
+        .attr("id", d => `version-${d.id}`)
         .attr("x", d => d.version ? -Math.min(R, R * d.version.length / (MAXL+2)) : 0)
         .attr("y", CHAR_W*2)
         .text(d => d.version);
     node.append("text")
+        .attr("id", d => `label-${d.id}`)
         .attr("x", d => d.label ? -CHAR_W*d.label.length : 0)
         .attr("y", -R+CHAR_W*2)
         .text(d => d.label);
@@ -178,9 +184,9 @@
     }
     window.onresize = refresh;
 
-    const animate = async (state) => {
+    const animate_link = async (state) => {
         const { id, position, endpointStatus, consumer } = state;
-        const fill = color(state);
+        const fill = link_color(state);
 
         d3.select(`#path-${id}`).style("stroke", fill);
         d3.select(`#link-${id}`).style("fill", fill);
@@ -202,12 +208,31 @@
             .attr("startOffset", "100%");
     };
 
+    const animate_node = async (service) => {
+        const { id, discovered, position, version, label } = service;
+        const fill = node_color(service);
+
+        d3.select(`#version-${id}`).text(version);
+        d3.select(`#label-${id}`).text(label);
+        d3.select(`#node-${id}`)
+            .style("stroke", discovered ? "green" : "#6c757d")
+            .interrupt()
+            .style("fill", "white")
+            .transition()
+            .duration(2000)
+            .style("fill", fill);
+    };
+
     const connect = () => {
         const es = new EventSource("/_monitor-all");
-        es.onmessage = ({ data }) => {
-            const props = JSON.parse(data);
-            animate(props);
-        };
+        es.addEventListener("state", ({ data }) => {
+            const state = JSON.parse(data);
+            animate_link(state);
+        });
+        es.addEventListener("health", ({ data }) => {
+            const service = JSON.parse(data);
+            animate_node(service);
+        });
         es.onerror = (error) => {
             console.error("sse error... retrying...");
         };

@@ -111,44 +111,6 @@ export const state = singleton(function state(): State {
     endpoint: `${_services[sub.consumer].url}/${sub.path}`
   });
 
-  const discover = async (service: Service): Promise<void> => {
-    service.discovered = false;
-    service.eventHandlers = {};
-    service.commandHandlers = {};
-    service.schemas = {};
-    const endpoints = await getServiceEndpoints(service);
-    if (endpoints) {
-      service.discovered = true;
-      service.version = endpoints.version;
-      endpoints.eventHandlers &&
-        Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
-          service.eventHandlers[value.path] = {
-            name,
-            path: value.path,
-            type: value.type,
-            events: value.events
-          };
-        });
-
-      endpoints.commandHandlers &&
-        Object.entries(endpoints.commandHandlers).forEach(([type, value]) => {
-          Object.entries(value.commands).forEach(([name, path]) => {
-            service.commandHandlers[path] = {
-              name,
-              path,
-              type: `${value.type} ${type}`,
-              events: value.events
-            };
-          });
-        });
-
-      endpoints.schemas &&
-        Object.entries(endpoints.schemas).forEach(([name, value]) => {
-          service.schemas[name] = value;
-        });
-    }
-  };
-
   const run = async (id: string, runs = 0): Promise<void> => {
     try {
       const service = (_services[id] = (
@@ -200,6 +162,17 @@ export const state = singleton(function state(): State {
     delete _sse[session];
   };
 
+  const emitService = (service: Service): void => {
+    const found = Object.values(_sse).filter(({ id }) => !id);
+    if (found.length) {
+      found.forEach(({ stream }) => {
+        stream.write(`id: ${service.id}\n`);
+        stream.write(`event: health\n`);
+        stream.write(`data: ${JSON.stringify(service)}\n\n`);
+      });
+    }
+  };
+
   const emitState = (
     state?: SubscriptionState,
     view?: SubscriptionViewModel
@@ -218,7 +191,7 @@ export const state = singleton(function state(): State {
           ));
       found.forEach(({ stream }) => {
         stream.write(`id: ${view.id}\n`);
-        stream.write(`event: message\n`);
+        stream.write(`event: state\n`);
         stream.write(`data: ${JSON.stringify(view)}\n\n`);
       });
     }
@@ -303,6 +276,45 @@ export const state = singleton(function state(): State {
     onMessage(worker.id, message)
   );
   cluster.on("exit", (worker, code, signal) => onExit(worker.id, code, signal));
+
+  const discover = async (service: Service): Promise<void> => {
+    service.discovered = false;
+    service.eventHandlers = {};
+    service.commandHandlers = {};
+    service.schemas = {};
+    const endpoints = await getServiceEndpoints(service);
+    if (endpoints) {
+      service.discovered = true;
+      service.version = endpoints.version;
+      endpoints.eventHandlers &&
+        Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
+          service.eventHandlers[value.path] = {
+            name,
+            path: value.path,
+            type: value.type,
+            events: value.events
+          };
+        });
+
+      endpoints.commandHandlers &&
+        Object.entries(endpoints.commandHandlers).forEach(([type, value]) => {
+          Object.entries(value.commands).forEach(([name, path]) => {
+            service.commandHandlers[path] = {
+              name,
+              path,
+              type: `${value.type} ${type}`,
+              events: value.events
+            };
+          });
+        });
+
+      endpoints.schemas &&
+        Object.entries(endpoints.schemas).forEach(([name, value]) => {
+          service.schemas[name] = value;
+        });
+    }
+    emitService(service);
+  };
 
   // discovery loop every 30s
   const discoverServices = (): void => {

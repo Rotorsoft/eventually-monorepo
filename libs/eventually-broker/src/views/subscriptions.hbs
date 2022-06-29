@@ -131,10 +131,10 @@
 
   const connect = () => {
     const es = new EventSource("/_monitor-all");
-    es.onmessage = ({ data }) => {
-      const props = JSON.parse(data);
-      refresh(props);
-    };
+    es.addEventListener("state", ({ data }) => {
+        const state = JSON.parse(data);
+        refresh(state);
+    });
     es.onerror = (error) => {
       console.error("sse error... retrying...");
     };
