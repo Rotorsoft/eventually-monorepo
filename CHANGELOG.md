@@ -1,3 +1,5 @@
+#### 2022-06-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.29...@rotorsoft/eventually-broker-v1.2.30) @rotorsoft/eventually-broker-v1.2.30
+  - PATCH [ff089776](https://github.com/Rotorsoft/eventually-monorepo/commit/ff0897764650678867c6507cc67a41e659199e5b) fix: set axios timeout in utils
 #### 2022-06-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.28...@rotorsoft/eventually-broker-v1.2.29) @rotorsoft/eventually-broker-v1.2.29
   - PATCH [d7d0d711](https://github.com/Rotorsoft/eventually-monorepo/commit/d7d0d7114a8659bb78cac5db2ae996a7155b85a6) fix: animate service health
 #### 2022-06-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.27...@rotorsoft/eventually-broker-v1.2.28) @rotorsoft/eventually-broker-v1.2.28
