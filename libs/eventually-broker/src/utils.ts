@@ -49,13 +49,17 @@ export const isAdmin = (req: Request): boolean | undefined => {
   return user && user?.roles?.includes("admin");
 };
 
+const HTTP_TIMEOUT = 5000;
+
 export const getServiceEndpoints = async (
   service: Service
 ): Promise<Endpoints | undefined> => {
   try {
     const url = new URL(service.url);
     if (!url.protocol.startsWith("http")) return undefined;
-    const { data } = await axios.get<Endpoints>(`${url.origin}/_endpoints`);
+    const { data } = await axios.get<Endpoints>(`${url.origin}/_endpoints`, {
+      timeout: HTTP_TIMEOUT
+    });
     return data;
   } catch {
     return undefined;
@@ -90,7 +94,8 @@ export const getCorrelation = async (
         ];
       try {
         const { data } = await axios.get<CommittedEvent<string, Payload>[]>(
-          `${s.url}/all?correlation=${correlation}&limit=10`
+          `${s.url}/all?correlation=${correlation}&limit=10`,
+          { timeout: HTTP_TIMEOUT }
         );
         return data.map(({ id, name, stream, created, metadata }) => {
           const { command, event } = metadata.causation;
@@ -126,7 +131,9 @@ export const getServiceContracts = (
     services.reduce((acc, service) => {
       if (!service.url.startsWith("http")) return acc;
       const contractsPromise = axios
-        .get<OpenAPIV3_1.Document>(`${service.url}/swagger`)
+        .get<OpenAPIV3_1.Document>(`${service.url}/swagger`, {
+          timeout: HTTP_TIMEOUT
+        })
         .then((response) => response.data)
         .then((apiDef) => apiDef?.components?.schemas)
         .then((schemas: Record<string, any>) => {
