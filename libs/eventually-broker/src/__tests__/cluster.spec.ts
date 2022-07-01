@@ -1,4 +1,5 @@
 import { dispose } from "@rotorsoft/eventually";
+import axios from "axios";
 import cluster from "cluster";
 import {
   pullchannel,
@@ -24,6 +25,7 @@ import {
 } from "./utils";
 
 const TestPushChannel = (): PushChannel => ({
+  label: "",
   init: () => undefined,
   push: (event): Promise<PushResponse> => {
     if (event.name === "e1")
@@ -36,9 +38,31 @@ const TestPushChannel = (): PushChannel => ({
   }
 });
 
+const endpoints = {
+  commandHandlers: {
+    command1: {
+      type: "aggregate",
+      commands: {
+        command1: "path"
+      },
+      events: ["event1"]
+    }
+  },
+  eventHandlers: {
+    event1: {
+      type: "policy",
+      path: "/policy",
+      events: ["event1"]
+    }
+  }
+};
+
 describe("cluster", () => {
   beforeAll(async () => {
     jest.spyOn(cluster, "fork").mockReturnValue(new FakeChildProcess(1));
+    jest
+      .spyOn(axios, "get")
+      .mockResolvedValue({ status: 200, statusText: "OK", data: endpoints });
     pullchannel().pull = () =>
       Promise.resolve([
         createCommittedEvent(1, "e1", "s1"),
@@ -47,7 +71,7 @@ describe("cluster", () => {
       ]);
 
     await subscriptions().createService(
-      serviceBody("s1", "void://", "void://")
+      serviceBody("s1", "void://", "http://test")
     );
     await subscriptions().createSubscription(
       subscriptionBody("s1", "s1", "s1", true)
@@ -63,7 +87,10 @@ describe("cluster", () => {
     const subState: SubscriptionState = {
       id: "s1",
       active: true,
-      endpoint: "void://",
+      producer: "s1",
+      consumer: "s2",
+      path: "/",
+      endpoint: "http://",
       position: 2,
       batchSize: 100,
       retries: 3,
@@ -92,8 +119,7 @@ describe("cluster", () => {
         color: "success",
         name: undefined,
         icon: "bi-activity"
-      },
-      events: []
+      }
     };
     await state().refreshSubscription("DELETE", "s1");
     await state().refreshSubscription("INSERT", "s1");
@@ -116,8 +142,9 @@ describe("cluster", () => {
     );
     expect(viewModel.id).toBe("s1");
     state().onExit(1, 1, "");
-    toViewModel(subState);
-    toViewModel(subState, "good", 1);
+    const services = state().services();
+    toViewModel(subState, services[0], services[0]);
+    state().discoverServices();
   });
 
   it("should work", async () => {
@@ -140,17 +167,15 @@ describe("cluster", () => {
       id: "s1",
       channel: "void://",
       subscriptions: { s1: subConfig },
-      runs: 0,
-      status: ""
+      runs: 0
     };
     process.env.WORKER_ENV = JSON.stringify(chanConfig);
-    const stop = await work({
+    await work({
       ...defaultResolvers,
       ...{ push: { "test:": () => TestPushChannel() } }
     });
     // await for pump to finish async
     await new Promise((resolve) => setTimeout(resolve, 3000));
-    stop();
     expect(1).toBe(1);
   });
 });

@@ -3,6 +3,7 @@ import {
   AggregateFactory,
   CommandHandlerFactory,
   commandHandlerPath,
+  config,
   EventHandlerFactory,
   eventHandlerPath,
   eventsOf,
@@ -28,6 +29,7 @@ export type Factories = {
 };
 
 export type Endpoints = {
+  version: string;
   commandHandlers: {
     [name: string]: {
       type: "aggregate" | "external-system";
@@ -43,6 +45,9 @@ export type Endpoints = {
       path: string;
       events: string[];
     };
+  };
+  schemas: {
+    [name: string]: Joi.Description;
   };
 };
 
@@ -67,8 +72,10 @@ export class Builder {
     eventHandlers: {}
   };
   readonly endpoints: Endpoints = {
+    version: "",
     commandHandlers: {},
-    eventHandlers: {}
+    eventHandlers: {},
+    schemas: {}
   };
   readonly messages: Record<string, MessageMetadata> = {};
   readonly documentation: Record<string, { description: string }> = {};
@@ -216,8 +223,9 @@ export class Builder {
    * @returns optional internal application object (e.g. express)
    */
   build(): unknown | undefined {
+    this.endpoints.version = config().version;
     // command handlers
-    Object.values(this._factories.commandHandlers).map((factory) => {
+    Object.values(this._factories.commandHandlers).forEach((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
       const type = reducible ? "aggregate" : "external-system";
@@ -242,7 +250,7 @@ export class Builder {
     });
 
     // event handlers
-    Object.values(this._factories.eventHandlers).map((factory) => {
+    Object.values(this._factories.eventHandlers).forEach((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
       const type = reducible ? "process-manager" : "policy";
@@ -260,6 +268,11 @@ export class Builder {
       };
       reducible && this.withStreams();
     });
+
+    // schemas
+    Object.values(this.messages).forEach(
+      (msg) => (this.endpoints.schemas[msg.name] = msg.schema?.describe())
+    );
 
     return;
   }

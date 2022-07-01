@@ -17,7 +17,6 @@ export const PostgresStreamListener = (stream: string): StreamListener => {
       });
 
       subscriber.notifications.on(stream, (trigger: TriggerPayload): void => {
-        log().info("magenta", `[${process.pid}]`, "⚡", trigger);
         callback(trigger);
       });
 

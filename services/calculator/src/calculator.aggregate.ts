@@ -34,7 +34,7 @@ export const Calculator = (
 ): Aggregate<
   CalculatorModel,
   Omit<Commands, "Whatever" | "Forget">,
-  Omit<Events, "Ignored1" | "Ignored2" | "Forgotten">
+  Omit<Events, "Ignored1" | "Ignored2" | "Forgotten" | "Complex">
 > => ({
   snapshot: {
     factory: InMemorySnapshotStore,

@@ -6,35 +6,44 @@
 <script>
     const usnf = new Intl.NumberFormat("en-US");
 
-    const { rows } = {{{json this}}};
+    const { services, rows } = {{{json this}}};
     const COLORS = {
         secondary: "#c0c0c0",
         success: "#198754",
         warning: "#ffc107",
         danger: "#dc3545"
     };
-    const color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
-    
+
+    const link_color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
     const links = rows.map(row => Object.create({
         id: row.id,
         source: row.producer,
         target: row.consumer,
-        color: color(row),
-        position: row.active ? row.position : "",
-        validated: row.validated
+        path: row.path,
+        color: link_color(row),
+        position: row.position
     }));
-
-    const ids = {};
     links.forEach(link => {
-        ids[link.source] = ids[link.source] || { id: link.source, producers: 0, consumers: 0 };
-        ids[link.target] = ids[link.target] || { id: link.target, producers: 0, producers: 0 };
-        ids[link.source].consumers++;
-        ids[link.target].producers++;
-        link.validated && (ids[link.target].validated = link.validated);
-        link.source =  link.source;
-        link.target =  link.target;
+        const consumer = services.find(s => s.id === link.target);
+        consumer && (consumer.producers = (consumer.producers || 0) + 1);
+        link.source = link.source;
+        link.target = link.target;
     });
-    const nodes = Object.values(ids);
+
+    const node_color = (service) => 
+        service.discovered
+        ? Object.keys(service.eventHandlers).length 
+            ? "#ffc107" 
+            : Object.keys(service.commandHandlers).length 
+                ? "#8ab2f2" 
+                : (service.producers || 0) === 0 
+                    ? "pink"
+                    : "white"
+        : "white";
+    const nodes = services.map(service => {
+        service.color = node_color(service);
+        return service;
+    });
 
     const simulation = d3.forceSimulation(nodes)
         .force("charge", d3.forceManyBody().strength(-300))
@@ -47,67 +56,64 @@
     let width = graph.offsetWidth, height = window.innerHeight - 200;
     const svg = d3.select("div#graph").append("svg").attr("height", height);
 
-    const R = 30, D = 2 * R;
+    const R = 35, D = 2 * R;
+    const CHAR_W = 6;
+    const clamp = (x, y, pin) => ({ 
+        x: pin ? pin.x : Math.max(D, Math.min(width - D, x)),
+        y: pin ? pin.y : Math.max(D, Math.min(height - D, y))
+    });
     const drag = d3.drag()
-        .on("start", function({ active }, d) {
-            delete d.fx;
-            delete d.fy;
-            delete d.pin;
+        .on("start", function({x, y}, d) {
             d3.select(this)
                 .classed("dragging", true)
                 .classed("pinned", false);
         })
         .on("drag", function({x, y}, d) {
-            simulation.alpha(0.3).restart();
-            d.fx = Math.max(D, Math.min(width - D, x));
-            d.fy = Math.max(D, Math.min(height - D, y));
-        })
-        .on("end", function({ active }, d) {
+            d.pin = clamp(x, y);
+            d.fx = d.pin.x;
+            d.fy = d.pin.y;
             simulation.alpha(0).restart();
-            delete d.fx;
-            delete d.fy;
-            d.pin = { x: d.x, y: d.y };
+        })
+        .on("end", function() {
             d3.select(this)
                 .classed("dragging", false)
                 .classed("pinned", true);
         });
 
-    svg.append("defs").selectAll("marker")
-        .data(["arrow"]).enter()
-        .append("marker")
-        .attr("id", "arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 42)
-        .attr("refY", -4)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .style("fill", "#6c757d")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5");
-
     const link = svg.append("g").selectAll("g")
         .data(links).enter()
         .append("g")
         .attr("id", d => `link-${d.id}`)
-        .style("stroke", d => d.color)
+        .style("fill", d => d.color)
         .attr("class", "link");
-
     const path = link.append("path")
         .attr("id", d => `path-${d.id}`)
-        .attr("marker-end", "url(#arrow)")
+        .style("stroke", d => d.color);
     link.append("text")
-        .attr("dy", -3)
+        .attr("dy", CHAR_W/2)
         .append("textPath")
         .attr("id", d => `last-event-${d.id}`)
-        .attr("xlink:href", d => `#path-${d.id}`)
+        .attr("xlink:href", d => `#path-${d.id}`);
     link.append("text")
-        .attr("dy", 8)
+        .attr("dy", CHAR_W+2)
         .append("textPath")
         .attr("id", d => `position-${d.id}`)
         .attr("xlink:href", d => `#path-${d.id}`)
-        .attr("startOffset", 33)
-        .text(d => usnf.format(d.position));  
+        .attr("startOffset", R+3)
+        .text(d => usnf.format(d.position));
+    const dots = link.append("text")
+        .attr("dy", CHAR_W/2)
+        .append("textPath")
+        .attr("xlink:href", d => `#path-${d.id}`)
+        .text("⬤");
+    link.append("text")
+        .attr("dy", -CHAR_W/2)
+        .append("textPath")
+        .attr("xlink:href", d => `#path-${d.id}`)
+        .attr("startOffset", "50%")
+        .style("font-size", "8")
+        .style("fill", "silver")
+        .text(d => d.path);
 
     const node = svg.append("g").selectAll("g")
         .data(nodes).enter()
@@ -116,35 +122,49 @@
         .attr("transform", `translate(${width/2},${height/2})`)
         .call(drag)
         .on("click", function(event, d) {
+            delete d.pin;
             delete d.fx;
             delete d.fy;
-            delete d.pin;
             d3.select(this).classed("pinned", false);
             simulation.alphaTarget(0.3).restart();
         });
+    const MAXL = Math.round(D/CHAR_W);
     node.append("circle")
         .attr("id", d => `node-${d.id}`)
         .attr("r", R)
-        .style("fill", d => d.validated === 'event' ? "#ffc107" : d.validated === 'command' ? "#8ab2f2" : d.producers === 0 ? "pink" : "white");
+        .style("stroke", d => d.discovered ? "green" : "#6c757d")
+        .style("fill", d => d.color);
     node.append("text")
-        .attr("x", d => -Math.min(R, R * d.id.length / 11))
-        .attr("y", 3)
-        .text(d => d.id.length <= 10 ? d.id : d.id.substring(0, 10) + "\u22ef");
+        .attr("x", d => -Math.min(R, R * d.id.length / (MAXL+2)))
+        .attr("y", CHAR_W/2)
+        .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef")
+        .style("font-weight", "bold");
+    node.append("text")
+        .attr("id", d => `version-${d.id}`)
+        .attr("x", d => d.version ? -Math.min(R, R * d.version.length / (MAXL+2)) : 0)
+        .attr("y", CHAR_W*2)
+        .text(d => d.version);
+    node.append("text")
+        .attr("id", d => `label-${d.id}`)
+        .attr("x", d => d.label ? -CHAR_W*d.label.length : 0)
+        .attr("y", -R+CHAR_W*2)
+        .text(d => d.label);
 
     simulation.on("tick", () => {
         node.attr("transform", d => {
             if(d.pin) return `translate(${d.pin.x},${d.pin.y})`;
-            const x = Math.max(D, Math.min(width - D, d.x));
-            const y = Math.max(D, Math.min(height - D, d.y));
+            const { x, y } = clamp(d.x, d.y);
             return `translate(${x},${y})`
         });
         path.attr("d", d => {
-            const sx = d.source.pin ? d.source.pin.x : Math.max(D, Math.min(width - D, d.source.x));
-            const sy = d.source.pin ? d.source.pin.y : Math.max(D, Math.min(height - D, d.source.y));
-            const tx = d.target.pin ? d.target.pin.x : Math.max(D, Math.min(width - D, d.target.x));
-            const ty = d.target.pin ? d.target.pin.y : Math.max(D, Math.min(height - D, d.target.y));
+            const { x: sx, y: sy } = clamp(d.source.x, d.source.y, d.source.pin);
+            const { x: tx, y: ty } = clamp(d.target.x, d.target.y, d.target.pin);
             const r = Math.hypot(tx - sx, ty - sy);
             return `M${sx},${sy}A${r},${r} 0 0,1 ${tx},${ty}`;
+        });
+        dots.attr("startOffset", d => {
+            const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
+            return r * Math.acos(.5) - R - CHAR_W*1.2;
         });
      });
 
@@ -164,34 +184,55 @@
     }
     window.onresize = refresh;
 
-    const animate = async (state) => {
-        const { id, position, endpointStatus, consumer, validated } = state;
+    const animate_link = async (state) => {
+        const { id, position, endpointStatus, consumer } = state;
+        const fill = link_color(state);
 
-        validated && d3.select(`#node-${consumer}`).style("fill", validated === "event" ? "#ffc107" : "#8ab2f2");
+        d3.select(`#path-${id}`).style("stroke", fill);
+        d3.select(`#link-${id}`).style("fill", fill);
 
-        d3.select(`#link-${id}`).style("stroke", color(state));
-
-        d3.select(`#position-${id}`).text(usnf.format(position))
+        d3.select(`#position-${id}`)
+            .text(usnf.format(position))
             .interrupt()
-            .style("font-size", "150%")
+            .style("font-size", "120%")
             .transition()
             .duration(2000)
             .style("font-size", "100%");
 
-        d3.select(`#last-event-${id}`).text(endpointStatus.name)
+        d3.select(`#last-event-${id}`)
+            .text(endpointStatus.name && "⬤")
             .interrupt()
             .attr("startOffset", "0%")
             .transition()
             .duration(2000)
-            .attr("startOffset", "150%");
+            .attr("startOffset", "100%");
+    };
+
+    const animate_node = async (service) => {
+        const { id, discovered, position, version, label } = service;
+        const fill = node_color(service);
+
+        d3.select(`#version-${id}`).text(version);
+        d3.select(`#label-${id}`).text(label);
+        d3.select(`#node-${id}`)
+            .style("stroke", discovered ? "green" : "#6c757d")
+            .interrupt()
+            .style("fill", "white")
+            .transition()
+            .duration(2000)
+            .style("fill", fill);
     };
 
     const connect = () => {
         const es = new EventSource("/_monitor-all");
-        es.onmessage = ({ data }) => {
-            const props = JSON.parse(data);
-            animate(props);
-        };
+        es.addEventListener("state", ({ data }) => {
+            const state = JSON.parse(data);
+            animate_link(state);
+        });
+        es.addEventListener("health", ({ data }) => {
+            const service = JSON.parse(data);
+            animate_node(service);
+        });
         es.onerror = (error) => {
             console.error("sse error... retrying...");
         };
@@ -206,8 +247,12 @@
             if (found) {
                 found.x = x;
                 found.y = y;
-                pin && (found.pin = pin);
-                pin && d3.select(`#g-${id}`).classed("pinned", true);
+                if(pin) {
+                    found.pin = pin;
+                    found.fx = pin.x;
+                    found.fy = pin.y;
+                    d3.select(`#g-${id}`).classed("pinned", true);
+                }
                 count++;
             }
         });

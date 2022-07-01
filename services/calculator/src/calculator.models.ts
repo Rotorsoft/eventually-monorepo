@@ -27,3 +27,23 @@ export type CalculatorModel = {
 export type CounterState = {
   readonly count: number;
 };
+
+export enum ComplexEnum {
+  one = "one",
+  two = "two"
+}
+export type SubSubComplex = {
+  readonly arrayFld: string[];
+  readonly enumFld: ComplexEnum;
+};
+export type SubComplex = {
+  readonly stringFld: string;
+  readonly anotherObj: SubSubComplex[];
+};
+export type Complex = {
+  readonly dateFld: Date;
+  readonly numberFld: number;
+  readonly boolFld?: boolean;
+  readonly guidFld?: string;
+  readonly objFld: SubComplex;
+};

@@ -63,7 +63,8 @@ router.get("/_monitor/:id", (req, res) => {
 
 router.get("/_graph", async (_, res) => {
   const subs = await subscriptions().loadSubscriptions();
-  res.render("subscriptions-graph", rows(subs));
+  const services = state().services();
+  res.render("subscriptions-graph", { services, ...rows(subs) });
 });
 
 router.get("/", async (req, res) => {

@@ -13,6 +13,7 @@ export const PostgresPullChannel = (channel: URL): PullChannel => {
     dispose: async () => {
       await listener.close();
     },
+    label: "",
     listen: (callback: TriggerCallback) => listener.listen(callback),
     pull: async (position: number, limit: number) => {
       const events: CommittedEvent<string, Payload>[] = [];

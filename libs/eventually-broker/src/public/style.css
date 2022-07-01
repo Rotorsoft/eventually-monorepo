@@ -46,7 +46,11 @@ body {
 g.link>path {
     fill: none;
     stroke-dasharray: 0, 2 1;
-    stroke-width: 1.5px;
+    stroke-width: 1px;
+}
+
+g.link>text {
+    stroke-width: .1;
 }
 
 circle {
@@ -85,4 +89,37 @@ text {
 .error-block i {
     font-size: 80%;
     color: red;
+}
+
+span.required {
+    font-weight: bold;
+}
+
+span.type {
+    background-color: lightgreen;
+    font-size: small;
+}
+
+div.itemtype {
+    background-color: lightblue;
+    font-size: small;
+    margin-left: 5px;
+}
+
+div.desc {
+    background-color: lightgrey;
+    padding: 1px;
+    font-size: small;
+    margin-left: 5px;
+}
+
+div.rules {
+    background-color: lightyellow;
+    padding: 1px;
+    font-size: small;
+    margin-left: 5px;
+}
+
+div.indent {
+    padding-left: 20px;
 }

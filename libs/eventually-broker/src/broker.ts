@@ -28,15 +28,13 @@ export const defaultResolvers: ChannelResolvers = {
 };
 
 export const broker = async (
-  options: AppOptions & {
-    resolvers?: ChannelResolvers;
-  } = { subscriptionStoreFactory: PostgresSubscriptionStore }
+  options: AppOptions = { subscriptionStoreFactory: PostgresSubscriptionStore }
 ): Promise<Express> | undefined => {
   subscriptions(options.subscriptionStoreFactory());
-  if (cluster.isWorker)
-    await work({
-      push: { ...defaultResolvers.push, ...options?.resolvers?.push },
-      pull: { ...defaultResolvers.pull, ...options?.resolvers?.pull }
-    });
+  options.resolvers = {
+    push: { ...defaultResolvers.push, ...options?.resolvers?.push },
+    pull: { ...defaultResolvers.pull, ...options?.resolvers?.pull }
+  };
+  if (cluster.isWorker) await work(options.resolvers);
   else return app(options);
 };

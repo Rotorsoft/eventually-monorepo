@@ -45,3 +45,27 @@ export const PressKey = joi
     "Invoked when user presses a key - either digit, operator, or symbol"
   )
   .required();
+
+export const SubSubComplex = joi.object<models.SubSubComplex>({
+  arrayFld: joi.array().items(joi.string()).required(),
+  enumFld: joi
+    .string()
+    .valid(...Object.keys(models.ComplexEnum))
+    .required()
+});
+
+export const SubComplex = joi.object<models.SubComplex>({
+  stringFld: joi.string().required(),
+  anotherObj: joi.array().items(SubSubComplex)
+});
+
+export const Complex = joi
+  .object<models.Complex>({
+    dateFld: joi.date(),
+    numberFld: joi.number(),
+    boolFld: joi.bool().optional(),
+    guidFld: joi.string().guid().optional(),
+    objFld: SubComplex
+  })
+  .presence("required")
+  .description("This is a complex object");

@@ -1,3 +1,51 @@
+#### 2022-06-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.29...@rotorsoft/eventually-broker-v1.2.30) @rotorsoft/eventually-broker-v1.2.30
+  - PATCH [ff089776](https://github.com/Rotorsoft/eventually-monorepo/commit/ff0897764650678867c6507cc67a41e659199e5b) fix: set axios timeout in utils
+#### 2022-06-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.28...@rotorsoft/eventually-broker-v1.2.29) @rotorsoft/eventually-broker-v1.2.29
+  - PATCH [d7d0d711](https://github.com/Rotorsoft/eventually-monorepo/commit/d7d0d7114a8659bb78cac5db2ae996a7155b85a6) fix: animate service health
+#### 2022-06-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.27...@rotorsoft/eventually-broker-v1.2.28) @rotorsoft/eventually-broker-v1.2.28
+  - PATCH [b7c6bb99](https://github.com/Rotorsoft/eventually-monorepo/commit/b7c6bb99ae03e8fe231ee26363dfa6f9eac4e08d) fix: start service schema viewer, improved graph
+#### 2022-06-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.3...@rotorsoft/eventually-v4.1.4) @rotorsoft/eventually-v4.1.4
+  - PATCH [b7c6bb99](https://github.com/Rotorsoft/eventually-monorepo/commit/b7c6bb99ae03e8fe231ee26363dfa6f9eac4e08d) fix: start service schema viewer, improved graph
+#### 2022-06-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.26...@rotorsoft/eventually-broker-v1.2.27) @rotorsoft/eventually-broker-v1.2.27
+  - PATCH [caae70cf](https://github.com/Rotorsoft/eventually-monorepo/commit/caae70cfe6dda89c6e966c965280ee779552811f) fix: add contract view to services
+#### 2022-06-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.30...@rotorsoft/eventually-express-v4.0.31) @rotorsoft/eventually-express-v4.0.31
+  - PATCH [caae70cf](https://github.com/Rotorsoft/eventually-monorepo/commit/caae70cfe6dda89c6e966c965280ee779552811f) fix: add contract view to services
+#### 2022-06-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.2...@rotorsoft/eventually-v4.1.3) @rotorsoft/eventually-v4.1.3
+  - PATCH [caae70cf](https://github.com/Rotorsoft/eventually-monorepo/commit/caae70cfe6dda89c6e966c965280ee779552811f) fix: add contract view to services
+#### 2022-06-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.25...@rotorsoft/eventually-broker-v1.2.26) @rotorsoft/eventually-broker-v1.2.26
+  - PATCH [e6da2fd7](https://github.com/Rotorsoft/eventually-monorepo/commit/e6da2fd7ea393bf8475be9d08db18ff9639ddf29) fix: improve service discovery
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.24...@rotorsoft/eventually-broker-v1.2.25) @rotorsoft/eventually-broker-v1.2.25
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.29...@rotorsoft/eventually-express-v4.0.30) @rotorsoft/eventually-express-v4.0.30
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.21...@rotorsoft/eventually-pg-v4.0.22) @rotorsoft/eventually-pg-v4.0.22
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
+#### 2022-06-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.1...@rotorsoft/eventually-v4.1.2) @rotorsoft/eventually-v4.1.2
+  - PATCH [3952b2c2](https://github.com/Rotorsoft/eventually-monorepo/commit/3952b2c2a67bee941bd1b5d4ef22c89837ac602d) fix: include schemas in endpoints
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.23...@rotorsoft/eventually-broker-v1.2.24) @rotorsoft/eventually-broker-v1.2.24
+  - PATCH [28174da5](https://github.com/Rotorsoft/eventually-monorepo/commit/28174da5e95eddedfdde61979b2c754a1294d7b3) fix: prevent contracts to not show if a message has no schema (#28)
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.22...@rotorsoft/eventually-broker-v1.2.23) @rotorsoft/eventually-broker-v1.2.23
+  - PATCH [fe24800b](https://github.com/Rotorsoft/eventually-monorepo/commit/fe24800bd0cab7805de24f6274fa6b2f50ed3976) fix: add more package.json config vars and about page to broker
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.28...@rotorsoft/eventually-express-v4.0.29) @rotorsoft/eventually-express-v4.0.29
+  - PATCH [fe24800b](https://github.com/Rotorsoft/eventually-monorepo/commit/fe24800bd0cab7805de24f6274fa6b2f50ed3976) fix: add more package.json config vars and about page to broker
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.0...@rotorsoft/eventually-v4.1.1) @rotorsoft/eventually-v4.1.1
+  - PATCH [fe24800b](https://github.com/Rotorsoft/eventually-monorepo/commit/fe24800bd0cab7805de24f6274fa6b2f50ed3976) fix: add more package.json config vars and about page to broker
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.21...@rotorsoft/eventually-broker-v1.2.22) @rotorsoft/eventually-broker-v1.2.22
+  - PATCH [e3a8a928](https://github.com/Rotorsoft/eventually-monorepo/commit/e3a8a928ddfa6fe679e9ce37dbe5793482b89a9b) fix: don't pump when inactive
+#### 2022-06-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.20...@rotorsoft/eventually-broker-v1.2.21) @rotorsoft/eventually-broker-v1.2.21
+  - PATCH [2dc53ccd](https://github.com/Rotorsoft/eventually-monorepo/commit/2dc53ccdc1d5b61b611c65db5cde53a6903c3150) fix: simplify logging and fix graph drag
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.19...@rotorsoft/eventually-broker-v1.2.20) @rotorsoft/eventually-broker-v1.2.20
+  - PATCH [07d98a97](https://github.com/Rotorsoft/eventually-monorepo/commit/07d98a975b92e6fb972f91fc14bb43fe810a758c) fix: fix issue with url when refreshing view
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.18...@rotorsoft/eventually-broker-v1.2.19) @rotorsoft/eventually-broker-v1.2.19
+  - PATCH [6fbe24f8](https://github.com/Rotorsoft/eventually-monorepo/commit/6fbe24f80e9e320c5c5ebbb8827df64058a77661) fix: add try catch
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.17...@rotorsoft/eventually-broker-v1.2.18) @rotorsoft/eventually-broker-v1.2.18
+  - PATCH [b956dd86](https://github.com/Rotorsoft/eventually-monorepo/commit/b956dd86d54bda15b6ad715a17983b6851851ba5) fix: increase http post push timeout and add backoff to channel run retries
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.16...@rotorsoft/eventually-broker-v1.2.17) @rotorsoft/eventually-broker-v1.2.17
+  - PATCH [a1012bd3](https://github.com/Rotorsoft/eventually-monorepo/commit/a1012bd37df78dcf172d45e09fc216d27bf9fcfb) fix: add trigger log
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.15...@rotorsoft/eventually-broker-v1.2.16) @rotorsoft/eventually-broker-v1.2.16
+  - PATCH [6d157677](https://github.com/Rotorsoft/eventually-monorepo/commit/6d157677043817ba671cb5526af7a513b689f847) fix: add 3s timeout to http push channel
+#### 2022-06-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.14...@rotorsoft/eventually-broker-v1.2.15) @rotorsoft/eventually-broker-v1.2.15
+  - PATCH [bc38c8ef](https://github.com/Rotorsoft/eventually-monorepo/commit/bc38c8efb1cd82989f1289e272c2e6d13e9149d4) fix: add more traces to pump
 #### 2022-06-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.13...@rotorsoft/eventually-broker-v1.2.14) @rotorsoft/eventually-broker-v1.2.14
   - PATCH [dc317074](https://github.com/Rotorsoft/eventually-monorepo/commit/dc317074fe07b9a682d9465f62612ce3287d309b) fix: cancel pump when deactivating
 #### 2022-06-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.12...@rotorsoft/eventually-broker-v1.2.13) @rotorsoft/eventually-broker-v1.2.13

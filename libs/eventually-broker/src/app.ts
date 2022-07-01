@@ -12,6 +12,7 @@ export const app = async ({
   port,
   middleware = [] as RequestHandler[],
   prerouters,
+  resolvers,
   serviceLogLinkTemplate
 }: AppOptions): Promise<Express> => {
   port = port || config().port;
@@ -19,7 +20,7 @@ export const app = async ({
   await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
-  await state().init(services, { serviceLogLinkTemplate });
+  await state().init(services, { resolvers, serviceLogLinkTemplate });
 
   subscriptions().listen(
     ({ operation, id }) => state().refreshService(operation, id),
@@ -40,7 +41,9 @@ export const app = async ({
         version: () => config().version,
         dateFormat: (date: Date) => formatDate(date),
         intFormat: (int: number) => formatInt(int),
-        inc: (val: number) => val + 1
+        inc: (val: number) => val + 1,
+        or: (val1: any, val2: any) => val1 || val2,
+        eq: (val1: any, val2: any) => val1 === val2
       }
     })
   );
@@ -53,6 +56,7 @@ export const app = async ({
   app.use("/_services", middleware, routes.services);
   app.use("/_correlation", middleware, routes.correlation);
   app.use("/_contracts", middleware, routes.contracts);
+  app.use("/_about", middleware, routes.about);
   app.use("/", middleware, routes.subscriptions);
 
   const server: Server = await new Promise((resolve) => {

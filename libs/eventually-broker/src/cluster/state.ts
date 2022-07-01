@@ -9,6 +9,7 @@ import {
   RetryableHttpStatus
 } from ".";
 import { Operation, Service, Subscription, subscriptions } from "..";
+import { getServiceEndpoints } from "../utils";
 import { State, StateOptions } from "./interfaces";
 import {
   ChannelConfig,
@@ -18,28 +19,10 @@ import {
   WorkerMessage
 } from "./types";
 
-type SubscriptionViewState = Pick<
-  SubscriptionState,
-  | "id"
-  | "active"
-  | "position"
-  | "endpointStatus"
-  | "stats"
-  | "events"
-  | "command"
->;
 export const toViewModel = (
-  {
-    id,
-    active,
-    position,
-    endpointStatus,
-    stats,
-    events,
-    command
-  }: SubscriptionViewState,
-  channelStatus = "",
-  channelPosition = -1
+  { id, active, path, position, endpointStatus, stats }: SubscriptionState,
+  producer: Service,
+  consumer: Service
 ): SubscriptionViewModel => {
   const emptyEventModel = (name: string, found: boolean): EventsViewModel => ({
     name,
@@ -49,6 +32,10 @@ export const toViewModel = (
     retryable: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 },
     critical: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 }
   });
+  const events =
+    (consumer.eventHandlers &&
+      consumer.eventHandlers["/".concat(path)]?.events) ||
+    [];
   const eventsMap = events.reduce((map, name) => {
     map[name] = emptyEventModel(name, true);
     return map;
@@ -70,15 +57,14 @@ export const toViewModel = (
       });
     });
   return {
-    channelStatus,
-    channelPosition,
+    channelStatus: producer.status || "",
+    channelPosition: producer.position,
     id,
     active,
     position,
     endpointStatus,
     total: stats?.total,
-    events: Object.values(eventsMap),
-    validated: events.length ? "event" : command ? "command" : undefined
+    events: Object.values(eventsMap)
   };
 };
 
@@ -103,12 +89,15 @@ const _emptyView = (
   events: []
 });
 
+const MAX_CHANNEL_RUNS = 10;
+const CHANNEL_RUN_RETRY_TIMEOUT = 10000;
+
 export const state = singleton(function state(): State {
   const _services: Record<string, Service> = {};
   const _channels: Record<number, ChannelConfig> = {};
   const _sse: Record<string, { stream: Writable; id?: string }> = {};
   const _views: Record<string, SubscriptionViewModel> = {};
-  let _options: StateOptions = {};
+  let _options: StateOptions;
 
   const findWorkerId = (producer: string): number | undefined => {
     const [workerId] = Object.entries(_channels)
@@ -117,29 +106,35 @@ export const state = singleton(function state(): State {
     return workerId;
   };
 
-  const endpoint = (consumer: string, path: string): string =>
-    `${_services[consumer].url}/${path}`;
+  const addEndpoint = (sub: Subscription): SubscriptionWithEndpoint => ({
+    ...sub,
+    endpoint: `${_services[sub.consumer].url}/${sub.path}`
+  });
 
   const run = async (id: string, runs = 0): Promise<void> => {
-    if (++runs > 10) {
-      log().error(Error(`Too many runs in session for channel ${id}`));
-      return;
-    }
     try {
-      _services[id] = (await subscriptions().loadServices(id))[0];
+      const service = (_services[id] = (
+        await subscriptions().loadServices(id)
+      )[0]);
+      const pullUrl = new URL(encodeURI(service.channel));
+      const pushUrl = new URL(encodeURI(service.url));
+      const pull = _options.resolvers.pull[pullUrl.protocol];
+      const push = _options.resolvers.push[pushUrl.protocol];
+      if (!pull) throw Error(`Cannot resolve pull ${pullUrl.href}`);
+      if (!push) throw Error(`Cannot resolve push ${pushUrl.href}`);
+      const pullChannel = pull(pullUrl, service.id);
+      const pushChannel = push(pushUrl, service.id);
+      service.label = `${pullChannel.label}${pushChannel.label}`;
+
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
       const config: ChannelConfig = {
         id,
-        channel: encodeURI(_services[id].channel),
+        channel: _services[id].channel,
         subscriptions: subs.reduce((obj, s) => {
-          obj[s.id] = {
-            ...s,
-            endpoint: endpoint(s.consumer, s.path)
-          };
+          obj[s.id] = addEndpoint(s);
           return obj;
         }, {} as Record<string, SubscriptionWithEndpoint>),
-        runs,
-        status: ""
+        runs
       };
       subs.forEach(({ id, active, position }) => {
         _views[id] = _emptyView(id, active, position);
@@ -167,9 +162,19 @@ export const state = singleton(function state(): State {
     delete _sse[session];
   };
 
+  const emitService = (service: Service): void => {
+    const found = Object.values(_sse).filter(({ id }) => !id);
+    if (found.length) {
+      found.forEach(({ stream }) => {
+        stream.write(`id: ${service.id}\n`);
+        stream.write(`event: health\n`);
+        stream.write(`data: ${JSON.stringify(service)}\n\n`);
+      });
+    }
+  };
+
   const emitState = (
-    workerId: number,
-    state?: SubscriptionViewState,
+    state?: SubscriptionState,
     view?: SubscriptionViewModel
   ): void => {
     const subid = (state && state.id) || (view && view.id);
@@ -177,24 +182,22 @@ export const state = singleton(function state(): State {
       ({ id }) => subid === (id || subid)
     );
     if (found.length) {
-      if (!view) {
-        const channel = _channels[workerId];
-        view = _views[state.id] = toViewModel(
-          state,
-          channel ? channel.status : "",
-          channel ? _services[channel.id].position : -1
-        );
-      }
-      found.map(({ stream }) => {
+      !view &&
+        (view = _views[state.id] =
+          toViewModel(
+            state,
+            _services[state.producer],
+            _services[state.consumer]
+          ));
+      found.forEach(({ stream }) => {
         stream.write(`id: ${view.id}\n`);
-        stream.write(`event: message\n`);
+        stream.write(`event: state\n`);
         stream.write(`data: ${JSON.stringify(view)}\n\n`);
       });
     }
   };
 
   const emitError = (
-    workerId: number,
     { id, active, position }: Subscription,
     message: string
   ): void => {
@@ -214,30 +217,20 @@ export const state = singleton(function state(): State {
     };
     view.endpointStatus.error.position < 0 &&
       (view.endpointStatus.error.position = view.position);
-    emitState(workerId, undefined, view);
+    emitState(undefined, view);
   };
 
-  const _state = (
-    workerId: number,
-    channel: ChannelConfig,
-    state: SubscriptionState
-  ): void => {
-    channel.status = "";
-    _services[channel.id].position = Math.max(
-      _services[channel.id].position,
+  const _state = (state: SubscriptionState): void => {
+    _services[state.producer].status = "";
+    _services[state.producer].position = Math.max(
+      _services[state.producer].position,
       state.position
     );
-    emitState(workerId, state);
+    emitState(state);
   };
 
-  const _error = (
-    workerId: number,
-    channel: ChannelConfig,
-    { message }: ErrorMessage
-  ): void => {
-    Object.values(channel.subscriptions).map((sub) =>
-      emitError(workerId, sub, message)
-    );
+  const _error = (channel: ChannelConfig, { message }: ErrorMessage): void => {
+    Object.values(channel.subscriptions).map((sub) => emitError(sub, message));
   };
 
   const onMessage = (
@@ -246,8 +239,8 @@ export const state = singleton(function state(): State {
   ): void => {
     const channel = _channels[workerId];
     if (!channel) return;
-    if (error) _error(workerId, channel, error);
-    else if (state) _state(workerId, channel, state);
+    if (error) _error(channel, error);
+    else if (state) _state(state);
     else if (trigger)
       _services[channel.id].position = Math.max(
         _services[channel.id].position,
@@ -263,10 +256,20 @@ export const state = singleton(function state(): State {
       signal ? signal : `code ${code}`
     }`;
     log().info("bgRed", `[${process.pid}]`, message);
-    channel.status = message;
-    _error(workerId, channel, { message: channel.status });
-    // re-run when exit code == 0
-    !code && void run(channel.id, channel.runs);
+    _services[channel.id].status = message;
+    _error(channel, { message });
+
+    if (!code) {
+      // re-run when exit code == 0
+      const runs = channel.runs + 1;
+      if (runs > MAX_CHANNEL_RUNS) {
+        log().error(
+          Error(`Too many runs in session for channel ${channel.id}`)
+        );
+        return;
+      }
+      setTimeout(() => run(channel.id, runs), runs * CHANNEL_RUN_RETRY_TIMEOUT);
+    }
   };
 
   cluster.on("message", (worker, message: WorkerMessage) =>
@@ -274,9 +277,55 @@ export const state = singleton(function state(): State {
   );
   cluster.on("exit", (worker, code, signal) => onExit(worker.id, code, signal));
 
+  const discover = async (service: Service): Promise<void> => {
+    service.discovered = false;
+    service.eventHandlers = {};
+    service.commandHandlers = {};
+    service.schemas = {};
+    const endpoints = await getServiceEndpoints(service);
+    if (endpoints) {
+      service.discovered = true;
+      service.version = endpoints.version;
+      endpoints.eventHandlers &&
+        Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
+          service.eventHandlers[value.path] = {
+            name,
+            path: value.path,
+            type: value.type,
+            events: value.events
+          };
+        });
+
+      endpoints.commandHandlers &&
+        Object.entries(endpoints.commandHandlers).forEach(([type, value]) => {
+          Object.entries(value.commands).forEach(([name, path]) => {
+            service.commandHandlers[path] = {
+              name,
+              path,
+              type: `${value.type} ${type}`,
+              events: value.events
+            };
+          });
+        });
+
+      endpoints.schemas &&
+        Object.entries(endpoints.schemas).forEach(([name, value]) => {
+          service.schemas[name] = value;
+        });
+    }
+    emitService(service);
+  };
+
+  // discovery loop every 30s
+  const discoverServices = (): void => {
+    Object.values(_services).forEach((s) => void discover(s));
+  };
+  const discoveryTimer = setInterval(discoverServices, 30 * 1000);
+
   return {
     name: "state",
     dispose: () => {
+      clearInterval(discoveryTimer);
       cluster.removeAllListeners();
       return Promise.resolve();
     },
@@ -284,8 +333,10 @@ export const state = singleton(function state(): State {
       Object.values(_services).sort((a, b) =>
         a.id > b.id ? 1 : a.id < b.id ? -1 : 0
       ),
+    discoverServices,
+    discover,
     init: async (services: Service[], options: StateOptions): Promise<void> => {
-      _options = options || {};
+      _options = options;
       const cores = cpus().length;
       log().info(
         "green",
@@ -307,7 +358,7 @@ export const state = singleton(function state(): State {
     viewModel: (sub: Subscription): SubscriptionViewModel => {
       const workerId = findWorkerId(sub.producer);
       const worker = cluster.workers[workerId];
-      worker && worker.send({ operation: "REFRESH", sub });
+      worker && worker.send({ operation: "REFRESH", sub: addEndpoint(sub) });
       return _views[sub.id] || _emptyView(sub.id);
     },
     onMessage,
@@ -329,12 +380,10 @@ export const state = singleton(function state(): State {
           const workerId = findWorkerId(sub.producer);
           if (workerId) {
             const channel = _channels[workerId];
-            const subWithEndpoint = (channel.subscriptions[id] = {
-              ...sub,
-              endpoint: endpoint(sub.consumer, sub.path)
-            });
+            channel.subscriptions[id] = addEndpoint(sub);
             const worker = cluster.workers[workerId];
-            worker && worker.send({ operation, sub: subWithEndpoint });
+            worker &&
+              worker.send({ operation, sub: channel.subscriptions[id] });
 
             if (operation !== "DELETE") {
               const newWorkerId = findWorkerId(sub.producer);
@@ -342,7 +391,10 @@ export const state = singleton(function state(): State {
 
               (newWorkerId || -1) !== (workerId || -2)
                 ? newWorker
-                  ? newWorker.send({ operation, sub: subWithEndpoint })
+                  ? newWorker.send({
+                      operation,
+                      sub: channel.subscriptions[id]
+                    })
                   : await run(sub.producer)
                 : undefined;
             }

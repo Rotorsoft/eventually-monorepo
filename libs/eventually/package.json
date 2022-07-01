@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually",
-  "version": "4.1.0",
+  "version": "4.1.4",
   "description": "Eventually Framework",
   "author": "rotorsoft",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build"
+    "build": "npx tsc --build"
   },
   "dependencies": {
     "chalk": "~4",

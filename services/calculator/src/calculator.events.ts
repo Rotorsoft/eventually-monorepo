@@ -1,4 +1,4 @@
-import { Digits, Operators } from "./calculator.models";
+import { Digits, Operators, Complex } from "./calculator.models";
 
 export type Events = {
   DigitPressed: { digit: Digits };
@@ -10,4 +10,5 @@ export type Events = {
   Ignored2: undefined;
   Ignored3: undefined;
   Forgotten: undefined;
+  Complex: Complex;
 };

@@ -28,10 +28,11 @@ void bootstrap(async (): Promise<void> => {
     .withEventHandlers(StatelessCounter)
     .withSchemas<Pick<Events, "Cleared">>({
       Cleared: undefined
+    })
+    .withSchemas<Pick<Events, "Complex">>({
+      Complex: schemas.Complex
     });
 
   _app.build();
   await _app.listen();
-
-  console.log(JSON.stringify(_app.endpoints));
 });

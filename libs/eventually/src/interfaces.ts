@@ -77,6 +77,9 @@ export interface Config extends Disposable {
   service: string;
   version: string;
   description: string;
+  author: string;
+  license: string;
+  dependencies: Record<string, string>;
 }
 
 /**
