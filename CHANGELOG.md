@@ -1,3 +1,5 @@
+#### 2022-07-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.0...@rotorsoft/eventually-broker-v1.3.1) @rotorsoft/eventually-broker-v1.3.1
+  - PATCH [291e4c20](https://github.com/Rotorsoft/eventually-monorepo/commit/291e4c20a2fb94507b20d57a735f473aaeb01f2b) fix: init push channels
 #### 2022-07-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.30...@rotorsoft/eventually-broker-v1.3.0) @rotorsoft/eventually-broker-v1.3.0
   - MINOR [8b87b729](https://github.com/Rotorsoft/eventually-monorepo/commit/8b87b729c3b99cd6b610564b07613c895b273374) feat: batch push channels
 #### 2022-06-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.29...@rotorsoft/eventually-broker-v1.2.30) @rotorsoft/eventually-broker-v1.2.30
