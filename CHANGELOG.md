@@ -1,3 +1,5 @@
+#### 2022-07-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.30...@rotorsoft/eventually-broker-v1.3.0) @rotorsoft/eventually-broker-v1.3.0
+  - MINOR [8b87b729](https://github.com/Rotorsoft/eventually-monorepo/commit/8b87b729c3b99cd6b610564b07613c895b273374) feat: batch push channels
 #### 2022-06-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.29...@rotorsoft/eventually-broker-v1.2.30) @rotorsoft/eventually-broker-v1.2.30
   - PATCH [ff089776](https://github.com/Rotorsoft/eventually-monorepo/commit/ff0897764650678867c6507cc67a41e659199e5b) fix: set axios timeout in utils
 #### 2022-06-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.2.28...@rotorsoft/eventually-broker-v1.2.29) @rotorsoft/eventually-broker-v1.2.29
