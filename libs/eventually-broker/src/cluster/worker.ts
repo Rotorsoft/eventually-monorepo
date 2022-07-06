@@ -162,8 +162,6 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         for (const event of events) {
           if (!event.response) break;
           lastResponse = event;
-          CommittableHttpStatus.includes(event.response.statusCode) &&
-            (lastCommittable = event);
 
           subState.stats.total++;
           const entry = (subState.stats.events[event.name] =
@@ -178,6 +176,10 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
           stat.count++;
           stat.min = Math.min(stat.min, event.id);
           stat.max = Math.max(stat.max, event.id);
+
+          if (CommittableHttpStatus.includes(event.response.statusCode))
+            lastCommittable = event;
+          else break; // stop after first non-committable response
         }
 
         if (lastCommittable) {
