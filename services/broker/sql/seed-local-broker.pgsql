@@ -6,7 +6,7 @@ values
     ('calculator', 'pg://calculator', 'http://localhost:3000'),
     ('counter', 'pg://calculator', 'http://localhost:3002');
 
-insert into subscriptions(id, active, producer, consumer, path, streams, names, position)
+insert into subscriptions(id, active, producer, consumer, path, streams, names, position, batch_size)
 values
-    ('calc-count', true, 'calculator', 'counter', 'counter', '^Calculator-.*$', '.*', -1),
-    ('count-calc', true, 'counter', 'calculator', 'stateless-counter', '^Calculator-.*$', '^Cleared$', -1);
+    ('calc-count', true, 'calculator', 'counter', 'counter', '^Calculator-.*$', '.*', -1, 100),
+    ('count-calc', true, 'counter', 'calculator', 'stateless-counter', '^Calculator-.*$', 'DigitPressed', -1, 1000);

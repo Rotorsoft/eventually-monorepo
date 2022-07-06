@@ -1,13 +1,7 @@
 import { dispose } from "@rotorsoft/eventually";
 import axios from "axios";
 import cluster from "cluster";
-import {
-  pullchannel,
-  PushChannel,
-  PushResponse,
-  subscriptions,
-  VoidPushChannel
-} from "..";
+import { pullchannel, PushChannel, subscriptions, VoidPushChannel } from "..";
 import { defaultResolvers } from "../broker";
 import {
   ChannelConfig,
@@ -26,15 +20,33 @@ import {
 
 const TestPushChannel = (): PushChannel => ({
   label: "",
-  init: () => undefined,
-  push: (event): Promise<PushResponse> => {
-    if (event.name === "e1")
-      return Promise.resolve({ status: 204, statusText: "VOID" });
-    if (event.name === "e2")
-      return Promise.resolve({ status: 200, statusText: "OK" });
-    if (event.name === "e3")
-      return Promise.resolve({ status: 404, statusText: "Not Found" });
-    return Promise.resolve({ status: 204, statusText: "VOID" });
+  init: () => Promise.resolve(undefined),
+  push: (events): Promise<number> => {
+    events.map((event) => {
+      if (event.name === "e1")
+        event.response = {
+          statusCode: 204,
+          statusText: "VOID"
+        };
+      else if (event.name === "e2")
+        event.response = {
+          statusCode: 200,
+          statusText: "OK"
+        };
+      else if (event.name === "e3")
+        event.response = {
+          statusCode: 404,
+          statusText: "Not Found"
+        };
+      else
+        event.response = {
+          statusCode: 204,
+          statusText: "VOID"
+        };
+    });
+    return Promise.resolve(
+      events[events.length - 1].response?.statusCode || 200
+    );
   }
 });
 

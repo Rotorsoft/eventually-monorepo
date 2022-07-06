@@ -1,7 +1,7 @@
 import { dispose, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import axios from "axios";
-import { pullchannel, Service, subscriptions } from "..";
+import { pullchannel, PushEvent, Service, subscriptions } from "..";
 import {
   PostgresPullChannel,
   HttpPostPushChannel,
@@ -59,9 +59,10 @@ describe("channels", () => {
 
   it("should post push", async () => {
     const channel = HttpPostPushChannel(new URL("http://localhost"));
-    channel.init();
-    const response = await channel.push(createCommittedEvent());
-    expect(response.status).toBe(200);
+    await channel.init();
+    const events = [createCommittedEvent()] as PushEvent[];
+    const code = await channel.push(events);
+    expect(code).toBe(200);
   });
 
   it("should pg pull", async () => {
@@ -80,9 +81,10 @@ describe("channels", () => {
 
   it("should void push", async () => {
     const channel = VoidPushChannel();
-    channel.init();
-    const response = await channel.push(createCommittedEvent());
-    expect(response.status).toBe(204);
+    await channel.init();
+    const events = [createCommittedEvent()] as PushEvent[];
+    const code = await channel.push(events);
+    expect(code).toBe(204);
   });
 
   it("should restart cron with cron expression if next run is greater than now", async () => {

@@ -1,7 +1,14 @@
-import { dispose, ExitCodes, log } from "@rotorsoft/eventually";
+import {
+  CommittedEvent,
+  dispose,
+  ExitCodes,
+  log,
+  Payload
+} from "@rotorsoft/eventually";
 import {
   ChannelResolvers,
   pullchannel,
+  PushEvent,
   subscriptions,
   TriggerCallback,
   TriggerPayload
@@ -95,6 +102,15 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     };
   };
 
+  const ignore = (
+    subState: SubscriptionState,
+    event: CommittedEvent<string, Payload>
+  ): boolean =>
+    !(
+      subState.streamsRegExp.test(event.stream) &&
+      subState.namesRegExp.test(event.name)
+    );
+
   const pumpSub = async (
     subState: SubscriptionState,
     trigger: TriggerPayload
@@ -117,66 +133,83 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       let count = subState.batchSize;
       while (count === subState.batchSize) {
         if (subState.cancel) return;
+
         subState.stats.batches++;
         subState.endpointStatus.name = undefined;
-        const events = await pullchannel().pull(
+        const events = (await pullchannel().pull(
           subState.position,
           subState.batchSize
-        );
+        )) as PushEvent[];
+        count = events.length;
+
         log().trace(
           "magenta",
-          `[${process.pid}] pull ${subState.id} ${events.length} events @ ${subState.position} [${subState.batchSize}]`
+          `[${process.pid}] pulled ${subState.id} ${count} events @ ${subState.position} [${subState.batchSize}]`
         );
-        count = events.length;
-        for (const e of events) {
-          if (subState.cancel) return;
-          const { status, statusText, details } =
-            subState.streamsRegExp.test(e.stream) &&
-            subState.namesRegExp.test(e.name)
-              ? await subState.pushChannel.push(e)
-              : { status: 204, statusText: "Not Matched", details: undefined };
+        if (!count) break;
+
+        const batch = events.filter((event) => {
+          const ignored = ignore(subState, event);
+          ignored && (event.response = { statusCode: 204 });
+          return !ignored;
+        });
+        batch.length && (await subState.pushChannel.push(batch));
+
+        let lastResponse: PushEvent, lastCommittable: PushEvent;
+        for (const event of events) {
+          if (!event.response) break;
+          lastResponse = event;
+          CommittableHttpStatus.includes(event.response.statusCode) &&
+            (lastCommittable = event);
 
           subState.stats.total++;
-          const event = (subState.stats.events[e.name] =
-            subState.stats.events[e.name] || {});
-          const eventStats = (event[status] = event[status] || {
+          const entry = (subState.stats.events[event.name] =
+            subState.stats.events[event.name] || {});
+          const stat = (entry[event.response.statusCode] = entry[
+            event.response.statusCode
+          ] || {
             count: 0,
             min: Number.MAX_SAFE_INTEGER,
             max: -1
           });
-          eventStats.count++;
-          eventStats.min = Math.min(eventStats.min, e.id);
-          eventStats.max = Math.max(eventStats.max, e.id);
-
-          if (CommittableHttpStatus.includes(status)) {
-            await subscriptions().commitSubscriptionPosition(subState.id, e.id);
-            subState.position = e.id;
-            subState.endpointStatus = {
-              name: e.name,
-              code: status,
-              color: "success",
-              icon: "bi-activity",
-              status: statusText || "OK",
-              error: undefined
-            };
-          } else {
-            const retryable = RetryableHttpStatus.includes(status);
-            subState.endpointStatus = {
-              name: e.name,
-              code: status,
-              color: retryable ? "warning" : "danger",
-              icon: "bi-cone-striped",
-              status: statusText || "Retryable Error",
-              error: {
-                trigger: `${triggerLog(trigger, e.id)}`,
-                message: details,
-                position: e.id
-              }
-            };
-            sendState(subState);
-            return retryable && (trigger.retry_count || 0) < subState.retries;
-          }
+          stat.count++;
+          stat.min = Math.min(stat.min, event.id);
+          stat.max = Math.max(stat.max, event.id);
         }
+
+        if (lastCommittable) {
+          await subscriptions().commitSubscriptionPosition(
+            subState.id,
+            lastCommittable.id
+          );
+          subState.position = lastCommittable.id;
+        }
+
+        subState.endpointStatus = {
+          name:
+            lastResponse.response.statusCode !== 204 ? lastResponse.name : "",
+          code: lastResponse.response.statusCode,
+          color: "success",
+          icon: "bi-activity",
+          status: lastResponse.response.statusText || "OK"
+        };
+
+        if (lastCommittable !== lastResponse) {
+          const retryable = RetryableHttpStatus.includes(
+            lastResponse.response.statusCode
+          );
+          subState.endpointStatus.color = retryable ? "warning" : "danger";
+          subState.endpointStatus.icon = "bi-cone-striped";
+          subState.endpointStatus.error = {
+            trigger: `${triggerLog(trigger, lastResponse.id)}`,
+            message: lastResponse.response.details,
+            position: lastResponse.id
+          };
+          sendState(subState);
+          return retryable && (trigger.retry_count || 0) < subState.retries;
+        }
+
+        // send batch state and continue pumping until the end of the stream
         sendState(subState);
       }
     } catch (error) {

@@ -1,3 +1,4 @@
+import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { RequestHandler, Router } from "express";
 import Joi from "joi";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
@@ -28,7 +29,7 @@ export type Service = {
   version?: string;
   eventHandlers?: Record<string, Contract>;
   commandHandlers?: Record<string, Contract>;
-  schemas?: Record<string, Joi.Description>; // TODO: add joi descriptions
+  schemas?: Record<string, Joi.Description>;
 };
 
 /**
@@ -92,9 +93,16 @@ export type TriggerCallback = (trigger: TriggerPayload) => void;
  * Push response
  */
 export type PushResponse = {
-  status: number;
-  statusText: string;
+  statusCode: number;
+  statusText?: string;
   details?: string;
+};
+
+/**
+ * Push event
+ */
+export type PushEvent = CommittedEvent<string, Payload> & {
+  response?: PushResponse;
 };
 
 /**
