@@ -59,7 +59,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     return Promise.resolve();
   });
 
-  const toState = ({
+  const toState = async ({
     id,
     producer,
     consumer,
@@ -72,10 +72,13 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     batch_size,
     retries,
     retry_timeout_secs
-  }: SubscriptionWithEndpoint): SubscriptionState => {
+  }: SubscriptionWithEndpoint): Promise<SubscriptionState> => {
     const pushUrl = new URL(endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
+    const pushChannel = pushFactory(pushUrl, id);
+    await pushChannel.init();
+
     return {
       id,
       producer,
@@ -86,7 +89,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       position,
       streamsRegExp: RegExp(streams),
       namesRegExp: RegExp(names),
-      pushChannel: pushFactory(pushUrl, id),
+      pushChannel,
       batchSize: batch_size,
       retries,
       retryTimeoutSecs: retry_timeout_secs,
@@ -305,7 +308,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         }
       }
       try {
-        const subState = (subStates[sub.id] = toState(sub));
+        const subState = (subStates[sub.id] = await toState(sub));
         currentState && Object.assign(subState.stats, currentState.stats);
         const trigger: TriggerPayload = { operation, id: sub.id };
         void pumpRetry(subState, trigger);
@@ -320,10 +323,12 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl, config.id));
-    Object.values(config.subscriptions).map((sub) => {
-      subStates[sub.id] = toState(sub);
-      sendState(subStates[sub.id], false);
-    });
+    await Promise.all(
+      Object.values(config.subscriptions).map(async (sub) => {
+        subStates[sub.id] = await toState(sub);
+        sendState(subStates[sub.id], false);
+      })
+    );
     pumpChannel({ operation: "RESTART", id: config.id });
     await pullchannel().listen(pumpChannel);
   } catch (error) {
