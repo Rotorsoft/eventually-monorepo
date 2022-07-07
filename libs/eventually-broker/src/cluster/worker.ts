@@ -76,7 +76,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     const pushUrl = new URL(endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
-    const pushChannel = pushFactory(pushUrl, id);
+    const pushChannel = pushFactory(pushUrl, id, producer);
     await pushChannel.init();
 
     return {

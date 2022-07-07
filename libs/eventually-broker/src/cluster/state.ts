@@ -123,7 +123,7 @@ export const state = singleton(function state(): State {
       if (!pull) throw Error(`Cannot resolve pull ${pullUrl.href}`);
       if (!push) throw Error(`Cannot resolve push ${pushUrl.href}`);
       const pullChannel = pull(pullUrl, service.id);
-      const pushChannel = push(pushUrl, service.id);
+      const pushChannel = push(pushUrl, service.id, service.id);
       service.label = `${pullChannel.label}${pushChannel.label}`;
 
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
