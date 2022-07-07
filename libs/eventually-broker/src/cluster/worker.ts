@@ -47,12 +47,14 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
   const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
   const subStates: Record<string, SubscriptionState> = {};
   const retryTimeouts: Record<string, NodeJS.Timeout> = {};
+  let refreshTimer: NodeJS.Timeout;
 
   const exit = async (): Promise<void> => {
     await dispose()(ExitCodes.ERROR);
   };
 
   dispose(() => {
+    clearInterval(refreshTimer);
     Object.values(retryTimeouts).forEach((t) => {
       clearTimeout(t);
     });
@@ -332,6 +334,10 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       })
     );
     pumpChannel({ operation: "RESTART", id: config.id });
+    refreshTimer = setInterval(
+      () => pumpChannel({ operation: "REFRESH", id: config.id }),
+      10 * 60 * 1000
+    );
     await pullchannel().listen(pumpChannel);
   } catch (error) {
     log().error(error);

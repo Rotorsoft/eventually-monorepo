@@ -1,4 +1,4 @@
-import { log, singleton } from "@rotorsoft/eventually";
+import { dispose, log, singleton } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { cpus } from "os";
 import { Writable } from "stream";
@@ -95,9 +95,15 @@ const CHANNEL_RUN_RETRY_TIMEOUT = 10000;
 export const state = singleton(function state(): State {
   const _services: Record<string, Service> = {};
   const _channels: Record<number, ChannelConfig> = {};
+  const _timers: Record<string, NodeJS.Timeout> = {};
   const _sse: Record<string, { stream: Writable; id?: string }> = {};
   const _views: Record<string, SubscriptionViewModel> = {};
   let _options: StateOptions;
+
+  dispose(() => {
+    Object.values(_timers).forEach((t) => clearTimeout(t));
+    return Promise.resolve();
+  });
 
   const findWorkerId = (producer: string): number | undefined => {
     const [workerId] = Object.entries(_channels)
@@ -113,6 +119,7 @@ export const state = singleton(function state(): State {
 
   const run = async (id: string, runs = 0): Promise<void> => {
     try {
+      clearTimeout(_timers[id]);
       const service = (_services[id] = (
         await subscriptions().loadServices(id)
       )[0]);
@@ -268,7 +275,10 @@ export const state = singleton(function state(): State {
         );
         return;
       }
-      setTimeout(() => run(channel.id, runs), runs * CHANNEL_RUN_RETRY_TIMEOUT);
+      _timers[channel.id] = setTimeout(
+        () => run(channel.id, runs),
+        runs * CHANNEL_RUN_RETRY_TIMEOUT
+      );
     }
   };
 
