@@ -1,12 +1,17 @@
 import { dispose } from "@rotorsoft/eventually";
 import axios from "axios";
 import cluster from "cluster";
-import { pullchannel, PushChannel, subscriptions, VoidPushChannel } from "..";
+import {
+  pullchannel,
+  PushChannel,
+  Subscription,
+  subscriptions,
+  VoidPushChannel
+} from "..";
 import { defaultResolvers } from "../broker";
 import {
-  ChannelConfig,
+  WorkerConfig,
   state,
-  SubscriptionWithEndpoint,
   SubscriptionState,
   toViewModel,
   work
@@ -133,15 +138,17 @@ describe("cluster", () => {
         icon: "bi-activity"
       }
     };
-    await state().refreshSubscription("DELETE", "s1");
-    await state().refreshSubscription("INSERT", "s1");
-    await state().refreshSubscription("UPDATE", "s1");
-    await state().refreshService("DELETE", "s1");
-    await state().refreshService("INSERT", "s1");
-    await state().refreshService("UPDATE", "s1");
-    state().onMessage(1, {
-      error: { message: "Error message" }
+    await state().init(await subscriptions().loadServices(), {
+      resolvers: defaultResolvers
     });
+    state().refreshSubscription("DELETE", "s1");
+    state().refreshSubscription("INSERT", "s1");
+    state().refreshSubscription("UPDATE", "s1");
+    state().refreshService("DELETE", "s1");
+    state().refreshService("INSERT", "s1");
+    state().refreshService("UPDATE", "s1");
+    state().refreshSubscription("INSERT", "s1");
+
     state().onMessage(1, {
       error: { message: "Error message" }
     });
@@ -149,6 +156,7 @@ describe("cluster", () => {
       trigger: { id: "s1", operation: "RESTART", position: 1 }
     });
     state().onMessage(1, { state: subState });
+
     const viewModel = state().viewModel(
       (await subscriptions().loadSubscriptions("s1"))[0]
     );
@@ -160,7 +168,7 @@ describe("cluster", () => {
   });
 
   it("should work", async () => {
-    const subConfig: SubscriptionWithEndpoint = {
+    const subConfig: Subscription = {
       id: "s1",
       active: true,
       producer: "",
@@ -175,8 +183,9 @@ describe("cluster", () => {
       retries: 3,
       retry_timeout_secs: 10
     };
-    const chanConfig: ChannelConfig = {
+    const chanConfig: WorkerConfig = {
       id: "s1",
+      workerId: -1,
       channel: "void://",
       subscriptions: { s1: subConfig },
       runs: 0

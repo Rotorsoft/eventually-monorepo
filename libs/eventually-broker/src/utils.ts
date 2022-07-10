@@ -2,6 +2,7 @@ import {
   Actor,
   CommittedEvent,
   Endpoints,
+  log,
   Payload
 } from "@rotorsoft/eventually";
 import axios from "axios";
@@ -199,3 +200,47 @@ export const getServiceContracts = (
 //   cache = null;
 //   return result;
 // };
+
+type Loop<T> = {
+  start: () => Promise<void>;
+  stop: () => Promise<void>;
+  push: (item: T) => void;
+};
+type Callback<T> = (item: T) => Promise<void>;
+export const loop = <T>(name: string, callback: Callback<T>): Loop<T> => {
+  const queue: Array<T> = [];
+  let processing = false;
+  let cancel = false;
+
+  const start = async (): Promise<void> => {
+    if (!processing) {
+      processing = true;
+      while (queue.length) {
+        if (cancel) break;
+        const item = queue.shift();
+        await callback(item);
+      }
+      processing = false;
+    }
+    cancel = false;
+  };
+
+  const stop = async (): Promise<void> => {
+    cancel = queue.length > 0;
+    for (let i = 1; cancel && i <= 30; i++) {
+      log().trace("red", `[${process.pid}] Stopping loop ${name} @ (${i})...`);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  };
+
+  const push = (item: T): void => {
+    queue.push(item);
+    setImmediate(start);
+  };
+
+  return {
+    start,
+    stop,
+    push
+  };
+};

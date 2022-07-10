@@ -1,6 +1,7 @@
 process.env.LOG_LEVEL = "trace";
+process.env.NODE_ENV = "production";
 
-import { app, bind, dispose } from "@rotorsoft/eventually";
+import { app, bind, dispose, log } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
@@ -40,6 +41,15 @@ describe("trace in test mode", () => {
         left: "1",
         result: 0
       });
+    });
+
+    it("should log plain error", () => {
+      try {
+        throw Error("test");
+      } catch (error) {
+        log().error(error);
+      }
+      expect(1).toBe(1);
     });
   });
 });

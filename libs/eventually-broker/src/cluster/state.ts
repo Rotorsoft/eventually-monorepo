@@ -1,5 +1,5 @@
 import { dispose, log, singleton } from "@rotorsoft/eventually";
-import cluster from "cluster";
+import cluster, { Worker } from "cluster";
 import { cpus } from "os";
 import { Writable } from "stream";
 import {
@@ -9,13 +9,12 @@ import {
   RetryableHttpStatus
 } from ".";
 import { Operation, Service, Subscription, subscriptions } from "..";
-import { getServiceEndpoints } from "../utils";
-import { State, StateOptions } from "./interfaces";
+import { getServiceEndpoints, loop } from "../utils";
+import { ServiceWithWorker, State, StateOptions } from "./interfaces";
 import {
-  ChannelConfig,
+  WorkerConfig,
   SubscriptionState,
   SubscriptionViewModel,
-  SubscriptionWithEndpoint,
   WorkerMessage
 } from "./types";
 
@@ -33,7 +32,8 @@ export const toViewModel = (
     critical: { count: 0, min: Number.MAX_SAFE_INTEGER, max: -1 }
   });
   const events =
-    (consumer.eventHandlers &&
+    (consumer &&
+      consumer.eventHandlers &&
       consumer.eventHandlers["/".concat(path)]?.events) ||
     [];
   const eventsMap = events.reduce((map, name) => {
@@ -56,9 +56,11 @@ export const toViewModel = (
         stat.max = Math.max(stat.max, stats.max);
       });
     });
+  const channelStatus = (producer && producer.status) || "";
+  const channelPosition = (producer && producer.position) || -1;
   return {
-    channelStatus: producer.status || "",
-    channelPosition: producer.position,
+    channelStatus,
+    channelPosition,
     id,
     active,
     position,
@@ -68,61 +70,83 @@ export const toViewModel = (
   };
 };
 
-const _emptyView = (
-  id: string,
-  active = false,
-  position = -1
-): SubscriptionViewModel => ({
-  id,
-  active,
-  position,
-  channelStatus: "",
-  channelPosition: -1,
-  endpointStatus: {
-    name: "",
-    code: 200,
-    color: "success",
-    icon: active ? "bi-activity" : "",
-    status: "OK"
-  },
-  total: 0,
-  events: []
-});
-
-const MAX_CHANNEL_RUNS = 10;
-const CHANNEL_RUN_RETRY_TIMEOUT = 10000;
+const MAX_RUNS = 10;
+const RUN_RETRY_TIMEOUT = 10000;
 
 export const state = singleton(function state(): State {
-  const _services: Record<string, Service> = {};
-  const _channels: Record<number, ChannelConfig> = {};
+  const _services: Record<string, ServiceWithWorker> = {};
   const _timers: Record<string, NodeJS.Timeout> = {};
   const _sse: Record<string, { stream: Writable; id?: string }> = {};
   const _views: Record<string, SubscriptionViewModel> = {};
   let _options: StateOptions;
+  let _disposed = false;
 
-  dispose(() => {
-    Object.values(_timers).forEach((t) => clearTimeout(t));
-    return Promise.resolve();
-  });
+  const _view = (
+    id: string,
+    active: boolean,
+    position: number,
+    channelPosition: number,
+    error?: string
+  ): SubscriptionViewModel => {
+    const view = (_views[id] = _views[id] || {
+      id,
+      active,
+      position,
+      channelStatus: "",
+      channelPosition,
+      endpointStatus: {
+        name: "",
+        code: 200,
+        color: "success",
+        icon: active ? "bi-activity" : "",
+        status: "OK"
+      },
+      total: 0,
+      events: []
+    });
 
-  const findWorkerId = (producer: string): number | undefined => {
-    const [workerId] = Object.entries(_channels)
-      .filter(([, value]) => value.id === producer)
-      .map(([id]) => parseInt(id));
-    return workerId;
+    view.active = active;
+    view.position = Math.max(view.position, position);
+    view.channelPosition = Math.max(view.channelPosition, channelPosition);
+    if (error) {
+      view.endpointStatus = {
+        name: "",
+        code: 500,
+        color: "danger",
+        icon: "bi-cone-striped",
+        status: "Internal Server Error",
+        error: { message: error, position }
+      };
+    }
+    return view;
   };
 
-  const addEndpoint = (sub: Subscription): SubscriptionWithEndpoint => ({
-    ...sub,
-    endpoint: `${_services[sub.consumer].url}/${sub.path}`
-  });
+  const findSubscription = (id: string): ServiceWithWorker | undefined =>
+    Object.values(_services).find(
+      (producer) =>
+        producer &&
+        producer.config &&
+        Object.values(producer.config.subscriptions).find(
+          (sub) => sub.id === id
+        )
+    );
 
   const run = async (id: string, runs = 0): Promise<void> => {
     try {
-      clearTimeout(_timers[id]);
+      if (_timers[id]) {
+        clearTimeout(_timers[id]);
+        delete _timers[id];
+      }
+      if (_services[id] && _services[id].config)
+        throw Error(
+          `Service ${id} has active worker ${_services[id].config.workerId}`
+        );
+
       const service = (_services[id] = (
         await subscriptions().loadServices(id)
-      )[0]);
+      )[0] as ServiceWithWorker);
+      if (!service) return;
+
       const pullUrl = new URL(encodeURI(service.channel));
       const pushUrl = new URL(encodeURI(service.url));
       const pull = _options.resolvers.pull[pullUrl.protocol];
@@ -134,23 +158,23 @@ export const state = singleton(function state(): State {
       service.label = `${pullChannel.label}${pushChannel.label}`;
 
       const subs = await subscriptions().loadSubscriptionsByProducer(id);
-      const config: ChannelConfig = {
-        id,
-        channel: _services[id].channel,
-        subscriptions: subs.reduce((obj, s) => {
-          obj[s.id] = addEndpoint(s);
-          return obj;
-        }, {} as Record<string, SubscriptionWithEndpoint>),
-        runs
-      };
       subs.forEach(({ id, active, position }) => {
-        _views[id] = _emptyView(id, active, position);
+        _view(id, active, position, service.position);
       });
-      if (Object.values(config.subscriptions).length) {
-        const worker = cluster.fork({
-          WORKER_ENV: JSON.stringify(config)
-        });
-        _channels[worker.id] = config;
+      const active = subs.filter((sub) => sub.active);
+      if (active.length) {
+        const config: WorkerConfig = {
+          id: service.id,
+          workerId: -1,
+          channel: service.channel,
+          subscriptions: active.reduce((subs, sub) => {
+            subs[sub.id] = sub;
+            return subs;
+          }, {} as Record<string, Subscription>),
+          runs: Math.max(runs, 0)
+        };
+        const { id } = cluster.fork({ WORKER_ENV: JSON.stringify(config) });
+        service.config = { ...config, workerId: id };
       }
     } catch (error) {
       log().error(error);
@@ -162,10 +186,12 @@ export const state = singleton(function state(): State {
     stream: Writable,
     id?: string
   ): void => {
+    if (_disposed) return;
     _sse[session] = { stream, id };
   };
 
   const unsubscribeSSE = (session: string): void => {
+    if (_disposed) return;
     delete _sse[session];
   };
 
@@ -206,80 +232,69 @@ export const state = singleton(function state(): State {
 
   const emitError = (
     { id, active, position }: Subscription,
-    message: string
+    error: string
   ): void => {
-    const view = _views[id];
-    view.active = active;
-    view.position = Math.max(view.position, position);
-    view.endpointStatus = {
-      name: undefined,
-      code: 500,
-      color: "danger",
-      icon: "bi-cone-striped",
-      status: "Internal Server Error",
-      error: view.endpointStatus.error || {
-        message,
-        position: view.position
-      }
-    };
-    view.endpointStatus.error.position < 0 &&
-      (view.endpointStatus.error.position = view.position);
-    emitState(undefined, view);
+    emitState(undefined, _view(id, active, position, -1, error));
   };
 
   const _state = (state: SubscriptionState): void => {
-    _services[state.producer].status = "";
-    _services[state.producer].position = Math.max(
-      _services[state.producer].position,
-      state.position
-    );
+    const producer = _services[state.producer];
+    if (producer) {
+      producer.status = "";
+      producer.position = Math.max(producer.position, state.position);
+    }
     emitState(state);
   };
 
-  const _error = (channel: ChannelConfig, { message }: ErrorMessage): void => {
-    Object.values(channel.subscriptions).map((sub) => emitError(sub, message));
+  const _error = (config: WorkerConfig, { message }: ErrorMessage): void => {
+    Object.values(config.subscriptions).map((sub) => emitError(sub, message));
   };
 
   const onMessage = (
     workerId: number,
     { error, state, trigger }: WorkerMessage
   ): void => {
-    const channel = _channels[workerId];
-    if (!channel) return;
-    if (error) _error(channel, error);
-    else if (state) _state(state);
-    else if (trigger)
-      _services[channel.id].position = Math.max(
-        _services[channel.id].position,
-        trigger.position || -1
+    if (state) _state(state);
+    else {
+      const producer = Object.values(_services).find(
+        (service) => service.config?.workerId === workerId
       );
+      if (!producer) return;
+      error && _error(producer.config, error);
+      trigger &&
+        (producer.position = Math.max(
+          producer.position,
+          trigger.position || -1
+        ));
+    }
   };
 
   const onExit = (workerId: number, code: number, signal: string): void => {
-    const channel = _channels[workerId];
-    if (!channel) return;
-    delete _channels[workerId];
-    const message = `Channel ${channel.id} exited with ${
+    if (_disposed) return;
+
+    const message = `Worker ${workerId} exited with ${
       signal ? signal : `code ${code}`
     }`;
     log().info("bgRed", `[${process.pid}]`, message);
-    _services[channel.id].status = message;
-    _error(channel, { message });
 
-    if (!code) {
-      // re-run when exit code == 0
-      const runs = channel.runs + 1;
-      if (runs > MAX_CHANNEL_RUNS) {
-        log().error(
-          Error(`Too many runs in session for channel ${channel.id}`)
-        );
-        return;
-      }
-      _timers[channel.id] = setTimeout(
-        () => run(channel.id, runs),
-        runs * CHANNEL_RUN_RETRY_TIMEOUT
-      );
+    const producer = Object.values(_services).find(
+      (service) => service && service.config?.workerId === workerId
+    );
+    if (!producer) return;
+
+    _error(producer.config, { message });
+    producer.status = message;
+    const runs = producer.config.runs + 1;
+    delete producer.config;
+
+    // retry worker MAX_RUNS times after exits
+    if (runs > MAX_RUNS) {
+      log().error(Error(`Too many runs in session for worker ${producer.id}`));
+      return;
     }
+    const wait = runs * RUN_RETRY_TIMEOUT;
+    log().trace("bgRed", `Retrying worker ${producer.id} in ${wait}ms`);
+    _timers[producer.id] = setTimeout(() => run(producer.id, runs), wait);
   };
 
   cluster.on("message", (worker, message: WorkerMessage) =>
@@ -288,42 +303,47 @@ export const state = singleton(function state(): State {
   cluster.on("exit", (worker, code, signal) => onExit(worker.id, code, signal));
 
   const discover = async (service: Service): Promise<void> => {
-    service.discovered = false;
-    service.eventHandlers = {};
-    service.commandHandlers = {};
-    service.schemas = {};
-    const endpoints = await getServiceEndpoints(service);
-    if (endpoints) {
-      service.discovered = true;
-      service.version = endpoints.version;
-      endpoints.eventHandlers &&
-        Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
-          service.eventHandlers[value.path] = {
-            name,
-            path: value.path,
-            type: value.type,
-            events: value.events
-          };
-        });
-
-      endpoints.commandHandlers &&
-        Object.entries(endpoints.commandHandlers).forEach(([type, value]) => {
-          Object.entries(value.commands).forEach(([name, path]) => {
-            service.commandHandlers[path] = {
+    try {
+      if (!service) return;
+      service.discovered = false;
+      service.eventHandlers = {};
+      service.commandHandlers = {};
+      service.schemas = {};
+      const endpoints = await getServiceEndpoints(service);
+      if (endpoints) {
+        service.discovered = true;
+        service.version = endpoints.version;
+        endpoints.eventHandlers &&
+          Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
+            service.eventHandlers[value.path] = {
               name,
-              path,
-              type: `${value.type} ${type}`,
+              path: value.path,
+              type: value.type,
               events: value.events
             };
           });
-        });
 
-      endpoints.schemas &&
-        Object.entries(endpoints.schemas).forEach(([name, value]) => {
-          service.schemas[name] = value;
-        });
+        endpoints.commandHandlers &&
+          Object.entries(endpoints.commandHandlers).forEach(([type, value]) => {
+            Object.entries(value.commands).forEach(([name, path]) => {
+              service.commandHandlers[path] = {
+                name,
+                path,
+                type: `${value.type} ${type}`,
+                events: value.events
+              };
+            });
+          });
+
+        endpoints.schemas &&
+          Object.entries(endpoints.schemas).forEach(([name, value]) => {
+            service.schemas[name] = value;
+          });
+      }
+      emitService(service);
+    } catch (error) {
+      log().error(error);
     }
-    emitService(service);
   };
 
   // discovery loop every 30s
@@ -331,6 +351,89 @@ export const state = singleton(function state(): State {
     Object.values(_services).forEach((s) => void discover(s));
   };
   const discoveryTimer = setInterval(discoverServices, 30 * 1000);
+
+  const killWorker = async (worker: Worker): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      worker.process.on("exit", () => {
+        log().trace(
+          "bgRed",
+          `Received exit event from ${worker.id} [${worker.process.pid}]`
+        );
+        resolve();
+      });
+      worker.process.on("error", reject);
+      log().trace(
+        "bgRed",
+        `Killing worker ${worker.id} [${worker.process.pid}]`
+      );
+      worker.process.kill();
+    });
+  };
+
+  type OperationTask = {
+    operation: Operation;
+    id: string;
+    entity: "service" | "subscription";
+  };
+  const operationHandler = async ({
+    operation,
+    id,
+    entity
+  }: OperationTask): Promise<void> => {
+    if (_disposed) return;
+    log().trace("bgWhite", JSON.stringify({ operation, entity, id }));
+    if (entity === "service") {
+      try {
+        const config = _services[id]?.config;
+        const worker = config && cluster.workers[config.workerId];
+        if (operation === "DELETE") delete _services[id];
+        if (worker) {
+          // kill running worker, onExit will restart it at run=0
+          // unless deleted
+          config.runs = -1;
+          await killWorker(worker);
+        } else await run(id);
+      } catch (error) {
+        log().error(error);
+      }
+    } else {
+      try {
+        const [sub] = await subscriptions().loadSubscriptions(id);
+        if (sub) {
+          const existingService = findSubscription(id);
+          const existingWorker =
+            existingService &&
+            existingService.config &&
+            cluster.workers[existingService.config.workerId];
+          if (existingWorker && existingService.id !== sub.producer) {
+            // delete from existing worker when changing producer
+            existingWorker.send({ operation: "DELETE", sub });
+          }
+          const config = _services[sub.producer]?.config;
+          const worker = config && cluster.workers[config.workerId];
+          if (worker) {
+            config.runs = -1;
+            if (sub.active) config.subscriptions[id] = sub;
+            else delete config.subscriptions[id];
+            worker.send({ operation, sub });
+          } else await run(sub.producer); // when producer is not working
+        }
+      } catch (error) {
+        log().error(error);
+      }
+    }
+  };
+  const operationLoop = loop<OperationTask>("operations", operationHandler);
+  void operationLoop.start();
+
+  dispose(async () => {
+    _disposed = true;
+    Object.entries(_timers).forEach(([id, timer]) => {
+      clearTimeout(timer);
+      delete _timers[id];
+    });
+    await operationLoop.stop();
+  });
 
   return {
     name: "state",
@@ -366,53 +469,28 @@ export const state = singleton(function state(): State {
     subscribeSSE,
     unsubscribeSSE,
     viewModel: (sub: Subscription): SubscriptionViewModel => {
-      const workerId = findWorkerId(sub.producer);
-      const worker = cluster.workers[workerId];
-      worker && worker.send({ operation: "REFRESH", sub: addEndpoint(sub) });
-      return _views[sub.id] || _emptyView(sub.id);
+      const service = _services[sub.producer];
+      const config = service?.config;
+      const worker = config && cluster.workers[config.workerId];
+      worker && worker.send({ operation: "REFRESH", sub });
+      return _view(
+        sub.id,
+        sub.active,
+        sub.position,
+        (service && service.position) || -1
+      );
     },
     onMessage,
     onExit,
-    refreshService: async (operation: Operation, id: string) => {
-      try {
-        const workerId = findWorkerId(id);
-        workerId && cluster.workers[workerId].kill("SIGINT");
-        if (operation !== "DELETE") await run(id);
-        else delete _services[id];
-      } catch (error) {
-        log().error(error);
-      }
+    refreshService: (operation: Operation, id: string) => {
+      operationLoop.push({ operation, id, entity: "service" });
     },
-    refreshSubscription: async (operation: Operation, id: string) => {
-      try {
-        const [sub] = await subscriptions().loadSubscriptions(id);
-        if (sub) {
-          const workerId = findWorkerId(sub.producer);
-          if (workerId) {
-            const channel = _channels[workerId];
-            channel.subscriptions[id] = addEndpoint(sub);
-            const worker = cluster.workers[workerId];
-            worker &&
-              worker.send({ operation, sub: channel.subscriptions[id] });
-
-            if (operation !== "DELETE") {
-              const newWorkerId = findWorkerId(sub.producer);
-              const newWorker = cluster.workers[newWorkerId];
-
-              (newWorkerId || -1) !== (workerId || -2)
-                ? newWorker
-                  ? newWorker.send({
-                      operation,
-                      sub: channel.subscriptions[id]
-                    })
-                  : await run(sub.producer)
-                : undefined;
-            }
-          } else await run(sub.producer);
-        }
-      } catch (error) {
-        log().error(error);
-      }
-    }
+    refreshSubscription: (operation: Operation, id: string) => {
+      operationLoop.push({ operation, id, entity: "subscription" });
+    },
+    state: () =>
+      Object.values(_services)
+        .filter((service) => service && service.config)
+        .map((service) => service.config)
   };
 });

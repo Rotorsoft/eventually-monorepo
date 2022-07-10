@@ -9,18 +9,18 @@ import {
   ChannelResolvers,
   pullchannel,
   PushEvent,
+  Subscription,
   subscriptions,
   TriggerCallback,
   TriggerPayload
 } from "..";
-import { formatDate } from "../utils";
+import { formatDate, loop } from "../utils";
 import {
-  ChannelConfig,
+  WorkerConfig,
   CommittableHttpStatus,
   MasterMessage,
   RetryableHttpStatus,
-  SubscriptionState,
-  SubscriptionWithEndpoint
+  SubscriptionState
 } from "./types";
 
 let channel_position = -1;
@@ -44,22 +44,10 @@ const sendState = (state: SubscriptionState, logit = true): void => {
 };
 
 export const work = async (resolvers: ChannelResolvers): Promise<void> => {
-  const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
+  const config = JSON.parse(process.env.WORKER_ENV) as WorkerConfig;
   const subStates: Record<string, SubscriptionState> = {};
   const retryTimeouts: Record<string, NodeJS.Timeout> = {};
   let refreshTimer: NodeJS.Timeout;
-
-  const exit = async (): Promise<void> => {
-    await dispose()(ExitCodes.ERROR);
-  };
-
-  dispose(() => {
-    clearInterval(refreshTimer);
-    Object.values(retryTimeouts).forEach((t) => {
-      clearTimeout(t);
-    });
-    return Promise.resolve();
-  });
 
   const toState = async ({
     id,
@@ -74,7 +62,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     batch_size,
     retries,
     retry_timeout_secs
-  }: SubscriptionWithEndpoint): Promise<SubscriptionState> => {
+  }: Subscription): Promise<SubscriptionState> => {
     const pushUrl = new URL(endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
@@ -286,41 +274,62 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     }
   };
 
-  process.on(
-    "message",
-    async ({ operation, sub }: MasterMessage): Promise<void> => {
-      const currentState = subStates[sub.id];
-      if (currentState) {
-        if (operation === "REFRESH") {
-          sendState(currentState, false);
-          return;
-        }
-
-        clearTimeout(retryTimeouts[currentState.id]);
-        let i = 0;
-        while (currentState.pumping && i <= 10) {
-          log().info("red", `Trying (${++i}) to stop pump on ${sub.id}...`);
-          currentState.cancel = true;
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-        currentState.cancel = false;
-        currentState.active = sub.active;
-        if (!sub.active || operation === "DELETE") {
-          delete subStates[sub.id];
-          !Object.keys(subStates).length && exit();
-          return;
-        }
+  const messageHandler = async ({
+    operation,
+    sub
+  }: MasterMessage): Promise<void> => {
+    const currentState = subStates[sub.id];
+    if (currentState) {
+      clearTimeout(retryTimeouts[currentState.id]);
+      currentState.cancel = true;
+      for (let i = 1; currentState.pumping && i <= 30; i++) {
+        log().info(
+          "red",
+          `[${process.pid}] Trying (${i}) to stop pump on ${sub.id}...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      try {
-        const subState = (subStates[sub.id] = await toState(sub));
-        currentState && Object.assign(subState.stats, currentState.stats);
-        const trigger: TriggerPayload = { operation, id: sub.id };
-        void pumpRetry(subState, trigger);
-      } catch (error) {
-        log().error(error);
+      currentState.cancel = false;
+      currentState.active = sub.active;
+      currentState.position = sub.position;
+      sendState(currentState, false);
+      if (!sub.active || operation === "DELETE") {
+        delete subStates[sub.id];
+        !Object.keys(subStates).length && exit();
+        return;
       }
     }
-  );
+    try {
+      const subState = (subStates[sub.id] = await toState(sub));
+      currentState && Object.assign(subState.stats, currentState.stats);
+      const trigger: TriggerPayload = { operation, id: sub.id };
+      void pumpRetry(subState, trigger);
+    } catch (error) {
+      log().error(error);
+    }
+  };
+
+  const messageLoop = loop<MasterMessage>(config.id, messageHandler);
+  void messageLoop.start();
+
+  const exit = async (): Promise<void> => {
+    await dispose()(ExitCodes.ERROR);
+  };
+
+  dispose(async () => {
+    clearInterval(refreshTimer);
+    Object.values(retryTimeouts).forEach((t) => {
+      clearTimeout(t);
+    });
+    await messageLoop.stop();
+  });
+
+  process.on("message", (msg: MasterMessage) => {
+    if (msg.operation === "REFRESH") {
+      const subState = subStates[msg.sub.id];
+      subState && sendState(subState, false);
+    } else messageLoop.push(msg);
+  });
 
   try {
     const pullUrl = new URL(encodeURI(config.channel));

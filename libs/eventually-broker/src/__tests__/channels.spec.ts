@@ -31,7 +31,8 @@ const sub = {
   streams: ".*",
   batch_size: 100,
   retries: 3,
-  retry_timeout_secs: 10
+  retry_timeout_secs: 10,
+  endpoint: "http://test/path"
 };
 
 const startMockFn = jest.fn();

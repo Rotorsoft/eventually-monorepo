@@ -134,8 +134,8 @@ describe("crud", () => {
       );
       expect(result1.length).toBeGreaterThanOrEqual(2);
       expect(result2.length).toBe(2);
-      expect(result2[0].position).toBe(10);
-      expect(result2[1].position).toBe(11);
+      expect(result2.find((r) => r.id === id1)?.position).toBe(10);
+      expect(result2.find((r) => r.id === id2)?.position).toBe(11);
     });
   });
 });

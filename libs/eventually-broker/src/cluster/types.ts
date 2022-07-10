@@ -56,12 +56,11 @@ export type SubscriptionState = {
   cancel?: boolean;
 };
 
-export type SubscriptionWithEndpoint = Subscription & { endpoint: string };
-
-export type ChannelConfig = {
+export type WorkerConfig = {
   id: string;
+  workerId: number;
   channel: string;
-  subscriptions: Record<string, SubscriptionWithEndpoint>;
+  subscriptions: Record<string, Subscription>;
   runs: number;
 };
 
@@ -71,7 +70,7 @@ export type ErrorMessage = {
 
 export type MasterMessage = {
   operation: Operation;
-  sub: SubscriptionWithEndpoint;
+  sub: Subscription;
 };
 
 export type WorkerMessage = {
