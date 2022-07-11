@@ -30,8 +30,8 @@ export type EndpointStatus = {
   icon: Icon;
   status?: string;
   error?: {
+    messages: string[];
     trigger?: string;
-    message?: string;
     position?: number;
   };
 };
@@ -52,8 +52,6 @@ export type SubscriptionState = {
   namesRegExp: RegExp;
   stats: SubscriptionStats;
   endpointStatus: EndpointStatus;
-  pumping: boolean;
-  cancel?: boolean;
 };
 
 export type WorkerConfig = {

@@ -201,46 +201,63 @@ export const getServiceContracts = (
 //   return result;
 // };
 
-type Loop<T> = {
-  start: () => Promise<void>;
+/**
+ * Loops are infinite FIFO queues of async actions executed sequentially
+ * Loops are started/restarted by pushing new actions to it
+ * Loops can also be stopped
+ * Optional callback after each action
+ */
+type Action = () => Promise<boolean | undefined>;
+type Callback = (result: boolean | undefined) => void;
+export type Loop = {
+  push: (action: Action, callback?: Callback) => void;
   stop: () => Promise<void>;
-  push: (item: T) => void;
+  stopped: () => boolean;
 };
-type Callback<T> = (item: T) => Promise<void>;
-export const loop = <T>(name: string, callback: Callback<T>): Loop<T> => {
-  const queue: Array<T> = [];
-  let processing = false;
-  let cancel = false;
 
-  const start = async (): Promise<void> => {
-    if (!processing) {
-      processing = true;
+/**
+ * Loop factory
+ * @param name The name of the loop
+ * @returns A new loop
+ */
+export const loop = (name: string): Loop => {
+  const queue: Array<{ action: Action; callback?: Callback }> = [];
+  let running = false;
+  let stopping = false;
+  let stopped = false;
+
+  const run = async (): Promise<void> => {
+    if (!running) {
+      running = true;
       while (queue.length) {
-        if (cancel) break;
-        const item = queue.shift();
-        await callback(item);
+        if (stopping) break;
+        const { action, callback } = queue.shift();
+        const result = await action();
+        callback && callback(result);
       }
-      processing = false;
+      stopping = false;
+      stopped = true;
+      running = false;
     }
-    cancel = false;
-  };
-
-  const stop = async (): Promise<void> => {
-    cancel = queue.length > 0;
-    for (let i = 1; cancel && i <= 30; i++) {
-      log().trace("red", `[${process.pid}] Stopping loop ${name} @ (${i})...`);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-  };
-
-  const push = (item: T): void => {
-    queue.push(item);
-    setImmediate(start);
   };
 
   return {
-    start,
-    stop,
-    push
+    push: (action: Action, callback?: Callback): void => {
+      stopping = false;
+      stopped = false;
+      queue.push({ action, callback });
+      setImmediate(run);
+    },
+    stop: async (): Promise<void> => {
+      stopping = queue.length > 0;
+      for (let i = 1; stopping && i <= 30; i++) {
+        log().trace(
+          "red",
+          `[${process.pid}] Waiting for loop [${name}] to stop (${i})...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    },
+    stopped: () => stopping || stopped
   };
 };

@@ -127,7 +127,6 @@ describe("cluster", () => {
           }
         }
       },
-      pumping: false,
       pushChannel: VoidPushChannel(),
       streamsRegExp: new RegExp(""),
       namesRegExp: new RegExp(""),

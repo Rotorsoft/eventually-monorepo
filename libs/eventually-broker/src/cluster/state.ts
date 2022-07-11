@@ -74,6 +74,7 @@ const MAX_RUNS = 10;
 const RUN_RETRY_TIMEOUT = 10000;
 
 export const state = singleton(function state(): State {
+  const operationsLoop = loop("operations");
   const _services: Record<string, ServiceWithWorker> = {};
   const _timers: Record<string, NodeJS.Timeout> = {};
   const _sse: Record<string, { stream: Writable; id?: string }> = {};
@@ -109,13 +110,15 @@ export const state = singleton(function state(): State {
     view.position = Math.max(view.position, position);
     view.channelPosition = Math.max(view.channelPosition, channelPosition);
     if (error) {
+      const messages = view.endpointStatus.error?.messages || [];
+      messages.push(error);
       view.endpointStatus = {
         name: "",
         code: 500,
         color: "danger",
         icon: "bi-cone-striped",
         status: "Internal Server Error",
-        error: { message: error, position }
+        error: { messages, position }
       };
     }
     return view;
@@ -346,85 +349,71 @@ export const state = singleton(function state(): State {
     }
   };
 
-  // discovery loop every 30s
+  // discovery runs every 30s
   const discoverServices = (): void => {
     Object.values(_services).forEach((s) => void discover(s));
   };
   const discoveryTimer = setInterval(discoverServices, 30 * 1000);
 
-  const killWorker = async (worker: Worker): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      worker.process.on("exit", () => {
-        log().trace(
-          "bgRed",
-          `Received exit event from ${worker.id} [${worker.process.pid}]`
-        );
-        resolve();
-      });
-      worker.process.on("error", reject);
-      log().trace(
-        "bgRed",
-        `Killing worker ${worker.id} [${worker.process.pid}]`
-      );
+  const killWorker = async (worker: Worker): Promise<void> =>
+    new Promise((resolve, reject) => {
+      worker.process.once("exit", resolve);
+      worker.process.once("error", reject);
       worker.process.kill();
     });
-  };
 
-  type OperationTask = {
-    operation: Operation;
-    id: string;
-    entity: "service" | "subscription";
-  };
-  const operationHandler = async ({
-    operation,
-    id,
-    entity
-  }: OperationTask): Promise<void> => {
+  const refreshService = async (
+    id: string,
+    operation: Operation
+  ): Promise<boolean | undefined> => {
     if (_disposed) return;
-    log().trace("bgWhite", JSON.stringify({ operation, entity, id }));
-    if (entity === "service") {
-      try {
-        const config = _services[id]?.config;
-        const worker = config && cluster.workers[config.workerId];
-        if (operation === "DELETE") delete _services[id];
-        if (worker) {
-          // kill running worker, onExit will restart it at run=0
-          // unless deleted
-          config.runs = -1;
-          await killWorker(worker);
-        } else await run(id);
-      } catch (error) {
-        log().error(error);
-      }
-    } else {
-      try {
-        const [sub] = await subscriptions().loadSubscriptions(id);
-        if (sub) {
-          const existingService = findSubscription(id);
-          const existingWorker =
-            existingService &&
-            existingService.config &&
-            cluster.workers[existingService.config.workerId];
-          if (existingWorker && existingService.id !== sub.producer) {
-            // delete from existing worker when changing producer
-            existingWorker.send({ operation: "DELETE", sub });
-          }
-          const config = _services[sub.producer]?.config;
-          const worker = config && cluster.workers[config.workerId];
-          if (worker) {
-            config.runs = -1;
-            if (sub.active) config.subscriptions[id] = sub;
-            else delete config.subscriptions[id];
-            worker.send({ operation, sub });
-          } else await run(sub.producer); // when producer is not working
-        }
-      } catch (error) {
-        log().error(error);
-      }
+    log().trace("bgWhite", JSON.stringify({ operation, id }));
+    try {
+      const config = _services[id]?.config;
+      const worker = config && cluster.workers[config.workerId];
+      if (operation === "DELETE") delete _services[id];
+      if (worker) {
+        // kill running worker, onExit will restart it at run=0
+        // unless deleted
+        config.runs = -1;
+        await killWorker(worker);
+      } else await run(id);
+    } catch (error) {
+      log().error(error);
     }
   };
-  const operationLoop = loop<OperationTask>("operations", operationHandler);
-  void operationLoop.start();
+
+  const refreshSubscription = async (
+    id: string,
+    operation: Operation
+  ): Promise<boolean | undefined> => {
+    if (_disposed) return;
+    log().trace("bgWhite", JSON.stringify({ operation, id }));
+    try {
+      const [sub] = await subscriptions().loadSubscriptions(id);
+      if (sub) {
+        const existingService = findSubscription(id);
+        const existingWorker =
+          existingService &&
+          existingService.config &&
+          cluster.workers[existingService.config.workerId];
+        if (existingWorker && existingService.id !== sub.producer) {
+          // delete from existing worker when changing producer
+          existingWorker.send({ operation: "DELETE", sub });
+        }
+        const config = _services[sub.producer]?.config;
+        const worker = config && cluster.workers[config.workerId];
+        if (worker) {
+          config.runs = 0;
+          if (sub.active) config.subscriptions[id] = sub;
+          else delete config.subscriptions[id];
+          worker.send({ operation, sub });
+        } else await run(sub.producer); // when producer is not working
+      }
+    } catch (error) {
+      log().error(error);
+    }
+  };
 
   dispose(async () => {
     _disposed = true;
@@ -432,7 +421,7 @@ export const state = singleton(function state(): State {
       clearTimeout(timer);
       delete _timers[id];
     });
-    await operationLoop.stop();
+    await operationsLoop.stop();
   });
 
   return {
@@ -483,10 +472,10 @@ export const state = singleton(function state(): State {
     onMessage,
     onExit,
     refreshService: (operation: Operation, id: string) => {
-      operationLoop.push({ operation, id, entity: "service" });
+      operationsLoop.push(() => refreshService(id, operation));
     },
     refreshSubscription: (operation: Operation, id: string) => {
-      operationLoop.push({ operation, id, entity: "subscription" });
+      operationsLoop.push(() => refreshSubscription(id, operation));
     },
     state: () =>
       Object.values(_services)

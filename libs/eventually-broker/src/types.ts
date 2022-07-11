@@ -76,14 +76,12 @@ export type Operation =
  * - `operation`: triggering operation
  * - `position`: optional position in stream
  * - `payload`: optional trigger payload
- * - `retry_count`: optional retry counter
  */
 export type TriggerPayload = {
   id: string;
   operation: Operation;
   position?: number;
   payload?: any;
-  retry_count?: number;
 };
 
 /**
