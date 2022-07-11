@@ -223,41 +223,40 @@ export type Loop = {
 export const loop = (name: string): Loop => {
   const queue: Array<{ action: Action; callback?: Callback }> = [];
   let running = false;
-  let stopping = false;
-  let stopped = false;
+  let status: "running" | "stopping" | "stopped" = "running";
 
   const run = async (): Promise<void> => {
     if (!running) {
       running = true;
       while (queue.length) {
-        if (stopping) break;
+        if (status === "stopping") break;
         const { action, callback } = queue.shift();
         const result = await action();
         callback && callback(result);
       }
-      stopping = false;
-      stopped = true;
+      status = "stopped";
       running = false;
     }
   };
 
   return {
     push: (action: Action, callback?: Callback): void => {
-      stopping = false;
-      stopped = false;
       queue.push({ action, callback });
+      status = "running";
       setImmediate(run);
     },
     stop: async (): Promise<void> => {
-      stopping = queue.length > 0;
-      for (let i = 1; stopping && i <= 30; i++) {
-        log().trace(
-          "red",
-          `[${process.pid}] Waiting for loop [${name}] to stop (${i})...`
-        );
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (queue.length > 0) {
+        status = "stopping";
+        for (let i = 1; status === "stopping" && i <= 30; i++) {
+          log().trace(
+            "red",
+            `[${process.pid}] Stopping loop [${name}] (${i})...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
       }
     },
-    stopped: () => stopping || stopped
+    stopped: () => status !== "running"
   };
 };

@@ -432,9 +432,9 @@ export const state = singleton(function state(): State {
       return Promise.resolve();
     },
     services: () =>
-      Object.values(_services).sort((a, b) =>
-        a.id > b.id ? 1 : a.id < b.id ? -1 : 0
-      ),
+      Object.values(_services)
+        .filter(Boolean)
+        .sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0)),
     discoverServices,
     discover,
     init: async (services: Service[], options: StateOptions): Promise<void> => {
@@ -446,7 +446,7 @@ export const state = singleton(function state(): State {
         JSON.stringify(_options)
       );
       await Promise.all(
-        services.map((service) => {
+        services.filter(Boolean).map((service) => {
           _services[service.id] = service;
           return run(service.id);
         })
