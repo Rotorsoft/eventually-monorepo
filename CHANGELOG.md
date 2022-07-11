@@ -1,3 +1,5 @@
+#### 2022-07-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.5...@rotorsoft/eventually-broker-v1.3.6) @rotorsoft/eventually-broker-v1.3.6
+  - PATCH [9f5b0188](https://github.com/Rotorsoft/eventually-monorepo/commit/9f5b01882edcff4698f9c5f95dea5ba87907b3e8) fix: refactor pump with loops
 #### 2022-07-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.4...@rotorsoft/eventually-broker-v1.3.5) @rotorsoft/eventually-broker-v1.3.5
   - PATCH [b14b8050](https://github.com/Rotorsoft/eventually-monorepo/commit/b14b8050726a0a8e763d2d362581af9ce87ed822) fix: refactor message loops
 #### 2022-07-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.4...@rotorsoft/eventually-v4.1.5) @rotorsoft/eventually-v4.1.5
