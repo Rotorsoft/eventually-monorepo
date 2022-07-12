@@ -1,3 +1,5 @@
+#### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.9...@rotorsoft/eventually-broker-v1.3.10) @rotorsoft/eventually-broker-v1.3.10
+  - PATCH [d81c348b](https://github.com/Rotorsoft/eventually-monorepo/commit/d81c348bd2074ca53243132c76181271068bc54e) fix: retryable flag
 #### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.8...@rotorsoft/eventually-broker-v1.3.9) @rotorsoft/eventually-broker-v1.3.9
   - PATCH [ef5aca96](https://github.com/Rotorsoft/eventually-monorepo/commit/ef5aca96ba16027fc2c085c2a6f3e3968ad17742) fix: refactor retry counter
 #### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.7...@rotorsoft/eventually-broker-v1.3.8) @rotorsoft/eventually-broker-v1.3.8
