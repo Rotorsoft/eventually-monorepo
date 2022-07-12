@@ -472,10 +472,13 @@ export const state = singleton(function state(): State {
     onMessage,
     onExit,
     refreshService: (operation: Operation, id: string) => {
-      operationsLoop.push(() => refreshService(id, operation));
+      operationsLoop.push({ id, action: () => refreshService(id, operation) });
     },
     refreshSubscription: (operation: Operation, id: string) => {
-      operationsLoop.push(() => refreshSubscription(id, operation));
+      operationsLoop.push({
+        id,
+        action: () => refreshSubscription(id, operation)
+      });
     },
     state: () =>
       Object.values(_services)

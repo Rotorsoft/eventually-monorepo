@@ -49,7 +49,6 @@ type Sub = {
   state: SubscriptionState;
   loop: Loop;
   retry_count: number;
-  timer?: NodeJS.Timeout;
 };
 
 export const work = async (resolvers: ChannelResolvers): Promise<void> => {
@@ -255,31 +254,30 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     }
   };
 
+  const pump = (sub: Sub, trigger: TriggerPayload, delay?: number): void => {
+    const id = sub.state.id;
+    sub.loop.push({
+      id,
+      action: () => pullPush(id, trigger),
+      callback: (done) => done && retry(id),
+      delay
+    });
+  };
+
   const retry = (id: string): void => {
     const sub = subs[id];
     if (!sub) return;
-    clearTimeout(sub.timer);
     sub.retry_count++;
-    sub.timer = setTimeout(() => {
-      sub.loop.push(
-        () =>
-          pullPush(id, {
-            operation: "RETRY",
-            id,
-            position: sub.state.position
-          }),
-        (done) => done && retry(id)
-      );
-    }, sub.state.retryTimeoutSecs * 1000 * sub.retry_count);
+    const trigger: TriggerPayload = {
+      operation: "RETRY",
+      id,
+      position: sub.state.position
+    };
+    pump(sub, trigger, sub.state.retryTimeoutSecs * 1000 * sub.retry_count);
   };
 
   const pumpChannel: TriggerCallback = (trigger) => {
-    for (const sub of Object.values(subs)) {
-      sub.loop.push(
-        () => pullPush(sub.state.id, trigger),
-        (done) => done && retry(sub.state.id)
-      );
-    }
+    Object.values(subs).forEach((sub) => pump(sub, trigger));
   };
 
   const masterMessage = async ({
@@ -288,7 +286,6 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
   }: MasterMessage): Promise<boolean | undefined> => {
     const current = subs[sub.id];
     if (current) {
-      clearTimeout(current.timer);
       await current.loop.stop();
       current.state.active = sub.active;
       current.state.position = sub.position;
@@ -308,10 +305,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         retry_count: 0
       });
       refresh.state = state;
-      refresh.loop.push(
-        () => pullPush(sub.id, { operation, id: sub.id }),
-        (done) => done && retry(sub.id)
-      );
+      pump(refresh, { operation, id: sub.id });
     } catch (error) {
       log().error(error);
     }
@@ -323,10 +317,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
 
   dispose(async () => {
     clearInterval(refreshTimer);
-    Object.values(subs).forEach(async (sub) => {
-      clearTimeout(sub.timer);
-      await sub.loop.stop();
-    });
+    await Promise.all(Object.values(subs).map((sub) => sub.loop.stop()));
     await masterLoop.stop();
   });
 
@@ -334,7 +325,8 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     if (msg.operation === "REFRESH") {
       const sub = subs[msg.sub.id];
       sub && sendState(sub.state, false);
-    } else masterLoop.push(() => masterMessage(msg));
+    } else
+      masterLoop.push({ id: msg.sub.id, action: () => masterMessage(msg) });
   });
 
   try {
