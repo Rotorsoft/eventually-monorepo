@@ -260,7 +260,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     sub.loop.push({
       id,
       action: () => pullPush(id, trigger),
-      callback: (retryable) => {
+      callback: (id, retryable) => {
         if (retryable) retry(id);
         else sub.retry_count = 0;
       },
