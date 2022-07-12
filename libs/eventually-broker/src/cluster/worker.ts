@@ -28,11 +28,11 @@ let channel_position = -1;
 const triggerLog = (
   operation: Operation,
   retry_count: number,
-  sub_position: number
+  position: number
 ): string =>
   `${operation}${
     retry_count || ""
-  } [${sub_position}/${channel_position}] ${formatDate(new Date())}`;
+  } [${position}/${channel_position}] ${formatDate(new Date())}`;
 
 const sendState = (state: SubscriptionState, logit = true): void => {
   logit &&
@@ -225,10 +225,11 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
             position: lastResponse.id
           };
           sendState(state);
-          return retryable && sub.retry_count < state.retries;
+          return retryable;
         }
 
         // send batch state and continue pumping until the end of the stream
+        sub.retry_count = 0;
         sendState(state);
       }
     } catch (error) {
@@ -259,7 +260,10 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     sub.loop.push({
       id,
       action: () => pullPush(id, trigger),
-      callback: (done) => done && retry(id),
+      callback: (retryable) => {
+        if (retryable) retry(id);
+        else sub.retry_count = 0;
+      },
       delay
     });
   };
@@ -267,17 +271,22 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
   const retry = (id: string): void => {
     const sub = subs[id];
     if (!sub) return;
-    sub.retry_count++;
-    const trigger: TriggerPayload = {
-      operation: "RETRY",
-      id,
-      position: sub.state.position
-    };
-    pump(sub, trigger, sub.state.retryTimeoutSecs * 1000 * sub.retry_count);
+    if (sub.retry_count < sub.state.retries) {
+      sub.retry_count++;
+      const trigger: TriggerPayload = {
+        operation: "RETRY",
+        id,
+        position: sub.state.position
+      };
+      pump(sub, trigger, sub.state.retryTimeoutSecs * 1000 * sub.retry_count);
+    }
   };
 
   const pumpChannel: TriggerCallback = (trigger) => {
-    Object.values(subs).forEach((sub) => pump(sub, trigger));
+    Object.values(subs).forEach((sub) => {
+      sub.retry_count = 0;
+      pump(sub, trigger);
+    });
   };
 
   const masterMessage = async ({
@@ -305,6 +314,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         retry_count: 0
       });
       refresh.state = state;
+      refresh.retry_count = 0;
       pump(refresh, { operation, id: sub.id });
     } catch (error) {
       log().error(error);

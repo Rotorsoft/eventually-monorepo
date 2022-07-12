@@ -260,7 +260,7 @@ export const state = singleton(function state(): State {
     if (state) _state(state);
     else {
       const producer = Object.values(_services).find(
-        (service) => service.config?.workerId === workerId
+        (service) => service && service.config?.workerId === workerId
       );
       if (!producer) return;
       error && _error(producer.config, error);
