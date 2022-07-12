@@ -1,3 +1,6 @@
+#### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.7...@rotorsoft/eventually-broker-v1.3.8) @rotorsoft/eventually-broker-v1.3.8
+  - PATCH [ba7e47e6](https://github.com/Rotorsoft/eventually-monorepo/commit/ba7e47e62b56ac86f455cfbdc93956a915edaad6) fix: fix cleanup in loop
+  - PATCH [759562a9](https://github.com/Rotorsoft/eventually-monorepo/commit/759562a947d3cafe1010b5627551cd35eb41a084) fix: move retry timer to loop
 #### 2022-07-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.6...@rotorsoft/eventually-broker-v1.3.7) @rotorsoft/eventually-broker-v1.3.7
   - PATCH [6b518c8f](https://github.com/Rotorsoft/eventually-monorepo/commit/6b518c8f7060f191ff964a6ce4465d69f7cd70be) fix: use status
 #### 2022-07-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.5...@rotorsoft/eventually-broker-v1.3.6) @rotorsoft/eventually-broker-v1.3.6
