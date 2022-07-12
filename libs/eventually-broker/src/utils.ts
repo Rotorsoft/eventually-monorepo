@@ -271,11 +271,11 @@ export const loop = (name: string): Loop => {
           );
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        // stop cleans queue and timers
-        queue.length = 0;
-        Object.values(pending).forEach((timeout) => clearTimeout(timeout));
-        pending = {};
       }
+      // reset on stop
+      queue.length = 0;
+      Object.values(pending).forEach((timeout) => clearTimeout(timeout));
+      pending = {};
     },
     stopped: () => status !== "running"
   };
