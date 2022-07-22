@@ -8,9 +8,12 @@ import {
   CommandHandlerFactory,
   CommittedEvent,
   CommittedEventMetadata,
-  EventHandlerFactory,
   Getter,
   Payload,
+  PolicyFactory,
+  ProcessManagerFactory,
+  Projection,
+  ProjectorFactory,
   Reducible,
   Snapshot
 } from "./types";
@@ -80,7 +83,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @returns optional command response and reducible state
    */
   async event<M extends Payload, C, E>(
-    factory: EventHandlerFactory<M, C, E>,
+    factory: ProcessManagerFactory<M, C, E> | PolicyFactory<C, E>,
     event: CommittedEvent<keyof E & string, Payload>
   ): Promise<{
     command: Command<keyof C & string, Payload> | undefined;
@@ -180,5 +183,39 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const events: CommittedEvent<string, Payload>[] = [];
     await store().query((e) => events.push(e), query);
     return events;
+  }
+
+  /**
+   * Applies events to projection
+   * @param factory the projector factory
+   * @param events the events to be projected
+   * @returns the projection
+   */
+  async apply<M extends Payload, E>(
+    factory: ProjectorFactory<M, E>,
+    events: Array<
+      CommittedEvent<keyof E & string, Payload> & { source: string }
+    >
+  ): Promise<
+    Projection<M> & {
+      error?: Error;
+    }
+  > {
+    let projection: Projection<M>;
+    try {
+      const handler = factory();
+      for (const event of events) {
+        this.log.trace("magenta", `\n>>> ${factory.name}`, event);
+        const apply = (handler as any)["apply".concat(event.name)];
+        if (!apply) throw new RegistrationError(event);
+        const data = validateMessage(event);
+        projection = await handler.store.load(event);
+        projection = await apply(projection, data);
+        projection = await handler.store.commit(projection, event);
+      }
+      return projection;
+    } catch (error) {
+      return { ...projection, error };
+    }
   }
 }

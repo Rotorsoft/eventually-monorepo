@@ -234,22 +234,49 @@ export class ExpressApp extends AppBase {
     Object.values(this.endpoints.eventHandlers).map(
       ({ type, factory, path, events }) => {
         type === "process-manager" && (managers[factory.name] = factory as any);
-        this._router.post(
-          path,
-          async (
-            req: Request<never, any, CommittedEvent<string, Payload>>,
-            res: Response,
-            next: NextFunction
-          ) => {
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              const response = await this.event(factory, req.body as any);
-              return res.status(200).send(response);
-            } catch (error) {
-              next(error);
+        if (type === "projector") {
+          this._router.post(
+            path,
+            async (
+              req: Request<
+                never,
+                any,
+                Array<CommittedEvent<string, Payload> & { source: string }>
+              >,
+              res: Response,
+              next: NextFunction
+            ) => {
+              try {
+                const response = await this.apply(
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                  factory as any,
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                  req.body as any
+                );
+                return res.status(200).send(response);
+              } catch (error) {
+                next(error);
+              }
             }
-          }
-        );
+          );
+        } else {
+          this._router.post(
+            path,
+            async (
+              req: Request<never, any, CommittedEvent<string, Payload>>,
+              res: Response,
+              next: NextFunction
+            ) => {
+              try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                const response = await this.event(factory, req.body as any);
+                return res.status(200).send(response);
+              } catch (error) {
+                next(error);
+              }
+            }
+          );
+        }
         this.log.info("bgMagenta", " POST ", path, events);
       }
     );
