@@ -3,16 +3,20 @@ import {
   AggregateFactory,
   CommandHandlerFactory,
   commandHandlerPath,
+  CommandHandlerType,
   config,
   EventHandlerFactory,
   eventHandlerPath,
+  EventHandlerType,
   eventsOf,
   ExternalSystemFactory,
+  getProjectable,
   getReducible,
   messagesOf,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
+  ProjectorFactory,
   Reducible,
   Snapshot
 } from ".";
@@ -32,7 +36,7 @@ export type Endpoints = {
   version: string;
   commandHandlers: {
     [name: string]: {
-      type: "aggregate" | "external-system";
+      type: CommandHandlerType;
       factory: CommandHandlerFactory<Payload, unknown, unknown>;
       commands: Record<string, string>;
       events: string[];
@@ -40,7 +44,7 @@ export type Endpoints = {
   };
   eventHandlers: {
     [name: string]: {
-      type: "policy" | "process-manager";
+      type: EventHandlerType;
       factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
       events: string[];
@@ -165,6 +169,19 @@ export class Builder {
   }
 
   /**
+   * Registers projector factory
+   * @param factory the factory
+   * @param description describes the factory
+   */
+  withProjector<E>(
+    factory: ProjectorFactory<Payload, E>,
+    description?: string
+  ): this {
+    this._registerEventHandlerFactory(factory, description);
+    return this;
+  }
+
+  /**
    * Registers command handler factories
    * @param factories command handler factories
    */
@@ -228,7 +245,9 @@ export class Builder {
     Object.values(this._factories.commandHandlers).forEach((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
-      const type = reducible ? "aggregate" : "external-system";
+      const type: CommandHandlerType = reducible
+        ? "aggregate"
+        : "external-system";
       const events =
         reducible &&
         eventsOf(reducible).map((name) => {
@@ -252,8 +271,13 @@ export class Builder {
     // event handlers
     Object.values(this._factories.eventHandlers).forEach((factory) => {
       const handler = factory(undefined);
+      const projectable = getProjectable(handler);
       const reducible = getReducible(handler);
-      const type = reducible ? "process-manager" : "policy";
+      const type: EventHandlerType = projectable
+        ? "projector"
+        : reducible
+        ? "process-manager"
+        : "policy";
       const path = eventHandlerPath(factory);
       const events = messagesOf(handler).map((name) => {
         const msg = this._msg(name);

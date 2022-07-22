@@ -13,6 +13,7 @@ import {
   Message,
   MessageHandler,
   Payload,
+  Projectable,
   Reducible,
   ReducibleFactory,
   Streamable
@@ -130,6 +131,16 @@ export const getStreamable = <M extends Payload, C, E>(
   handler: MessageHandler<M, C, E>
 ): Streamable | undefined =>
   "stream" in handler ? (handler as Streamable) : undefined;
+
+/**
+ * Projectable type guard
+ * @param handler a message handler
+ * @returns a projectable type or undefined
+ */
+export const getProjectable = <M extends Payload, C, E>(
+  handler: MessageHandler<M, C, E>
+): Projectable<M, E> | undefined =>
+  "store" in handler ? (handler as Projectable<M, E>) : undefined;
 
 /**
  * Normalizes reducible paths

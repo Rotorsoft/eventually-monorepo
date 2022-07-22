@@ -1,86 +1,13 @@
+import { Seedable, Disposable } from "./generic";
 import {
-  AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
-  Disposer,
   Message,
-  Payload,
-  Seeder,
-  Snapshot,
-  StoreStat
-} from "./types";
-
-/**
- * Disposable resources
- */
-export interface Disposable {
-  readonly name: string;
-  dispose: Disposer;
-}
-
-/**
- * Seedable resources (i.e. to initialize or run store migrations)
- */
-export interface Seedable {
-  seed: Seeder;
-}
-
-/**
- * Environments
- */
-export enum Environments {
-  development = "development",
-  test = "test",
-  staging = "staging",
-  production = "production"
-}
-
-/**
- * Log levels
- */
-export enum LogLevels {
-  error = "error",
-  info = "info",
-  trace = "trace"
-}
-
-export type Color =
-  | "red"
-  | "green"
-  | "magenta"
-  | "blue"
-  | "white"
-  | "gray"
-  | "bgRed"
-  | "bgGreen"
-  | "bgMagenta"
-  | "bgBlue"
-  | "bgWhite";
-
-/**
- * Logger
- */
-export interface Log extends Disposable {
-  trace(color: Color, message: string, ...params: any[]): void;
-  info(color: Color, message: string, ...params: any[]): void;
-  error(error: unknown): void;
-}
-
-/**
- * Base configuration
- */
-export interface Config extends Disposable {
-  env: Environments;
-  host: string;
-  port: number;
-  logLevel: LogLevels;
-  service: string;
-  version: string;
-  description: string;
-  author: string;
-  license: string;
-  dependencies: Record<string, string>;
-}
+  Payload
+} from "../types/message";
+import { AllQuery, Projection } from "../types/query";
+import { StoreStat } from "../types/generic";
+import { Snapshot } from "../types/command";
 
 /**
  * Stores events in streams
@@ -120,6 +47,9 @@ export interface Store extends Disposable, Seedable {
   stats: () => Promise<StoreStat[]>;
 }
 
+/**
+ * Stores aggregate snapshots
+ */
 export interface SnapshotStore extends Disposable, Seedable {
   /**
    * Reads snapshot from store for stream
@@ -134,4 +64,19 @@ export interface SnapshotStore extends Disposable, Seedable {
     stream: string,
     data: Snapshot<M>
   ) => Promise<void>;
+}
+
+/**
+ * Stores projections
+ */
+export interface ProjectionStore<M extends Payload>
+  extends Disposable,
+    Seedable {
+  load: (
+    event: CommittedEvent<string, Payload> & { source: string }
+  ) => Promise<Projection<M>>;
+  commit: (
+    projection: Projection<M>,
+    event: CommittedEvent<string, Payload> & { source: string }
+  ) => Promise<Projection<M>>;
 }
