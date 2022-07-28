@@ -2,6 +2,7 @@ import { Seedable, Disposable } from "./generic";
 import {
   CommittedEvent,
   CommittedEventMetadata,
+  CommittedEventWithSource,
   Message,
   Payload
 } from "../types/message";
@@ -52,13 +53,16 @@ export interface Store extends Disposable, Seedable {
  */
 export interface SnapshotStore extends Disposable, Seedable {
   /**
-   * Reads snapshot from store for stream
+   * Reads a snapshot from store
+   * @param stream the stream
+   * @returns the existing snapshot
    */
   read: <M extends Payload>(stream: string) => Promise<Snapshot<M>>;
 
   /**
-   * Commits a snapshot into stream for stream
-   * @param data the current state to be sotred
+   * Commits a snapshot into a stream
+   * @param stream the stream
+   * @param data the current state to be stored
    */
   upsert: <M extends Payload>(
     stream: string,
@@ -69,14 +73,28 @@ export interface SnapshotStore extends Disposable, Seedable {
 /**
  * Stores projections
  */
-export interface ProjectionStore<M extends Payload>
-  extends Disposable,
-    Seedable {
-  load: (
-    event: CommittedEvent<string, Payload> & { source: string }
+export interface ProjectionStore extends Disposable, Seedable {
+  /**
+   * Loads projection from store
+   * @param event the event being projected next with source
+   * @returns the existing projection
+   */
+  load: <M extends Payload>(
+    event: CommittedEventWithSource
   ) => Promise<Projection<M>>;
-  commit: (
-    projection: Projection<M>,
-    event: CommittedEvent<string, Payload> & { source: string }
+
+  /**
+   * Commits new projection state and updates source watermak
+   * @param event the newly projected event with source
+   * @returns the new projection with udpated watermark
+   */
+  commit: <M extends Payload>(
+    event: CommittedEventWithSource,
+    state: M
   ) => Promise<Projection<M>>;
+
+  /**
+   * TODO: Queries the store with filter and pagination options
+   */
+  query: <M extends Payload>() => Promise<Array<Readonly<M>>>;
 }

@@ -6,6 +6,7 @@ import { Events } from "./calculator.events";
 import { Counter, StatelessCounter } from "./counter.policy";
 import * as schemas from "./calculator.schemas";
 import { PostgresStore } from "libs/eventually-pg/dist";
+import { SuperSum } from "./supersum.projector";
 
 void bootstrap(async (): Promise<void> => {
   store(PostgresStore("calculator"));
@@ -31,7 +32,8 @@ void bootstrap(async (): Promise<void> => {
     })
     .withSchemas<Pick<Events, "Complex">>({
       Complex: schemas.Complex
-    });
+    })
+    .withProjector(SuperSum, "SuperSum projector sums all pressed digits");
 
   _app.build();
   await _app.listen();

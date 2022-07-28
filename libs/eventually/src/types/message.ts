@@ -74,3 +74,11 @@ export type CommittedEvent<Name extends string, Type extends Payload> = {
   readonly data?: Type;
   readonly metadata?: CommittedEventMetadata;
 };
+
+/**
+ * Commmitted event with source field for projectors
+ * - `source` The source "all stream" of the event
+ */
+export type CommittedEventWithSource = CommittedEvent<string, Payload> & {
+  source: string;
+};

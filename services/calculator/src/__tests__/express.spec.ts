@@ -18,6 +18,7 @@ import { Commands } from "../calculator.commands";
 import { Events } from "../calculator.events";
 import { CalculatorModel, Keys } from "../calculator.models";
 import { StatelessCounter } from "../counter.policy";
+import { SuperSum } from "../supersum.projector";
 
 const chance = new Chance();
 const port = 4000;
@@ -34,6 +35,7 @@ app(expressApp)
   })
   .withCommandHandlers(Calculator)
   .withEventHandlers(StatelessCounter)
+  .withProjector(SuperSum)
   .build([GcpGatewayMiddleware]);
 
 const pressKey = (
@@ -77,6 +79,11 @@ describe("express app", () => {
 
       const calc_snapshots = await t.stream(Calculator, id);
       expect(calc_snapshots.length).toEqual(6);
+
+      // check projection
+      const proj = await t.read(SuperSum);
+      expect(proj.length).toBe(1);
+      expect(proj[0].sum).toBe(6);
     });
 
     it("should compute correctly 2", async () => {
@@ -98,7 +105,7 @@ describe("express app", () => {
         operator: "/",
         result: -1
       });
-      expect(event.metadata.causation.command.actor).toEqual({
+      expect(event.metadata?.causation?.command?.actor).toEqual({
         name: "actor-name",
         roles: ["admin"]
       });
@@ -237,7 +244,7 @@ describe("express app", () => {
       await t.sleep(200);
       await pressKey(id, "2");
       const [snap] = await pressKey(id, ".");
-      dot_correlation = snap.event.metadata.correlation;
+      dot_correlation = snap.event.metadata?.correlation || "";
       await t.sleep(200);
       created_before = new Date();
       await t.sleep(200);
@@ -246,19 +253,19 @@ describe("express app", () => {
     });
 
     it("should read stream", async () => {
-      const events = await t.read();
+      const events = await t.query();
       expect(events.length).toBe(1);
     });
 
     it("should read stream by name", async () => {
-      const stream = await t.read({ names: ["DigitPressed"], limit: 3 });
+      const stream = await t.query({ names: ["DigitPressed"], limit: 3 });
       expect(stream[0].name).toBe("DigitPressed");
       expect(stream.length).toBeGreaterThanOrEqual(3);
       stream.map((evt) => expect(evt.name).toBe("DigitPressed"));
     });
 
     it("should read stream by names", async () => {
-      const stream = await t.read({
+      const stream = await t.query({
         stream: `Calculator-${id}`,
         names: ["DigitPressed", "DotPressed"],
         limit: 8
@@ -270,34 +277,34 @@ describe("express app", () => {
     });
 
     it("should read stream with after", async () => {
-      const stream = await t.read({ after: 3 });
+      const stream = await t.query({ after: 3 });
       expect(stream[0].id).toBe(4);
     });
 
     it("should read stream with limit", async () => {
-      const stream = await t.read({ limit: 5 });
+      const stream = await t.query({ limit: 5 });
       expect(stream.length).toBe(5);
     });
 
     it("should read stream with after and limit", async () => {
-      const stream = await t.read({ after: 2, limit: 2 });
+      const stream = await t.query({ after: 2, limit: 2 });
       expect(stream[0].id).toBe(3);
       expect(stream.length).toBe(2);
     });
 
     it("should return an empty stream", async () => {
-      const stream = await t.read({ names: [chance.guid()] });
+      const stream = await t.query({ names: [chance.guid()] });
       expect(stream.length).toBe(0);
     });
 
     it("should read stream with before and after", async () => {
-      const stream = await t.read({ after: 2, before: 4, limit: 5 });
+      const stream = await t.query({ after: 2, before: 4, limit: 5 });
       expect(stream[0].id).toBe(3);
       expect(stream.length).toBe(1);
     });
 
     it("should read stream with before and after created", async () => {
-      const stream = await t.read({
+      const stream = await t.query({
         stream: Calculator(id).stream(),
         created_after,
         created_before,
@@ -308,7 +315,7 @@ describe("express app", () => {
     });
 
     it("should read stream by correlation", async () => {
-      const stream = await t.read({
+      const stream = await t.query({
         correlation: dot_correlation,
         limit: 5
       });

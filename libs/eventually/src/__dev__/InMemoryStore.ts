@@ -26,10 +26,17 @@ export const InMemoryStore = (): Store => {
     for (const event of committed) {
       const msg = app().messages[event.name];
       await Promise.all(
-        Object.values(msg.eventHandlerFactories).map((factory) =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          app().event(factory, event as any)
-        )
+        Object.values(msg.eventHandlers).map(({ type, factory }) => {
+          if (type === "projector") {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            return app().project(factory as any, [
+              { ...event, source: "in-memory-store" }
+            ]);
+          } else {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            return app().event(factory, event as any);
+          }
+        })
       );
     }
   };

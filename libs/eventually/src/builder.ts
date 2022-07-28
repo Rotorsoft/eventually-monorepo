@@ -16,11 +16,12 @@ import {
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
+  Projectable,
   ProjectorFactory,
   Reducible,
   Snapshot
 } from ".";
-import { SnapshotStore } from "./interfaces";
+import { ProjectionStore, SnapshotStore } from "./interfaces";
 import { InMemorySnapshotStore } from "./__dev__";
 
 export type Factories = {
@@ -32,37 +33,32 @@ export type Factories = {
   };
 };
 
+type CommandHandlerEndpoint = {
+  type: CommandHandlerType;
+  factory: CommandHandlerFactory<Payload, unknown, unknown>;
+  commands: Record<string, string>;
+  events: string[];
+};
+
+type EventHandlerEndpoint = {
+  type: EventHandlerType;
+  factory: EventHandlerFactory<Payload, unknown, unknown>;
+  path: string;
+  events: string[];
+};
+
 export type Endpoints = {
   version: string;
-  commandHandlers: {
-    [name: string]: {
-      type: CommandHandlerType;
-      factory: CommandHandlerFactory<Payload, unknown, unknown>;
-      commands: Record<string, string>;
-      events: string[];
-    };
-  };
-  eventHandlers: {
-    [name: string]: {
-      type: EventHandlerType;
-      factory: EventHandlerFactory<Payload, unknown, unknown>;
-      path: string;
-      events: string[];
-    };
-  };
-  schemas: {
-    [name: string]: Joi.Description;
-  };
+  commandHandlers: { [name: string]: CommandHandlerEndpoint };
+  eventHandlers: { [name: string]: EventHandlerEndpoint };
+  schemas: { [name: string]: Joi.Description };
 };
 
 export type MessageMetadata = {
   name: string;
   schema?: Joi.ObjectSchema<Payload>;
-  commandHandlerFactory?: CommandHandlerFactory<Payload, unknown, unknown>;
-  eventHandlerFactories: Record<
-    string,
-    EventHandlerFactory<Payload, unknown, unknown>
-  >;
+  commandHandler?: CommandHandlerEndpoint;
+  eventHandlers: Record<string, EventHandlerEndpoint>;
 };
 
 type Schemas<M> = {
@@ -71,6 +67,8 @@ type Schemas<M> = {
 
 export class Builder {
   protected readonly _snapshotStores: Record<string, SnapshotStore> = {};
+  protected readonly _projectionStores: Record<string, ProjectionStore> = {};
+
   protected readonly _factories: Factories = {
     commandHandlers: {},
     eventHandlers: {}
@@ -91,7 +89,7 @@ export class Builder {
   private _msg(name: string): MessageMetadata {
     return (this.messages[name] = this.messages[name] || {
       name,
-      eventHandlerFactories: {}
+      eventHandlers: {}
     });
   }
 
@@ -234,6 +232,15 @@ export class Builder {
     return await store.read(reducible.stream());
   }
 
+  getProjectionStore<M extends Payload, E>(
+    projectable: Projectable<M, E>
+  ): ProjectionStore {
+    const factory = projectable.store;
+    let store = this._projectionStores[factory.name];
+    !store && (store = this._projectionStores[factory.name] = factory());
+    return store;
+  }
+
   /**
    * Builds message handlers and private subscriptions
    * Concrete app implementations should deal with their own building steps
@@ -260,9 +267,9 @@ export class Builder {
         commands: {} as Record<string, string>,
         events
       });
-      messagesOf(handler).map((name) => {
+      messagesOf(handler).forEach((name) => {
         const msg = this._msg(name);
-        msg.commandHandlerFactory = factory;
+        msg.commandHandler = endpoint;
         endpoint.commands[name] = commandHandlerPath(factory, name);
       });
       this.withStreams();
@@ -279,17 +286,18 @@ export class Builder {
         ? "process-manager"
         : "policy";
       const path = eventHandlerPath(factory);
-      const events = messagesOf(handler).map((name) => {
-        const msg = this._msg(name);
-        msg.eventHandlerFactories[path] = factory;
-        return name;
-      });
-      this.endpoints.eventHandlers[factory.name] = {
+      const events = messagesOf(handler).map((name) => name);
+      const endpoint = (this.endpoints.eventHandlers[factory.name] = {
         type,
         factory,
         path,
         events
-      };
+      });
+      events.forEach((name) => {
+        const msg = this._msg(name);
+        msg.eventHandlers[path] = endpoint;
+      });
+
       reducible && this.withStreams();
     });
 

@@ -8,6 +8,7 @@ import {
   CommandHandlerFactory,
   CommittedEvent,
   CommittedEventMetadata,
+  CommittedEventWithSource,
   Getter,
   Payload,
   PolicyFactory,
@@ -40,8 +41,15 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * Concrete implementations should provide disposers and the listening framework
    */
   abstract readonly name: string;
-  abstract dispose(): Promise<void>;
   abstract listen(): Promise<void>;
+  async dispose(): Promise<void> {
+    await Promise.all(
+      Object.values(this._snapshotStores).map((s) => s.dispose())
+    );
+    await Promise.all(
+      Object.values(this._projectionStores).map((s) => s.dispose())
+    );
+  }
 
   /**
    * Handles command
@@ -55,10 +63,13 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
   ): Promise<Snapshot<M>[]> {
     const { actor, name, id, expectedVersion } = command;
     const msg = this.messages[name];
-    if (!msg || !msg.commandHandlerFactory)
-      throw new RegistrationError(command);
+    if (!msg || !msg.commandHandler) throw new RegistrationError(command);
 
-    const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
+    const factory = msg.commandHandler.factory as CommandHandlerFactory<
+      M,
+      C,
+      E
+    >;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
     const data = validateMessage(command);
     const handler = factory(id);
@@ -186,16 +197,14 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
   }
 
   /**
-   * Applies events to projection
+   * Projects events into projections
    * @param factory the projector factory
    * @param events the events to be projected
    * @returns the projection
    */
-  async apply<M extends Payload, E>(
+  async project<M extends Payload, E>(
     factory: ProjectorFactory<M, E>,
-    events: Array<
-      CommittedEvent<keyof E & string, Payload> & { source: string }
-    >
+    events: Array<CommittedEventWithSource>
   ): Promise<
     Projection<M> & {
       error?: Error;
@@ -204,18 +213,35 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     let projection: Projection<M>;
     try {
       const handler = factory();
+      const store = this.getProjectionStore(handler);
       for (const event of events) {
         this.log.trace("magenta", `\n>>> ${factory.name}`, event);
-        const apply = (handler as any)["apply".concat(event.name)];
-        if (!apply) throw new RegistrationError(event);
+        const on = (handler as any)["on".concat(event.name)];
+        if (!on) throw new RegistrationError(event);
         const data = validateMessage(event);
-        projection = await handler.store.load(event);
-        projection = await apply(projection, data);
-        projection = await handler.store.commit(projection, event);
+        projection = await store.load(event);
+        // TODO: check this generically?
+        if ((projection.watermarks[event.source] || -1) < event.id) {
+          const state: M = await on(data, projection.state);
+          projection = await store.commit(event, state);
+        }
       }
       return projection;
     } catch (error) {
       return { ...projection, error };
     }
+  }
+
+  /**
+   * Reads from projections
+   * TODO: filter and pagination options
+   * @param factory the projector factory
+   */
+  async read<M extends Payload, E>(
+    factory: ProjectorFactory<M, E>
+  ): Promise<Array<Readonly<M>>> {
+    const handler = factory();
+    const store = this.getProjectionStore(handler);
+    return await store.query();
   }
 }

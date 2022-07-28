@@ -5,6 +5,7 @@ import {
   AppBase,
   bind,
   CommittedEvent,
+  CommittedEventWithSource,
   config,
   Errors,
   formatTime,
@@ -235,19 +236,33 @@ export class ExpressApp extends AppBase {
       ({ type, factory, path, events }) => {
         type === "process-manager" && (managers[factory.name] = factory as any);
         if (type === "projector") {
-          this._router.post(
+          this._router.get(
             path,
             async (
-              req: Request<
-                never,
-                any,
-                Array<CommittedEvent<string, Payload> & { source: string }>
-              >,
+              req: Request<never, any, any>,
               res: Response,
               next: NextFunction
             ) => {
               try {
-                const response = await this.apply(
+                const response = await this.read(
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                  factory as any
+                );
+                return res.status(200).send(response);
+              } catch (error) {
+                next(error);
+              }
+            }
+          );
+          this._router.post(
+            path,
+            async (
+              req: Request<never, any, Array<CommittedEventWithSource>>,
+              res: Response,
+              next: NextFunction
+            ) => {
+              try {
+                const response = await this.project(
                   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                   factory as any,
                   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -426,6 +441,7 @@ export class ExpressApp extends AppBase {
   }
 
   async dispose(): Promise<void> {
+    await super.dispose();
     if (this._server) {
       await new Promise((resolve, reject) => {
         this._server.once("close", resolve);

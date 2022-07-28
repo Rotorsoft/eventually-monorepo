@@ -1,5 +1,5 @@
 import { ProjectionStore } from "../interfaces/stores";
-import { CommittedEvent, Payload } from "./message";
+import { Payload } from "./message";
 
 /**
  * Projections are models with watermarks
@@ -13,12 +13,12 @@ export type Projection<M extends Payload> = {
  * Artifacts that project events to a projection
  */
 export type Projectable<M extends Payload, E> = {
-  store: ProjectionStore<M>;
+  store: () => ProjectionStore;
 } & {
-  [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
-    projection: Projection<M>,
-    event: CommittedEvent<Name & string, E[Name] & Payload>
-  ) => Projection<M>;
+  [Name in keyof E as `on${Capitalize<Name & string>}`]: (
+    data?: E[Name] & Payload,
+    state?: M
+  ) => M;
 };
 
 /**

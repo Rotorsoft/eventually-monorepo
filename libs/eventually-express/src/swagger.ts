@@ -34,31 +34,29 @@ const getSecurity = (): Security => {
 
 export const swagger = (app: Builder): any => {
   const getSchemas = (): void => {
-    Object.entries(app.messages).map(
-      ([name, { schema, commandHandlerFactory }]) => {
-        if (commandHandlerFactory) {
-          components.schemas[name] = schema
-            ? j2s(schema).swagger
-            : { type: "object" };
-        } else {
-          const data = schema || joi.object().forbidden();
-          const description =
-            data._flags?.description || "No description provided";
-          data._flags.description = undefined;
-          components.schemas[name] = j2s(
-            joi.object({
-              name: joi.string().required().valid(name),
-              id: joi.number().integer().required(),
-              stream: joi.string().required(),
-              version: joi.number().integer().required(),
-              created: joi.date().required(),
-              data
-            })
-          ).swagger;
-          components.schemas[name].description = description;
-        }
+    Object.entries(app.messages).map(([name, { schema, commandHandler }]) => {
+      if (commandHandler) {
+        components.schemas[name] = schema
+          ? j2s(schema).swagger
+          : { type: "object" };
+      } else {
+        const data = schema || joi.object().forbidden();
+        const description =
+          data._flags?.description || "No description provided";
+        data._flags.description = undefined;
+        components.schemas[name] = j2s(
+          joi.object({
+            name: joi.string().required().valid(name),
+            id: joi.number().integer().required(),
+            stream: joi.string().required(),
+            version: joi.number().integer().required(),
+            created: joi.date().required(),
+            data
+          })
+        ).swagger;
+        components.schemas[name].description = description;
       }
-    );
+    });
   };
 
   const getReducibleGetters = (
