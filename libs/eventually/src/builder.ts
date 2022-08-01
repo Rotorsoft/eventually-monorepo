@@ -171,8 +171,8 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withProjector<E>(
-    factory: ProjectorFactory<Payload, E>,
+  withProjector<M extends Payload, E>(
+    factory: ProjectorFactory<M, E>,
     description?: string
   ): this {
     this._registerEventHandlerFactory(factory, description);

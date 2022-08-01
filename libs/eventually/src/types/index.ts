@@ -38,7 +38,7 @@ export type CommandHandlerFactory<M extends Payload, C, E> =
 export type EventHandlerFactory<M extends Payload, C, E> =
   | ProcessManagerFactory<M, C, E>
   | PolicyFactory<C, E>
-  | ProjectorFactory<Payload, E>;
+  | ProjectorFactory<M, E>;
 
 export type CommandHandler<M extends Payload, C, E> =
   | Aggregate<M, C, E>

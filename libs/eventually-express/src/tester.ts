@@ -168,15 +168,14 @@ export const tester = (port = 3000): Tester => {
 
     read: async <M extends Payload, E>(
       projector: ProjectorFactory<M, E>
-    ): Promise<Array<Readonly<M>>> => {
+    ): Promise<Readonly<M>[]> => {
       const _url = url(
         eventHandlerPath(projector as EventHandlerFactory<M, unknown, unknown>)
       );
       try {
-        const { data } = await axios.get<
-          any,
-          AxiosResponse<Array<Readonly<M>>>
-        >(_url);
+        const { data } = await axios.get<any, AxiosResponse<Readonly<M>[]>>(
+          _url
+        );
         return data;
       } catch (error) {
         console.log(
