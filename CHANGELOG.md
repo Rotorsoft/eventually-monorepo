@@ -1,3 +1,5 @@
+#### 2022-08-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.10...@rotorsoft/eventually-broker-v1.3.11) @rotorsoft/eventually-broker-v1.3.11
+  - PATCH [7893cb66](https://github.com/Rotorsoft/eventually-monorepo/commit/7893cb66d427f7978453a522bd05eb629878dba2) fix: up cron packages
 #### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.9...@rotorsoft/eventually-broker-v1.3.10) @rotorsoft/eventually-broker-v1.3.10
   - PATCH [d81c348b](https://github.com/Rotorsoft/eventually-monorepo/commit/d81c348bd2074ca53243132c76181271068bc54e) fix: retryable flag
 #### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.8...@rotorsoft/eventually-broker-v1.3.9) @rotorsoft/eventually-broker-v1.3.9
