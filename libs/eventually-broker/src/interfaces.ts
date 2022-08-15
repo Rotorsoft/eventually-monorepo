@@ -1,5 +1,5 @@
 import { CommittedEvent, Disposable, Payload } from "@rotorsoft/eventually";
-import { PushResponse, Service, Subscription, TriggerCallback } from "./types";
+import { PushEvent, Service, Subscription, TriggerCallback } from "./types";
 
 /**
  * Listens for changes in streams
@@ -27,8 +27,8 @@ export interface PullChannel extends Disposable {
 
 export interface PushChannel {
   label: string;
-  init: (...args: any) => void;
-  push: (event: CommittedEvent<string, Payload>) => Promise<PushResponse>;
+  init: () => Promise<void>;
+  push: (events: PushEvent[]) => Promise<number>;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface PushChannel {
  */
 export interface ChannelResolvers {
   pull: Record<string, (url: URL, id: string) => PullChannel>;
-  push: Record<string, (url: URL, id: string) => PushChannel>;
+  push: Record<string, (url: URL, id: string, source: string) => PushChannel>;
 }
 
 /**

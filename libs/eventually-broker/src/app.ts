@@ -2,6 +2,7 @@ import { config, dispose, log } from "@rotorsoft/eventually";
 import express, { Express, RequestHandler } from "express";
 import { engine } from "express-handlebars";
 import { Server } from "http";
+import { Socket } from "net";
 import path from "path";
 import { AppOptions, subscriptions } from ".";
 import { state } from "./cluster";
@@ -66,10 +67,24 @@ export const app = async ({
     });
   });
 
+  const sockets = new Set<Socket>();
+  server.on("connection", (socket) => {
+    sockets.add(socket);
+    socket.once("close", () => {
+      sockets.delete(socket);
+    });
+  });
+
   dispose(() => {
-    log().info("bgRed", `[${process.pid}]`, "♻️ app");
+    for (const socket of sockets) {
+      socket.destroy();
+      sockets.delete(socket);
+    }
     return new Promise((resolve, reject) => {
-      server.once("close", resolve);
+      server.once("close", () => {
+        log().info("bgRed", `[${process.pid}]`, "♻️ Broker Express App");
+        resolve();
+      });
       server.close(reject);
     });
   });

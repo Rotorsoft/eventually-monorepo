@@ -73,11 +73,16 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
     loadSubscriptions: async (id?: string): Promise<Subscription[]> => {
       const result = id
         ? await pool.query<Subscription>(
-            "select * from public.subscriptions where id=$1 limit 100",
+            `select s.*, concat(c.url, '/', s.path) as endpoint
+            from public.subscriptions s join public.services c on s.consumer = c.id
+            where s.id=$1
+            limit 100`,
             [id]
           )
         : await pool.query<Subscription>(
-            "select * from public.subscriptions limit 100"
+            `select s.*, concat(c.url, '/', s.path) as endpoint
+            from public.subscriptions s join public.services c on s.consumer = c.id
+            limit 100`
           );
       return result.rows;
     },
@@ -86,7 +91,9 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       producer: string
     ): Promise<Subscription[]> => {
       const result = await pool.query<Subscription>(
-        "select * from public.subscriptions where producer=$1",
+        `select s.*, concat(c.url, '/', s.path) as endpoint
+        from public.subscriptions s join public.services c on s.consumer = c.id
+        where s.producer=$1`,
         [producer]
       );
       return result.rows;
@@ -94,14 +101,15 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
 
     searchSubscriptions: async (pattern: string): Promise<Subscription[]> => {
       const result = await pool.query<Subscription>(
-        `select * from public.subscriptions
+        `select s.*, concat(c.url, '/', s.path) as endpoint
+        from public.subscriptions s join public.services c on s.consumer = c.id
         where
-          id ~* $1
-          or producer ~* $1
-          or consumer ~* $1
-          or path ~* $1
-          or streams ~* $1
-          or names ~* $1
+          s.id ~* $1
+          or s.producer ~* $1
+          or s.consumer ~* $1
+          or s.path ~* $1
+          or s.streams ~* $1
+          or s.names ~* $1
         limit 100`,
         [pattern]
       );

@@ -135,19 +135,19 @@
         .style("stroke", d => d.discovered ? "green" : "#6c757d")
         .style("fill", d => d.color);
     node.append("text")
-        .attr("x", d => -Math.min(R, R * d.id.length / (MAXL+2)))
-        .attr("y", CHAR_W/2)
+        .attr("x", d => -Math.min(R, CHAR_W * d.id.length / 2))
+        .attr("y", CHAR_W / 2)
         .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef")
         .style("font-weight", "bold");
     node.append("text")
         .attr("id", d => `version-${d.id}`)
-        .attr("x", d => d.version ? -Math.min(R, R * d.version.length / (MAXL+2)) : 0)
-        .attr("y", CHAR_W*2)
+        .attr("x", d => d.version ? -CHAR_W * d.version.length / 2 : 0)
+        .attr("y", CHAR_W * 2)
         .text(d => d.version);
     node.append("text")
         .attr("id", d => `label-${d.id}`)
-        .attr("x", d => d.label ? -CHAR_W*d.label.length : 0)
-        .attr("y", -R+CHAR_W*2)
+        .attr("x", d => d.label ? -CHAR_W * d.label.length / 2 : 0)
+        .attr("y", -R + CHAR_W * 2)
         .text(d => d.label);
 
     simulation.on("tick", () => {

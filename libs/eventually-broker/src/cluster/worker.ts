@@ -1,29 +1,38 @@
-import { dispose, ExitCodes, log } from "@rotorsoft/eventually";
+import {
+  CommittedEvent,
+  dispose,
+  ExitCodes,
+  log,
+  Payload
+} from "@rotorsoft/eventually";
 import {
   ChannelResolvers,
+  Operation,
   pullchannel,
+  PushEvent,
+  Subscription,
   subscriptions,
   TriggerCallback,
   TriggerPayload
 } from "..";
-import { formatDate } from "../utils";
+import { formatDate, Loop, loop } from "../utils";
 import {
-  ChannelConfig,
+  WorkerConfig,
   CommittableHttpStatus,
   MasterMessage,
   RetryableHttpStatus,
-  SubscriptionState,
-  SubscriptionWithEndpoint
+  SubscriptionState
 } from "./types";
 
 let channel_position = -1;
 const triggerLog = (
-  { operation, retry_count }: TriggerPayload,
-  sub_position: number
+  operation: Operation,
+  retry_count: number,
+  position: number
 ): string =>
   `${operation}${
     retry_count || ""
-  } [${sub_position}/${channel_position}] ${formatDate(new Date())}`;
+  } [${position}/${channel_position}] ${formatDate(new Date())}`;
 
 const sendState = (state: SubscriptionState, logit = true): void => {
   logit &&
@@ -36,23 +45,19 @@ const sendState = (state: SubscriptionState, logit = true): void => {
   process.send({ state });
 };
 
+type Sub = {
+  state: SubscriptionState;
+  loop: Loop;
+  retry_count: number;
+};
+
 export const work = async (resolvers: ChannelResolvers): Promise<void> => {
-  const config = JSON.parse(process.env.WORKER_ENV) as ChannelConfig;
-  const subStates: Record<string, SubscriptionState> = {};
-  const retryTimeouts: Record<string, NodeJS.Timeout> = {};
+  const config = JSON.parse(process.env.WORKER_ENV) as WorkerConfig;
+  const masterLoop = loop(config.id);
+  const subs: Record<string, Sub> = {};
+  let refreshTimer: NodeJS.Timeout;
 
-  const exit = async (): Promise<void> => {
-    await dispose()(ExitCodes.ERROR);
-  };
-
-  dispose(() => {
-    Object.values(retryTimeouts).forEach((t) => {
-      clearTimeout(t);
-    });
-    return Promise.resolve();
-  });
-
-  const toState = ({
+  const toState = async ({
     id,
     producer,
     consumer,
@@ -65,10 +70,13 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     batch_size,
     retries,
     retry_timeout_secs
-  }: SubscriptionWithEndpoint): SubscriptionState => {
+  }: Subscription): Promise<SubscriptionState> => {
     const pushUrl = new URL(endpoint);
     const pushFactory = resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
+    const pushChannel = pushFactory(pushUrl, id, producer);
+    await pushChannel.init();
+
     return {
       id,
       producer,
@@ -79,11 +87,10 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
       position,
       streamsRegExp: RegExp(streams),
       namesRegExp: RegExp(names),
-      pushChannel: pushFactory(pushUrl, id),
+      pushChannel,
       batchSize: batch_size,
       retries,
       retryTimeoutSecs: retry_timeout_secs,
-      pumping: false,
       endpointStatus: {
         name: "",
         code: 200,
@@ -95,17 +102,34 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     };
   };
 
-  const pumpSub = async (
+  const ignore = (
     subState: SubscriptionState,
+    event: CommittedEvent<string, Payload>
+  ): boolean =>
+    !(
+      subState.streamsRegExp.test(event.stream) &&
+      subState.namesRegExp.test(event.name)
+    );
+
+  // returns true to retry
+  const pullPush = async (
+    id: string,
     trigger: TriggerPayload
-  ): Promise<boolean> => {
+  ): Promise<boolean | undefined> => {
+    const sub = subs[id];
+    if (!sub || !sub.state.active) return;
+
     process.send({ trigger });
+    const { state, loop } = sub;
     log().info(
       "blue",
-      `[${process.pid}] ⚡ pump ${subState.id} ${JSON.stringify(trigger)}`
+      `[${process.pid}] ⚡ pull ${state.id} ${JSON.stringify({
+        ...trigger,
+        retry: sub.retry_count
+      })}`
     );
     try {
-      channel_position = Math.max(channel_position, subState.position);
+      channel_position = Math.max(channel_position, state.position);
       if (trigger.position > channel_position) {
         await subscriptions().commitServicePosition(
           config.id,
@@ -114,184 +138,227 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
         channel_position = trigger.position;
       }
 
-      let count = subState.batchSize;
-      while (count === subState.batchSize) {
-        if (subState.cancel) return;
-        subState.stats.batches++;
-        subState.endpointStatus.name = undefined;
-        const events = await pullchannel().pull(
-          subState.position,
-          subState.batchSize
-        );
+      let count = state.batchSize;
+      while (count === state.batchSize && !loop.stopped()) {
+        // pull events
+        state.stats.batches++;
+        state.endpointStatus.name = undefined;
+        const events = (await pullchannel().pull(
+          state.position,
+          state.batchSize
+        )) as PushEvent[];
+        count = events.length;
         log().trace(
           "magenta",
-          `[${process.pid}] pull ${subState.id} ${events.length} events @ ${subState.position} [${subState.batchSize}]`
+          `[${process.pid}] pulled ${state.id} ${count} events @ ${state.position} [${state.batchSize}]`
         );
-        count = events.length;
-        for (const e of events) {
-          if (subState.cancel) return;
-          const { status, statusText, details } =
-            subState.streamsRegExp.test(e.stream) &&
-            subState.namesRegExp.test(e.name)
-              ? await subState.pushChannel.push(e)
-              : { status: 204, statusText: "Not Matched", details: undefined };
+        if (!count) break;
 
-          subState.stats.total++;
-          const event = (subState.stats.events[e.name] =
-            subState.stats.events[e.name] || {});
-          const eventStats = (event[status] = event[status] || {
+        // filter ignored
+        const batch = events.filter((event) => {
+          const ignored = ignore(state, event);
+          ignored && (event.response = { statusCode: 204 });
+          return !ignored;
+        });
+
+        // push events
+        batch.length && (await state.pushChannel.push(batch));
+
+        let lastResponse: PushEvent, lastCommittable: PushEvent;
+        for (const event of events) {
+          if (!event.response) break;
+          lastResponse = event;
+
+          state.stats.total++;
+          const entry = (state.stats.events[event.name] =
+            state.stats.events[event.name] || {});
+          const stat = (entry[event.response.statusCode] = entry[
+            event.response.statusCode
+          ] || {
             count: 0,
             min: Number.MAX_SAFE_INTEGER,
             max: -1
           });
-          eventStats.count++;
-          eventStats.min = Math.min(eventStats.min, e.id);
-          eventStats.max = Math.max(eventStats.max, e.id);
+          stat.count++;
+          stat.min = Math.min(stat.min, event.id);
+          stat.max = Math.max(stat.max, event.id);
 
-          if (CommittableHttpStatus.includes(status)) {
-            await subscriptions().commitSubscriptionPosition(subState.id, e.id);
-            subState.position = e.id;
-            subState.endpointStatus = {
-              name: e.name,
-              code: status,
-              color: "success",
-              icon: "bi-activity",
-              status: statusText || "OK",
-              error: undefined
-            };
-          } else {
-            const retryable = RetryableHttpStatus.includes(status);
-            subState.endpointStatus = {
-              name: e.name,
-              code: status,
-              color: retryable ? "warning" : "danger",
-              icon: "bi-cone-striped",
-              status: statusText || "Retryable Error",
-              error: {
-                trigger: `${triggerLog(trigger, e.id)}`,
-                message: details,
-                position: e.id
-              }
-            };
-            sendState(subState);
-            return retryable && (trigger.retry_count || 0) < subState.retries;
-          }
+          if (CommittableHttpStatus.includes(event.response.statusCode))
+            lastCommittable = event;
+          else break; // stop after first non-committable response
         }
-        sendState(subState);
+
+        if (lastCommittable) {
+          await subscriptions().commitSubscriptionPosition(
+            state.id,
+            lastCommittable.id
+          );
+          state.position = lastCommittable.id;
+        }
+
+        state.endpointStatus = {
+          name:
+            lastResponse.response.statusCode !== 204 ? lastResponse.name : "",
+          code: lastResponse.response.statusCode,
+          color: "success",
+          icon: "bi-activity",
+          status: lastResponse.response.statusText || "OK"
+        };
+
+        if (lastCommittable !== lastResponse) {
+          const retryable = RetryableHttpStatus.includes(
+            lastResponse.response.statusCode
+          );
+          state.endpointStatus.color = retryable ? "warning" : "danger";
+          state.endpointStatus.icon = "bi-cone-striped";
+          state.endpointStatus.error = {
+            trigger: `${triggerLog(
+              trigger.operation,
+              sub.retry_count,
+              lastResponse.id
+            )}`,
+            messages:
+              (lastResponse.response?.details && [
+                lastResponse.response.details
+              ]) ||
+              [],
+            position: lastResponse.id
+          };
+          sendState(state);
+          return retryable;
+        }
+
+        // send batch state and continue pumping until the end of the stream
+        sub.retry_count = 0;
+        sendState(state);
       }
     } catch (error) {
       log().error(error);
-      subState.endpointStatus = {
+      state.endpointStatus = {
         name: undefined,
         code: 500,
         color: "danger",
         icon: "bi-cone-striped",
         status: "Internal Server Error",
         error: {
-          trigger: `${triggerLog(trigger, subState.position)}`,
-          message: error.message,
-          position: subState.position
+          trigger: `${triggerLog(
+            trigger.operation,
+            sub.retry_count,
+            state.position
+          )}`,
+          messages: [error.message],
+          position: state.position
         }
       };
-      sendState(subState);
+      sendState(state);
       await exit();
     }
   };
 
-  const pumpRetry = async (
-    subState: SubscriptionState,
-    trigger: TriggerPayload
-  ): Promise<void> => {
-    if (subState.pumping) return;
-    if (!subState.active) return;
-    try {
-      subState.pumping = true;
-      clearTimeout(retryTimeouts[subState.id]);
-      const retry = await pumpSub(subState, trigger);
-      const retry_count = (trigger.retry_count || 0) + 1;
-      retry &&
-        (retryTimeouts[subState.id] = setTimeout(() => {
-          const retry_trigger: TriggerPayload = {
-            operation: "RETRY",
-            id: trigger.id,
-            retry_count,
-            position: trigger.position
-          };
-          void pumpRetry(subState, retry_trigger);
-        }, subState.retryTimeoutSecs * 1000 * retry_count));
-    } catch (error) {
-      log().error(error);
-      if (error instanceof Error) {
-        subState.endpointStatus = {
-          name: undefined,
-          code: 500,
-          color: "danger",
-          icon: "bi-cone-striped",
-          status: "Internal Server Error",
-          error: {
-            message: error.message,
-            position: subState.position
-          }
-        };
-        sendState(subState);
-      }
-    } finally {
-      subState.pumping = false;
+  const pump = (sub: Sub, trigger: TriggerPayload, delay?: number): void => {
+    const id = sub.state.id;
+    sub.loop.push({
+      id,
+      action: () => pullPush(id, trigger),
+      callback: (id, retryable) => {
+        if (retryable) retry(id);
+        else sub.retry_count = 0;
+      },
+      delay
+    });
+  };
+
+  const retry = (id: string): void => {
+    const sub = subs[id];
+    if (!sub) return;
+    if (sub.retry_count < sub.state.retries) {
+      sub.retry_count++;
+      const trigger: TriggerPayload = {
+        operation: "RETRY",
+        id,
+        position: sub.state.position
+      };
+      pump(sub, trigger, sub.state.retryTimeoutSecs * 1000 * sub.retry_count);
     }
   };
 
   const pumpChannel: TriggerCallback = (trigger) => {
-    for (const sub of Object.values(subStates)) {
-      void pumpRetry(sub, trigger);
+    Object.values(subs).forEach((sub) => {
+      sub.retry_count = 0;
+      pump(sub, trigger);
+    });
+  };
+
+  const masterMessage = async ({
+    sub,
+    operation
+  }: MasterMessage): Promise<boolean | undefined> => {
+    const current = subs[sub.id];
+    if (current) {
+      await current.loop.stop();
+      current.state.active = sub.active;
+      current.state.position = sub.position;
+      sendState(current.state, false);
+      if (!sub.active || operation === "DELETE") {
+        delete subs[sub.id];
+        !Object.keys(subs).length && exit();
+        return;
+      }
+    }
+    try {
+      const state = await toState(sub);
+      current && Object.assign(state.stats, current.state.stats);
+      const refresh = (subs[sub.id] = subs[sub.id] || {
+        state,
+        loop: loop(sub.id),
+        retry_count: 0
+      });
+      refresh.state = state;
+      refresh.retry_count = 0;
+      pump(refresh, { operation, id: sub.id });
+    } catch (error) {
+      log().error(error);
     }
   };
 
-  process.on(
-    "message",
-    async ({ operation, sub }: MasterMessage): Promise<void> => {
-      const currentState = subStates[sub.id];
-      if (currentState) {
-        if (operation === "REFRESH") {
-          sendState(currentState, false);
-          return;
-        }
+  const exit = async (): Promise<void> => {
+    await dispose()(ExitCodes.ERROR);
+  };
 
-        clearTimeout(retryTimeouts[currentState.id]);
-        let i = 0;
-        while (currentState.pumping && i <= 10) {
-          log().info("red", `Trying (${++i}) to stop pump on ${sub.id}...`);
-          currentState.cancel = true;
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-        currentState.cancel = false;
-        currentState.active = sub.active;
-        if (!sub.active || operation === "DELETE") {
-          delete subStates[sub.id];
-          !Object.keys(subStates).length && exit();
-          return;
-        }
-      }
-      try {
-        const subState = (subStates[sub.id] = toState(sub));
-        currentState && Object.assign(subState.stats, currentState.stats);
-        const trigger: TriggerPayload = { operation, id: sub.id };
-        void pumpRetry(subState, trigger);
-      } catch (error) {
-        log().error(error);
-      }
-    }
-  );
+  dispose(async () => {
+    clearInterval(refreshTimer);
+    await Promise.all(Object.values(subs).map((sub) => sub.loop.stop()));
+    await masterLoop.stop();
+  });
+
+  process.on("message", (msg: MasterMessage) => {
+    if (msg.operation === "REFRESH") {
+      const sub = subs[msg.sub.id];
+      sub && sendState(sub.state, false);
+    } else
+      masterLoop.push({ id: msg.sub.id, action: () => masterMessage(msg) });
+  });
 
   try {
     const pullUrl = new URL(encodeURI(config.channel));
     const pullFactory = resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl, config.id));
-    Object.values(config.subscriptions).map((sub) => {
-      subStates[sub.id] = toState(sub);
-      sendState(subStates[sub.id], false);
-    });
+    await Promise.all(
+      Object.values(config.subscriptions).map(async (sub) => {
+        const s = (subs[sub.id] = {
+          state: await toState(sub),
+          loop: loop(sub.id),
+          retry_count: 0
+        });
+        sendState(s.state, false);
+      })
+    );
     pumpChannel({ operation: "RESTART", id: config.id });
+    refreshTimer = setInterval(
+      () => pumpChannel({ operation: "REFRESH", id: config.id }),
+      10 * 60 * 1000
+    );
     await pullchannel().listen(pumpChannel);
   } catch (error) {
     log().error(error);

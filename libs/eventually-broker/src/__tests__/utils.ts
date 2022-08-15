@@ -39,7 +39,8 @@ export const subscriptionBody = (
   updated: new Date(),
   batch_size: 100,
   retries: 3,
-  retry_timeout_secs: 10
+  retry_timeout_secs: 10,
+  endpoint: "http://url/path"
 });
 
 export const createService = (id: string): Promise<void> =>

@@ -1,3 +1,4 @@
+import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { RequestHandler, Router } from "express";
 import Joi from "joi";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
@@ -28,7 +29,7 @@ export type Service = {
   version?: string;
   eventHandlers?: Record<string, Contract>;
   commandHandlers?: Record<string, Contract>;
-  schemas?: Record<string, Joi.Description>; // TODO: add joi descriptions
+  schemas?: Record<string, Joi.Description>;
 };
 
 /**
@@ -44,6 +45,7 @@ export type Service = {
  * - `batch_size` The pull batch size (default 100)
  * - `retries` The number of retries before pausing (default 3)
  * - `retry_timeout_sec` Seconds between retries with exponential backoff (default 10)
+ * - `endpoint` Calculated field combining consumer url with path
  */
 export type Subscription = {
   id: string;
@@ -58,6 +60,7 @@ export type Subscription = {
   batch_size: number;
   retries: number;
   retry_timeout_secs: number;
+  endpoint: string;
 };
 
 export type Operation =
@@ -73,14 +76,12 @@ export type Operation =
  * - `operation`: triggering operation
  * - `position`: optional position in stream
  * - `payload`: optional trigger payload
- * - `retry_count`: optional retry counter
  */
 export type TriggerPayload = {
   id: string;
   operation: Operation;
   position?: number;
   payload?: any;
-  retry_count?: number;
 };
 
 /**
@@ -92,9 +93,16 @@ export type TriggerCallback = (trigger: TriggerPayload) => void;
  * Push response
  */
 export type PushResponse = {
-  status: number;
-  statusText: string;
+  statusCode: number;
+  statusText?: string;
   details?: string;
+};
+
+/**
+ * Push event
+ */
+export type PushEvent = CommittedEvent<string, Payload> & {
+  response?: PushResponse;
 };
 
 /**

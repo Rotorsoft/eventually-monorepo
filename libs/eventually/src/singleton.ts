@@ -22,7 +22,6 @@ export const singleton =
 
 export enum ExitCodes {
   UNIT_TEST = "UNIT_TEST",
-  OK = "OK",
   ERROR = "ERROR"
 }
 const disposers: Disposer[] = [];
@@ -37,7 +36,7 @@ const disposeAndExit = async (
       delete instances[key];
     })
   );
-  code !== ExitCodes.UNIT_TEST && process.exit(code === ExitCodes.OK ? 0 : 1);
+  code !== ExitCodes.UNIT_TEST && process.exit(1);
 };
 /**
  * Registers resource disposers that are triggered on process exit
@@ -54,7 +53,7 @@ export const dispose = (
 ["SIGINT", "SIGTERM", "uncaughtException", "unhandledRejection"].map((e) => {
   process.once(e, async (arg?: any) => {
     console.error(`[${process.pid}] ${e}`, arg);
-    await disposeAndExit(e === "SIGINT" ? ExitCodes.OK : ExitCodes.ERROR);
+    await disposeAndExit(ExitCodes.ERROR);
   });
 });
 

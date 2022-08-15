@@ -135,10 +135,10 @@ router.get("/_toggle/:id", async (req, res) => {
   res.redirect(`/_wait/${id}`);
 });
 
-router.get("/_refresh/:id", async (req, res) => {
+router.get("/_refresh/:id", (req, res) => {
   const id = req.params.id;
   try {
-    await state().refreshSubscription("RESTART", id);
+    state().refreshSubscription("RESTART", id);
   } catch (error) {
     log().error(error);
   }

@@ -31,7 +31,7 @@
   </thead>
   <tbody>
     {{#each rows}}
-      <tr class="{{#unless this.active}}table-secondary{{/unless}}">
+      <tr id="row-{{this.id}}" class="{{#unless this.active}}table-secondary{{/unless}}">
         <td id="status-{{this.id}}" scope="row"></td>
         <td class="text-end" id="position-{{this.id}}"></td>
         <td class="text-end" id="session-{{this.id}}"></td>
@@ -95,7 +95,10 @@
     count > 0 ? `<span class="${cls}">${usnf.format(count)}</span>` : "";
 
   const refresh = (state) => {
-    const { id, position, channelPosition, endpointStatus, total, events } = state;
+    const { id, active, position, channelPosition, endpointStatus, total, events } = state;
+
+    const rowTr = document.getElementById(`row-${id}`)
+    rowTr && (active ? rowTr.classList.remove("table-secondary") : rowTr.classList.add("table-secondary"));
 
     const statusTd = document.getElementById(`status-${id}`);
     statusTd && (statusTd.innerHTML=`<i class="bi ${endpointStatus.icon} text-${endpointStatus.color}"></i>&nbsp;<a href="/${id}">${id}</a>`);

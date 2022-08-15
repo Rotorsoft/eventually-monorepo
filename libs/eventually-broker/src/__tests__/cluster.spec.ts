@@ -4,15 +4,14 @@ import cluster from "cluster";
 import {
   pullchannel,
   PushChannel,
-  PushResponse,
+  Subscription,
   subscriptions,
   VoidPushChannel
 } from "..";
 import { defaultResolvers } from "../broker";
 import {
-  ChannelConfig,
+  WorkerConfig,
   state,
-  SubscriptionWithEndpoint,
   SubscriptionState,
   toViewModel,
   work
@@ -26,15 +25,33 @@ import {
 
 const TestPushChannel = (): PushChannel => ({
   label: "",
-  init: () => undefined,
-  push: (event): Promise<PushResponse> => {
-    if (event.name === "e1")
-      return Promise.resolve({ status: 204, statusText: "VOID" });
-    if (event.name === "e2")
-      return Promise.resolve({ status: 200, statusText: "OK" });
-    if (event.name === "e3")
-      return Promise.resolve({ status: 404, statusText: "Not Found" });
-    return Promise.resolve({ status: 204, statusText: "VOID" });
+  init: () => Promise.resolve(undefined),
+  push: (events): Promise<number> => {
+    events.map((event) => {
+      if (event.name === "e1")
+        event.response = {
+          statusCode: 204,
+          statusText: "VOID"
+        };
+      else if (event.name === "e2")
+        event.response = {
+          statusCode: 200,
+          statusText: "OK"
+        };
+      else if (event.name === "e3")
+        event.response = {
+          statusCode: 404,
+          statusText: "Not Found"
+        };
+      else
+        event.response = {
+          statusCode: 204,
+          statusText: "VOID"
+        };
+    });
+    return Promise.resolve(
+      events[events.length - 1].response?.statusCode || 200
+    );
   }
 });
 
@@ -110,7 +127,6 @@ describe("cluster", () => {
           }
         }
       },
-      pumping: false,
       pushChannel: VoidPushChannel(),
       streamsRegExp: new RegExp(""),
       namesRegExp: new RegExp(""),
@@ -121,15 +137,17 @@ describe("cluster", () => {
         icon: "bi-activity"
       }
     };
-    await state().refreshSubscription("DELETE", "s1");
-    await state().refreshSubscription("INSERT", "s1");
-    await state().refreshSubscription("UPDATE", "s1");
-    await state().refreshService("DELETE", "s1");
-    await state().refreshService("INSERT", "s1");
-    await state().refreshService("UPDATE", "s1");
-    state().onMessage(1, {
-      error: { message: "Error message" }
+    await state().init(await subscriptions().loadServices(), {
+      resolvers: defaultResolvers
     });
+    state().refreshSubscription("DELETE", "s1");
+    state().refreshSubscription("INSERT", "s1");
+    state().refreshSubscription("UPDATE", "s1");
+    state().refreshService("DELETE", "s1");
+    state().refreshService("INSERT", "s1");
+    state().refreshService("UPDATE", "s1");
+    state().refreshSubscription("INSERT", "s1");
+
     state().onMessage(1, {
       error: { message: "Error message" }
     });
@@ -137,6 +155,7 @@ describe("cluster", () => {
       trigger: { id: "s1", operation: "RESTART", position: 1 }
     });
     state().onMessage(1, { state: subState });
+
     const viewModel = state().viewModel(
       (await subscriptions().loadSubscriptions("s1"))[0]
     );
@@ -148,7 +167,7 @@ describe("cluster", () => {
   });
 
   it("should work", async () => {
-    const subConfig: SubscriptionWithEndpoint = {
+    const subConfig: Subscription = {
       id: "s1",
       active: true,
       producer: "",
@@ -163,8 +182,9 @@ describe("cluster", () => {
       retries: 3,
       retry_timeout_secs: 10
     };
-    const chanConfig: ChannelConfig = {
+    const chanConfig: WorkerConfig = {
       id: "s1",
+      workerId: -1,
       channel: "void://",
       subscriptions: { s1: subConfig },
       runs: 0
