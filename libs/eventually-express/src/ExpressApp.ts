@@ -27,6 +27,7 @@ import express, {
 import { Server } from "http";
 import * as swaggerUI from "swagger-ui-express";
 import { swagger } from "./swagger";
+import { OpenAPIV3_1 } from "openapi-types";
 
 const redoc = (title: string): string => `<!DOCTYPE html>
 <html>
@@ -67,7 +68,7 @@ export class ExpressApp extends AppBase {
   private _app = express();
   private _router = Router();
   private _server: Server;
-  private _swagger: swaggerUI.JsonObject;
+  private _swagger: OpenAPIV3_1.Document;
 
   public getSwagger(): any {
     return this._swagger;
@@ -309,8 +310,36 @@ export class ExpressApp extends AppBase {
     this._app.get("/_endpoints", (_, res) => {
       res.json(this.endpoints);
     });
+    this._app.get("/_contracts", (_, res) => {
+      const schemas = this._swagger.components?.schemas;
+      const map = Object.keys(schemas).reduce(
+        (acc, name) => {
+          if (
+            schemas[name]?.properties?.name &&
+            schemas[name]?.properties?.id &&
+            schemas[name]?.properties?.stream &&
+            schemas[name]?.properties?.version &&
+            schemas[name]?.properties?.created &&
+            schemas[name]?.properties?.data
+          )
+            acc.events.push({
+              name,
+              payload: (
+                schemas[name].properties.data as OpenAPIV3_1.SchemaObject
+              ).properties,
+              schemaDescription: schemas[name].description
+            });
+          else if (name.endsWith("Error"))
+            acc.errors.push({ ...schemas[name] });
+          else acc.commands.push({ ...schemas[name] });
+          return acc;
+        },
+        { commands: [], events: [], errors: [] }
+      );
+      res.json(map);
+    });
     this._app.get("/_health", (_, res) => {
-      res.status(200).json({ status: "OK" });
+      res.status(200).json({ status: "OK", date: new Date().toISOString() });
     });
     this._app.get("/__killme", () => {
       this.log.info("red", "KILLME");
@@ -354,7 +383,8 @@ export class ExpressApp extends AppBase {
         redoc: "/redoc",
         rapidoc: "/rapidoc",
         health: "/_health",
-        endpoints: "/_endpoints"
+        endpoints: "/_endpoints",
+        contracts: "/_contracts"
       });
     });
 
