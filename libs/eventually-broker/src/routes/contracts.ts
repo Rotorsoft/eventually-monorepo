@@ -3,7 +3,6 @@ import { subscriptions } from "..";
 import { ContractsViewModel } from "../cluster";
 import { getServiceContracts } from "../utils";
 
-
 export const router = Router();
 
 router.get("/all", async (req, res) => {
@@ -23,7 +22,7 @@ router.get("/all", async (req, res) => {
     const namesFilters = Array.isArray(req.query.names) ? req.query.names : [req.query.names];
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
       result[serviceName] = {
-        events: servicesContracts[serviceName].events.filter((event) => namesFilters.includes(event.name))
+        events: servicesContracts[serviceName].events.filter((event: {name:string}) => namesFilters.includes(event.name))
       }
       if (!result[serviceName].events.length)
       delete result[serviceName];

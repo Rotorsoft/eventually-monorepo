@@ -1,0 +1,34 @@
+<p class="mb-0">
+    <a data-bs-toggle="collapse" href="#collapse-{{breadcrums}}" aria-expanded="false" aria-controls="collapse-{{breadcrums}}">
+        {{#if objectName}} 
+            {{objectName}} 
+        {{else}}
+            Payload
+        {{/if}}
+    </a>
+    <div class="collapse" id="collapse-{{breadcrums}}">
+        {{#each this.item}}
+            {{#if (eq this.type 'object')}} 
+                {{> contract item=this.properties objectName=@key breadcrums=@key}}
+            {{else}}
+                <p><span class="fw-bold">{{@key}}:</span> <span class="fst-italic">{{this.type}}</span></p>
+            {{/if}}
+            
+            {{!-- <p class="mb-0">
+                <a data-bs-toggle="collapse" href="#collapse{{breadcrums}}-{{@key}}" aria-expanded="false" aria-controls="collapse{{breadcrums}}-{{@key}}">
+                    {{@key}}
+                </a>
+            </p>
+            <div class="collapse" id="collapse{{breadcrums}}-{{@key}}">
+                <p class="ms-3 mb-0">
+                    <a data-bs-toggle="collapse" href="#collapseExample1" aria-expanded="false" aria-controls="collapseExample1">
+                        
+                    </a>
+                </p>
+                <div class="ms-3 collapse" id="collapseExample1">
+                    <p class="ms-3 mb-0"> string </p>
+                </div>
+            </div> --}}
+        {{/each}}
+    </div>
+</p>
