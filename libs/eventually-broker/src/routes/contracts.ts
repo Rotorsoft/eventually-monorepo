@@ -5,33 +5,41 @@ import { getServiceContracts } from "../utils";
 
 export const router = Router();
 
-router.get("/all", async (req, res) => {
-  const servicesDefinitions = await subscriptions().loadServices();
-  let servicesContracts = await getServiceContracts(servicesDefinitions);
-  const {services, names} = req.query;
-
-  if (services) {
-    const serviceFilters = Array.isArray(services) ? services : [services];
+const filterServices = (servicesContracts: Record<string, ContractsViewModel>, filters: {services?:string[], names?: string[]}): Record<string, ContractsViewModel> => {
+  if (filters.services) {
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
-      if (serviceFilters.includes(serviceName))
-      result[serviceName] = servicesContracts[serviceName];
+      if (filters.services.includes(serviceName))
+        result[serviceName] = servicesContracts[serviceName];
       return result;
     }, {} as Record<string, ContractsViewModel>)
   }
 
-  if (names) {
-    const namesFilters = Array.isArray(names) ? names : [names];
+  if (filters.names) {
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
       result[serviceName] = {
-        events: servicesContracts[serviceName].events.filter((event: {name:string}) => namesFilters.includes(event.name))
+        events: servicesContracts[serviceName].events.filter((event: {name:string}) => filters.names.includes(event.name))
       }
       if (!result[serviceName].events.length)
-      delete result[serviceName];
+        delete result[serviceName];
       return result;
     }, {} as Record<string, ContractsViewModel>)
   }
 
-  res.send(servicesContracts);
+  return servicesContracts;
+}
+
+router.get("/all", async (req, res) => {
+  const servicesDefinitions = await subscriptions().loadServices();
+  const servicesContracts = await getServiceContracts(servicesDefinitions);
+  const {services, names} = req.query;
+
+  const s = services && (Array.isArray(services) ? services as string[] : [services as string]);
+  const n = names && (Array.isArray(names) ? names as string[] : [names as string]);
+  
+  res.send(filterServices(servicesContracts, {
+    services: services && (Array.isArray(services) ? services as string[] : [services as string]),
+    names: names && (Array.isArray(names) ? names as string[] : [names as string]),
+  }));
 })
 
 router.get("/", async (_, res) => {
