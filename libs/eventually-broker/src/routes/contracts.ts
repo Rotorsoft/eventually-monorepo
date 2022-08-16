@@ -6,15 +6,12 @@ import { getServiceContracts } from "../utils";
 export const router = Router();
 
 router.get("/all", async (req, res) => {
-  const services = await subscriptions().loadServices();
-  let servicesContracts = await getServiceContracts(services);
-  const filters = {
-    services: req.query.services,
-    names: req.query.names
-  }
+  const servicesDefinitions = await subscriptions().loadServices();
+  let servicesContracts = await getServiceContracts(servicesDefinitions);
+  const {services, names} = req.query;
 
-  if (filters.services) {
-    const serviceFilters = Array.isArray(filters.services) ? filters.services : [filters.services];
+  if (services) {
+    const serviceFilters = Array.isArray(services) ? services : [services];
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
       if (serviceFilters.includes(serviceName))
       result[serviceName] = servicesContracts[serviceName];
@@ -22,8 +19,8 @@ router.get("/all", async (req, res) => {
     }, {} as Record<string, ContractsViewModel>)
   }
 
-  if (filters.names) {
-    const namesFilters = Array.isArray(filters.names) ? filters.names : [filters.names];
+  if (names) {
+    const namesFilters = Array.isArray(names) ? names : [names];
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
       result[serviceName] = {
         events: servicesContracts[serviceName].events.filter((event: {name:string}) => namesFilters.includes(event.name))
