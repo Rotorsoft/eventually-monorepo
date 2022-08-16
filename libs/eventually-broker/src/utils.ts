@@ -127,7 +127,7 @@ export const getCorrelation = async (
 
 export const getServiceContracts = (
   services: Service[]
-): Promise<{ services: Record<string, ContractsViewModel> }> => {
+): Promise<Record<string, ContractsViewModel>> => {
   return Promise.all(
     services.reduce((acc, service) => {
       if (!service.url.startsWith("http")) return acc;
@@ -146,14 +146,12 @@ export const getServiceContracts = (
       .filter((c) => !!c)
       .reduce(
         (acc, contract) => {
-          acc.services[contract.service.id] = {
-            commands: contract.commands,
+          acc[contract.service.id] = {
             events: contract.events,
-            errors: contract.errors
           };
           return acc;
         },
-        { services: {} } as { services: Record<string, ContractsViewModel> }
+        { } as Record<string, ContractsViewModel>
       );
   });
 };

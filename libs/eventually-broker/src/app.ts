@@ -7,7 +7,7 @@ import path from "path";
 import { AppOptions, subscriptions } from ".";
 import { state } from "./cluster";
 import * as routes from "./routes";
-import { formatDate, formatInt, getServiceContracts } from "./utils";
+import { formatDate, formatInt } from "./utils";
 
 export const app = async ({
   port,
@@ -32,10 +32,6 @@ export const app = async ({
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
 
-  app.get("/event-schemas", async (req, res) => {
-    const events = await getServiceContracts(services)
-    res.send(events);
-  })
   app.use("/_public", express.static(path.resolve(__dirname, "./public")));
   app.engine(
     "hbs",

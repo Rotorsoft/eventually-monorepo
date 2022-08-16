@@ -329,12 +329,9 @@ export class ExpressApp extends AppBase {
               ).properties,
               schemaDescription: schemas[name].description
             });
-          else if (name.endsWith("Error"))
-            acc.errors.push({ ...schemas[name] });
-          else acc.commands.push({ ...schemas[name] });
           return acc;
         },
-        { commands: [], events: [], errors: [] }
+        { events: [] }
       );
       res.json(map);
     });
