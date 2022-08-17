@@ -125,7 +125,7 @@ export type AppOptions = {
  * - services? filter by services
  * - names? filter by event names
  */
- export type AllQuery = {
+export type AllQuery = {
   readonly services?: string[];
   readonly names?: string[];
 };

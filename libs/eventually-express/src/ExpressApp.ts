@@ -286,6 +286,7 @@ export class ExpressApp extends AppBase {
     this._app.use(express.json());
     middleware && this._app.use(middleware);
     this._app.use(this._router);
+
     this._swagger = swagger(this);
     this._app.get("/swagger", (_, res: Response) => {
       res.json(this._swagger);
@@ -335,6 +336,7 @@ export class ExpressApp extends AppBase {
       );
       res.json(map);
     });
+
     this._app.get("/_health", (_, res) => {
       res.status(200).json({ status: "OK", date: new Date().toISOString() });
     });

@@ -133,7 +133,7 @@ export const getServiceContracts = (
       if (!service.url.startsWith("http")) return acc;
       const contractsPromise = axios
         .get<OpenAPIV3_1.Document>(`${service.url}/_contracts`)
-        .then((response) => ({service, ...response.data}))
+        .then((response) => ({ service, ...response.data }))
         .catch((err) => {
           log().error(err);
           return undefined;
@@ -142,21 +142,17 @@ export const getServiceContracts = (
       return acc;
     }, [] as any[])
   ).then((contracts) => {
-    return contracts
-      .filter(Boolean)
-      .reduce(
-        (acc, contract) => {
-          acc[contract.service.id] = {
-            events: contract.events,
-          };
-          return acc;
-        },
-        { } as Record<string, ContractsViewModel>
-      );
+    return contracts.filter(Boolean).reduce((acc, contract) => {
+      acc[contract.service.id] = {
+        events: contract.events
+      };
+      return acc;
+    }, {} as Record<string, ContractsViewModel>);
   });
 };
 
-export const ensureArray = (anyOrArray: any | any[]): any[] => Array.isArray(anyOrArray) ? anyOrArray : [anyOrArray];
+export const ensureArray = (anyOrArray: any | any[]): any[] =>
+  Array.isArray(anyOrArray) ? anyOrArray : [anyOrArray];
 
 // export const safeStringify = (val: any): string => {
 //   let cache: Array<any> = [];

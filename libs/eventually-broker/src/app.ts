@@ -54,6 +54,7 @@ export const app = async ({
   app.use("/favicon.ico", (_, res) => {
     res.sendFile(path.resolve(__dirname, "./public/assets/broker.png"));
   });
+
   app.use("/_services", middleware, routes.services);
   app.use("/_correlation", middleware, routes.correlation);
   app.use("/_contracts", middleware, routes.contracts);
