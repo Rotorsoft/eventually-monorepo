@@ -1,18 +1,18 @@
-import { Router } from "express";
-import { subscriptions } from "..";
+import { Request, Response, Router } from "express";
+import { subscriptions, AllQuery } from "..";
 import { ContractsViewModel } from "../cluster";
 import { getServiceContracts } from "../utils";
 
 export const router = Router();
 
 const filterServices = (servicesContracts: Record<string, ContractsViewModel>, filters: {services?:string[], names?: string[]}): Record<string, ContractsViewModel> => {
-  if (filters.services) {
-    servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
-      if (filters.services.includes(serviceName))
-        result[serviceName] = servicesContracts[serviceName];
-      return result;
-    }, {} as Record<string, ContractsViewModel>)
-  }
+  // if (filters.services) {
+  //   servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
+  //     if (filters.services.includes(serviceName))
+  //       result[serviceName] = servicesContracts[serviceName];
+  //     return result;
+  //   }, {} as Record<string, ContractsViewModel>)
+  // }
 
   if (filters.names) {
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
@@ -28,17 +28,19 @@ const filterServices = (servicesContracts: Record<string, ContractsViewModel>, f
   return servicesContracts;
 }
 
-router.get("/all", async (req, res) => {
+router.get("/all", async (
+    req: Request<any, Record<string, ContractsViewModel>, any, AllQuery> , 
+    res: Response
+  ) => {
   const servicesDefinitions = await subscriptions().loadServices();
-  const servicesContracts = await getServiceContracts(servicesDefinitions);
-  const {services, names} = req.query;
+  let {services, names} = req.query;
+  services = services && (Array.isArray(services) ? services : [services]);
+  names = names && (Array.isArray(names) ? names : [names]);
+  const servicesContracts = await getServiceContracts(servicesDefinitions, services);
 
-  const s = services && (Array.isArray(services) ? services as string[] : [services as string]);
-  const n = names && (Array.isArray(names) ? names as string[] : [names as string]);
-  
   res.send(filterServices(servicesContracts, {
-    services: services && (Array.isArray(services) ? services as string[] : [services as string]),
-    names: names && (Array.isArray(names) ? names as string[] : [names as string]),
+    services: services && (Array.isArray(services) ? services : [services]),
+    names: names && (Array.isArray(names) ? names : [names]),
   }));
 })
 
