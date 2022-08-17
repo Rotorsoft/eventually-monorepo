@@ -6,14 +6,6 @@ import { getServiceContracts } from "../utils";
 export const router = Router();
 
 const filterServices = (servicesContracts: Record<string, ContractsViewModel>, filters: {services?:string[], names?: string[]}): Record<string, ContractsViewModel> => {
-  // if (filters.services) {
-  //   servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
-  //     if (filters.services.includes(serviceName))
-  //       result[serviceName] = servicesContracts[serviceName];
-  //     return result;
-  //   }, {} as Record<string, ContractsViewModel>)
-  // }
-
   if (filters.names) {
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
       result[serviceName] = {
