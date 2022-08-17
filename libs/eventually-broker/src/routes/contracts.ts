@@ -5,11 +5,11 @@ import { ensureArray, getServiceContracts } from "../utils";
 
 export const router = Router();
 
-const filterNames = (servicesContracts: Record<string, ContractsViewModel>, filters: {services?:string[], names?: string[]}): Record<string, ContractsViewModel> => {
-  if (filters.names) {
+const filterNames = (servicesContracts: Record<string, ContractsViewModel>, names?: string[]): Record<string, ContractsViewModel> => {
+  if (names) {
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
       result[serviceName] = {
-        events: servicesContracts[serviceName].events.filter((event: {name:string}) => filters.names.includes(event.name))
+        events: servicesContracts[serviceName].events.filter((event: {name:string}) => names.includes(event.name))
       }
       if (!result[serviceName].events.length)
         delete result[serviceName];
@@ -33,14 +33,11 @@ router.get("/all", async (
   let servicesDefinitions = (await subscriptions().loadServices())
   
   servicesDefinitions = !services ? servicesDefinitions : servicesDefinitions
-    .filter((service) => !services.includes(service.id));
+    .filter((service) => services.includes(service.id));
   
-    const servicesContracts = await getServiceContracts(servicesDefinitions);
+  const servicesContracts = await getServiceContracts(servicesDefinitions);
 
-  res.send(filterNames(servicesContracts, {
-    services: services && (Array.isArray(services) ? services : [services]),
-    names: names && (Array.isArray(names) ? names : [names]),
-  }));
+  res.send(filterNames(servicesContracts, names));
 })
 
 router.get("/", async (_, res) => {
