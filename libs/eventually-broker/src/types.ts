@@ -116,3 +116,16 @@ export type AppOptions = {
   prerouters?: Array<{ path: string; router: Router }>;
   serviceLogLinkTemplate?: string;
 };
+
+//=====================================================================================
+// CONTRACTS QUERY LEVEL
+//=====================================================================================
+/**
+ * Options to query the all services contracts
+ * - services? filter by services
+ * - names? filter by event names
+ */
+ export type AllQuery = {
+  readonly services?: string[];
+  readonly names?: string[];
+};
