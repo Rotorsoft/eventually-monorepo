@@ -1,3 +1,11 @@
+#### 2022-08-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.11...@rotorsoft/eventually-broker-v1.3.12) @rotorsoft/eventually-broker-v1.3.12
+  - PATCH [33e543f0](https://github.com/Rotorsoft/eventually-monorepo/commit/33e543f0fd812ca46e2e375206b5f59ecc7e3bb9) fix: contracts refactoring
+#### 2022-08-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.31...@rotorsoft/eventually-express-v4.0.32) @rotorsoft/eventually-express-v4.0.32
+  - PATCH [33e543f0](https://github.com/Rotorsoft/eventually-monorepo/commit/33e543f0fd812ca46e2e375206b5f59ecc7e3bb9) fix: contracts refactoring
+#### 2022-08-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.10...@rotorsoft/eventually-broker-v1.3.11) @rotorsoft/eventually-broker-v1.3.11
+  - PATCH [7893cb66](https://github.com/Rotorsoft/eventually-monorepo/commit/7893cb66d427f7978453a522bd05eb629878dba2) fix: up cron packages
+#### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.9...@rotorsoft/eventually-broker-v1.3.10) @rotorsoft/eventually-broker-v1.3.10
+  - PATCH [d81c348b](https://github.com/Rotorsoft/eventually-monorepo/commit/d81c348bd2074ca53243132c76181271068bc54e) fix: retryable flag
 #### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.8...@rotorsoft/eventually-broker-v1.3.9) @rotorsoft/eventually-broker-v1.3.9
   - PATCH [ef5aca96](https://github.com/Rotorsoft/eventually-monorepo/commit/ef5aca96ba16027fc2c085c2a6f3e3968ad17742) fix: refactor retry counter
 #### 2022-07-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.7...@rotorsoft/eventually-broker-v1.3.8) @rotorsoft/eventually-broker-v1.3.8

@@ -805,8 +805,8 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-pg": "workspace:^4"
     axios: ^0.26.1
-    cron: ^1.8.3
-    cron-parser: ^4.3.0
+    cron: ^2.1.0
+    cron-parser: ^4.6.0
     cron-validator: ^1.3.1
     express: ^4.17.3
     express-handlebars: ^6.0.3
@@ -836,7 +836,7 @@ __metadata:
   dependencies:
     "@types/chance": ^1
     "@types/cors": ^2.8.12
-    "@types/cron": ^1
+    "@types/cron": ^2.0.0
     "@types/express": ^4.17.13
     "@types/jest": ^27.0.1
     "@types/minimist": ^1
@@ -858,7 +858,7 @@ __metadata:
     pinst: ^3.0.0
     prettier: ^2.6.1
     ts-jest: ^27.1.4
-    ts-node: ^10.8.1
+    ts-node: ^10.9.1
     ts-node-dev: ^2.0.0
     tsconfig-paths: ^3.12.0
     typescript: ^4.6.3
@@ -1042,13 +1042,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cron@npm:^1":
-  version: 1.7.3
-  resolution: "@types/cron@npm:1.7.3"
+"@types/cron@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@types/cron@npm:2.0.0"
   dependencies:
+    "@types/luxon": "*"
     "@types/node": "*"
-    moment: ">=2.14.0"
-  checksum: f271c8624d5c2e8e38f62b66a4741877ffe31aa04ea8a038f117616e2a85196cfcd44edfce55fde91671348dab5b7ed1e65dcd902084243f5e19827b764cd770
+  checksum: 392d2cfca51504140397533c30be8facd2196251074eb26ee09232a7e983144ff1d8364cd64922ed22d142686a4724934a70672fc8353b441fea729ac0ed0611
   languageName: node
   linkType: hard
 
@@ -1133,6 +1133,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/luxon@npm:*":
+  version: 3.0.0
+  resolution: "@types/luxon@npm:3.0.0"
+  checksum: 7738d3f4b91097a8139eca966ab53c6b40bb417b2cc2014c3bbd0aee033d6ff54af14c62046c2eb042434923b6bf796874f24b2af90e07ef422e6d841463d4b2
+  languageName: node
+  linkType: hard
+
 "@types/mime@npm:^1":
   version: 1.3.2
   resolution: "@types/mime@npm:1.3.2"
@@ -1147,14 +1154,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 17.0.36
-  resolution: "@types/node@npm:17.0.36"
-  checksum: 11055fde0a1e1421113849b5e32c7022911efc0be670729947bf0162970e79962d804b1eb8a9afb291380cac97cf0e684511415d586ae5fe1560322c940fe188
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^17.0.40":
+"@types/node@npm:*, @types/node@npm:^17.0.40":
   version: 17.0.40
   resolution: "@types/node@npm:17.0.40"
   checksum: e3b2fe876672fbe4be84ce17773944eb2f5eaba50e2c6c0536bdf6d4972ed6488581580581f154183fdc8f2d56fa42a42e3d6e83b9b71ee25adea16a84765e92
@@ -2162,12 +2162,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron-parser@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "cron-parser@npm:4.3.0"
+"cron-parser@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "cron-parser@npm:4.6.0"
   dependencies:
-    luxon: ^1.28.0
-  checksum: 3559edba22f9f62b7eb72f406bb023dd325b882f50d0becbfd092e4fdcb3899ae49238ad56f440b8f17fb99c96e9ed7c2dc38027eba87ee34b05121a024421c7
+    luxon: ^3.0.1
+  checksum: cef63dee396732a8247c2c55d99512db7ad39797459f4bfd534ce5c18efdbf88b16ae8265c3b2abc40cdfadf8930bb1be6778e6ae664ae70e4ed7f206487d0cd
   languageName: node
   linkType: hard
 
@@ -2178,12 +2178,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron@npm:^1.8.3":
-  version: 1.8.3
-  resolution: "cron@npm:1.8.3"
+"cron@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "cron@npm:2.1.0"
   dependencies:
     luxon: ^1.23.x
-  checksum: e0d88005733426a41203846c6c258bb9a928ab2ebfdbd3e12628dec1bca93314b139b5132594d4bd4ea43f1deb2e8b53a135c4b955310d447c3e1f1a5ed09ea4
+  checksum: 9395875c091f56db7964491c249cb143d2e4ba77560d7132da783943c1b0537ef1814eb8f552c81eda5a2aa153216dd3f5b7ff63e372a68a063fcfafe8231f91
   languageName: node
   linkType: hard
 
@@ -4201,10 +4201,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^1.23.x, luxon@npm:^1.28.0":
+"luxon@npm:^1.23.x":
   version: 1.28.0
   resolution: "luxon@npm:1.28.0"
   checksum: 5250cb9f138b6048eeb0b3a9044a4ac994d0058f680c72a0da4b6aeaec8612460385639cba2b1052ef6d5564879e9ed144d686f26d9d97b38ab920d82e18281c
+  languageName: node
+  linkType: hard
+
+"luxon@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "luxon@npm:3.0.1"
+  checksum: aa966eb919bf95b1bd819cda784d1f6f66e3fb65bd9ec7bf68b6a978eeb4e3e14f7e2275021b473f93b15b6b7ba2e5a30471e53add3929a7e695fcfd6dd40ec8
   languageName: node
   linkType: hard
 
@@ -4426,13 +4433,6 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: a96865108c6c3b1b8e1d5e9f11843de1e077e57737602de1b82030815f311be11f96f09cce59bd5b903d0b29834733e5313f9301e3ed6d6f6fba2eae0df4298f
-  languageName: node
-  linkType: hard
-
-"moment@npm:>=2.14.0":
-  version: 2.29.3
-  resolution: "moment@npm:2.29.3"
-  checksum: 2e780e36d9a1823c08a1b6313cbb08bd01ecbb2a9062095820a34f42c878991ccba53abaa6abb103fd5c01e763724f295162a8c50b7e95b4f1c992ef0772d3f0
   languageName: node
   linkType: hard
 
@@ -5747,9 +5747,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.4.0":
-  version: 10.8.0
-  resolution: "ts-node@npm:10.8.0"
+"ts-node@npm:^10.4.0, ts-node@npm:^10.9.1":
+  version: 10.9.1
+  resolution: "ts-node@npm:10.9.1"
   dependencies:
     "@cspotcode/source-map-support": ^0.8.0
     "@tsconfig/node10": ^1.0.7
@@ -5781,45 +5781,7 @@ __metadata:
     ts-node-script: dist/bin-script.js
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
-  checksum: 1c22dc8dd80d0ba4dd4250b82cc032b63f6fbe8c87f8197cef43e7f9e2d43f5b333b445ed712e3006e24119257b4bff2c46605f7da61ab6f5e9514885d296f0c
-  languageName: node
-  linkType: hard
-
-"ts-node@npm:^10.8.1":
-  version: 10.8.1
-  resolution: "ts-node@npm:10.8.1"
-  dependencies:
-    "@cspotcode/source-map-support": ^0.8.0
-    "@tsconfig/node10": ^1.0.7
-    "@tsconfig/node12": ^1.0.7
-    "@tsconfig/node14": ^1.0.0
-    "@tsconfig/node16": ^1.0.2
-    acorn: ^8.4.1
-    acorn-walk: ^8.1.1
-    arg: ^4.1.0
-    create-require: ^1.1.0
-    diff: ^4.0.1
-    make-error: ^1.1.1
-    v8-compile-cache-lib: ^3.0.1
-    yn: 3.1.1
-  peerDependencies:
-    "@swc/core": ">=1.2.50"
-    "@swc/wasm": ">=1.2.50"
-    "@types/node": "*"
-    typescript: ">=2.7"
-  peerDependenciesMeta:
-    "@swc/core":
-      optional: true
-    "@swc/wasm":
-      optional: true
-  bin:
-    ts-node: dist/bin.js
-    ts-node-cwd: dist/bin-cwd.js
-    ts-node-esm: dist/bin-esm.js
-    ts-node-script: dist/bin-script.js
-    ts-node-transpile-only: dist/bin-transpile.js
-    ts-script: dist/bin-script-deprecated.js
-  checksum: 7d1aa7aa3ae1c0459c4922ed0dbfbade442cfe0c25aebaf620cdf1774f112c8d7a9b14934cb6719274917f35b2c503ba87bcaf5e16a0d39ba0f68ce3e7728363
+  checksum: 090adff1302ab20bd3486e6b4799e90f97726ed39e02b39e566f8ab674fd5bd5f727f43615debbfc580d33c6d9d1c6b1b3ce7d8e3cca3e20530a145ffa232c35
   languageName: node
   linkType: hard
 

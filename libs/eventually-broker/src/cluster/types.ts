@@ -98,8 +98,8 @@ export type SubscriptionViewModel = {
 };
 
 //TODO: Improve types for commands events and errors
-export type ContractsViewModel = {
+export type ContractsViewModel = Partial<{
   commands: any[];
   events: any[];
   errors: any[];
-};
+}>;

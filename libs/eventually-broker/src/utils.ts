@@ -127,63 +127,32 @@ export const getCorrelation = async (
 
 export const getServiceContracts = (
   services: Service[]
-): Promise<{ services: Record<string, ContractsViewModel> }> => {
+): Promise<Record<string, ContractsViewModel>> => {
   return Promise.all(
     services.reduce((acc, service) => {
       if (!service.url.startsWith("http")) return acc;
       const contractsPromise = axios
-        .get<OpenAPIV3_1.Document>(`${service.url}/swagger`, {
-          timeout: HTTP_TIMEOUT
-        })
-        .then((response) => response.data)
-        .then((apiDef) => apiDef?.components?.schemas)
-        .then((schemas: Record<string, any>) => {
-          return Object.keys(schemas).reduce(
-            (acc, name) => {
-              if (
-                schemas[name]?.properties?.name &&
-                schemas[name]?.properties?.id &&
-                schemas[name]?.properties?.stream &&
-                schemas[name]?.properties?.version &&
-                schemas[name]?.properties?.created &&
-                schemas[name]?.properties?.data
-              )
-                acc.events.push({
-                  name,
-                  payload: (
-                    schemas[name].properties.data as OpenAPIV3_1.SchemaObject
-                  ).properties,
-                  service: service.id,
-                  schemaDescription: schemas[name].description
-                });
-              else if (name.endsWith("Error"))
-                acc.errors.push({ ...schemas[name], service: service.id });
-              else acc.commands.push({ ...schemas[name], service: service.id });
-              return acc;
-            },
-            { service, commands: [], events: [], errors: [] }
-          );
-        })
-        .catch(() => undefined);
+        .get<OpenAPIV3_1.Document>(`${service.url}/_contracts`)
+        .then((response) => ({ service, ...response.data }))
+        .catch((err) => {
+          log().error(err);
+          return undefined;
+        });
       acc.push(contractsPromise);
       return acc;
     }, [] as any[])
   ).then((contracts) => {
-    return contracts
-      .filter((c) => !!c)
-      .reduce(
-        (acc, contract) => {
-          acc.services[contract.service.id] = {
-            commands: contract.commands,
-            events: contract.events,
-            errors: contract.errors
-          };
-          return acc;
-        },
-        { services: {} } as { services: Record<string, ContractsViewModel> }
-      );
+    return contracts.filter(Boolean).reduce((acc, contract) => {
+      acc[contract.service.id] = {
+        events: contract.events
+      };
+      return acc;
+    }, {} as Record<string, ContractsViewModel>);
   });
 };
+
+export const ensureArray = (anyOrArray: any | any[]): any[] =>
+  Array.isArray(anyOrArray) ? anyOrArray : [anyOrArray];
 
 // export const safeStringify = (val: any): string => {
 //   let cache: Array<any> = [];
