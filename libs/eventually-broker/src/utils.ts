@@ -126,12 +126,11 @@ export const getCorrelation = async (
 };
 
 export const getServiceContracts = (
-  services: Service[],
-  filter?: string[]
+  services: Service[]
 ): Promise<Record<string, ContractsViewModel>> => {
   return Promise.all(
     services.reduce((acc, service) => {
-      if (!service.url.startsWith("http") || (filter && !filter.includes(service.id))) return acc;
+      if (!service.url.startsWith("http")) return acc;
       const contractsPromise = axios
         .get<OpenAPIV3_1.Document>(`${service.url}/_contracts`)
         .then((response) => ({service, ...response.data}))
@@ -144,7 +143,7 @@ export const getServiceContracts = (
     }, [] as any[])
   ).then((contracts) => {
     return contracts
-      .filter((c) => !!c)
+      .filter(Boolean)
       .reduce(
         (acc, contract) => {
           acc[contract.service.id] = {
@@ -156,6 +155,8 @@ export const getServiceContracts = (
       );
   });
 };
+
+export const ensureArray = (anyOrArray: any | any[]): any[] => Array.isArray(anyOrArray) ? anyOrArray : [anyOrArray];
 
 // export const safeStringify = (val: any): string => {
 //   let cache: Array<any> = [];

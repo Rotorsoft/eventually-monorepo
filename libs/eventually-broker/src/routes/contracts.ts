@@ -1,11 +1,11 @@
 import { Request, Response, Router } from "express";
 import { subscriptions, AllQuery } from "..";
 import { ContractsViewModel } from "../cluster";
-import { getServiceContracts } from "../utils";
+import { ensureArray, getServiceContracts } from "../utils";
 
 export const router = Router();
 
-const filterServices = (servicesContracts: Record<string, ContractsViewModel>, filters: {services?:string[], names?: string[]}): Record<string, ContractsViewModel> => {
+const filterNames = (servicesContracts: Record<string, ContractsViewModel>, filters: {services?:string[], names?: string[]}): Record<string, ContractsViewModel> => {
   if (filters.names) {
     servicesContracts = Object.keys(servicesContracts).reduce((result,  serviceName) => {
       result[serviceName] = {
@@ -21,16 +21,23 @@ const filterServices = (servicesContracts: Record<string, ContractsViewModel>, f
 }
 
 router.get("/all", async (
-    req: Request<any, Record<string, ContractsViewModel>, any, AllQuery> , 
-    res: Response
-  ) => {
-  const servicesDefinitions = await subscriptions().loadServices();
-  let {services, names} = req.query;
-  services = services && (Array.isArray(services) ? services : [services]);
-  names = names && (Array.isArray(names) ? names : [names]);
-  const servicesContracts = await getServiceContracts(servicesDefinitions, services);
+  req: Request<any, Record<string, ContractsViewModel>, any, AllQuery> , 
+  res: Response
+) => {
+  
+  const {services, names} = {
+    services: req.query.services && ensureArray(req.query.services), 
+    names: req.query.names && ensureArray(req.query.services)
+  }
+  
+  let servicesDefinitions = (await subscriptions().loadServices())
+  
+  servicesDefinitions = !services ? servicesDefinitions : servicesDefinitions
+    .filter((service) => !services.includes(service.id));
+  
+    const servicesContracts = await getServiceContracts(servicesDefinitions);
 
-  res.send(filterServices(servicesContracts, {
+  res.send(filterNames(servicesContracts, {
     services: services && (Array.isArray(services) ? services : [services]),
     names: names && (Array.isArray(names) ? names : [names]),
   }));
