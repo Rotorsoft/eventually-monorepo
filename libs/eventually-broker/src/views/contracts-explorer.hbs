@@ -1,6 +1,8 @@
 <script>
-  const state = true; console.log(state);
+  const { contracts } =
+  {{{json this}}}; console.log(contracts);
 </script>
+
 <div class="row">
   <div class="col-6">
     <nav aria-label="breadcrumb">
@@ -11,30 +13,54 @@
   </div>
 </div>
 
-{{#each contracts}}
-  <h3>{{@key}}</h3>
-  <table class="table align-middle">
-    <thead>
-      <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Description</th>
-        <th scope="col">Payload</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each events}}
-        <tr>
-          <td id="{{this.name}}">{{this.name}}</td>
-          <td>{{this.description}}</td>
-          <td id="{{this.name}}-payload" scope="row">
-            <table>
-              {{#each this.properties}}
-                <tr><td>{{@key}}</td><td>{{this.type}}</td></tr>
+<div class="accordion" id="accordion">
+  {{#each contracts}}
+    <div class="accordion-item">
+      <h3 class="accordion-header" id="{{@key}}-header">
+        <button
+          class="accordion-button"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#{{@key}}-body"
+          aria-expanded="true"
+          aria-controls="accordion"
+        >
+          {{@key}}
+        </button>
+      </h3>
+      <div
+        id="{{@key}}-body"
+        class="accordion-collapse collapse show"
+        aria-labelledby="#{{@key}}-header"
+      >
+        <div class="accordion-body">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Description</th>
+                <th scope="col">Payload</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each events}}
+                <tr>
+                  <td id="{{this.name}}">{{this.name}}</td>
+                  <td>{{this.description}}</td>
+                  <td id="{{this.name}}-payload" scope="row">
+                    <table>
+                      {{#each this.properties.data.properties}}
+                        <tr><td>{{@key}}: </td><td><i
+                            >{{this.type}}</i></td></tr>
+                      {{/each}}
+                    </table>
+                  </td>
+                </tr>
               {{/each}}
-            </table>
-          </td>
-        </tr>
-      {{/each}}
-    </tbody>
-  </table>
-{{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {{/each}}
+</div>

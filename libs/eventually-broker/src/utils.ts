@@ -104,11 +104,9 @@ const getEvent = (
 ): (OpenAPIV3_1.SchemaObject & { name: string }) | undefined =>
   schema?.properties?.name &&
   "enum" in schema?.properties?.name &&
-  schema?.properties?.id &&
-  schema?.properties?.stream &&
-  schema?.properties?.version &&
   schema?.properties?.created &&
-  schema?.properties?.data
+  schema?.properties?.data &&
+  "properties" in schema?.properties?.data
     ? { ...schema, name: schema.properties.name.enum[0] }
     : undefined;
 
