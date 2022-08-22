@@ -1,3 +1,4 @@
+import { OpenAPIV3_1 } from "openapi-types";
 import { PushChannel } from "../interfaces";
 import { Operation, Subscription, TriggerPayload } from "../types";
 
@@ -100,6 +101,6 @@ export type SubscriptionViewModel = {
 //TODO: Improve types for commands events and errors
 export type ContractsViewModel = Partial<{
   commands: any[];
-  events: any[];
+  events: Array<OpenAPIV3_1.SchemaObject & { name: string }>;
   errors: any[];
 }>;

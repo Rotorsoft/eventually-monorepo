@@ -13,8 +13,8 @@ const filterNames = (
     servicesContracts = Object.keys(servicesContracts).reduce(
       (result, serviceName) => {
         result[serviceName] = {
-          events: servicesContracts[serviceName].events.filter(
-            (event: { name: string }) => names.includes(event.name)
+          events: servicesContracts[serviceName].events.filter((event) =>
+            names.includes(event.name)
           )
         };
         if (!result[serviceName].events.length) delete result[serviceName];
@@ -35,7 +35,7 @@ router.get(
   ) => {
     const { services, names }: AllQuery = {
       services: req.query.services && ensureArray(req.query.services),
-      names: req.query.names && ensureArray(req.query.services)
+      names: req.query.names && ensureArray(req.query.names)
     };
 
     let servicesDefinitions = await subscriptions().loadServices();
@@ -52,10 +52,6 @@ router.get(
 
 router.get("/", async (_, res) => {
   const services = await subscriptions().loadServices();
-  const servicesContracts = await getServiceContracts(services);
-  const events = Object.keys(servicesContracts).reduce((acc, serviceName) => {
-    acc = acc.concat(servicesContracts[serviceName].events);
-    return acc;
-  }, []);
-  res.render("contracts-explorer", { events });
+  const contracts = await getServiceContracts(services);
+  res.render("contracts-explorer", { contracts });
 });

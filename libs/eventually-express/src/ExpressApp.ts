@@ -70,7 +70,7 @@ export class ExpressApp extends AppBase {
   private _server: Server;
   private _swagger: OpenAPIV3_1.Document;
 
-  public getSwagger(): any {
+  public getSwagger(): OpenAPIV3_1.Document {
     return this._swagger;
   }
 
@@ -311,32 +311,6 @@ export class ExpressApp extends AppBase {
     this._app.get("/_endpoints", (_, res) => {
       res.json(this.endpoints);
     });
-    this._app.get("/_contracts", (_, res) => {
-      const schemas = this._swagger.components?.schemas;
-      const map = Object.keys(schemas).reduce(
-        (acc, name) => {
-          if (
-            schemas[name]?.properties?.name &&
-            schemas[name]?.properties?.id &&
-            schemas[name]?.properties?.stream &&
-            schemas[name]?.properties?.version &&
-            schemas[name]?.properties?.created &&
-            schemas[name]?.properties?.data
-          )
-            acc.events.push({
-              name,
-              payload: (
-                schemas[name].properties.data as OpenAPIV3_1.SchemaObject
-              ).properties,
-              schemaDescription: schemas[name].description
-            });
-          return acc;
-        },
-        { events: [] }
-      );
-      res.json(map);
-    });
-
     this._app.get("/_health", (_, res) => {
       res.status(200).json({ status: "OK", date: new Date().toISOString() });
     });

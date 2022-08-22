@@ -14,6 +14,7 @@ import {
 import * as fs from "fs";
 import * as joi from "joi";
 import j2s, { ComponentsSchema } from "joi-to-swagger";
+import { OpenAPIV3_1 } from "openapi-types";
 
 type Security = {
   schemes: Record<string, any>;
@@ -32,7 +33,7 @@ const getSecurity = (): Security => {
   }
 };
 
-export const swagger = (app: Builder): any => {
+export const swagger = (app: Builder): OpenAPIV3_1.Document => {
   const getSchemas = (): void => {
     Object.entries(app.messages).map(
       ([name, { schema, commandHandlerFactory }]) => {
@@ -55,6 +56,7 @@ export const swagger = (app: Builder): any => {
               data
             })
           ).swagger;
+          components.schemas[name].name = name;
           components.schemas[name].description = description;
         }
       }
@@ -389,7 +391,7 @@ export const swagger = (app: Builder): any => {
     }
   };
   const tags: { name: string; description: string }[] = [];
-  const paths: Record<string, any> = {};
+  const paths: Record<string, OpenAPIV3_1.PathItemObject> = {};
 
   if (app.hasStreams) {
     paths["/stats"] = {

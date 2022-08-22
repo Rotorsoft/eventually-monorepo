@@ -52,6 +52,12 @@ export const isAdmin = (req: Request): boolean | undefined => {
 
 const HTTP_TIMEOUT = 5000;
 
+/**
+ * Loads service endpoints metadata
+ *
+ * @param service The service
+ * @returns The endpoints payload
+ */
 export const getServiceEndpoints = async (
   service: Service
 ): Promise<Endpoints | undefined> => {
@@ -62,11 +68,83 @@ export const getServiceEndpoints = async (
       timeout: HTTP_TIMEOUT
     });
     return data;
-  } catch {
+  } catch (err) {
+    log().error(err);
     return undefined;
   }
 };
 
+/**
+ * Loads service swagger metadata
+ *
+ * @param service The service
+ * @returns The endpoints payload
+ */
+export const getServiceSwagger = async (
+  service: Service
+): Promise<OpenAPIV3_1.Document | undefined> => {
+  try {
+    const url = new URL(service.url);
+    if (!url.protocol.startsWith("http")) return undefined;
+    const { data } = await axios.get<OpenAPIV3_1.Document>(
+      `${url.origin}/swagger`,
+      {
+        timeout: HTTP_TIMEOUT
+      }
+    );
+    return data;
+  } catch (err) {
+    log().error(err);
+    return undefined;
+  }
+};
+
+const getEvent = (
+  schema: OpenAPIV3_1.SchemaObject
+): (OpenAPIV3_1.SchemaObject & { name: string }) | undefined =>
+  schema?.properties?.name &&
+  "enum" in schema?.properties?.name &&
+  schema?.properties?.id &&
+  schema?.properties?.stream &&
+  schema?.properties?.version &&
+  schema?.properties?.created &&
+  schema?.properties?.data
+    ? { ...schema, name: schema.properties.name.enum[0] }
+    : undefined;
+
+const getSchemas = (swagger: OpenAPIV3_1.Document): ContractsViewModel =>
+  Object.values(swagger?.components?.schemas || {}).reduce(
+    (acc, schema) => {
+      const event = getEvent(schema);
+      event && acc.events.push(event);
+      return acc;
+    },
+    { events: [] as Array<OpenAPIV3_1.SchemaObject & { name: string }> }
+  );
+
+/**
+ * Loads service contract metadata
+ * @param services The services
+ * @returns The contracts
+ */
+export const getServiceContracts = async (
+  services: Service[]
+): Promise<Record<string, ContractsViewModel>> => {
+  const swaggers = await Promise.all(
+    services.map(async (service) => {
+      const document = await getServiceSwagger(service);
+      return { service, document };
+    })
+  );
+  return swaggers.filter(Boolean).reduce((acc, swagger) => {
+    acc[swagger.service.id] = getSchemas(swagger.document);
+    return acc;
+  }, {} as Record<string, ContractsViewModel>);
+};
+
+/**
+ * Correlation types
+ */
 type CorrelationMessage = {
   name: string;
   id: number | string;
@@ -78,6 +156,12 @@ type Correlation = CorrelationMessage & {
   service: string;
   causation?: CorrelationMessage;
 };
+/**
+ * Gets correlation metadata
+ * @param correlation The correlation id
+ * @param services The services to search
+ * @returns The correlation metadata
+ */
 export const getCorrelation = async (
   correlation: string,
   services: Service[]
@@ -125,32 +209,11 @@ export const getCorrelation = async (
   return all.flat().sort((a, b) => a.created.getTime() - b.created.getTime());
 };
 
-export const getServiceContracts = (
-  services: Service[]
-): Promise<Record<string, ContractsViewModel>> => {
-  return Promise.all(
-    services.reduce((acc, service) => {
-      if (!service.url.startsWith("http")) return acc;
-      const contractsPromise = axios
-        .get<OpenAPIV3_1.Document>(`${service.url}/_contracts`)
-        .then((response) => ({ service, ...response.data }))
-        .catch((err) => {
-          log().error(err);
-          return undefined;
-        });
-      acc.push(contractsPromise);
-      return acc;
-    }, [] as any[])
-  ).then((contracts) => {
-    return contracts.filter(Boolean).reduce((acc, contract) => {
-      acc[contract.service.id] = {
-        events: contract.events
-      };
-      return acc;
-    }, {} as Record<string, ContractsViewModel>);
-  });
-};
-
+/**
+ * Ensures argument is returned as an array
+ * @param anyOrArray The argument
+ * @returns The ensured array
+ */
 export const ensureArray = (anyOrArray: any | any[]): any[] =>
   Array.isArray(anyOrArray) ? anyOrArray : [anyOrArray];
 

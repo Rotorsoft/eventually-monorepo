@@ -1,6 +1,5 @@
 <script>
-  const state = true;
-  console.log(state);
+  const state = true; console.log(state);
 </script>
 <div class="row">
   <div class="col-6">
@@ -10,40 +9,32 @@
       </ol>
     </nav>
   </div>
-  {{!-- <div class="col-6 d-flex justify-content-end">
-    <a href="#" type="button" class="btn btn-primary align-self-center"><i
-        class="bi bi-plus"
-      ></i>
-      Add</a>
-  </div> --}}
 </div>
-<h1>Events</h1>
-<table class="table align-middle">
-  <thead>
-    <tr>
-      <th scope="col">Service</th>
-      <th scope="col">Name</th>
-      <th scope="col">Description</th>
-      <th scope="col">Payload</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each events}}
-      <tr>
-        <td>{{this.service}}</td>
-        <td id="{{this.name}}">{{this.name}}</td>
-        <td>{{this.schemaDescription}}</td>
-        <td id="{{this.name}}-payload" scope="row">
-          <table>
-            {{#each this.payload}}
-            <tr><td>{{@key}}</td><td>{{this.type}}</td></tr>
-            {{/each}}
-          </table>
-        </td>
-      </tr>
-    {{/each}}
-  </tbody>
-</table>
 
-<h1>Commands</h1>
-<h1>Errors</h1>
+{{#each contracts}}
+  <h3>{{@key}}</h3>
+  <table class="table align-middle">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th scope="col">Payload</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each events}}
+        <tr>
+          <td id="{{this.name}}">{{this.name}}</td>
+          <td>{{this.description}}</td>
+          <td id="{{this.name}}-payload" scope="row">
+            <table>
+              {{#each this.properties}}
+                <tr><td>{{@key}}</td><td>{{this.type}}</td></tr>
+              {{/each}}
+            </table>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+{{/each}}

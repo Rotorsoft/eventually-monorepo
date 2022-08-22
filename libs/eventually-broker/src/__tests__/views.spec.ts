@@ -51,12 +51,24 @@ describe("views", () => {
       "/_add",
       "/_services/_add",
       "/s1",
-      "/_services/s1",
+      "/_services/s1"
+    ];
+    const responses = await Promise.all(paths.map((path) => get(path, port)));
+    responses.map((response) => {
+      expect(response.status).toBe(200);
+    });
+  });
+
+  it("should get 2", async () => {
+    const paths = [
       "/_wait/s1",
       "/_refresh/s1",
       "/_toggle/s1",
       "/_graph",
       "/_contracts",
+      "/_contracts/all",
+      "/_contracts/all?names=b",
+      "/_contracts/all?services=a&names=b",
       "/_correlation/aZCNKNr3HP5pQRWIxvj3XeoZ"
     ];
     const responses = await Promise.all(paths.map((path) => get(path, port)));
