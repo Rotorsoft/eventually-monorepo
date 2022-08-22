@@ -1,3 +1,7 @@
+#### 2022-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.12...@rotorsoft/eventually-broker-v1.3.13) @rotorsoft/eventually-broker-v1.3.13
+  - PATCH [c6a44252](https://github.com/Rotorsoft/eventually-monorepo/commit/c6a442521d6811f2c64e0aac059e4b867927c0da) fix: refactor contracts
+#### 2022-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.32...@rotorsoft/eventually-express-v4.0.33) @rotorsoft/eventually-express-v4.0.33
+  - PATCH [c6a44252](https://github.com/Rotorsoft/eventually-monorepo/commit/c6a442521d6811f2c64e0aac059e4b867927c0da) fix: refactor contracts
 #### 2022-08-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.11...@rotorsoft/eventually-broker-v1.3.12) @rotorsoft/eventually-broker-v1.3.12
   - PATCH [33e543f0](https://github.com/Rotorsoft/eventually-monorepo/commit/33e543f0fd812ca46e2e375206b5f59ecc7e3bb9) fix: contracts refactoring
 #### 2022-08-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.31...@rotorsoft/eventually-express-v4.0.32) @rotorsoft/eventually-express-v4.0.32
