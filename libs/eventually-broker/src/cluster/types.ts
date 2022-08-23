@@ -99,8 +99,12 @@ export type SubscriptionViewModel = {
 };
 
 //TODO: Improve types for commands events and errors
+export type ExtendedSchemaObject = OpenAPIV3_1.SchemaObject & {
+  name: string;
+  refs?: string[];
+};
 export type ContractsViewModel = Partial<{
   commands: any[];
-  events: Array<OpenAPIV3_1.SchemaObject & { name: string }>;
+  events: ExtendedSchemaObject[];
   errors: any[];
 }>;

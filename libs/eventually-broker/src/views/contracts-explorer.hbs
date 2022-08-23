@@ -15,52 +15,62 @@
 
 <div class="accordion" id="accordion">
   {{#each contracts}}
-    <div class="accordion-item">
-      <h3 class="accordion-header" id="{{@key}}-header">
-        <button
-          class="accordion-button"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#{{@key}}-body"
-          aria-expanded="true"
-          aria-controls="accordion"
+    {{#if this.events.length}}
+      <div class="accordion-item">
+        <h3 class="accordion-header" id="{{@key}}-header">
+          <button
+            class="accordion-button"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#{{@key}}-body"
+            aria-expanded="true"
+            aria-controls="accordion"
+          >
+            [{{this.events.length}}]
+            {{@key}}
+          </button>
+        </h3>
+        <div
+          id="{{@key}}-body"
+          class="accordion-collapse collapse show"
+          aria-labelledby="#{{@key}}-header"
         >
-          {{@key}}
-        </button>
-      </h3>
-      <div
-        id="{{@key}}-body"
-        class="accordion-collapse collapse show"
-        aria-labelledby="#{{@key}}-header"
-      >
-        <div class="accordion-body">
-          <table class="table align-middle">
-            <thead>
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Description</th>
-                <th scope="col">Payload</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{#each events}}
+          <div class="accordion-body">
+            <table class="table">
+              <thead>
                 <tr>
-                  <td id="{{this.name}}">{{this.name}}</td>
-                  <td>{{this.description}}</td>
-                  <td id="{{this.name}}-payload" scope="row">
-                    <table>
-                      {{#each this.properties.data.properties}}
-                        <tr><td>{{@key}}: </td><td><i
-                            >{{this.type}}</i></td></tr>
-                      {{/each}}
-                    </table>
-                  </td>
+                  <th scope="col">Name</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Consumer Paths</th>
+                  <th scope="col">Payload</th>
                 </tr>
-              {{/each}}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {{#each events}}
+                  <tr>
+                    <td id="{{this.name}}"><b>{{this.name}}</b></td>
+                    <td><span>{{this.description}}</span></td>
+                    <td>
+                      <ul>
+                        {{#each this.refs}}
+                          <li>{{this}}</li>
+                        {{/each}}
+                      </ul>
+                    </td>
+                    <td id="{{this.name}}-payload" scope="row">
+                      <ul>
+                        {{#each this.properties.data.properties}}
+                          <li>{{@key}}:<i>{{this.type}}</i></li>
+                        {{/each}}
+                      </ul>
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    {{/if}}
   {{/each}}
 </div>

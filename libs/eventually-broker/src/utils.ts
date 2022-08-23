@@ -8,7 +8,7 @@ import {
 import axios from "axios";
 import { Request } from "express";
 import { OpenAPIV3_1 } from "openapi-types";
-import { ContractsViewModel } from "./cluster";
+import { ContractsViewModel, ExtendedSchemaObject } from "./cluster";
 import { Service } from "./types";
 
 const usnf = new Intl.NumberFormat("en-US");
@@ -101,7 +101,7 @@ export const getServiceSwagger = async (
 
 const getEvent = (
   schema: OpenAPIV3_1.SchemaObject
-): (OpenAPIV3_1.SchemaObject & { name: string }) | undefined =>
+): ExtendedSchemaObject | undefined =>
   schema?.properties?.name &&
   "enum" in schema?.properties?.name &&
   schema?.properties?.created &&
@@ -110,15 +110,51 @@ const getEvent = (
     ? { ...schema, name: schema.properties.name.enum[0] }
     : undefined;
 
-const getSchemas = (swagger: OpenAPIV3_1.Document): ContractsViewModel =>
-  Object.values(swagger?.components?.schemas || {}).reduce(
+const getRefs = (object: unknown, refs: string[]): void => {
+  if (typeof object === "object") {
+    Object.entries(object).forEach(([key, value]) => {
+      if (key !== "$ref") getRefs(value, refs);
+      else if (typeof value === "string") refs.push(value);
+    });
+  }
+};
+
+const SCHEMA = "#/components/schemas/";
+const getSchemas = (swagger: OpenAPIV3_1.Document): ContractsViewModel => {
+  const postRefs: Record<string, string[]> = {};
+  Object.entries(swagger?.paths || {}).map(([path, methods]) => {
+    return Object.entries(methods).map(([method, operation]) => {
+      if (
+        method === "post" &&
+        typeof operation === "object" &&
+        "requestBody" in operation
+      ) {
+        // just find #ref properties inside this body
+        postRefs[path] = [];
+        return getRefs(operation.requestBody, postRefs[path]);
+      }
+    });
+  });
+  const schemaRefs = Object.entries(postRefs).reduce((acc, [path, refs]) => {
+    refs.forEach((ref) => {
+      if (ref.startsWith(SCHEMA)) {
+        const schema = ref.substring(SCHEMA.length);
+        acc[schema] = acc[schema] || [];
+        acc[schema].push(path);
+      }
+    });
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  return Object.values(swagger?.components?.schemas || {}).reduce(
     (acc, schema) => {
       const event = getEvent(schema);
-      event && acc.events.push(event);
+      event && acc.events.push({ ...event, refs: schemaRefs[event.name] });
       return acc;
     },
-    { events: [] as Array<OpenAPIV3_1.SchemaObject & { name: string }> }
+    { events: [] as Array<ExtendedSchemaObject> }
   );
+};
 
 /**
  * Loads service contract metadata
