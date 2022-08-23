@@ -1,3 +1,5 @@
+#### 2022-08-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.14...@rotorsoft/eventually-broker-v1.3.15) @rotorsoft/eventually-broker-v1.3.15
+  - PATCH [62492754](https://github.com/Rotorsoft/eventually-monorepo/commit/62492754ff556930b11642e261c0655221074366) fix: add refs to contracts
 #### 2022-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.13...@rotorsoft/eventually-broker-v1.3.14) @rotorsoft/eventually-broker-v1.3.14
   - PATCH [97556588](https://github.com/Rotorsoft/eventually-monorepo/commit/97556588a8ca8d9db2a9615bc96051960ac38a1a) fix: show contracts in accordion
 #### 2022-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.12...@rotorsoft/eventually-broker-v1.3.13) @rotorsoft/eventually-broker-v1.3.13
