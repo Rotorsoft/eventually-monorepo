@@ -1,0 +1,36 @@
+{{#if itemtype}}
+<div class="itemtype">[{{@key}}] {{itemtype}}</div>
+{{else}}
+<div class="field">
+    <span class="{{or item.flags.presence presence}}">{{@key}}</span>
+    <span class="type">{{this.type}}</span>
+    <div class="desc">{{this.flags.description}}</div>
+    <div class="rules">
+        {{#if this.rules}}
+            <div>
+            rules:
+            {{#each this.rules}}
+                {{this.name}}{{{json this.args}}}
+            {{/each}}
+            </div>
+        {{/if}}
+        {{#if this.allow}}
+            <div>
+            allow: {{{json this.allow}}}
+            </div>
+        {{/if}}
+    </div>  
+</div>
+{{/if}}
+
+{{#if (eq item.type "object")}}  
+    <div class="indent">
+        {{#each item.keys}}
+            {{> schema item=this presence=(or item.flags.presence ../item.flags.presence)}}
+        {{/each}}
+    </div>
+{{else if (eq item.type "array")}}
+    {{#each this.items}}
+        {{> schema item=this itemtype=this.type presence=(or item.flags.presence ../item.flags.presence)}}
+    {{/each}}
+{{/if}}

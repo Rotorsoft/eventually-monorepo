@@ -1,36 +1,36 @@
-{{#if itemtype}}
-<div class="itemtype">[{{@key}}] {{itemtype}}</div>
-{{else}}
-<div class="field">
-    <span class="{{or item.flags.presence presence}}">{{@key}}</span>
-    <span class="type">{{this.type}}</span>
-    <div class="desc">{{this.flags.description}}</div>
-    <div class="rules">
-        {{#if this.rules}}
-            <div>
-            rules:
-            {{#each this.rules}}
-                {{this.name}}{{{json this.args}}}
-            {{/each}}
-            </div>
-        {{/if}}
-        {{#if this.allow}}
-            <div>
-            allow: {{{json this.allow}}}
-            </div>
-        {{/if}}
-    </div>  
-</div>
-{{/if}}
-
-{{#if (eq item.type "object")}}  
+{{#if (eq field.type "object")}}  
+    {{#if name}}
+        <span class="{{required}}">{{name}}</span>
+    {{/if}}
+    <span>&lbrace;</span>
     <div class="indent">
-        {{#each item.keys}}
-            {{> schema item=this presence=(or item.flags.presence ../item.flags.presence)}}
+        {{#each field.properties}}
+            {{#if (includes ../field.required @key) }}
+                {{> schema name=@key field=this required="required" }}
+            {{else}}
+                {{> schema name=@key field=this }}
+            {{/if}}
         {{/each}}
     </div>
-{{else if (eq item.type "array")}}
-    {{#each this.items}}
-        {{> schema item=this itemtype=this.type presence=(or item.flags.presence ../item.flags.presence)}}
-    {{/each}}
+    <span>&rbrace;</span>
+{{else if (eq field.type "array")}}
+    <span class="{{required}}">{{name}}</span>
+    <span>&lbrack;</span>
+    <div class="indent">
+        {{> schema field=field.items name="" }}
+    </div>
+    <span>&rbrack;</span>
+{{else}}
+<div>
+    <span class="{{required}}">{{name}}</span>
+    <span class="type">{{field.type}}</span>
+    {{#if field.format}}
+        <span class="format">{{field.format}}</span>
+    {{/if}}
+    {{#if field.enum}}
+        <div class="rules">
+        {{{json field.enum}}}
+        </div>
+    {{/if}}
+</div>
 {{/if}}

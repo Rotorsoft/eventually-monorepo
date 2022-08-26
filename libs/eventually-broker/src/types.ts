@@ -1,7 +1,25 @@
 import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { RequestHandler, Router } from "express";
-import Joi from "joi";
+import { OpenAPIV3_1 } from "openapi-types";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
+
+export type ExtendedSchemaObject = OpenAPIV3_1.SchemaObject & {
+  name: string;
+  refs?: string[];
+};
+
+export type ExtendedPathItemObject = OpenAPIV3_1.PathItemObject & {
+  path: string;
+  refs?: string[];
+};
+
+export type ServiceSpec = {
+  discovered?: Date;
+  version?: string;
+  eventHandlers?: Record<string, ExtendedPathItemObject>;
+  commandHandlers?: Record<string, ExtendedPathItemObject>;
+  schemas?: Record<string, ExtendedSchemaObject>;
+};
 
 /**
  * Services
@@ -11,12 +29,6 @@ import { ChannelResolvers, SubscriptionStore } from "./interfaces";
  * - `position` The position in the channel - last trigger id
  * - `updated` The last update timestamp
  */
-export type Contract = {
-  path: string;
-  name: string;
-  type: string;
-  events: string[];
-};
 export type Service = {
   id: string;
   channel: string;
@@ -25,12 +37,7 @@ export type Service = {
   updated: Date;
   status?: string;
   label?: string;
-  discovered?: boolean;
-  version?: string;
-  eventHandlers?: Record<string, Contract>;
-  commandHandlers?: Record<string, Contract>;
-  schemas?: Record<string, Joi.Description>;
-};
+} & ServiceSpec;
 
 /**
  * Subscriptions connect producer and consumer services using pattern matching rules

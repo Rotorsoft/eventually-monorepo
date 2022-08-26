@@ -9,7 +9,8 @@ import {
   RetryableHttpStatus
 } from ".";
 import { Operation, Service, Subscription, subscriptions } from "..";
-import { getServiceEndpoints, loop } from "../utils";
+import { refreshServiceSpec } from "../specs";
+import { loop } from "../utils";
 import { ServiceWithWorker, State, StateOptions } from "./interfaces";
 import {
   WorkerConfig,
@@ -34,7 +35,7 @@ export const toViewModel = (
   const events =
     (consumer &&
       consumer.eventHandlers &&
-      consumer.eventHandlers["/".concat(path)]?.events) ||
+      consumer.eventHandlers["/".concat(path)]?.refs) ||
     [];
   const eventsMap = events.reduce((map, name) => {
     map[name] = emptyEventModel(name, true);
@@ -308,42 +309,13 @@ export const state = singleton(function state(): State {
   const discover = async (service: Service): Promise<void> => {
     try {
       if (!service) return;
-      service.discovered = false;
-      service.eventHandlers = {};
-      service.commandHandlers = {};
-      service.schemas = {};
-      const endpoints = await getServiceEndpoints(service);
-      if (endpoints) {
-        service.discovered = true;
-        service.version = endpoints.version;
-        endpoints.eventHandlers &&
-          Object.entries(endpoints.eventHandlers).forEach(([name, value]) => {
-            service.eventHandlers[value.path] = {
-              name,
-              path: value.path,
-              type: value.type,
-              events: value.events
-            };
-          });
-
-        endpoints.commandHandlers &&
-          Object.entries(endpoints.commandHandlers).forEach(([type, value]) => {
-            Object.entries(value.commands).forEach(([name, path]) => {
-              service.commandHandlers[path] = {
-                name,
-                path,
-                type: `${value.type} ${type}`,
-                events: value.events
-              };
-            });
-          });
-
-        endpoints.schemas &&
-          Object.entries(endpoints.schemas).forEach(([name, value]) => {
-            service.schemas[name] = value;
-          });
+      if (
+        !service.discovered ||
+        Date.now() - service.discovered.getTime() > 30 * 1000
+      ) {
+        await refreshServiceSpec(service);
+        emitService(service);
       }
-      emitService(service);
     } catch (error) {
       log().error(error);
     }

@@ -1,6 +1,10 @@
-import { OpenAPIV3_1 } from "openapi-types";
 import { PushChannel } from "../interfaces";
-import { Operation, Subscription, TriggerPayload } from "../types";
+import {
+  ExtendedSchemaObject,
+  Operation,
+  Subscription,
+  TriggerPayload
+} from "../types";
 
 // 404 - Not Found
 // 429 - Too Many Requests
@@ -98,13 +102,6 @@ export type SubscriptionViewModel = {
   events: EventsViewModel[];
 };
 
-//TODO: Improve types for commands events and errors
-export type ExtendedSchemaObject = OpenAPIV3_1.SchemaObject & {
-  name: string;
-  refs?: string[];
-};
-export type ContractsViewModel = Partial<{
-  commands: any[];
+export type ContractsViewModel = {
   events: ExtendedSchemaObject[];
-  errors: any[];
-}>;
+};

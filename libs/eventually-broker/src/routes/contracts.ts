@@ -1,30 +1,27 @@
 import { Request, Response, Router } from "express";
-import { subscriptions, AllQuery } from "..";
-import { ContractsViewModel } from "../cluster";
-import { ensureArray, getServiceContracts } from "../utils";
+import { AllQuery, Service } from "..";
+import { ContractsViewModel, state } from "../cluster";
+import { ensureArray } from "../utils";
 
 export const router = Router();
 
-const filterNames = (
-  servicesContracts: Record<string, ContractsViewModel>,
+const getContracts = async (
+  services: Service[],
   names?: string[]
-): Record<string, ContractsViewModel> => {
-  if (names) {
-    servicesContracts = Object.keys(servicesContracts).reduce(
-      (result, serviceName) => {
-        result[serviceName] = {
-          events: servicesContracts[serviceName].events.filter((event) =>
-            names.includes(event.name)
+): Promise<Record<string, ContractsViewModel>> => {
+  await Promise.all(services.map((service) => state().discover(service)));
+  return Object.assign(
+    {},
+    ...services
+      .filter((service) => service.schemas)
+      .map((service) => ({
+        [service.id]: {
+          events: Object.values(service.schemas).filter(
+            (schema) => !names || names.includes(schema.name)
           )
-        };
-        if (!result[serviceName].events.length) delete result[serviceName];
-        return result;
-      },
-      {} as Record<string, ContractsViewModel>
-    );
-  }
-
-  return servicesContracts;
+        }
+      }))
+  );
 };
 
 router.get(
@@ -37,21 +34,17 @@ router.get(
       services: req.query.services && ensureArray(req.query.services),
       names: req.query.names && ensureArray(req.query.names)
     };
-
-    let servicesDefinitions = await subscriptions().loadServices();
-
-    servicesDefinitions = !services
-      ? servicesDefinitions
-      : servicesDefinitions.filter((service) => services.includes(service.id));
-
-    const servicesContracts = await getServiceContracts(servicesDefinitions);
-
-    res.send(filterNames(servicesContracts, names));
+    const contracts = await getContracts(
+      state()
+        .services()
+        .filter((s) => !services || services.includes(s.id)),
+      names
+    );
+    res.send(contracts);
   }
 );
 
 router.get("/", async (_, res) => {
-  const services = await subscriptions().loadServices();
-  const contracts = await getServiceContracts(services);
+  const contracts = await getContracts(state().services());
   res.render("contracts-explorer", { contracts });
 });
