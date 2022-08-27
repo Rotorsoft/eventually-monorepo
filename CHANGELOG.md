@@ -1,3 +1,5 @@
+#### 2022-08-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.16...@rotorsoft/eventually-broker-v1.3.17) @rotorsoft/eventually-broker-v1.3.17
+  - PATCH [1e840e92](https://github.com/Rotorsoft/eventually-monorepo/commit/1e840e92864db298ea6e2494b30cfb3be6ae01a0) fix: enhance contract viewer, decouple discovery
 #### 2022-08-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.15...@rotorsoft/eventually-broker-v1.3.16) @rotorsoft/eventually-broker-v1.3.16
   - PATCH [3b724123](https://github.com/Rotorsoft/eventually-monorepo/commit/3b7241234d06762091ab6a4a32cca07586b31c2f) fix: refactor contract view (#31)
 #### 2022-08-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.14...@rotorsoft/eventually-broker-v1.3.15) @rotorsoft/eventually-broker-v1.3.15
