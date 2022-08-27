@@ -149,7 +149,6 @@ describe("cluster", () => {
     state().onExit(1, 1, "");
     const services = state().services();
     toViewModel(subState, services[0], services[0]);
-    state().discoverServices();
   });
 
   it("should work", async () => {

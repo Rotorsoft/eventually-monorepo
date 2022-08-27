@@ -313,7 +313,7 @@ export const state = singleton(function state(): State {
         !service.discovered ||
         Date.now() - service.discovered.getTime() > 30 * 1000
       ) {
-        await refreshServiceSpec(service);
+        await refreshServiceSpec(service, _options.apiKey);
         emitService(service);
       }
     } catch (error) {
@@ -407,8 +407,6 @@ export const state = singleton(function state(): State {
       Object.values(_services)
         .filter(Boolean)
         .sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0)),
-    discoverServices,
-    discover,
     init: async (services: Service[], options: StateOptions): Promise<void> => {
       _options = options;
       const cores = cpus().length;
@@ -423,6 +421,7 @@ export const state = singleton(function state(): State {
           return run(service.id);
         })
       );
+      discoverServices();
     },
     serviceLogLink: (id: string): string =>
       _options.serviceLogLinkTemplate &&

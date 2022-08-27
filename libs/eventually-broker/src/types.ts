@@ -122,6 +122,7 @@ export type AppOptions = {
   middleware?: RequestHandler[];
   prerouters?: Array<{ path: string; router: Router }>;
   serviceLogLinkTemplate?: string;
+  apiKey?: string;
 };
 
 //=====================================================================================

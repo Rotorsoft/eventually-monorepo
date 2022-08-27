@@ -36,20 +36,21 @@ const HTTP_TIMEOUT = 5000;
  * Loads service swagger metadata
  *
  * @param service The service
- * @returns The endpoints payload
+ * @returns The swagger json document spec
  */
 const getServiceSwagger = async (
-  service: Service
+  service: Service,
+  apiKey?: string
 ): Promise<OpenAPIV3_1.Document | undefined> => {
   try {
     const url = new URL(service.url);
     if (!url.protocol.startsWith("http")) return undefined;
-    const { data } = await axios.get<OpenAPIV3_1.Document>(
-      `${url.origin}/swagger`,
-      {
-        timeout: HTTP_TIMEOUT
-      }
-    );
+    const path = `${url.origin}/swagger${
+      apiKey ? "?apikey=".concat(apiKey) : ""
+    }`;
+    const { data } = await axios.get<OpenAPIV3_1.Document>(path, {
+      timeout: HTTP_TIMEOUT
+    });
     return data;
   } catch (err) {
     log().error(err);
@@ -147,7 +148,10 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
   };
 };
 
-export const refreshServiceSpec = async (service: Service): Promise<void> => {
-  const document = await getServiceSwagger(service);
+export const refreshServiceSpec = async (
+  service: Service,
+  apiKey?: string
+): Promise<void> => {
+  const document = await getServiceSwagger(service, apiKey);
   document && document.info && Object.assign(service, getSpec(document));
 };

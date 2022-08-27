@@ -5,11 +5,10 @@ import { ensureArray } from "../utils";
 
 export const router = Router();
 
-const getContracts = async (
+const getContracts = (
   services: Service[],
   names?: string[]
-): Promise<Record<string, ContractsViewModel>> => {
-  await Promise.all(services.map((service) => state().discover(service)));
+): Record<string, ContractsViewModel> => {
   return Object.assign(
     {},
     ...services
@@ -26,7 +25,7 @@ const getContracts = async (
 
 router.get(
   "/all",
-  async (
+  (
     req: Request<never, Record<string, ContractsViewModel>, never, AllQuery>,
     res: Response
   ) => {
@@ -34,7 +33,7 @@ router.get(
       services: req.query.services && ensureArray(req.query.services),
       names: req.query.names && ensureArray(req.query.names)
     };
-    const contracts = await getContracts(
+    const contracts = getContracts(
       state()
         .services()
         .filter((s) => !services || services.includes(s.id)),
@@ -44,7 +43,7 @@ router.get(
   }
 );
 
-router.get("/", async (_, res) => {
-  const contracts = await getContracts(state().services());
+router.get("/", (_, res) => {
+  const contracts = getContracts(state().services());
   res.render("contracts-explorer", { contracts });
 });

@@ -14,14 +14,15 @@ export const app = async ({
   middleware = [] as RequestHandler[],
   prerouters,
   resolvers,
-  serviceLogLinkTemplate
+  serviceLogLinkTemplate,
+  apiKey
 }: AppOptions): Promise<Express> => {
   port = port || config().port;
 
   await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
-  await state().init(services, { resolvers, serviceLogLinkTemplate });
+  await state().init(services, { resolvers, serviceLogLinkTemplate, apiKey });
 
   subscriptions().listen(
     ({ operation, id }) => state().refreshService(operation, id),
@@ -45,7 +46,8 @@ export const app = async ({
         inc: (val: number) => val + 1,
         or: (val1: any, val2: any) => val1 || val2,
         eq: (val1: any, val2: any) => val1 === val2,
-        includes: (val1: string[], val2: string) => val1 && val1.includes(val2)
+        includes: (val1: string[], val2: string) => val1 && val1.includes(val2),
+        in: (val1: object, val2: string) => val2 in val1
       }
     })
   );

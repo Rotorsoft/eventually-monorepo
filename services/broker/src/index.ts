@@ -19,5 +19,6 @@ void broker({
   subscriptionStoreFactory: PostgresSubscriptionStore,
   middleware: [logHandler],
   resolvers: { pull: {}, push: {} },
-  serviceLogLinkTemplate: process.env.BROKER_SERVICE_LOG_LINK_TEMPLATE
+  serviceLogLinkTemplate: process.env.BROKER_SERVICE_LOG_LINK_TEMPLATE,
+  apiKey: process.env.BROKER_SERVICE_API_KEY
 });

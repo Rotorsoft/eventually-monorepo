@@ -99,11 +99,11 @@ span.type {
     font-size: 40%;
     border-radius: 50rem!important;
     --bs-bg-opacity: 1;
-    background-color: #0d63fd !important;
+    background-color: #c8d1e2 !important;
     display: inline-block;
     padding: 0.35em 0.65em;
     line-height: 1;
-    color: #fff;
+    color: rgb(36, 32, 32);
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
@@ -113,11 +113,11 @@ span.format {
     font-size: 40%;
     border-radius: 50rem!important;
     --bs-bg-opacity: 1;
-    background-color: #6c757d !important;
+    background-color: #bfc5c9 !important;
     display: inline-block;
     padding: 0.35em 0.65em;
     line-height: 1;
-    color: #fff;
+    color: rgb(36, 32, 32);
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
@@ -142,7 +142,11 @@ div.rules {
     background-color: lightyellow;
     padding: 1px;
     font-size: small;
-    margin-left: 5px;
+    margin-left: 15px;
+    border-radius: 50rem!important;
+    padding: 0.35em 0.65em;
+    line-height: 1;
+    margin: 2px;
 }
 
 div.indent {
