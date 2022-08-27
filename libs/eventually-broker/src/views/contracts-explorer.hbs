@@ -26,8 +26,8 @@
             aria-expanded="true"
             aria-controls="accordion"
           >
-            [{{this.events.length}}]
-            {{@key}}
+            <span class="badge bg-success">{{this.events.length}}</span>
+            &nbsp;{{@key}}
           </button>
         </h3>
         <div
@@ -51,18 +51,12 @@
                     <td id="{{this.name}}"><b>{{this.name}}</b></td>
                     <td><span>{{this.description}}</span></td>
                     <td>
-                      <ul>
                         {{#each this.refs}}
-                          <li>{{this}}</li>
+                          <div class="path">{{this}}</div>
                         {{/each}}
-                      </ul>
                     </td>
                     <td id="{{this.name}}-payload" scope="row">
-                      <ul>
-                        {{#each this.properties.data.properties}}
-                          <li>{{@key}}:<i>{{this.type}}</i></li>
-                        {{/each}}
-                      </ul>
+                      {{> schema field=this.properties.data name="" }}
                     </td>
                   </tr>
                 {{/each}}

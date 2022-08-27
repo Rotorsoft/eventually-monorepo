@@ -56,22 +56,8 @@ const TestPushChannel = (): PushChannel => ({
 });
 
 const endpoints = {
-  commandHandlers: {
-    command1: {
-      type: "aggregate",
-      commands: {
-        command1: "path"
-      },
-      events: ["event1"]
-    }
-  },
-  eventHandlers: {
-    event1: {
-      type: "policy",
-      path: "/policy",
-      events: ["event1"]
-    }
-  }
+  commandHandlers: {},
+  eventHandlers: {}
 };
 
 describe("cluster", () => {

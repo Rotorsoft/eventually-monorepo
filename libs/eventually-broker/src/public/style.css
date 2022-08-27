@@ -96,21 +96,46 @@ span.required {
 }
 
 span.type {
-    background-color: lightgreen;
-    font-size: small;
+    font-size: 40%;
+    border-radius: 50rem!important;
+    --bs-bg-opacity: 1;
+    background-color: #0d63fd !important;
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
 }
 
-div.itemtype {
-    background-color: lightblue;
-    font-size: small;
-    margin-left: 5px;
+span.format {
+    font-size: 40%;
+    border-radius: 50rem!important;
+    --bs-bg-opacity: 1;
+    background-color: #6c757d !important;
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
 }
 
-div.desc {
-    background-color: lightgrey;
-    padding: 1px;
-    font-size: small;
-    margin-left: 5px;
+div.path {
+    font-size: 60%;
+    border-radius: 50rem!important;
+    --bs-bg-opacity: 1;
+    background-color: #6c757d !important;
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    margin: 2px;
 }
 
 div.rules {

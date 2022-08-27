@@ -44,7 +44,8 @@ export const app = async ({
         intFormat: (int: number) => formatInt(int),
         inc: (val: number) => val + 1,
         or: (val1: any, val2: any) => val1 || val2,
-        eq: (val1: any, val2: any) => val1 === val2
+        eq: (val1: any, val2: any) => val1 === val2,
+        includes: (val1: string[], val2: string) => val1 && val1.includes(val2)
       }
     })
   );
