@@ -1,3 +1,5 @@
+#### 2022-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.17...@rotorsoft/eventually-broker-v1.3.18) @rotorsoft/eventually-broker-v1.3.18
+  - PATCH [328ff22d](https://github.com/Rotorsoft/eventually-monorepo/commit/328ff22deb3fd42497df6fd237d67bacd67fc2a9) fix: add secret options to services(querystring) and subscriptions(headers)
 #### 2022-08-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.16...@rotorsoft/eventually-broker-v1.3.17) @rotorsoft/eventually-broker-v1.3.17
   - PATCH [1e840e92](https://github.com/Rotorsoft/eventually-monorepo/commit/1e840e92864db298ea6e2494b30cfb3be6ae01a0) fix: enhance contract viewer, decouple discovery
 #### 2022-08-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.15...@rotorsoft/eventually-broker-v1.3.16) @rotorsoft/eventually-broker-v1.3.16
