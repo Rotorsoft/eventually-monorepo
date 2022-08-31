@@ -11,12 +11,14 @@ import {
 import { Operation, Service, Subscription, subscriptions } from "..";
 import { refreshServiceSpec } from "../specs";
 import { loop } from "../utils";
-import { ServiceWithWorker, State, StateOptions } from "./interfaces";
+import { State } from "./interfaces";
 import {
   WorkerConfig,
   SubscriptionState,
   SubscriptionViewModel,
-  WorkerMessage
+  WorkerMessage,
+  ServiceWithWorker,
+  StateOptions
 } from "./types";
 
 export const toViewModel = (
@@ -313,7 +315,7 @@ export const state = singleton(function state(): State {
         !service.discovered ||
         Date.now() - service.discovered.getTime() > 30 * 1000
       ) {
-        await refreshServiceSpec(service, _options.apiKey);
+        await refreshServiceSpec(service, _options.secrets);
         emitService(service);
       }
     } catch (error) {

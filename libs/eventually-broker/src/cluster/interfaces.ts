@@ -1,16 +1,12 @@
 import { Disposable } from "@rotorsoft/eventually";
 import { Writable } from "stream";
-import { ChannelResolvers } from "../interfaces";
 import { Operation, Service, Subscription } from "../types";
-import { SubscriptionViewModel, WorkerConfig, WorkerMessage } from "./types";
-
-export type StateOptions = {
-  resolvers: ChannelResolvers;
-  serviceLogLinkTemplate?: string;
-  apiKey?: string;
-};
-
-export type ServiceWithWorker = Service & { config?: WorkerConfig };
+import {
+  StateOptions,
+  SubscriptionViewModel,
+  WorkerConfig,
+  WorkerMessage
+} from "./types";
 
 export interface State extends Disposable {
   init: (services: Service[], options: StateOptions) => Promise<void>;

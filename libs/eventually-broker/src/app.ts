@@ -15,14 +15,18 @@ export const app = async ({
   prerouters,
   resolvers,
   serviceLogLinkTemplate,
-  apiKey
+  secrets
 }: AppOptions): Promise<Express> => {
   port = port || config().port;
 
   await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
-  await state().init(services, { resolvers, serviceLogLinkTemplate, apiKey });
+  await state().init(services, {
+    resolvers,
+    serviceLogLinkTemplate,
+    secrets
+  });
 
   subscriptions().listen(
     ({ operation, id }) => state().refreshService(operation, id),

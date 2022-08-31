@@ -115,6 +115,10 @@ export type PushEvent = CommittedEvent<string, Payload> & {
 /**
  * App options
  */
+export type SecretOptions = {
+  byService?: Record<string, Payload>;
+  bySubscription?: Record<string, Payload>;
+};
 export type AppOptions = {
   subscriptionStoreFactory: () => SubscriptionStore;
   resolvers?: ChannelResolvers;
@@ -122,7 +126,7 @@ export type AppOptions = {
   middleware?: RequestHandler[];
   prerouters?: Array<{ path: string; router: Router }>;
   serviceLogLinkTemplate?: string;
-  apiKey?: string;
+  secrets?: SecretOptions;
 };
 
 //=====================================================================================

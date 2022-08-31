@@ -36,7 +36,10 @@ export interface PushChannel {
  */
 export interface ChannelResolvers {
   pull: Record<string, (url: URL, id: string) => PullChannel>;
-  push: Record<string, (url: URL, id: string, source: string) => PushChannel>;
+  push: Record<
+    string,
+    (url: URL, id: string, source: string, headers?: Payload) => PushChannel
+  >;
 }
 
 /**

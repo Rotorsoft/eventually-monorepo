@@ -4,9 +4,11 @@ import { OpenAPIV3_1 } from "openapi-types";
 import {
   ExtendedPathItemObject,
   ExtendedSchemaObject,
+  SecretOptions,
   Service,
   ServiceSpec
 } from "./types";
+import { toQueryString } from "./utils";
 
 const HTTP_TIMEOUT = 5000;
 
@@ -40,14 +42,12 @@ const HTTP_TIMEOUT = 5000;
  */
 const getServiceSwagger = async (
   service: Service,
-  apiKey?: string
+  queryString: string
 ): Promise<OpenAPIV3_1.Document | undefined> => {
   try {
     const url = new URL(service.url);
     if (!url.protocol.startsWith("http")) return undefined;
-    const path = `${url.origin}/swagger${
-      apiKey ? "?apikey=".concat(apiKey) : ""
-    }`;
+    const path = `${url.origin}/swagger${queryString}`;
     const { data } = await axios.get<OpenAPIV3_1.Document>(path, {
       timeout: HTTP_TIMEOUT
     });
@@ -150,8 +150,18 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
 
 export const refreshServiceSpec = async (
   service: Service,
-  apiKey?: string
+  secrets?: SecretOptions
 ): Promise<void> => {
-  const document = await getServiceSwagger(service, apiKey);
+  const queryString =
+    (secrets?.byService &&
+      toQueryString(
+        Object.assign(
+          {},
+          secrets.byService["all"],
+          secrets.byService[service.id]
+        )
+      )) ||
+    "";
+  const document = await getServiceSwagger(service, queryString);
   document && document.info && Object.assign(service, getSpec(document));
 };

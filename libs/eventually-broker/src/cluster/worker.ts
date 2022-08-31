@@ -6,7 +6,7 @@ import {
   Payload
 } from "@rotorsoft/eventually";
 import {
-  ChannelResolvers,
+  AppOptions,
   Operation,
   pullchannel,
   PushEvent,
@@ -51,7 +51,7 @@ type Sub = {
   retry_count: number;
 };
 
-export const work = async (resolvers: ChannelResolvers): Promise<void> => {
+export const work = async (options: AppOptions): Promise<void> => {
   const config = JSON.parse(process.env.WORKER_ENV) as WorkerConfig;
   const masterLoop = loop(config.id);
   const subs: Record<string, Sub> = {};
@@ -72,9 +72,14 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
     retry_timeout_secs
   }: Subscription): Promise<SubscriptionState> => {
     const pushUrl = new URL(endpoint);
-    const pushFactory = resolvers.push[pushUrl.protocol];
+    const pushFactory = options.resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
-    const pushChannel = pushFactory(pushUrl, id, producer);
+    const pushChannel = pushFactory(
+      pushUrl,
+      id,
+      producer,
+      options?.secrets?.bySubscription && options.secrets.bySubscription[id]
+    );
     await pushChannel.init();
 
     return {
@@ -341,7 +346,7 @@ export const work = async (resolvers: ChannelResolvers): Promise<void> => {
 
   try {
     const pullUrl = new URL(encodeURI(config.channel));
-    const pullFactory = resolvers.pull[pullUrl.protocol];
+    const pullFactory = options.resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl, config.id));
     await Promise.all(

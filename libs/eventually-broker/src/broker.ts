@@ -1,3 +1,4 @@
+import { Payload } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { Express } from "express";
 import {
@@ -22,8 +23,10 @@ export const defaultResolvers: ChannelResolvers = {
   },
   push: {
     "void:": () => VoidPushChannel(),
-    "http:": (url: URL) => HttpPostPushChannel(url),
-    "https:": (url: URL) => HttpPostPushChannel(url)
+    "http:": (url: URL, id: string, source: string, headers?: Payload) =>
+      HttpPostPushChannel(url, headers),
+    "https:": (url: URL, id: string, source: string, headers?: Payload) =>
+      HttpPostPushChannel(url, headers)
   }
 };
 
@@ -35,6 +38,6 @@ export const broker = async (
     push: { ...defaultResolvers.push, ...options?.resolvers?.push },
     pull: { ...defaultResolvers.pull, ...options?.resolvers?.pull }
   };
-  if (cluster.isWorker) await work(options.resolvers);
+  if (cluster.isWorker) await work(options);
   else return app(options);
 };

@@ -1,7 +1,9 @@
-import { PushChannel } from "../interfaces";
+import { ChannelResolvers, PushChannel } from "../interfaces";
 import {
   ExtendedSchemaObject,
   Operation,
+  SecretOptions,
+  Service,
   Subscription,
   TriggerPayload
 } from "../types";
@@ -105,3 +107,11 @@ export type SubscriptionViewModel = {
 export type ContractsViewModel = {
   events: ExtendedSchemaObject[];
 };
+
+export type StateOptions = {
+  resolvers: ChannelResolvers;
+  serviceLogLinkTemplate?: string;
+  secrets?: SecretOptions;
+};
+
+export type ServiceWithWorker = Service & { config?: WorkerConfig };

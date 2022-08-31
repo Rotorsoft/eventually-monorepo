@@ -16,6 +16,7 @@ import {
   toViewModel,
   work
 } from "../cluster";
+import { InMemorySubscriptionStore } from "../__dev__";
 import {
   createCommittedEvent,
   FakeChildProcess,
@@ -176,8 +177,11 @@ describe("cluster", () => {
     };
     process.env.WORKER_ENV = JSON.stringify(chanConfig);
     await work({
-      ...defaultResolvers,
-      ...{ push: { "test:": () => TestPushChannel() } }
+      subscriptionStoreFactory: () => InMemorySubscriptionStore(),
+      resolvers: {
+        ...defaultResolvers,
+        ...{ push: { "test:": () => TestPushChannel() } }
+      }
     });
     // await for pump to finish async
     await new Promise((resolve) => setTimeout(resolve, 3000));

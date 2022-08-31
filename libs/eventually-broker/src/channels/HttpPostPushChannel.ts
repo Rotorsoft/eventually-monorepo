@@ -1,15 +1,21 @@
-import { log } from "@rotorsoft/eventually";
+import { log, Payload } from "@rotorsoft/eventually";
 import axios from "axios";
 import { CommittableHttpStatus } from "../cluster";
 import { PushChannel } from "../interfaces";
 import { PushEvent, PushResponse } from "../types";
+import { toAxiosRequestHeaders } from "../utils";
 
 const TIMEOUT = 10000;
 
-const push = async (url: string, event: PushEvent): Promise<PushResponse> => {
+const push = async (
+  url: string,
+  event: PushEvent,
+  headers?: Payload
+): Promise<PushResponse> => {
   try {
     const { status, statusText } = await axios.post(url, event, {
-      timeout: TIMEOUT
+      timeout: TIMEOUT,
+      headers: headers && toAxiosRequestHeaders(headers)
     });
     return { statusCode: status, statusText };
   } catch (error) {
@@ -40,7 +46,10 @@ const push = async (url: string, event: PushEvent): Promise<PushResponse> => {
   }
 };
 
-export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
+export const HttpPostPushChannel = (
+  endpoint: URL,
+  headers?: Payload
+): PushChannel => {
   return {
     label: "",
     init: () => undefined,
@@ -48,7 +57,7 @@ export const HttpPostPushChannel = (endpoint: URL): PushChannel => {
       let lastCode = 200;
       while (events.length) {
         const event = events.shift();
-        event.response = await push(endpoint.href, event);
+        event.response = await push(endpoint.href, event, headers);
         lastCode = event.response.statusCode;
         if (!CommittableHttpStatus.includes(lastCode)) break;
       }

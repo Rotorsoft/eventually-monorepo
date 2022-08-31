@@ -1,5 +1,5 @@
 import { Actor, CommittedEvent, log, Payload } from "@rotorsoft/eventually";
-import axios from "axios";
+import axios, { AxiosRequestHeaders } from "axios";
 import { Request } from "express";
 import { Service } from "./types";
 
@@ -118,6 +118,27 @@ export const getCorrelation = async (
  */
 export const ensureArray = (anyOrArray: any | any[]): any[] =>
   Array.isArray(anyOrArray) ? anyOrArray : [anyOrArray];
+
+/**
+ * Builds query string from payload
+ */
+export const toQueryString = (payload: Payload): string =>
+  Object.entries(payload).reduce(
+    (q, [key, val]) => q.concat(q.length ? "&" : "?", key, "=", val.toString()),
+    ""
+  );
+
+/**
+ * Builds headers from payload
+ */
+export const toAxiosRequestHeaders = (payload: Payload): AxiosRequestHeaders =>
+  Object.entries(payload).reduce((h, [key, val]) => {
+    h[key] =
+      typeof val === "boolean" || typeof val === "number"
+        ? val
+        : val.toString();
+    return h;
+  }, {} as AxiosRequestHeaders);
 
 // export const safeStringify = (val: any): string => {
 //   let cache: Array<any> = [];
