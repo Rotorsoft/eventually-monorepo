@@ -1,3 +1,5 @@
+#### 2022-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.33...@rotorsoft/eventually-express-v4.0.34) @rotorsoft/eventually-express-v4.0.34
+  - PATCH [fa23acad](https://github.com/Rotorsoft/eventually-monorepo/commit/fa23acada25cb5f9417b17ed1444027d5db463fd) fix: refactored contracts view with ordered events list
 #### 2022-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.17...@rotorsoft/eventually-broker-v1.3.18) @rotorsoft/eventually-broker-v1.3.18
   - PATCH [328ff22d](https://github.com/Rotorsoft/eventually-monorepo/commit/328ff22deb3fd42497df6fd237d67bacd67fc2a9) fix: add secret options to services(querystring) and subscriptions(headers)
 #### 2022-08-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.16...@rotorsoft/eventually-broker-v1.3.17) @rotorsoft/eventually-broker-v1.3.17
