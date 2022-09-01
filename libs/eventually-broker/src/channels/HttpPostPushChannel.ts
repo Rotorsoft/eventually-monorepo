@@ -1,5 +1,5 @@
 import { log, Payload } from "@rotorsoft/eventually";
-import axios from "axios";
+import axios, { AxiosRequestHeaders } from "axios";
 import { CommittableHttpStatus } from "../cluster";
 import { PushChannel } from "../interfaces";
 import { PushEvent, PushResponse } from "../types";
@@ -10,12 +10,12 @@ const TIMEOUT = 10000;
 const push = async (
   url: string,
   event: PushEvent,
-  headers?: Payload
+  headers?: AxiosRequestHeaders
 ): Promise<PushResponse> => {
   try {
     const { status, statusText } = await axios.post(url, event, {
       timeout: TIMEOUT,
-      headers: headers && toAxiosRequestHeaders(headers)
+      headers
     });
     return { statusCode: status, statusText };
   } catch (error) {
@@ -50,6 +50,7 @@ export const HttpPostPushChannel = (
   endpoint: URL,
   headers?: Payload
 ): PushChannel => {
+  const axiosRequestHeaders = headers && toAxiosRequestHeaders(headers);
   return {
     label: "",
     init: () => undefined,
@@ -57,7 +58,7 @@ export const HttpPostPushChannel = (
       let lastCode = 200;
       while (events.length) {
         const event = events.shift();
-        event.response = await push(endpoint.href, event, headers);
+        event.response = await push(endpoint.href, event, axiosRequestHeaders);
         lastCode = event.response.statusCode;
         if (!CommittableHttpStatus.includes(lastCode)) break;
       }

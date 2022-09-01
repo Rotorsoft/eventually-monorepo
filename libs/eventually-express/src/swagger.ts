@@ -43,8 +43,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
             : { type: "object" };
         } else {
           const data = schema || joi.object().forbidden();
-          const description =
-            data._flags?.description || "No description provided";
+          const description = data._flags?.description;
           data._flags.description = undefined;
           components.schemas[name] = j2s(
             joi.object({

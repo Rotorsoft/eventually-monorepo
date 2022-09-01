@@ -33,17 +33,17 @@
     {{#if field.nullable}}
         <span class="format">nullable</span>
     {{/if}}
-    {{#if (in field "default")}}
-        <div class="rules">default: {{field.default}}</div>
-    {{/if}}
-    {{#if field.enum}}
-        <div class="rules">enum: {{{json field.enum}}}</div>
-    {{/if}}
     {{#if field.minLength}}
-        <div class="rules">minLength: {{field.minLength}}</div>
+        <span class="format">min:{{field.minLength}}</span>
     {{/if}}
     {{#if field.maxLength}}
-        <div class="rules">maxLength: {{field.maxLength}}</div>
+        <span class="format">max:{{field.maxLength}}</span>
+    {{/if}}
+    {{#if (in field "default")}}
+        <span class="format">default:{{field.default}}</span>
+    {{/if}}
+    {{#if field.enum}}
+        <div class="rules">enum:{{{json field.enum}}}</div>
     {{/if}}
 </div>
 {{/if}}

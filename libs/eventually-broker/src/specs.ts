@@ -165,3 +165,63 @@ export const refreshServiceSpec = async (
   const document = await getServiceSwagger(service, queryString);
   document && document.info && Object.assign(service, getSpec(document));
 };
+
+// TODO: resolve payload conflicts between producer/consumer schemas
+const reduceConflicts = (
+  producer: OpenAPIV3_1.SchemaObject,
+  consumer: OpenAPIV3_1.SchemaObject,
+  conflicts: string[],
+  path: string
+): void => {
+  /*
+    payload field names and types are compatible 
+    - consuming services can define only a subset of the producer contract 
+    - ignoring unused fields in producer
+
+    - matching fields must following rules
+      required
+      format (specific type like guid or date-time)
+      patterns (regex)
+      nullable
+      default values
+      enum constraints 
+      min, max lengths 
+  */
+  if (!consumer) return;
+
+  if (producer.type !== consumer.type) {
+    conflicts.push(`${path} => type: ${producer.type} !== ${consumer.type}`);
+    return;
+  }
+
+  if (Array.isArray(producer.type)) {
+    // TODO: compare arrays
+  } else if (producer.type === "array") {
+    // TODO: compare arrays
+  } else if (producer.type === "object") {
+    Object.entries(producer.properties).forEach(([key, value]) => {
+      reduceConflicts(
+        value,
+        consumer.properties[key],
+        conflicts,
+        path.concat(key, "/")
+      );
+    });
+  } else {
+    // TODO: check primitive rules
+  }
+};
+export const getConflicts = (schemas: ExtendedSchemaObject[]): string[] => {
+  const producer = schemas[0];
+  const conflicts = [] as string[];
+  for (let i = 1; i < schemas.length; i++) {
+    const consumer = schemas[i];
+    reduceConflicts(
+      producer.properties.data,
+      consumer.properties.data,
+      conflicts,
+      consumer.name
+    );
+  }
+  return conflicts;
+};

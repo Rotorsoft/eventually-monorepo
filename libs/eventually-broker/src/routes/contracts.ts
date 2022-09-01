@@ -1,14 +1,16 @@
 import { Request, Response, Router } from "express";
-import { AllQuery, Service } from "..";
-import { ContractsViewModel, state } from "../cluster";
+import { AllQuery, ExtendedSchemaObject, Service } from "..";
+import { state } from "../cluster";
+import { getConflicts } from "../specs";
 import { ensureArray } from "../utils";
 
 export const router = Router();
 
-const getContracts = (
+type ServiceContracts = { events: ExtendedSchemaObject[] };
+const getServiceContracts = (
   services: Service[],
   names?: string[]
-): Record<string, ContractsViewModel> => {
+): Record<string, ServiceContracts> => {
   return Object.assign(
     {},
     ...services
@@ -23,17 +25,64 @@ const getContracts = (
   );
 };
 
+type EventContract = {
+  name: string;
+  schemas: ExtendedSchemaObject[];
+  producers: string[];
+  consumers: { id: string; path: string }[];
+  conflicts?: string[];
+};
+const getEventContracts = (): EventContract[] => {
+  const services = state().services();
+  const consumers = Object.values(services).reduce((consumers, service) => {
+    service.eventHandlers &&
+      Object.values(service.eventHandlers).forEach(
+        (handler) => (consumers[handler.path] = service)
+      );
+    return consumers;
+  }, {} as Record<string, Service>);
+  const events = Object.values(state().services()).reduce((events, service) => {
+    service.schemas &&
+      Object.values(service.schemas).forEach((schema) => {
+        const event = (events[schema.name] = events[schema.name] || {
+          name: schema.name,
+          schemas: [],
+          producers: [],
+          consumers: []
+        });
+        event.schemas.push(schema);
+        if (schema.refs && schema.refs.length)
+          schema.refs.forEach((ref) => {
+            const consumer = consumers[ref];
+            event.consumers.push({ id: consumer && consumer.id, path: ref });
+          });
+        else event.producers.push(service.id);
+      });
+    return events;
+  }, {} as Record<string, EventContract>);
+
+  return Object.values(events)
+    .map((event) => {
+      if (event.schemas.length > 1) {
+        event.schemas.sort((a, b) => a.refs?.length - b.refs?.length);
+        event.conflicts = getConflicts(event.schemas);
+      }
+      return event;
+    })
+    .sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
+};
+
 router.get(
   "/all",
   (
-    req: Request<never, Record<string, ContractsViewModel>, never, AllQuery>,
-    res: Response
+    req: Request<never, Record<string, ServiceContracts>, never, AllQuery>,
+    res: Response<Record<string, ServiceContracts>>
   ) => {
     const { services, names }: AllQuery = {
       services: req.query.services && ensureArray(req.query.services),
       names: req.query.names && ensureArray(req.query.names)
     };
-    const contracts = getContracts(
+    const contracts = getServiceContracts(
       state()
         .services()
         .filter((s) => !services || services.includes(s.id)),
@@ -43,7 +92,11 @@ router.get(
   }
 );
 
+router.get("/events", (req: Request, res: Response<EventContract[]>) => {
+  res.send(getEventContracts());
+});
+
 router.get("/", (_, res) => {
-  const contracts = getContracts(state().services());
-  res.render("contracts-explorer", { contracts });
+  const events = getEventContracts();
+  res.render("contracts-explorer", { events });
 });

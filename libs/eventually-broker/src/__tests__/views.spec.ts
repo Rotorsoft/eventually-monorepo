@@ -69,6 +69,7 @@ describe("views", () => {
       "/_contracts/all",
       "/_contracts/all?names=b",
       "/_contracts/all?services=a&names=b",
+      "/_contracts/events",
       "/_correlation/aZCNKNr3HP5pQRWIxvj3XeoZ"
     ];
     const responses = await Promise.all(paths.map((path) => get(path, port)));

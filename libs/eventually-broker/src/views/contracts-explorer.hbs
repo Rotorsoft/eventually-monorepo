@@ -1,6 +1,6 @@
 <script>
-  const { contracts } =
-  {{{json this}}}; console.log(contracts);
+  const { events } =
+  {{{json this}}}; console.log(events);
 </script>
 
 <div class="row">
@@ -13,58 +13,46 @@
   </div>
 </div>
 
-<div class="accordion" id="accordion">
-  {{#each contracts}}
-    {{#if this.events.length}}
-      <div class="accordion-item">
-        <h3 class="accordion-header" id="{{@key}}-header">
-          <button
-            class="accordion-button"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#{{@key}}-body"
-            aria-expanded="true"
-            aria-controls="accordion"
-          >
-            <span class="badge bg-success">{{this.events.length}}</span>
-            &nbsp;{{@key}}
-          </button>
-        </h3>
-        <div
-          id="{{@key}}-body"
-          class="accordion-collapse collapse show"
-          aria-labelledby="#{{@key}}-header"
-        >
-          <div class="accordion-body">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Description</th>
-                  <th scope="col">Consumer Paths</th>
-                  <th scope="col">Payload</th>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each events}}
-                  <tr>
-                    <td id="{{this.name}}"><b>{{this.name}}</b></td>
-                    <td><span>{{this.description}}</span></td>
-                    <td>
-                        {{#each this.refs}}
-                          <div class="path">{{this}}</div>
-                        {{/each}}
-                    </td>
-                    <td id="{{this.name}}-payload" scope="row">
-                      {{> schema field=this.properties.data name="" }}
-                    </td>
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Event</th>
+      <th scope="col">Producer</th>
+      <th scope="col">Consumer</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each events}}
+      <tr>
+        <td id="{{this.name}}">
+          <a data-bs-toggle="collapse" href="#{{this.name}}-payload" role="button" aria-expanded="false" aria-controls="{{this.name}}-payload">
+          {{this.name}}
+          </a>
+          <div class="description-contract">{{this.schemas.[0].description}}</div>
+          {{#if (and this.conflicts this.conflicts.length)}}
+            <div class="conflicts">
+              <ul>
+              {{#each this.conflicts}}
+                <li>{{this}}</li>
+              {{/each}}
+              </ul>
+            </div>
+          {{/if}}
+          <div class="collapse" id="{{this.name}}-payload">
+            {{> schema field=this.schemas.[0].properties.data name="" }}
           </div>
-        </div>
-      </div>
-    {{/if}}
-  {{/each}}
-</div>
+        </td>
+        <td>
+            {{#each this.producers}}
+              <div class="producer-contract">{{this}}</div>
+            {{/each}}
+        </td>
+        <td>
+            {{#each this.consumers}}
+              <div class="consumer-contract">{{this.id}} <i>{{this.path}}</i></div>
+            {{/each}}
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

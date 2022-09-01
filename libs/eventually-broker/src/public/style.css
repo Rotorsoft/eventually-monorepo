@@ -123,21 +123,6 @@ span.format {
     vertical-align: baseline;
 }
 
-div.path {
-    font-size: 60%;
-    border-radius: 50rem!important;
-    --bs-bg-opacity: 1;
-    background-color: #6c757d !important;
-    display: inline-block;
-    padding: 0.35em 0.65em;
-    line-height: 1;
-    color: #fff;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    margin: 2px;
-}
-
 div.rules {
     background-color: lightyellow;
     padding: 1px;
@@ -149,6 +134,61 @@ div.rules {
     margin: 2px;
 }
 
+div.conflicts {
+    font-size: small;
+    margin-left: 15px;
+    padding: 0.35em 0.65em;
+    margin: 2px;
+    color: red;
+}
+
 div.indent {
     padding-left: 20px;
+}
+
+div.description-contract {
+    padding: 1px;
+    font-size: small;
+    font-style: italic;
+    margin-left: 15px;
+    padding: 0.35em 0.65em;
+    margin: 2px;
+}
+
+div.producer-contract {
+    font-size: 50%;
+    border-radius: 50rem!important;
+    --bs-bg-opacity: 1;
+    background-color: #5081e4 !important;
+    display: inline-block;
+    padding: 3px 5px;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    margin: 2px;
+}
+
+div.consumer-contract {
+    font-size: 50%;
+    border-radius: 50rem!important;
+    --bs-bg-opacity: 1;
+    background-color: #6c757d !important;
+    display: inline-block;
+    padding: 3px 5px;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    margin: 2px;
+}
+
+div.consumer-contract>i {
+    background-color: #dce3ea !important;
+    border-radius: 50rem!important;
+    margin: 2px;
+    padding: 3px 20px;
+    color:grey
 }

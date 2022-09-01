@@ -1,6 +1,5 @@
 import { ChannelResolvers, PushChannel } from "../interfaces";
 import {
-  ExtendedSchemaObject,
   Operation,
   SecretOptions,
   Service,
@@ -102,10 +101,6 @@ export type SubscriptionViewModel = {
   endpointStatus: EndpointStatus;
   total: number;
   events: EventsViewModel[];
-};
-
-export type ContractsViewModel = {
-  events: ExtendedSchemaObject[];
 };
 
 export type StateOptions = {
