@@ -1,3 +1,5 @@
+#### 2022-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.19...@rotorsoft/eventually-broker-v1.4.0) @rotorsoft/eventually-broker-v1.4.0
+  - MINOR [11509348](https://github.com/Rotorsoft/eventually-monorepo/commit/115093482661b34e5aaca01c61fde3096a8c3594) feat: stream/event explorers
 #### 2022-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.18...@rotorsoft/eventually-broker-v1.3.19) @rotorsoft/eventually-broker-v1.3.19
   - PATCH [fa23acad](https://github.com/Rotorsoft/eventually-monorepo/commit/fa23acada25cb5f9417b17ed1444027d5db463fd) fix: refactored contracts view with ordered events list
 #### 2022-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.33...@rotorsoft/eventually-express-v4.0.34) @rotorsoft/eventually-express-v4.0.34
