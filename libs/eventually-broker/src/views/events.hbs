@@ -1,0 +1,186 @@
+<div class="row mb-2">
+  <div class="col-6">{{>service-bc}}</div>
+</div>
+
+<div class="event-filters">
+  {{!-- <div class="input-group input-group-sm">
+    <span class="input-group-text">&gt;</span>
+    <input
+      class="form-control form-control-sm"
+      style="max-width: 100px;"
+      type="number"
+      title="After Id"
+      placeholder="Id"
+      id="after"
+      value="{{this.query.after}}"
+    />
+    <button class="btn btn-secondary" onclick="clearField('after')">
+      <i class="bi bi-x"></i>
+    </button>
+  </div> --}}
+  <div class="input-group input-group-sm">
+    <input
+      class="form-control form-control-sm"
+      type="text"
+      title="Names"
+      placeholder="Names"
+      id="names"
+      value="{{this.query.names}}"
+    />
+    <button class="btn btn-secondary" onclick="clearField('names')">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+  <div class="input-group input-group-sm">
+    <input
+      class="form-control form-control-sm"
+      type="text"
+      title="Stream"
+      placeholder="Stream"
+      id="stream"
+      value="{{this.query.stream}}"
+    />
+    <button class="btn btn-secondary" onclick="clearField('stream')">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+  <div class="input-group input-group-sm" >
+    <span class="input-group-text">
+      <i class="bi bi-arrow-bar-up"></i>
+    </span>
+    <input
+      class="form-control form-control-sm"
+      type="datetime-local"
+      title="Created After"
+      id="created_after"
+      value="{{fromISOToLocal this.query.created_after}}"
+    />
+    <button class="btn btn-secondary" onclick="clearField('created_after')">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+  <div class="input-group input-group-sm">
+    <span class="input-group-text">
+      <i class="bi bi-arrow-bar-down"></i>
+    </span>
+    <input
+      class="form-control form-control-sm"
+      type="datetime-local"
+      title="Created Before"
+      id="created_before"
+      value="{{fromISOToLocal this.query.created_before}}"
+    />
+    <button class="btn btn-secondary" onclick="clearField('created_before')">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+  <button id="nextButton" class="btn btn-primary" title="Next Page" onclick="nextFromLast()">
+    <i class="bi bi-arrow-bar-down"></i>
+  </button>
+  <button class="btn btn-primary" title="Query" onclick="filter()">
+    <i class="bi bi-search"></i></i>
+  </button>
+</div>
+
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col" class="text-end" colspan="2">Id</th>
+      <th scope="col">Name</th>
+      <th scope="col">Stream</th>
+      <th scope="col" class="text-end">Version</th>
+      <th scope="col">Correlation</th>
+      <th scope="col">Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each stream}}
+      <tr>
+        <td>
+          <a id="{{@index}}" href="#" data-bs-toggle="popover" data-bs-placement="right">
+            <img src="/_public/assets/eye.svg" alt="View" width="12" height="12" />
+          </a>
+        </td>
+        <td class="text-end"><a href="/_services/{{../id}}/events/{{this.id}}">{{this.id}}</a></td>
+        <td>  
+          {{this.name}}
+        </td>
+        <td><a href="/_services/{{../id}}/stream/{{this.stream}}">{{this.stream}}</a></td>
+        <td class="text-end">{{this.version}}</td>
+        <td>
+          <a href="/_correlation/{{this.metadata.correlation}}">
+            {{this.metadata.correlation}}
+          </a>
+        <td>{{toDateFormat this.created}}</td>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<script>
+  const service = "{{{this.id}}}";
+  //const after = document.getElementById("after");
+  const names = document.getElementById("names");
+  const stream = document.getElementById("stream");
+  const created_before = document.getElementById("created_before");
+  const created_after = document.getElementById("created_after");
+  const nextButton = document.getElementById("nextButton");
+
+  function toQueryString(key, values) {
+    return values.split(",").map(value => `&${key}=${encodeURIComponent(value.toString().trim())}`).join("");
+  }
+
+  function toISOString(localValueString) {
+    return new Date(localValueString).toISOString();
+  }
+
+  function clearField(id) {
+    const el = document.getElementById(id);
+    el && (el.value = '');
+  }
+
+  function preventDefault(e) {
+    e.preventDefault();
+    return true;
+  };
+
+  const payload = {{{json this}}};
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const list = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+    list.map((el) => {
+      el.addEventListener("click", preventDefault);
+      const event = payload.stream[el.id];
+      const opts = {
+        title: `${event.id} ${event.name}`,
+        content: JSON.stringify(event.data),
+        html: true,
+        trigger: 'focus'
+      };
+      new bootstrap.Popover(el, opts);
+    })
+  });
+
+  function filter() {
+    //${after.value && toQueryString("after", after.value)}
+    const query = `
+    ${names.value && toQueryString("names", names.value)}
+    ${stream.value && toQueryString("stream", stream.value)}
+    ${created_after.value && toQueryString("created_after", toISOString(created_after.value))}
+    ${created_before.value && toQueryString("created_before", toISOString(created_before.value))}
+    `.replaceAll(" ", "");
+    document.location = `/_services/${service}/events?${query}`;
+  }
+
+  nextButton.disabled = payload.stream.length < 100;
+
+  function nextFromLast() {
+    if(payload.stream.length) {
+      const before = new Date(payload.stream[payload.stream.length-1].created);
+      const adjusted = new Date(before.getTime() - before.getTimezoneOffset()*60*1000);
+      created_before.value = adjusted.toISOString().substring(0, 16);
+      filter();
+    }
+  }
+</script>

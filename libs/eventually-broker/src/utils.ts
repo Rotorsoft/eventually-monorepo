@@ -1,7 +1,6 @@
-import { Actor, CommittedEvent, log, Payload } from "@rotorsoft/eventually";
-import axios, { AxiosRequestHeaders } from "axios";
+import { Actor, log, Payload } from "@rotorsoft/eventually";
+import { AxiosRequestHeaders } from "axios";
 import { Request } from "express";
-import { Service } from "./types";
 
 const usnf = new Intl.NumberFormat("en-US");
 const usdf = new Intl.DateTimeFormat("en-US", {
@@ -31,6 +30,16 @@ export const formatDate = (date: Date): string => {
   }
 };
 
+export const formatDateLocal = (date: Date): string => {
+  try {
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000)
+      .toISOString()
+      .substring(0, 16);
+  } catch {
+    return "";
+  }
+};
+
 /**
  * Validates admin user
  *
@@ -40,75 +49,6 @@ export const formatDate = (date: Date): string => {
 export const isAdmin = (req: Request): boolean | undefined => {
   const { user } = req as Request & { user: Actor };
   return user && user?.roles?.includes("admin");
-};
-
-const HTTP_TIMEOUT = 5000;
-
-/**
- * Correlation types
- */
-type CorrelationMessage = {
-  name: string;
-  id: number | string;
-  stream?: string;
-  actor?: string;
-};
-type Correlation = CorrelationMessage & {
-  created: Date;
-  service: string;
-  causation?: CorrelationMessage;
-};
-/**
- * Gets correlation metadata
- * @param correlation The correlation id
- * @param services The services to search
- * @returns The correlation metadata
- */
-export const getCorrelation = async (
-  correlation: string,
-  services: Service[]
-): Promise<Correlation[]> => {
-  const all = await Promise.all(
-    services.map(async (s) => {
-      if (!s.url.startsWith("http"))
-        return [
-          {
-            created: new Date(),
-            service: s.id,
-            id: -1,
-            name: "Invalid Service"
-          }
-        ];
-      try {
-        const { data } = await axios.get<CommittedEvent<string, Payload>[]>(
-          `${s.url}/all?correlation=${correlation}&limit=10`,
-          { timeout: HTTP_TIMEOUT }
-        );
-        return data.map(({ id, name, stream, created, metadata }) => {
-          const { command, event } = metadata.causation;
-          return {
-            created: new Date(created),
-            service: s.id,
-            id,
-            name,
-            stream,
-            causation: event
-              ? {
-                  name: event.name,
-                  id: event.id,
-                  stream: event.stream
-                }
-              : { name: command.name, id: command.id }
-          };
-        });
-      } catch (error) {
-        return [
-          { created: new Date(), service: s.id, id: -1, name: error.message }
-        ];
-      }
-    })
-  );
-  return all.flat().sort((a, b) => a.created.getTime() - b.created.getTime());
 };
 
 /**
@@ -122,11 +62,17 @@ export const ensureArray = (anyOrArray: any | any[]): any[] =>
 /**
  * Builds query string from payload
  */
+const toQS = (key: string, val: any): string => `&${key}=${val.toString()}`;
 export const toQueryString = (payload: Payload): string =>
-  Object.entries(payload).reduce(
-    (q, [key, val]) => q.concat(q.length ? "&" : "?", key, "=", val.toString()),
-    ""
-  );
+  Object.entries(payload)
+    .filter(([, val]) => val)
+    .reduce(
+      (q, [key, val]) =>
+        Array.isArray(val)
+          ? val.map((v) => q.concat(toQS(key, v))).join("")
+          : q.concat(toQS(key, val)),
+      ""
+    );
 
 /**
  * Builds headers from payload

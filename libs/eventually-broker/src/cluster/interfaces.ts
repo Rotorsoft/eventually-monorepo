@@ -10,6 +10,8 @@ import {
 
 export interface State extends Disposable {
   init: (services: Service[], options: StateOptions) => Promise<void>;
+  options: () => StateOptions;
+  serviceSecretsQueryString: (id: string) => string;
   serviceLogLink: (id: string) => string;
   refreshService: (operation: Operation, id: string) => void;
   refreshSubscription: (operation: Operation, id: string) => void;

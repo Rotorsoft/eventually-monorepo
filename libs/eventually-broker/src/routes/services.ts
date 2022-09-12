@@ -1,7 +1,8 @@
-import { log } from "@rotorsoft/eventually";
+import { AllQuery, CommittedEvent, log, Payload } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import { state } from "../cluster";
+import { getStream } from "../queries";
 import { isAdmin } from "../utils";
 import * as schemas from "./schemas";
 
@@ -20,8 +21,8 @@ const defaultService = {
   url: "http://service"
 };
 
-router.get("/", async (req, res) => {
-  const services = await subscriptions().loadServices();
+router.get("/", (req, res) => {
+  const services = state().services();
   res.render("services", { isAdmin: isAdmin(req), rows: prepare(services) });
 });
 
@@ -60,14 +61,16 @@ router.post(
   }
 );
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", (req, res) => {
   const id = req.params.id;
   const err = {
     class: "alert-danger",
     message: `Could not load service ${id}`
   };
   try {
-    const [service] = await subscriptions().loadServices(id);
+    const service = state()
+      .services()
+      .find((s) => s.id === id);
     service
       ? res.render("edit-service", { ...service, isAdmin: isAdmin(req) })
       : res.render("edit-service", { ...err, isAdmin: isAdmin(req) });
@@ -119,3 +122,77 @@ router.delete("/:id", async (req, res) => {
     res.json({ deleted: false, message: error.message });
   }
 });
+
+router.get(
+  "/:id/events",
+  async (
+    req: Request<
+      { id: string },
+      CommittedEvent<string, Payload>[],
+      never,
+      AllQuery
+    >,
+    res
+  ) => {
+    try {
+      const id = req.params.id;
+      const { stream, names, after, created_before, created_after } = req.query;
+      const service = state()
+        .services()
+        .find((s) => s.id === id);
+
+      const query: AllQuery = {
+        stream,
+        names: names && (Array.isArray(names) ? names : [names]),
+        after: after && +after,
+        limit: 100,
+        created_after: created_after && new Date(created_after),
+        created_before: created_before && new Date(created_before),
+        backward: !(after || created_after)
+      };
+
+      const results = await getStream(service, query);
+      res.render("events", { id, stream: results, query });
+    } catch (error) {
+      res.render("services");
+    }
+  }
+);
+
+router.get(
+  "/:id/events/:eventid",
+  async (req: Request<{ id: string; eventid: number }>, res) => {
+    const id = req.params.id;
+    const eventid = req.params.eventid;
+    try {
+      const service = state()
+        .services()
+        .find((s) => s.id === id);
+      const event = await getStream(service, { after: eventid - 1, limit: 1 });
+      res.json(event);
+    } catch (error) {
+      res.render("services");
+    }
+  }
+);
+
+router.get(
+  "/:id/stream/:stream",
+  async (req: Request<{ id: string; stream: string }>, res) => {
+    const id = req.params.id;
+    const stream = req.params.stream;
+    try {
+      const service = state()
+        .services()
+        .find((s) => s.id === id);
+      const payloads = await getStream(service, {
+        stream,
+        limit: 100,
+        backward: true
+      });
+      res.json(payloads);
+    } catch (error) {
+      res.render("services");
+    }
+  }
+);

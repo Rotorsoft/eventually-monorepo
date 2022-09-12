@@ -16,12 +16,12 @@
   </div>
 </div>
 
-<table id="subscriptions-table" class="table align-middle">
+<table class="table align-middle sorted-table">
   <thead>
     <tr>
       <th scope="col"><a href="javascript:sort(0)">Id</a></th>
-      <th scope="col" class="text-end"><a href="javascript:sort(1)">Position</a></th>
-      <th scope="col" class="text-end"><a href="javascript:sort(2)">Session</a></th>
+      <th scope="col" class="text-end"><a href="javascript:sort(1, true)">Position</a></th>
+      <th scope="col" class="text-end"><a href="javascript:sort(2, true)">Session</a></th>
       <th scope="col"><a href="javascript:sort(3)">Producer</a></th>
       <th scope="col"><a href="javascript:sort(4)">Consumer</a></th>
       <th scope="col"><a href="javascript:sort(5)">Path</a></th>
@@ -62,33 +62,6 @@
 </table>
 
 <script>
-  let sortCol = -1, sortOrder = 0;
-  const sort = (col) => {
-    const table = document.getElementById("subscriptions-table");
-    sortCol >= 0 && table.rows[0].cells[sortCol].classList.remove("sorted-asc", "sorted-desc");
-    sortOrder = sortCol === col ? 1 - sortOrder : 0;
-    sortCol = col;
-    table.rows[0].cells[col].classList.add(sortOrder ? "sorted-desc" : "sorted-asc");
-
-    const compare = (a, b) => 
-      (col === 1 || col === 2) 
-        ? (a.length === b.length ? a > b : a.length > b.length)
-        : a > b;
-
-    const swap = (row) => {
-      const a = table.rows[row].cells[col].innerHTML.toLowerCase();
-      const b = table.rows[row+1].cells[col].innerHTML.toLowerCase();
-      return (a != b) && Boolean(+compare(a, b) - sortOrder);
-    };
-
-    for (row = 1; row < rows.length; row++) {
-      while (row > 0 && swap(row)) {
-        table.rows[row].parentNode.insertBefore(table.rows[row+1], table.rows[row]);
-        row--;
-      }
-    }
-  }
-
   const usnf = new Intl.NumberFormat("en-US");
 
   const badge = (count, cls) => 
@@ -147,3 +120,4 @@
   rows.map(row => refresh(row));
   connect();
 </script>
+<script src="/_public/sort-table.js"></script>

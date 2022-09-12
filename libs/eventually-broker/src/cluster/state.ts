@@ -10,7 +10,7 @@ import {
 } from ".";
 import { Operation, Service, Subscription, subscriptions } from "..";
 import { refreshServiceSpec } from "../specs";
-import { loop } from "../utils";
+import { loop, toQueryString } from "../utils";
 import { State } from "./interfaces";
 import {
   WorkerConfig,
@@ -315,7 +315,7 @@ export const state = singleton(function state(): State {
         !service.discovered ||
         Date.now() - service.discovered.getTime() > 30 * 1000
       ) {
-        await refreshServiceSpec(service, _options.secrets);
+        await refreshServiceSpec(service);
         emitService(service);
       }
     } catch (error) {
@@ -425,6 +425,20 @@ export const state = singleton(function state(): State {
       );
       discoverServices();
     },
+    options: () => _options,
+    serviceSecretsQueryString: (id: string) =>
+      (_options &&
+        _options.secrets?.byService &&
+        "?".concat(
+          toQueryString(
+            Object.assign(
+              {},
+              _options.secrets.byService["all"],
+              _options.secrets.byService[id]
+            )
+          )
+        )) ||
+      "",
     serviceLogLink: (id: string): string =>
       _options.serviceLogLinkTemplate &&
       encodeURI(_options.serviceLogLinkTemplate.replaceAll("<<SERVICE>>", id)),

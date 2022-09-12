@@ -1,19 +1,11 @@
-<div class="row">
-  <div class="col-6">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item active">Correlation Explorer</li>
-      </ol>
-    </nav>
-  </div>
+<div class="row mb-2">
+  <div class="col-6">{{>service-bc crumb=this.correlation_id}}</div>
 </div>
 
-<h5>{{this.correlation_id}}</h5>
 <table class="table align-middle">
   <thead>
     <tr>
       <th scope="col">Created</th>
-      <th scope="col">Service</th>
       <th scope="col">Causation</th>
       <th scope="col">Event</th>
     </tr>
@@ -23,44 +15,51 @@
       {{#if this.stream}}
         <tr>
           <td>{{dateFormat this.created}}</td>
-          <td>{{this.service}}</td>
           <td scope="row">
             {{#if this.causation}}
               <table>
-                <tr><td><b
-                    >{{this.causation.name}}</b>@{{this.causation.id}}</td></tr>
-                <tr><td><i>{{this.causation.stream}}</i><b
-                    >{{this.causation.actor}}</b></td></tr>
+                <tr>
+                  <td class="{{this.causation.type}}-type">
+                    <span>{{this.causation.name}}
+                    {{#if (and this.causation.id this.causation.producer)}}
+                    [<a href="/_services/{{this.causation.producer}}/events/{{this.causation.id}}">{{this.causation.id}}</a>]
+                    {{else if this.causation.id}}
+                    [{{this.causation.id}}]
+                    {{/if}}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    {{#if this.causation.producer}}
+                    <i><a href="/_services/{{this.causation.producer}}/stream/{{this.causation.stream}}">{{this.causation.producer}}/{{this.causation.stream}}</a></i>
+                    {{else}}
+                    <i>{{this.causation.stream}}</i>
+                    {{/if}}
+                    <b>{{this.causation.actor}}</b>
+                  </td>
+                </tr>
               </table>
             {{/if}}
           </td>
           <td scope="row">
             <table>
-              <tr><td><b>{{this.name}}</b>@{{this.id}}</td></tr>
-              <tr><td><i>{{this.stream}}</i></td></tr>
+              <tr>
+                <td class="event-type">
+                  <span>{{this.name}}
+                  [<a href="/_services/{{this.service}}/events/{{this.id}}">{{this.id}}</a>]
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <i><a href="/_services/{{this.service}}/stream/{{this.stream}}">{{this.service}}/{{this.stream}}</a></i>
+                </td>
+              </tr>
             </table>
           </td>
         </tr>
       {{/if}}
-    {{/each}}
-  </tbody>
-</table>
-
-<table class="table align-middle">
-  <thead>
-    <tr>
-      <th scope="col">Service</th>
-      <th scope="col">Error</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each this.correlation}}
-      {{#unless this.stream}}
-        <tr>
-          <td>{{this.service}}</td>
-          <td>{{this.name}}</td>
-        </tr>
-      {{/unless}}
     {{/each}}
   </tbody>
 </table>

@@ -1,14 +1,14 @@
 import { log } from "@rotorsoft/eventually";
 import axios from "axios";
 import { OpenAPIV3_1 } from "openapi-types";
+import { breaker } from "./breaker";
+import { state } from "./cluster";
 import {
   ExtendedPathItemObject,
   ExtendedSchemaObject,
-  SecretOptions,
   Service,
   ServiceSpec
 } from "./types";
-import { toQueryString } from "./utils";
 
 const HTTP_TIMEOUT = 5000;
 
@@ -41,21 +41,16 @@ const HTTP_TIMEOUT = 5000;
  * @returns The swagger json document spec
  */
 const getServiceSwagger = async (
-  service: Service,
-  queryString: string
+  service: Service
 ): Promise<OpenAPIV3_1.Document | undefined> => {
-  try {
-    const url = new URL(service.url);
-    if (!url.protocol.startsWith("http")) return undefined;
-    const path = `${url.origin}/swagger${queryString}`;
-    const { data } = await axios.get<OpenAPIV3_1.Document>(path, {
-      timeout: HTTP_TIMEOUT
-    });
-    return data;
-  } catch (err) {
-    log().error(err);
-    return undefined;
-  }
+  const url = new URL(service.url);
+  if (!url.protocol.startsWith("http")) return undefined;
+  const secretsQueryString = state().serviceSecretsQueryString(service.id);
+  const path = `${url.origin}/swagger${secretsQueryString}`;
+  const { data } = await axios.get<OpenAPIV3_1.Document>(path, {
+    timeout: HTTP_TIMEOUT
+  });
+  return data;
 };
 
 const getEvent = (
@@ -133,6 +128,10 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
     }
   );
 
+  const allPath = Object.keys(document?.paths || {}).find(
+    (path) => path === "/all"
+  );
+
   return {
     discovered: new Date(),
     version: document.info.version,
@@ -144,26 +143,9 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
       {},
       ...eventHandlers.map((handler) => ({ [handler.path]: handler }))
     ),
-    schemas: eventSchemas
+    schemas: eventSchemas,
+    allPath
   };
-};
-
-export const refreshServiceSpec = async (
-  service: Service,
-  secrets?: SecretOptions
-): Promise<void> => {
-  const queryString =
-    (secrets?.byService &&
-      toQueryString(
-        Object.assign(
-          {},
-          secrets.byService["all"],
-          secrets.byService[service.id]
-        )
-      )) ||
-    "";
-  const document = await getServiceSwagger(service, queryString);
-  document && document.info && Object.assign(service, getSpec(document));
 };
 
 // TODO: resolve payload conflicts between producer/consumer schemas
@@ -211,17 +193,118 @@ const reduceConflicts = (
     // TODO: check primitive rules
   }
 };
-export const getConflicts = (schemas: ExtendedSchemaObject[]): string[] => {
-  const producer = schemas[0];
+
+export const getConflicts = (event: EventContract): string[] => {
   const conflicts = [] as string[];
-  for (let i = 1; i < schemas.length; i++) {
-    const consumer = schemas[i];
-    reduceConflicts(
-      producer.properties.data,
-      consumer.properties.data,
-      conflicts,
-      consumer.name
-    );
-  }
+  event.schema &&
+    Object.values(event.consumers).forEach((consumer) => {
+      reduceConflicts(
+        event.schema.properties.data,
+        consumer.schema.properties.data,
+        conflicts,
+        consumer.id
+      );
+    });
   return conflicts;
+};
+
+export type ServiceContracts = { events: ExtendedSchemaObject[] };
+export const getServiceContracts = (
+  services: Service[],
+  names?: string[]
+): Record<string, ServiceContracts> => {
+  return Object.assign(
+    {},
+    ...services
+      .filter((service) => service.schemas)
+      .map((service) => ({
+        [service.id]: {
+          events: Object.values(service.schemas).filter(
+            (schema) => !names || names.includes(schema.name)
+          )
+        }
+      }))
+  );
+};
+
+export type EventContract = {
+  name: string;
+  schema?: ExtendedSchemaObject;
+  producers: Record<string, string>;
+  consumers: Record<
+    string,
+    { id: string; path: string; schema: ExtendedSchemaObject }
+  >;
+  conflicts?: string[];
+};
+const consumers: Record<string, Service> = {};
+const events: Record<string, EventContract> = {};
+
+export const getEventContract = (name: string): EventContract => events[name];
+
+const refreshServiceEventContracts = (service: Service): void => {
+  const found = Object.entries(consumers).filter(
+    ([, v]) => v.id === service.id
+  );
+  found.forEach(([path]) => delete consumers[path]);
+
+  service.eventHandlers &&
+    Object.values(service.eventHandlers).forEach(
+      (handler) => (consumers[handler.path] = service)
+    );
+
+  service.schemas &&
+    Object.values(service.schemas).forEach((schema) => {
+      const event = (events[schema.name] = events[schema.name] || {
+        name: schema.name,
+        schema,
+        producers: {},
+        consumers: {}
+      });
+      if (schema.refs && schema.refs.length)
+        schema.refs.forEach((ref) => {
+          const consumer = consumers[ref];
+          event.consumers[service.id] = {
+            id: consumer && consumer.id,
+            path: ref,
+            schema
+          };
+        });
+      else {
+        event.producers[service.id] = service.id;
+        event.schema = schema;
+      }
+      event.conflicts = getConflicts(event);
+    });
+};
+
+export const getEventContracts = (): EventContract[] => {
+  return Object.values(events).sort((a, b) =>
+    a.name > b.name ? 1 : a.name < b.name ? -1 : 0
+  );
+};
+
+export const refreshServiceSpec = async (service: Service): Promise<void> => {
+  !service.breaker &&
+    (service.breaker = breaker(service.id, {
+      timeout: 60000,
+      failureThreshold: 2,
+      successThreshold: 2
+    }));
+  const { data } = await service.breaker.exec<OpenAPIV3_1.Document>(
+    async () => {
+      try {
+        const data = await getServiceSwagger(service);
+        return { data };
+      } catch (err) {
+        log().error(err);
+        err.code === "ENOTFOUND" && service.breaker.pause();
+        return { error: err.message };
+      }
+    }
+  );
+  if (data) {
+    data.info && Object.assign(service, getSpec(data));
+    refreshServiceEventContracts(service);
+  }
 };

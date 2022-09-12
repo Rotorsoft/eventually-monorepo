@@ -1,6 +1,7 @@
 import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { RequestHandler, Router } from "express";
 import { OpenAPIV3_1 } from "openapi-types";
+import { Breaker } from "./breaker";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
 
 export type ExtendedSchemaObject = OpenAPIV3_1.SchemaObject & {
@@ -14,11 +15,13 @@ export type ExtendedPathItemObject = OpenAPIV3_1.PathItemObject & {
 };
 
 export type ServiceSpec = {
+  breaker?: Breaker;
   discovered?: Date;
   version?: string;
   eventHandlers?: Record<string, ExtendedPathItemObject>;
   commandHandlers?: Record<string, ExtendedPathItemObject>;
   schemas?: Record<string, ExtendedSchemaObject>;
+  allPath?: string;
 };
 
 /**

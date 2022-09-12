@@ -1,3 +1,5 @@
+import { events } from "./events";
+import * as queries from "../queries";
 import { dispose } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { subscriptions } from "..";
@@ -11,8 +13,10 @@ import {
   subscriptionBody,
   _delete
 } from "./utils";
+import { state } from "../cluster";
 
 const port = 3001;
+jest.spyOn(queries, "getServiceStream").mockResolvedValue(events);
 
 describe("views", () => {
   beforeAll(async () => {
@@ -51,7 +55,10 @@ describe("views", () => {
       "/_add",
       "/_services/_add",
       "/s1",
-      "/_services/s1"
+      "/_services/s1",
+      "/_wait/s1",
+      "/_refresh/s1",
+      "/_toggle/s1"
     ];
     const responses = await Promise.all(paths.map((path) => get(path, port)));
     responses.map((response) => {
@@ -61,9 +68,6 @@ describe("views", () => {
 
   it("should get 2", async () => {
     const paths = [
-      "/_wait/s1",
-      "/_refresh/s1",
-      "/_toggle/s1",
       "/_graph",
       "/_contracts",
       "/_contracts/all",
@@ -72,6 +76,21 @@ describe("views", () => {
       "/_contracts/events",
       "/_correlation/aZCNKNr3HP5pQRWIxvj3XeoZ"
     ];
+    const responses = await Promise.all(paths.map((path) => get(path, port)));
+    responses.map((response) => {
+      expect(response.status).toBe(200);
+    });
+  });
+
+  it("should get queries", async () => {
+    const paths = [
+      "/_services/s1/events",
+      "/_services/s1/events/1",
+      "/_services/s1/stream/calculator"
+    ];
+    const events = await queries.getServiceStream(state().services()[0], {});
+    expect(events?.length).toBeGreaterThan(1);
+
     const responses = await Promise.all(paths.map((path) => get(path, port)));
     responses.map((response) => {
       expect(response.status).toBe(200);

@@ -16,7 +16,6 @@
       <th scope="col" class="text-end">#</th>
       <th scope="col">Id</th>
       <th scope="col">Channel</th>
-      <th scope="col">Url</th>
       <th scope="col" class="text-end">Position</th>
       <th scope="col" class="text-end">Updated</th>
     </tr>
@@ -34,8 +33,13 @@
             height="12" /></a>
           {{/if}}
         </td>
-        <td>{{this.channel}}</td>
-        <td><a href="{{this.url}}">{{this.url}}</a></td>
+        <td>
+          {{#if this.allPath}}
+            <a href="/_services/{{this.id}}/events">{{this.channel}}</a>
+          {{else}}
+            {{this.channel}}
+          {{/if}}
+        </td>
         <td class="text-end">{{intFormat this.position}}</td>
         <td class="text-end">{{dateFormat this.updated}}</td>
       </tr>

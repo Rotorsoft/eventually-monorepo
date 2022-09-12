@@ -1,6 +1,6 @@
 import { dispose, store } from "@rotorsoft/eventually";
 import axios from "axios";
-import { getConflicts, refreshServiceSpec } from "../specs";
+import { getConflicts, getEventContract, refreshServiceSpec } from "../specs";
 import { swagger } from "./swagger.doc";
 import { serviceBody } from "./utils";
 
@@ -23,13 +23,8 @@ describe("channels", () => {
     const service2 = serviceBody("test2");
     await refreshServiceSpec(service1);
     await refreshServiceSpec(service2);
-    expect(service1.schemas).toBeDefined();
-    expect(service2.schemas).toBeDefined();
-    service1.schemas &&
-      service2.schemas &&
-      getConflicts([
-        ...Object.values(service1.schemas),
-        ...Object.values(service2.schemas)
-      ]);
+    const contract = getEventContract("ProfileUpdated");
+    expect(contract).toBeDefined();
+    getConflicts(contract);
   });
 });

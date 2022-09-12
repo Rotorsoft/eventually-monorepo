@@ -7,52 +7,88 @@
   <div class="col-6">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item active">Contracts Explorer</li>
+        <li class="breadcrumb-item active">{{events.length}} Contracts</li>
       </ol>
     </nav>
   </div>
 </div>
 
-<table class="table">
+<table class="table sorted-table">
   <thead>
     <tr>
-      <th scope="col">Event</th>
-      <th scope="col">Producer</th>
-      <th scope="col">Consumer</th>
+      <th scope="col" class="text-end">#</th>
+      <th scope="col"><a href="javascript:sort(1)">Contract</a></th>
+      <th scope="col"><a href="javascript:sort(2)">Producer</a></th>
+      <th scope="col"><a href="javascript:sort(3)">Consumer</a></th>
     </tr>
   </thead>
   <tbody>
     {{#each events}}
       <tr>
-        <td id="{{this.name}}">
-          <a data-bs-toggle="collapse" href="#{{this.name}}-payload" role="button" aria-expanded="false" aria-controls="{{this.name}}-payload">
-          {{this.name}}
+        <td class="text-end">{{inc @index}}</td>
+        <td>
+          <a
+            id="{{this.name}}"
+            href="#"
+            data-bs-toggle="popover"
+            data-bs-placement="right"
+          >
+            {{this.name}}
           </a>
-          <div class="description-contract">{{this.schemas.[0].description}}</div>
           {{#if (and this.conflicts this.conflicts.length)}}
             <div class="conflicts">
               <ul>
-              {{#each this.conflicts}}
-                <li>{{this}}</li>
-              {{/each}}
+                {{#each this.conflicts}}
+                  <li>{{this}}</li>
+                {{/each}}
               </ul>
             </div>
           {{/if}}
-          <div class="collapse" id="{{this.name}}-payload">
-            {{> schema field=this.schemas.[0].properties.data name="" }}
-          </div>
         </td>
         <td>
-            {{#each this.producers}}
-              <div class="producer-contract">{{this}}</div>
-            {{/each}}
+          {{#each this.producers}}
+            <div class="producer-contract">{{this}}</div>
+          {{/each}}
         </td>
         <td>
-            {{#each this.consumers}}
-              <div class="consumer-contract">{{this.id}} <i>{{this.path}}</i></div>
-            {{/each}}
+          {{#each this.consumers}}
+            <div class="consumer-contract">{{this.id}}
+              <i>{{this.path}}</i></div>
+          {{/each}}
         </td>
       </tr>
     {{/each}}
   </tbody>
 </table>
+
+<div hidden>
+{{#each events}}
+  <div id="{{this.name}}-payload">
+    <div class="description-contract">{{this.schemas.0.description}}</div>
+    {{> schema field=this.schema.properties.data name="" }}
+  </div>
+{{/each}}
+</div>
+
+<script>
+  function preventDefault(e) {
+    e.preventDefault();
+    return true;
+  };
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const list = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+    list.map((el) => {
+      el.addEventListener("click", preventDefault);
+      const payload = document.getElementById(el.id.concat("-payload"));
+      const opts = {
+        title: el.id,
+        content: payload.innerHTML,
+        html: true,
+        trigger: 'focus'
+      };
+      new bootstrap.Popover(el, opts);
+    })
+  });
+</script>
+<script src="/_public/sort-table.js"></script>
