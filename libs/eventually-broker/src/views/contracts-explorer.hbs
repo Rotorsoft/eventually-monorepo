@@ -65,7 +65,11 @@
 {{#each events}}
   <div id="{{this.name}}-payload">
     <div class="description-contract">{{this.schemas.0.description}}</div>
+    {{#if this.schema.properties.data}}
     {{> schema field=this.schema.properties.data name="" }}
+    {{else}}
+    Empty
+    {{/if}}
   </div>
 {{/each}}
 </div>

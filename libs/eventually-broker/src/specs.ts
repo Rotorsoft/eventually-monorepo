@@ -53,14 +53,21 @@ const getServiceSwagger = async (
   return data;
 };
 
+const getSnapshotEvents = (schema: OpenAPIV3_1.SchemaObject): string[] => {
+  const refs = [] as string[];
+  schema?.properties?.state &&
+    schema?.properties?.event &&
+    "anyOf" in schema?.properties?.event &&
+    getRefs(schema.properties.event, refs);
+  return refs;
+};
+
 const getEvent = (
   schema: OpenAPIV3_1.SchemaObject
 ): ExtendedSchemaObject | undefined =>
   schema?.properties?.name &&
   "enum" in schema?.properties?.name &&
-  schema?.properties?.created &&
-  schema?.properties?.data &&
-  "properties" in schema?.properties?.data
+  schema?.properties?.created
     ? { ...schema, name: schema.properties.name.enum[0] }
     : undefined;
 
@@ -109,6 +116,16 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
       .filter(Boolean)
       .map((event) => ({ [event.name]: event }))
   ) as Record<string, ExtendedSchemaObject>;
+
+  // flag snapshot events
+  Object.values(document?.components?.schemas || {})
+    .map((schema) => getSnapshotEvents(schema))
+    .flat()
+    .filter(Boolean)
+    .map((name) => {
+      const schema = eventSchemas[name];
+      schema && (schema.inSnapshot = true);
+    });
 
   const { commandHandlers, eventHandlers } = handlers.reduce(
     (map, handler) => {
@@ -169,7 +186,7 @@ const reduceConflicts = (
       enum constraints 
       min, max lengths 
   */
-  if (!consumer) return;
+  if (!producer || !consumer) return;
 
   if (producer.type !== consumer.type) {
     conflicts.push(`${path} => type: ${producer.type} !== ${consumer.type}`);
@@ -261,7 +278,7 @@ const refreshServiceEventContracts = (service: Service): void => {
         producers: {},
         consumers: {}
       });
-      if (schema.refs && schema.refs.length)
+      if (schema.refs && schema.refs.length) {
         schema.refs.forEach((ref) => {
           const consumer = consumers[ref];
           event.consumers[service.id] = {
@@ -270,7 +287,8 @@ const refreshServiceEventContracts = (service: Service): void => {
             schema
           };
         });
-      else {
+        if (schema.inSnapshot) event.producers[service.id] = service.id;
+      } else {
         event.producers[service.id] = service.id;
         event.schema = schema;
       }

@@ -1,6 +1,9 @@
 {{>subscription-bc crumb='Subscriptions Graph'}}
 
-<div id="graph" class="row"></div>
+<div id="container" class="row">
+    <svg id="graph">
+    </svg>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script>
@@ -52,9 +55,9 @@
         .alphaMin(.1)
         .stop();
 
-    const graph = document.getElementById("graph");
-    let width = graph.offsetWidth, height = window.innerHeight - 200;
-    const svg = d3.select("div#graph").append("svg").attr("height", height);
+    const conainer = document.getElementById("container");
+    let width = conainer.offsetWidth, height = window.innerHeight - 200;
+    const svg = d3.select("svg#graph").attr("height", height);
 
     const R = 35, D = 2 * R;
     const CHAR_W = 6;
@@ -132,14 +135,14 @@
     node.append("circle")
         .attr("id", d => `node-${d.id}`)
         .attr("r", R)
-        .style("stroke", d => d.discovered ? "green" : "#6c757d")
         .style("fill", d => d.color);
     node.append("text")
+        .attr("class", "title")
         .attr("x", d => -Math.min(R, CHAR_W * d.id.length / 2))
         .attr("y", CHAR_W / 2)
-        .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef")
-        .style("font-weight", "bold");
+        .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef");
     node.append("text")
+        .attr("class", "version")
         .attr("id", d => `version-${d.id}`)
         .attr("x", d => d.version ? -CHAR_W * d.version.length / 2 : 0)
         .attr("y", CHAR_W * 2)
@@ -170,7 +173,7 @@
 
     const restart = (target = 0.3) => {
         simulation.stop();
-        width = graph.offsetWidth;
+        width = conainer.offsetWidth;
         height = window.innerHeight - 200;
         svg.attr("height", height);
         simulation.force("center").x(width/2).y(height/2);

@@ -43,6 +43,11 @@ body {
     background-color: #f8d7da;
 }
 
+svg {
+    background-color: #e3e8eb89;
+    border-radius: 15px;
+}
+
 g.link>path {
     fill: none;
     stroke-dasharray: 0, 2 1;
@@ -55,17 +60,43 @@ g.link>text {
 
 circle {
     fill: #fff;
-    stroke: #6c757d;
-    stroke-width: 1.5px;
+    stroke-width: 0px;
     z-index: 10;
+    filter: drop-shadow(0 0 0.75rem #fbca37b6);
+}
+text.title {
+    font-weight: normal;
+}
+text.version{
+    font-size: 8px;
 }
 
 g.dragging circle {
-    stroke-width: 3px;
+    stroke-width: 1px;
+    stroke: #b4bac0;
 }
 
 g.pinned circle {
-    stroke-width: 3px;
+    stroke-width: 0px;
+    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, .3));
+}
+
+g.tree-link {
+    fill: none;
+    stroke: #555;
+    stroke-opacity: 0.4;
+    stroke-linecap: 0;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+}
+
+rect.event {
+    fill: orange!important;
+    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, .3));
+}
+rect.command {
+    fill: lightskyblue!important;
+    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, .3));
 }
 
 text {
@@ -240,3 +271,4 @@ div.consumer-contract>i {
     padding: 3px 20px;
     color:grey
 }
+

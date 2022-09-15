@@ -7,6 +7,7 @@ import { ChannelResolvers, SubscriptionStore } from "./interfaces";
 export type ExtendedSchemaObject = OpenAPIV3_1.SchemaObject & {
   name: string;
   refs?: string[];
+  inSnapshot?: boolean;
 };
 
 export type ExtendedPathItemObject = OpenAPIV3_1.PathItemObject & {

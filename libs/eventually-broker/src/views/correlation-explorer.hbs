@@ -12,54 +12,76 @@
   </thead>
   <tbody>
     {{#each this.correlation}}
-      {{#if this.stream}}
-        <tr>
-          <td>{{dateFormat this.created}}</td>
-          <td scope="row">
-            {{#if this.causation}}
-              <table>
-                <tr>
-                  <td class="{{this.causation.type}}-type">
-                    <span>{{this.causation.name}}
-                    {{#if (and this.causation.id this.causation.producer)}}
-                    [<a href="/_services/{{this.causation.producer}}/events/{{this.causation.id}}">{{this.causation.id}}</a>]
-                    {{else if this.causation.id}}
-                    [{{this.causation.id}}]
-                    {{/if}}
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    {{#if this.causation.producer}}
-                    <i><a href="/_services/{{this.causation.producer}}/stream/{{this.causation.stream}}">{{this.causation.producer}}/{{this.causation.stream}}</a></i>
-                    {{else}}
-                    <i>{{this.causation.stream}}</i>
-                    {{/if}}
-                    <b>{{this.causation.actor}}</b>
-                  </td>
-                </tr>
-              </table>
-            {{/if}}
-          </td>
-          <td scope="row">
+      <tr>
+        <td>{{dateFormat this.created}}</td>
+        <td scope="row">
+          {{#if this.causation}}
             <table>
               <tr>
-                <td class="event-type">
-                  <span>{{this.name}}
-                  [<a href="/_services/{{this.service}}/events/{{this.id}}">{{this.id}}</a>]
+                <td class="{{this.causation.type}}-type">
+                  <span>{{this.causation.name}}
+                  {{#if (and this.causation.id this.causation.producer)}}
+                  [<a href="/_services/{{this.causation.producer}}/events/{{this.causation.id}}">{{this.causation.id}}</a>]
+                  {{else if this.causation.id}}
+                  [{{this.causation.id}}]
+                  {{/if}}
                   </span>
                 </td>
               </tr>
               <tr>
                 <td>
-                  <i><a href="/_services/{{this.service}}/stream/{{this.stream}}">{{this.service}}/{{this.stream}}</a></i>
+                  {{#if this.causation.producer}}
+                  <i><a href="/_services/{{this.causation.producer}}/stream/{{this.causation.stream}}">{{this.causation.producer}}/{{this.causation.stream}}</a></i>
+                  {{else}}
+                  <i>{{this.causation.stream}}</i>
+                  {{/if}}
+                  <b>{{this.causation.actor}}</b>
                 </td>
               </tr>
             </table>
-          </td>
-        </tr>
-      {{/if}}
+          {{/if}}
+        </td>
+        <td scope="row">
+          <table>
+            <tr>
+              <td class="event-type">
+                <span>{{this.name}}
+                [<a href="/_services/{{this.service}}/events/{{this.id}}">{{this.id}}</a>]
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <i><a href="/_services/{{this.service}}/stream/{{this.stream}}">{{this.service}}/{{this.stream}}</a></i>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
     {{/each}}
   </tbody>
 </table>
+
+<div id="container" class="row" />
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="/_public/d3-tree.js"></script>
+
+<script>
+    const usnf = new Intl.NumberFormat("en-US");
+
+    const { correlation } = {{{json this}}};
+    const nodes = {};
+    let root;
+    correlation.forEach(({service, stream, id, name, created, type, causation}) => {
+      const parent_id = causation ? `${causation.name}/${causation.id||''}` : `${name}/${id}`;
+      const child_id = `${name}/${id}`;
+      const parent = nodes[parent_id] = nodes[parent_id] || { label: causation ? causation.name : "root", name: parent_id, children: [], type: causation ? causation.type : "command" };
+      const child = nodes[child_id] = nodes[child_id] || { label: name, header: service, footer: stream, name: child_id, children: [], type: "event" };
+      child.parent = parent;
+      parent.children.push(child);
+      !root && causation && causation.name && (root = parent);
+    });
+
+    d3_tree("container", root);
+</script>
