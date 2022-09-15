@@ -1,3 +1,5 @@
+#### 2022-09-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.0...@rotorsoft/eventually-broker-v1.4.1) @rotorsoft/eventually-broker-v1.4.1
+  - PATCH [06b1f62d](https://github.com/Rotorsoft/eventually-monorepo/commit/06b1f62dc636e62530248aa8d2b99feed3a4188b) fix: find events in snapshots as produced, show correlation graph
 #### 2022-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.19...@rotorsoft/eventually-broker-v1.4.0) @rotorsoft/eventually-broker-v1.4.0
   - MINOR [11509348](https://github.com/Rotorsoft/eventually-monorepo/commit/115093482661b34e5aaca01c61fde3096a8c3594) feat: stream/event explorers
 #### 2022-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.18...@rotorsoft/eventually-broker-v1.3.19) @rotorsoft/eventually-broker-v1.3.19
