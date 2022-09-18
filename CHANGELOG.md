@@ -1,3 +1,5 @@
+#### 2022-09-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.1...@rotorsoft/eventually-broker-v1.4.2) @rotorsoft/eventually-broker-v1.4.2
+  - PATCH [a72c921d](https://github.com/Rotorsoft/eventually-monorepo/commit/a72c921da7cf41948b7397f390a42626deeeb462) fix: decouple d3 layouts from content
 #### 2022-09-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.0...@rotorsoft/eventually-broker-v1.4.1) @rotorsoft/eventually-broker-v1.4.1
   - PATCH [06b1f62d](https://github.com/Rotorsoft/eventually-monorepo/commit/06b1f62dc636e62530248aa8d2b99feed3a4188b) fix: find events in snapshots as produced, show correlation graph
 #### 2022-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.3.19...@rotorsoft/eventually-broker-v1.4.0) @rotorsoft/eventually-broker-v1.4.0
