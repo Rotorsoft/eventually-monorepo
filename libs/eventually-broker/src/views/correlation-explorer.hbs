@@ -2,86 +2,51 @@
   <div class="col-6">{{>service-bc crumb=this.correlation_id}}</div>
 </div>
 
-<table class="table align-middle">
-  <thead>
-    <tr>
-      <th scope="col">Created</th>
-      <th scope="col">Causation</th>
-      <th scope="col">Event</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each this.correlation}}
-      <tr>
-        <td>{{dateFormat this.created}}</td>
-        <td scope="row">
-          {{#if this.causation}}
-            <table>
-              <tr>
-                <td class="{{this.causation.type}}-type">
-                  <span>{{this.causation.name}}
-                  {{#if (and this.causation.id this.causation.producer)}}
-                  [<a href="/_services/{{this.causation.producer}}/events/{{this.causation.id}}">{{this.causation.id}}</a>]
-                  {{else if this.causation.id}}
-                  [{{this.causation.id}}]
-                  {{/if}}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  {{#if this.causation.producer}}
-                  <i><a href="/_services/{{this.causation.producer}}/stream/{{this.causation.stream}}">{{this.causation.producer}}/{{this.causation.stream}}</a></i>
-                  {{else}}
-                  <i>{{this.causation.stream}}</i>
-                  {{/if}}
-                  <b>{{this.causation.actor}}</b>
-                </td>
-              </tr>
-            </table>
-          {{/if}}
-        </td>
-        <td scope="row">
-          <table>
-            <tr>
-              <td class="event-type">
-                <span>{{this.name}}
-                [<a href="/_services/{{this.service}}/events/{{this.id}}">{{this.id}}</a>]
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <i><a href="/_services/{{this.service}}/stream/{{this.stream}}">{{this.service}}/{{this.stream}}</a></i>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    {{/each}}
-  </tbody>
-</table>
-
 <div id="container" class="row" />
 
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="/_public/d3-tree.js"></script>
+<script type="module">
+  import { d3, d3_tree, CHAR_W } from "/_public/d3-layouts.js";
 
-<script>
-    const usnf = new Intl.NumberFormat("en-US");
+  const { correlation } = {{{json this}}};
+  const nodes = {};
 
-    const { correlation } = {{{json this}}};
-    const nodes = {};
-    let root;
-    correlation.forEach(({service, stream, id, name, created, type, causation}) => {
-      const parent_id = causation ? `${causation.name}/${causation.id||''}` : `${name}/${id}`;
-      const child_id = `${name}/${id}`;
-      const parent = nodes[parent_id] = nodes[parent_id] || { label: causation ? causation.name : "root", name: parent_id, children: [], type: causation ? causation.type : "command" };
-      const child = nodes[child_id] = nodes[child_id] || { label: name, header: service, footer: stream, name: child_id, children: [], type: "event" };
-      child.parent = parent;
-      parent.children.push(child);
-      !root && causation && causation.name && (root = parent);
-    });
+  const dx = 120;
+  const g = (type, name, service, stream, id, created) => {
+    const w = 2 + Math.max(name.length, service && service.length || 0, stream && stream.length || 0);
+    const g = d3.create("svg:g");
+    g.append("rect").attr("class", type)
+      .attr("x", -(w * CHAR_W) / 2)
+      .attr("width", w * CHAR_W)
+      .attr("rx", 15)
+      .attr("y", -(dx / 4))
+      .attr("height", dx / 2);
+    g.append("text").attr("text-anchor", "middle")
+      .attr("font-weight", "bold")
+      .html(id ? `<a href="/_services/${service}/events/${id}">${name}</a>` : name);
+    service && g.append("text").attr("text-anchor", "middle").attr("y", -CHAR_W * 3).text(service);
+    stream && g.append("text").attr("text-anchor", "middle")
+      .attr("font-style", "italic").attr("y", CHAR_W * 3)
+      .html(`<a href="/_services/${service}/stream/${stream}">${stream}</a>`);
+    created && g.append("text").attr("text-anchor", "middle").attr("y", -CHAR_W * 6)
+      .text(`${created.substring(5,10).replace("-", "/")} ${created.substring(12,23)}`); 
+    return g.node();
+  }
 
-    d3_tree("container", root);
+  let root;
+  const events = correlation.map(({service, stream, id, name, created, type, causation}) => {
+    const parent_id = causation ? `${causation.name}/${causation.id||''}` : `${name}/${id}`;
+    const child_id = `${name}/${id}`;
+    const parent = nodes[parent_id] = nodes[parent_id] || { name: parent_id, children: [], type: causation ? causation.type : "command" };
+    const child = nodes[child_id] = nodes[child_id] || { name: child_id, children: [] };
+    child.parent = parent;
+    parent.children.push(child);
+    child.g = g("event", name, service, stream, id, new Date(created).toISOString());
+    if(!root && causation && causation.name) {
+      root = parent;
+      root.g = g(root.type, causation.name, causation.service, causation.stream, causation.id);
+    }
+    return child;
+  });
+
+  document.getElementById("container").appendChild(d3_tree(root || events[0], dx));
 </script>

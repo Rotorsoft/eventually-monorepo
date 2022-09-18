@@ -46,6 +46,7 @@ body {
 svg {
     background-color: #e3e8eb89;
     border-radius: 15px;
+    font-size: 10px;
 }
 
 g.link>path {
@@ -62,8 +63,9 @@ circle {
     fill: #fff;
     stroke-width: 0px;
     z-index: 10;
-    filter: drop-shadow(0 0 0.75rem #fbca37b6);
+    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, .3));
 }
+
 text.title {
     font-weight: normal;
 }
@@ -74,20 +76,15 @@ text.version{
 g.dragging circle {
     stroke-width: 1px;
     stroke: #b4bac0;
-}
-
-g.pinned circle {
-    stroke-width: 0px;
-    filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, .3));
+    filter: drop-shadow(0 0 0.75rem #fbca37b6);
 }
 
 g.tree-link {
     fill: none;
     stroke: #555;
     stroke-opacity: 0.4;
-    stroke-linecap: 0;
-    stroke-linejoin: round;
-    stroke-width: 1.5;
+    stroke-dasharray: 0, 2 1;
+    stroke-width: 1px;
 }
 
 rect.event {

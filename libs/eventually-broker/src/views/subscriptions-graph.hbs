@@ -1,37 +1,21 @@
 {{>subscription-bc crumb='Subscriptions Graph'}}
 
-<div id="container" class="row">
-    <svg id="graph">
-    </svg>
-</div>
+<div id="container" class="row" />
 
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script>
-    const usnf = new Intl.NumberFormat("en-US");
+<script type="module">
+    import { d3, d3_graph, R, CHAR_W } from "/_public/d3-layouts.js";
 
     const { services, rows } = {{{json this}}};
+
+    const MAXL = Math.round((2 * R) / CHAR_W)-1;
+    const usnf = new Intl.NumberFormat("en-US");
+
     const COLORS = {
         secondary: "#c0c0c0",
         success: "#198754",
         warning: "#ffc107",
         danger: "#dc3545"
     };
-
-    const link_color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
-    const links = rows.map(row => Object.create({
-        id: row.id,
-        source: row.producer,
-        target: row.consumer,
-        path: row.path,
-        color: link_color(row),
-        position: row.position
-    }));
-    links.forEach(link => {
-        const consumer = services.find(s => s.id === link.target);
-        consumer && (consumer.producers = (consumer.producers || 0) + 1);
-        link.source = link.source;
-        link.target = link.target;
-    });
 
     const node_color = (service) => 
         service.discovered
@@ -43,197 +27,65 @@
                     ? "pink"
                     : "white"
         : "white";
-    const nodes = services.map(service => {
-        service.color = node_color(service);
-        return service;
+
+    const nodes = services.map(n => {
+        const g = d3.create("svg:g").attr("id", `g-${n.id}`);
+        g.append("circle").attr("id", `node-${n.id}`).attr("r", R).style("fill", node_color(n));
+        g.append("text").attr("text-anchor", "middle").attr("y", CHAR_W / 2).text(n.id.length <= MAXL ? n.id : n.id.substring(0, MAXL) + "\u22ef");
+        g.append("text").attr("id", `version-${n.id}`).attr("text-anchor", "middle").attr("y", CHAR_W * 2).text(n.version);
+        g.append("text").attr("id", `label-${n.id}`).attr("text-anchor", "middle").attr("y", -R + CHAR_W * 2).text(n.label);
+        n.g = g.node();
+        return n;
     });
 
-    const simulation = d3.forceSimulation(nodes)
-        .force("charge", d3.forceManyBody().strength(-300))
-        .force("link", d3.forceLink(links).id(d => d.id))
-        .force("center", d3.forceCenter())
-        .alphaMin(.1)
-        .stop();
+    const link_color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
+    
+    const links = rows.map(row => {
+        const link = Object.create({
+            id: row.id,
+            source: row.producer,
+            target: row.consumer,
+            color: link_color(row)
+        });
+        const consumer = services.find(s => s.id === link.target);
+        consumer && (consumer.producers = (consumer.producers || 0) + 1);
+        link.source = link.source;
+        link.target = link.target;
 
-    const conainer = document.getElementById("container");
-    let width = conainer.offsetWidth, height = window.innerHeight - 200;
-    const svg = d3.select("svg#graph").attr("height", height);
-
-    const R = 35, D = 2 * R;
-    const CHAR_W = 6;
-    const clamp = (x, y, pin) => ({ 
-        x: pin ? pin.x : Math.max(D, Math.min(width - D, x)),
-        y: pin ? pin.y : Math.max(D, Math.min(height - D, y))
+        const g = d3.create("svg:g").attr("id", `link-${link.id}`).style("fill", link.color).attr("class", "link");
+        g.append("text").attr("dy", CHAR_W / 2).append("textPath").attr("id", `last-event-${link.id}`).attr("xlink:href", `#path-${link.id}`);
+        g.append("text").attr("dy", CHAR_W + 2).append("textPath").attr("id", `position-${link.id}`).attr("xlink:href", `#path-${link.id}`).attr("startOffset", R + 3).text(usnf.format(row.position));
+        g.append("text").attr("dy", -CHAR_W / 2).append("textPath").attr("xlink:href", `#path-${link.id}`).attr("startOffset", "50%").style("font-size", "8").style("fill", "silver").text(row.path);
+        link.g = g.node();
+        return link;
     });
-    const drag = d3.drag()
-        .on("start", function({x, y}, d) {
-            d3.select(this)
-                .classed("dragging", true)
-                .classed("pinned", false);
-        })
-        .on("drag", function({x, y}, d) {
-            d.pin = clamp(x, y);
-            d.fx = d.pin.x;
-            d.fy = d.pin.y;
-            simulation.alpha(0).restart();
-        })
-        .on("end", function() {
-            d3.select(this)
-                .classed("dragging", false)
-                .classed("pinned", true);
-        });
 
-    const link = svg.append("g").selectAll("g")
-        .data(links).enter()
-        .append("g")
-        .attr("id", d => `link-${d.id}`)
-        .style("fill", d => d.color)
-        .attr("class", "link");
-    const path = link.append("path")
-        .attr("id", d => `path-${d.id}`)
-        .style("stroke", d => d.color);
-    link.append("text")
-        .attr("dy", CHAR_W/2)
-        .append("textPath")
-        .attr("id", d => `last-event-${d.id}`)
-        .attr("xlink:href", d => `#path-${d.id}`);
-    link.append("text")
-        .attr("dy", CHAR_W+2)
-        .append("textPath")
-        .attr("id", d => `position-${d.id}`)
-        .attr("xlink:href", d => `#path-${d.id}`)
-        .attr("startOffset", R+3)
-        .text(d => usnf.format(d.position));
-    const dots = link.append("text")
-        .attr("dy", CHAR_W/2)
-        .append("textPath")
-        .attr("xlink:href", d => `#path-${d.id}`)
-        .text("⬤");
-    link.append("text")
-        .attr("dy", -CHAR_W/2)
-        .append("textPath")
-        .attr("xlink:href", d => `#path-${d.id}`)
-        .attr("startOffset", "50%")
-        .style("font-size", "8")
-        .style("fill", "silver")
-        .text(d => d.path);
-
-    const node = svg.append("g").selectAll("g")
-        .data(nodes).enter()
-        .append("g")
-        .attr("id", d => `g-${d.id}`)
-        .attr("transform", `translate(${width/2},${height/2})`)
-        .call(drag)
-        .on("click", function(event, d) {
-            delete d.pin;
-            delete d.fx;
-            delete d.fy;
-            d3.select(this).classed("pinned", false);
-            simulation.alphaTarget(0.3).restart();
-        });
-    const MAXL = Math.round(D/CHAR_W);
-    node.append("circle")
-        .attr("id", d => `node-${d.id}`)
-        .attr("r", R)
-        .style("fill", d => d.color);
-    node.append("text")
-        .attr("class", "title")
-        .attr("x", d => -Math.min(R, CHAR_W * d.id.length / 2))
-        .attr("y", CHAR_W / 2)
-        .text(d => d.id.length <= MAXL ? d.id : d.id.substring(0, MAXL) + "\u22ef");
-    node.append("text")
-        .attr("class", "version")
-        .attr("id", d => `version-${d.id}`)
-        .attr("x", d => d.version ? -CHAR_W * d.version.length / 2 : 0)
-        .attr("y", CHAR_W * 2)
-        .text(d => d.version);
-    node.append("text")
-        .attr("id", d => `label-${d.id}`)
-        .attr("x", d => d.label ? -CHAR_W * d.label.length / 2 : 0)
-        .attr("y", -R + CHAR_W * 2)
-        .text(d => d.label);
-
-    simulation.on("tick", () => {
-        node.attr("transform", d => {
-            if(d.pin) return `translate(${d.pin.x},${d.pin.y})`;
-            const { x, y } = clamp(d.x, d.y);
-            return `translate(${x},${y})`
-        });
-        path.attr("d", d => {
-            const { x: sx, y: sy } = clamp(d.source.x, d.source.y, d.source.pin);
-            const { x: tx, y: ty } = clamp(d.target.x, d.target.y, d.target.pin);
-            const r = Math.hypot(tx - sx, ty - sy);
-            return `M${sx},${sy}A${r},${r} 0 0,1 ${tx},${ty}`;
-        });
-        dots.attr("startOffset", d => {
-            const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
-            return r * Math.acos(.5) - R - CHAR_W*1.2;
-        });
-     });
-
-    const restart = (target = 0.3) => {
-        simulation.stop();
-        width = conainer.offsetWidth;
-        height = window.innerHeight - 200;
-        svg.attr("height", height);
-        simulation.force("center").x(width/2).y(height/2);
-        simulation.force("link").distance(Math.min(width, height) / 3);
-        simulation.alpha(target).restart();
-    } 
-
-    const refresh = () => {
-        clearTimeout(window.resizing);
-        window.resizing = setTimeout(restart, 250);
-    }
-    window.onresize = refresh;
-
-    const animate_link = async (state) => {
-        const { id, position, endpointStatus, consumer } = state;
-        const fill = link_color(state);
-
-        d3.select(`#path-${id}`).style("stroke", fill);
-        d3.select(`#link-${id}`).style("fill", fill);
-
-        d3.select(`#position-${id}`)
-            .text(usnf.format(position))
-            .interrupt()
-            .style("font-size", "120%")
-            .transition()
-            .duration(2000)
-            .style("font-size", "100%");
-
-        d3.select(`#last-event-${id}`)
-            .text(endpointStatus.name && "⬤")
-            .interrupt()
-            .attr("startOffset", "0%")
-            .transition()
-            .duration(2000)
-            .attr("startOffset", "100%");
-    };
-
-    const animate_node = async (service) => {
-        const { id, discovered, position, version, label } = service;
-        const fill = node_color(service);
-
+    const animate_node = async ({ id, discovered, version, label, color }) => {
         d3.select(`#version-${id}`).text(version);
         d3.select(`#label-${id}`).text(label);
-        d3.select(`#node-${id}`)
-            .style("stroke", discovered ? "green" : "#6c757d")
-            .interrupt()
-            .style("fill", "white")
-            .transition()
-            .duration(2000)
-            .style("fill", fill);
+        d3.select(`#node-${id}`).style("stroke", discovered ? "green" : "#6c757d").interrupt()
+            .style("fill", "white").transition().duration(2000).style("fill", color);
+    };
+
+    const animate_link = async ({ id, position, endpointStatus, color }) => {
+        d3.select(`#path-${id}`).style("stroke", color);
+        d3.select(`#link-${id}`).style("fill", color);
+        d3.select(`#position-${id}`).text(usnf.format(position)).interrupt()
+            .style("font-size", "120%").transition().duration(2000).style("font-size", "100%");
+        d3.select(`#last-event-${id}`).text(endpointStatus.name && "⬤").interrupt()
+            .attr("startOffset", "0%").transition().duration(2000).attr("startOffset", "100%");
     };
 
     const connect = () => {
         const es = new EventSource("/_monitor-all");
         es.addEventListener("state", ({ data }) => {
             const state = JSON.parse(data);
+            state.color = link_color(state);
             animate_link(state);
         });
         es.addEventListener("health", ({ data }) => {
             const service = JSON.parse(data);
+            service.color = node_color(service);
             animate_node(service);
         });
         es.onerror = (error) => {
@@ -241,35 +93,8 @@
         };
     }
 
-    const cache = localStorage.getItem("cache-graph");
-    if (cache) {
-        const _nodes = JSON.parse(cache).nodes;
-        let count = 0;
-        _nodes.forEach(({ id, x, y, pin }) => {
-            const found = nodes.find(n => n.id === id)
-            if (found) {
-                found.x = x;
-                found.y = y;
-                if(pin) {
-                    found.pin = pin;
-                    found.fx = pin.x;
-                    found.fy = pin.y;
-                    d3.select(`#g-${id}`).classed("pinned", true);
-                }
-                count++;
-            }
-        });
-        restart(count >= _nodes.length / 2 ? 0 : .3);
+    if(services.length) {
+        document.getElementById("container").appendChild(d3_graph(nodes, links, "cache-graph"));
+        connect();
     }
-    else restart();
-
-    const save = () => {
-        clearTimeout(window.saving);
-        window.saving = setTimeout(() => {
-            localStorage.setItem("cache-graph", JSON.stringify({ nodes }));
-        }, 3000);
-    }
-    simulation.on("end", save);
-
-    connect();
 </script>
