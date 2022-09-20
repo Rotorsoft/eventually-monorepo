@@ -3,7 +3,7 @@ import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import { state } from "../cluster";
 import { getStream } from "../queries";
-import { isAdmin } from "../utils";
+import { toViewState } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -23,11 +23,11 @@ const defaultService = {
 
 router.get("/", (req, res) => {
   const services = state().services();
-  res.render("services", { isAdmin: isAdmin(req), rows: prepare(services) });
+  res.render("services", toViewState(req, { rows: prepare(services) }));
 });
 
 router.get("/_add", (req, res) => {
-  res.render("add-service", { ...defaultService, isAdmin: isAdmin(req) });
+  res.render("add-service", toViewState(req, defaultService));
 });
 
 router.post(
@@ -39,24 +39,28 @@ router.post(
         allowUnknown: true
       });
       if (error) {
-        res.render("add-service", {
-          class: "alert-warning",
-          message: error.details.map((m) => m.message).join(", "),
-          ...req.body,
-          isAdmin: isAdmin(req)
-        });
+        res.render(
+          "add-service",
+          toViewState(req, {
+            class: "alert-warning",
+            message: error.details.map((m) => m.message).join(", "),
+            ...req.body
+          })
+        );
       } else {
         await subscriptions().createService(value);
         res.redirect("/_services");
       }
     } catch (error) {
       log().error(error);
-      res.render("add-service", {
-        class: "alert-danger",
-        message: "Oops, something went wrong! Please check your logs.",
-        ...req.body,
-        isAdmin: isAdmin(req)
-      });
+      res.render(
+        "add-service",
+        toViewState(req, {
+          class: "alert-danger",
+          message: "Oops, something went wrong! Please check your logs.",
+          ...req.body
+        })
+      );
     }
   }
 );
@@ -72,11 +76,11 @@ router.get("/:id", (req, res) => {
       .services()
       .find((s) => s.id === id);
     service
-      ? res.render("edit-service", { ...service, isAdmin: isAdmin(req) })
-      : res.render("edit-service", { ...err, isAdmin: isAdmin(req) });
+      ? res.render("edit-service", toViewState(req, service))
+      : res.render("edit-service", toViewState(req, err));
   } catch (error) {
     log().error(error);
-    res.render("edit-service", { ...err, isAdmin: isAdmin(req) });
+    res.render("edit-service", toViewState(req, err));
   }
 });
 
@@ -90,24 +94,28 @@ router.post(
         allowUnknown: true
       });
       if (error) {
-        res.render("edit-service", {
-          class: "alert-warning",
-          message: error.details.map((m) => m.message).join(", "),
-          ...req.body,
-          isAdmin: isAdmin(req)
-        });
+        res.render(
+          "edit-service",
+          toViewState(req, {
+            class: "alert-warning",
+            message: error.details.map((m) => m.message).join(", "),
+            ...req.body
+          })
+        );
       } else {
         await subscriptions().updateService({ ...value, id });
         res.redirect("/_services");
       }
     } catch (error) {
       log().error(error);
-      res.render("edit-service", {
-        class: "alert-danger",
-        message: "Oops, something went wrong! Please check your logs.",
-        ...req.body,
-        isAdmin: isAdmin(req)
-      });
+      res.render(
+        "edit-service",
+        toViewState(req, {
+          class: "alert-danger",
+          message: "Oops, something went wrong! Please check your logs.",
+          ...req.body
+        })
+      );
     }
   }
 );

@@ -12,6 +12,7 @@ import { formatDate, formatDateLocal, formatInt } from "./utils";
 export const app = async ({
   port,
   middleware = [] as RequestHandler[],
+  prehandlers,
   prerouters,
   resolvers,
   serviceLogLinkTemplate,
@@ -34,6 +35,7 @@ export const app = async ({
   );
 
   const app = express();
+  prehandlers && prehandlers.forEach((handler) => app.use(handler));
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
   app.use("/_public", express.static(path.resolve(__dirname, "./public")));
@@ -60,7 +62,7 @@ export const app = async ({
   );
   app.set("view engine", "hbs");
   app.set("views", path.resolve(__dirname, "./views"));
-  prerouters && prerouters.map(({ path, router }) => app.use(path, router));
+  prerouters && prerouters.forEach(({ path, router }) => app.use(path, router));
   app.use("/favicon.ico", (_, res) => {
     res.sendFile(path.resolve(__dirname, "./public/assets/broker.png"));
   });

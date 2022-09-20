@@ -2,7 +2,7 @@ import { log, randomId } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state, SubscriptionViewModel } from "../cluster";
-import { isAdmin } from "../utils";
+import { toViewState } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -69,7 +69,7 @@ router.get("/_graph", async (_, res) => {
 
 router.get("/", async (req, res) => {
   const subs = await subscriptions().loadSubscriptions();
-  res.render("subscriptions", { isAdmin: isAdmin(req), ...rows(subs) });
+  res.render("subscriptions", toViewState(req, rows(subs)));
 });
 
 router.post(
@@ -84,11 +84,13 @@ router.post(
 );
 
 router.get("/_add", (req, res) => {
-  res.render("add-subscription", {
-    ...defaultSubscription,
-    services: state().services(),
-    isAdmin: isAdmin(req)
-  });
+  res.render(
+    "add-subscription",
+    toViewState(req, {
+      ...defaultSubscription,
+      services: state().services()
+    })
+  );
 });
 
 router.post(
@@ -101,26 +103,30 @@ router.post(
         allowUnknown: true
       });
       if (error) {
-        res.render("add-subscription", {
-          class: "alert-warning",
-          message: error.details.map((m) => m.message).join(", "),
-          ...req.body,
-          services,
-          isAdmin: isAdmin(req)
-        });
+        res.render(
+          "add-subscription",
+          toViewState(req, {
+            class: "alert-warning",
+            message: error.details.map((m) => m.message).join(", "),
+            ...req.body,
+            services
+          })
+        );
       } else {
         await subscriptions().createSubscription(value);
         res.redirect("/");
       }
     } catch (error) {
       log().error(error);
-      res.render("add-subscription", {
-        class: "alert-danger",
-        message: "Oops, something went wrong! Please check your logs.",
-        ...req.body,
-        services,
-        isAdmin: isAdmin(req)
-      });
+      res.render(
+        "add-subscription",
+        toViewState(req, {
+          class: "alert-danger",
+          message: "Oops, something went wrong! Please check your logs.",
+          ...req.body,
+          services
+        })
+      );
     }
   }
 );
@@ -163,24 +169,30 @@ router.get("/:id", async (req, res) => {
   try {
     const [sub] = await subscriptions().loadSubscriptions(id);
     sub
-      ? res.render("edit-subscription", {
-          ...props,
-          ...sub,
-          ...state().viewModel(sub),
-          isAdmin: isAdmin(req)
-        })
-      : res.render("edit-subscription", {
-          ...props,
-          ...err,
-          isAdmin: isAdmin(req)
-        });
+      ? res.render(
+          "edit-subscription",
+          toViewState(req, {
+            ...props,
+            ...sub,
+            ...state().viewModel(sub)
+          })
+        )
+      : res.render(
+          "edit-subscription",
+          toViewState(req, {
+            ...props,
+            ...err
+          })
+        );
   } catch (error) {
     log().error(error);
-    res.render("edit-subscription", {
-      ...props,
-      ...err,
-      isAdmin: isAdmin(req)
-    });
+    res.render(
+      "edit-subscription",
+      toViewState(req, {
+        ...props,
+        ...err
+      })
+    );
   }
 });
 
@@ -202,24 +214,28 @@ router.post(
         allowUnknown: true
       });
       if (error) {
-        res.render("edit-subscription", {
-          class: "alert-warning",
-          message: error.details.map((m) => m.message).join(", "),
-          ...props,
-          isAdmin: isAdmin(req)
-        });
+        res.render(
+          "edit-subscription",
+          toViewState(req, {
+            class: "alert-warning",
+            message: error.details.map((m) => m.message).join(", "),
+            ...props
+          })
+        );
       } else {
         await subscriptions().updateSubscription({ ...value, id });
         res.redirect(`/_wait/${id}`);
       }
     } catch (error) {
       log().error(error);
-      res.render("edit-subscription", {
-        class: "alert-danger",
-        message: "Oops, something went wrong! Please check your logs.",
-        ...props,
-        isAdmin: isAdmin(req)
-      });
+      res.render(
+        "edit-subscription",
+        toViewState(req, {
+          class: "alert-danger",
+          message: "Oops, something went wrong! Please check your logs.",
+          ...props
+        })
+      );
     }
   }
 );

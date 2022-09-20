@@ -128,6 +128,7 @@ export type AppOptions = {
   resolvers?: ChannelResolvers;
   port?: number;
   middleware?: RequestHandler[];
+  prehandlers?: RequestHandler[];
   prerouters?: Array<{ path: string; router: Router }>;
   serviceLogLinkTemplate?: string;
   secrets?: SecretOptions;

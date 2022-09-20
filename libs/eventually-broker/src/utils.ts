@@ -41,14 +41,16 @@ export const formatDateLocal = (date: Date): string => {
 };
 
 /**
- * Validates admin user
+ * Prepare view state
  *
- * @param req Request payload
- * @returns boolean when is an Admin
+ * @param req Request
+ * @param state Payload
+ * @returns View State
  */
-export const isAdmin = (req: Request): boolean | undefined => {
+export const toViewState = (req: Request, state: Payload): Payload => {
   const { user } = req as Request & { user: Actor };
-  return user && user?.roles?.includes("admin");
+  const isAdmin = user && user?.roles?.includes("admin");
+  return Object.assign({}, state, { user, isAdmin });
 };
 
 /**
