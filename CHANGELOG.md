@@ -1,3 +1,5 @@
+#### 2022-09-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.2...@rotorsoft/eventually-broker-v1.4.3) @rotorsoft/eventually-broker-v1.4.3
+  - PATCH [8e5ca8c6](https://github.com/Rotorsoft/eventually-monorepo/commit/8e5ca8c6c5456c9d3dda3a598d711f97596eabcc) fix: remove d3 force in graph, add zoom and pan
 #### 2022-09-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.1...@rotorsoft/eventually-broker-v1.4.2) @rotorsoft/eventually-broker-v1.4.2
   - PATCH [a72c921d](https://github.com/Rotorsoft/eventually-monorepo/commit/a72c921da7cf41948b7397f390a42626deeeb462) fix: decouple d3 layouts from content
 #### 2022-09-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.0...@rotorsoft/eventually-broker-v1.4.1) @rotorsoft/eventually-broker-v1.4.1
