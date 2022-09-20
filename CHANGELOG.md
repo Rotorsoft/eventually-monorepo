@@ -1,3 +1,5 @@
+#### 2022-09-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.3...@rotorsoft/eventually-broker-v1.4.4) @rotorsoft/eventually-broker-v1.4.4
+  - PATCH [d60b4e82](https://github.com/Rotorsoft/eventually-monorepo/commit/d60b4e82e81a7d570bba278b249defafbc468c5d) fix: add prehandlers to broker builder
 #### 2022-09-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.2...@rotorsoft/eventually-broker-v1.4.3) @rotorsoft/eventually-broker-v1.4.3
   - PATCH [8e5ca8c6](https://github.com/Rotorsoft/eventually-monorepo/commit/8e5ca8c6c5456c9d3dda3a598d711f97596eabcc) fix: remove d3 force in graph, add zoom and pan
 #### 2022-09-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.1...@rotorsoft/eventually-broker-v1.4.2) @rotorsoft/eventually-broker-v1.4.2
