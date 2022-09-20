@@ -2,35 +2,51 @@ import * as d3 from "https://cdn.skypack.dev/d3@7";
 
 const R = 36;
 const CHAR_W = 6;
+const MARGIN_X = 20;
+const MARGIN_BOTTOM = 150;
 
-const d3_tree = (rootNode, dx) => {
+const debounce = (func, timeout = 100) => {
+  func.__debouncing__ && clearTimeout(func.__debouncing__);
+  func.__debouncing__ = setTimeout(func, timeout);
+};
+
+let width = window.innerWidth - MARGIN_X;
+let height = window.innerHeight - MARGIN_BOTTOM;
+let scale = 1;
+let panX = 0;
+let panY = 0;
+
+const resize = () => {
+  width = window.innerWidth - MARGIN_X;
+  height = window.innerHeight - MARGIN_BOTTOM;
+  d3.select("svg").attr("width", width).attr("height", height);
+};
+window.onresize = () => debounce(resize);
+
+const d3_tree = (containerId, rootNode, dx) => {
   // horizontal padding for first and last column
   const padding = 1;
+  const container = document.getElementById(containerId);
+  const ccw = container.clientWidth;
 
   // Compute the layout.
-  const width = window.innerHeight;
   const root = d3.hierarchy(rootNode);
-  const dy = width / (root.height + padding);
+  const dy = ccw / (root.height + padding);
   d3.tree().nodeSize([dx, dy])(root);
 
-  // Center the tree.
-  let x0 = Infinity;
-  let x1 = -x0;
   root.each((d) => {
-    if (d.x > x1) x1 = d.x;
-    if (d.x < x0) x0 = d.x;
+    d.x += dx;
+    d.y += 30 + (rootNode.name.length * CHAR_W) / 2;
   });
 
-  // Compute the default height.
-  const height = x1 - x0 + dx * 2;
+  const zoom = d3
+    .zoom()
+    .scaleExtent([0.25, 10])
+    .on("zoom", function (e) {
+      d3.selectAll("svg > g").attr("transform", e.transform);
+    });
 
-  const svg = d3
-    .create("svg")
-    .attr("viewBox", [(-dy * padding) / 2, x0 - dx, width, height])
-    .attr("width", width)
-    .attr("height", height)
-    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
-
+  const svg = d3.create("svg").attr("height", height).call(zoom);
   svg
     .append("g")
     .attr("class", "tree-link")
@@ -53,130 +69,141 @@ const d3_tree = (rootNode, dx) => {
     .append((d) => d.data.g)
     .attr("transform", (d) => `translate(${d.y},${d.x})`);
 
-  return svg.node();
+  container.appendChild(svg.node());
 };
 
-const d3_graph = (nodes, links, cacheKey) => {
-  const width = window.innerWidth,
-    height = window.innerHeight;
+const d3_graph = (containerId, nodes, links, cacheKey) => {
+  const container = document.getElementById(containerId);
 
-  const clamp = (x, y) => ({
-    x: Math.max(R, Math.min(width - R, Math.abs(x))),
-    y: Math.max(R, Math.min(height - R, Math.abs(y)))
+  nodes.forEach((n, index) => {
+    n.x = n.y = R * index;
   });
+
+  const nodes_map = Object.assign(
+    {},
+    ...nodes.map((node) => {
+      node.links = [];
+      return { [node.id]: node };
+    })
+  );
 
   if (cacheKey) {
     const cache = localStorage.getItem(cacheKey);
     if (cache) {
-      const _nodes = JSON.parse(cache);
-      _nodes.forEach(({ id, x, y }) => {
-        const found = nodes.find((n) => n.id === id);
-        if (found) {
-          found.x = x;
-          found.y = y;
-          found.fx = x;
-          found.fy = y;
+      try {
+        const obj = JSON.parse(cache);
+        obj.scale && (scale = obj.scale);
+        if (obj.translate) {
+          panX = obj.translate.x;
+          panY = obj.translate.y;
         }
-      });
+        Array.isArray(obj.nodes) &&
+          obj.nodes.forEach(({ id, x, y }) => {
+            const node = nodes_map[id];
+            if (node) {
+              node.x = x;
+              node.y = y;
+            }
+          });
+      } catch {}
     }
   }
 
-  let saving;
   const save = () => {
-    if (cacheKey) {
-      clearTimeout(saving);
-      saving = setTimeout(() => {
-        localStorage.setItem(
-          cacheKey,
-          JSON.stringify(nodes.map(({ id, x, y }) => ({ id, x, y })))
-        );
-      }, 3000);
-    }
+    if (!cacheKey) return;
+    const cache = {
+      scale,
+      translate: {
+        x: panX,
+        y: panY
+      },
+      nodes: nodes
+        .filter((n) => n.x && n.y)
+        .map(({ id, x, y }) => ({ id, x, y }))
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(cache));
   };
 
-  const svg = d3
-    .create("svg")
-    .attr("viewBox", [0, 0, width, height])
-    .attr("width", width)
-    .attr("height", height)
-    .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+  const path = (link) => {
+    const source = nodes_map[link.source];
+    const target = nodes_map[link.target];
+    const r = Math.hypot(target.x - source.x, target.y - source.y);
+    link.d = `M${source.x},${source.y}A${r},${r} 0 0,1 ${target.x},${target.y}`;
+    link.startOffset = r * Math.acos(0.5) - R - CHAR_W * 1.2;
+  };
 
-  const simulation = d3
-    .forceSimulation(nodes)
-    .force("charge", d3.forceManyBody().strength(-20))
-    .force(
-      "link",
-      d3.forceLink(links).id((d) => d.id)
-    )
-    .force("center", d3.forceCenter())
-    .alphaMin(0.1)
-    .stop();
+  const zoom = d3
+    .zoom()
+    .scaleExtent([0.25, 10])
+    .on("zoom", function (e) {
+      scale = e.transform.k;
+      panX = e.transform.x;
+      panY = e.transform.y;
+      save();
+      d3.selectAll("svg > g").attr("transform", e.transform);
+    });
+
+  const svg = d3.create("svg").attr("height", height).call(zoom);
+
+  const pathGroups = svg
+    .append("g")
+    .selectAll("g")
+    .data(links)
+    .enter()
+    .append((d) => {
+      path(d);
+      return d.g;
+    });
+
+  const paths = pathGroups
+    .append("path")
+    .attr("id", (d) => `path-${d.id}`)
+    .style("stroke", (d) => d.color)
+    .attr("d", (d) => d.d);
+
+  pathGroups
+    .append("text")
+    .attr("dy", CHAR_W / 2)
+    .append("textPath")
+    .attr("id", (d) => `dot-${d.id}`)
+    .attr("xlink:href", (d) => `#path-${d.id}`)
+    .text("⬤")
+    .attr("startOffset", (d) => d.startOffset);
 
   const drag = d3
     .drag()
     .on("start", function () {
       d3.select(this).classed("dragging", true);
     })
-    .on("drag", function ({ dx, dy }, d) {
-      const c = clamp(d.x + dx, d.y + dy);
-      d.fx = c.x;
-      d.fy = c.y;
-      simulation.alpha(0).restart();
+    .on("drag", function ({ x, y }, d) {
+      d.x = x;
+      d.y = y;
+      d3.select(this).attr("transform", `translate(${x},${y})`);
+      paths.each(function (link) {
+        if (link.source === d.id || link.target === d.id) {
+          path(link);
+          d3.select(this).attr("d", (d) => d.d);
+          d3.select(`#dot-${link.id}`).attr("startOffset", link.startOffset);
+        }
+      });
     })
     .on("end", function () {
       d3.select(this).classed("dragging", false);
-      save();
+      debounce(save, 3000);
     });
 
-  const link = svg
-    .append("g")
-    .selectAll("g")
-    .data(links)
-    .enter()
-    .append((d) => d.g);
-
-  const path = link
-    .append("path")
-    .attr("id", (d) => `path-${d.id}`)
-    .style("stroke", (d) => d.color);
-
-  const dots = link
-    .append("text")
-    .attr("dy", CHAR_W / 2)
-    .append("textPath")
-    .attr("xlink:href", (d) => `#path-${d.id}`)
-    .text("⬤");
-
-  const node = svg
+  // nodes
+  svg
     .append("g")
     .selectAll("g")
     .data(nodes)
     .enter()
     .append((d) => d.g)
-    .attr("x", (d) => d.x || width / 2)
-    .attr("y", (d) => d.y || height / 2)
+    .attr("transform", (d) => `translate(${d.x},${d.y})`)
     .call(drag);
 
-  simulation.on("tick", () => {
-    node.attr("transform", (d) => {
-      const { x, y } = clamp(d.x, d.y);
-      return `translate(${x},${y})`;
-    });
-    path.attr("d", (d) => {
-      const { x: sx, y: sy } = clamp(d.source.x, d.source.y);
-      const { x: tx, y: ty } = clamp(d.target.x, d.target.y);
-      const r = Math.hypot(tx - sx, ty - sy);
-      return `M${sx},${sy}A${r},${r} 0 0,1 ${tx},${ty}`;
-    });
-    dots.attr("startOffset", (d) => {
-      const r = Math.hypot(d.target.x - d.source.x, d.target.y - d.source.y);
-      return r * Math.acos(0.5) - R - CHAR_W * 1.2;
-    });
-  });
-
-  simulation.alphaTarget(0.3).restart();
-
-  return svg.node();
+  container.appendChild(svg.node());
+  zoom.transform(svg, d3.zoomIdentity.translate(panX, panY).scale(scale));
 };
 
 export { d3, d3_tree, d3_graph, R, CHAR_W };

@@ -48,5 +48,5 @@
     return child;
   });
 
-  document.getElementById("container").appendChild(d3_tree(root || events[0], dx));
+  d3_tree("container", root || events[0], dx);
 </script>

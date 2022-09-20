@@ -41,17 +41,14 @@
     const link_color = (row) => COLORS[row.active ? row.endpointStatus.color : "secondary"];
     
     const links = rows.map(row => {
-        const link = Object.create({
+        const consumer = services.find(s => s.id === row.consumer);
+        consumer && (consumer.producers = (consumer.producers || 0) + 1);
+        const link = {
             id: row.id,
             source: row.producer,
             target: row.consumer,
             color: link_color(row)
-        });
-        const consumer = services.find(s => s.id === link.target);
-        consumer && (consumer.producers = (consumer.producers || 0) + 1);
-        link.source = link.source;
-        link.target = link.target;
-
+        };
         const g = d3.create("svg:g").attr("id", `link-${link.id}`).style("fill", link.color).attr("class", "link");
         g.append("text").attr("dy", CHAR_W / 2).append("textPath").attr("id", `last-event-${link.id}`).attr("xlink:href", `#path-${link.id}`);
         g.append("text").attr("dy", CHAR_W + 2).append("textPath").attr("id", `position-${link.id}`).attr("xlink:href", `#path-${link.id}`).attr("startOffset", R + 3).text(usnf.format(row.position));
@@ -94,7 +91,7 @@
     }
 
     if(services.length) {
-        document.getElementById("container").appendChild(d3_graph(nodes, links, "cache-graph"));
+        d3_graph("container", nodes, links, "cache-graph");
         connect();
     }
 </script>
