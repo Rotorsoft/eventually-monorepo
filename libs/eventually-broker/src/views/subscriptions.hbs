@@ -16,17 +16,17 @@
   </div>
 </div>
 
-<table class="table align-middle sorted-table">
+<table id="subs-table" class="table align-middle sorted-table">
   <thead>
     <tr>
-      <th scope="col"><a href="javascript:sort(0)">Id</a></th>
-      <th scope="col" class="text-end"><a href="javascript:sort(1, true)">Position</a></th>
-      <th scope="col" class="text-end"><a href="javascript:sort(2, true)">Session</a></th>
-      <th scope="col"><a href="javascript:sort(3)">Producer</a></th>
-      <th scope="col"><a href="javascript:sort(4)">Consumer</a></th>
-      <th scope="col"><a href="javascript:sort(5)">Path</a></th>
-      <th scope="col"><a href="javascript:sort(6)">Streams</a></th>
-      <th scope="col" class="text-end"><a href="javascript:sort(7)">Updated</a></th>
+      <th scope="col">Id</th>
+      <th scope="col" class="text-end">Position</th>
+      <th scope="col" class="text-end">Session</th>
+      <th scope="col">Producer</th>
+      <th scope="col">Consumer</th>
+      <th scope="col">Path</th>
+      <th scope="col">Streams</th>
+      <th scope="col" class="text-end">Updated</th>
     </tr>
   </thead>
   <tbody>
@@ -61,63 +61,5 @@
   </tbody>
 </table>
 
-<script>
-  const usnf = new Intl.NumberFormat("en-US");
-
-  const badge = (count, cls) => 
-    count > 0 ? `<span class="${cls}">${usnf.format(count)}</span>` : "";
-
-  const refresh = (state) => {
-    const { id, active, position, channelPosition, endpointStatus, total, events } = state;
-
-    const rowTr = document.getElementById(`row-${id}`)
-    rowTr && (active ? rowTr.classList.remove("table-secondary") : rowTr.classList.add("table-secondary"));
-
-    const statusTd = document.getElementById(`status-${id}`);
-    statusTd && (statusTd.innerHTML=`<i class="bi ${endpointStatus.icon} text-${endpointStatus.color}"></i>&nbsp;<a href="/${id}">${id}</a>`);
-          
-    const positionSpan = position < channelPosition 
-          ? `${usnf.format(position)} /${usnf.format(channelPosition)}` 
-          : usnf.format(position);
-    const positionTd = document.getElementById(`position-${id}`);
-    positionTd && (positionTd.innerHTML=`
-      <div class="text-${endpointStatus.color}">
-        ${positionSpan}
-      </div>`
-    );
-
-    const a = events.reduce((a,e) => {
-      a.ok += e.ok ? e.ok.count : 0;
-      a.ignored += e.ignored ? e.ignored.count : 0;
-      a.retryable += e.retryable ? e.retryable.count : 0;
-      a.critical += e.critical ? e.critical.count : 0;
-      return a;
-    }, { ok:0, ignored:0, retryable:0, critical:0 });
-
-    const sessionTd = document.getElementById(`session-${id}`);
-    sessionTd && (sessionTd.innerHTML = `
-      <div class="counters">
-        ${badge(a.ok, "ok")}
-        ${badge(a.ignored, "ignored")}
-        ${badge(a.retryable, "retryable")}
-        ${badge(a.critical, "critical")}
-      </div>`
-    );
-  };
-
-  const connect = () => {
-    const es = new EventSource("/_monitor-all");
-    es.addEventListener("state", ({ data }) => {
-        const state = JSON.parse(data);
-        refresh(state);
-    });
-    es.onerror = (error) => {
-      console.error("sse error... retrying...");
-    };
-  }
-
-  const { rows } = {{{json this}}};
-  rows.map(row => refresh(row));
-  connect();
-</script>
-<script src="/_public/sort-table.js"></script>
+<div id="__state__" hidden>{{{json this.rows}}}</hidden>
+<script type="module" src="/_public/js/subscriptions.js"></script>

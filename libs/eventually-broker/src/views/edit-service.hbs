@@ -25,31 +25,5 @@
   {{> service-form edit=isAdmin}}
 </form>
 
-<script>
-  const { isAdmin } = {{{json this}}};
-  if(isAdmin) {
-    const delId = document.getElementById("deleteId");
-    const delBtn = document.getElementById("deleteButton");
-    delId.onkeyup = (ev) => {
-      const enable = delId.value === '{{this.id}}';
-      enable 
-        ? delBtn.classList.remove("disabled")
-        : delBtn.classList.add("disabled")
-    }
-    delBtn.onclick = () => {
-      fetch("/_services/{{this.id}}", { method: "delete" })
-        .then(response => response.json())
-        .then(json => {
-          if(json.deleted) document.location = "/_services";
-          else {
-            delId.value = "";
-            alert(json.message);
-          }
-        })
-        .catch((error)=> {
-          delId.value = "";
-          alert(json.message);
-        })
-    }
-  }
-</script>
+<div id="__state__" hidden>{{{json this}}}</hidden>
+<script type="module" src="/_public/js/edit-service.js"></script>

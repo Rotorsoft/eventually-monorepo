@@ -1,8 +1,3 @@
-<script>
-  const { events } =
-  {{{json this}}}; console.log(events);
-</script>
-
 <div class="row">
   <div class="col-6">
     <nav aria-label="breadcrumb">
@@ -13,13 +8,13 @@
   </div>
 </div>
 
-<table class="table sorted-table">
+<table id="events-table" class="table sorted-table">
   <thead>
     <tr>
       <th scope="col" class="text-end">#</th>
-      <th scope="col"><a href="javascript:sort(1)">Contract</a></th>
-      <th scope="col"><a href="javascript:sort(2)">Producer</a></th>
-      <th scope="col"><a href="javascript:sort(3)">Consumer</a></th>
+      <th scope="col">Contract</th>
+      <th scope="col">Producer</th>
+      <th scope="col">Consumer</th>
     </tr>
   </thead>
   <tbody>
@@ -74,25 +69,4 @@
 {{/each}}
 </div>
 
-<script>
-  function preventDefault(e) {
-    e.preventDefault();
-    return true;
-  };
-
-  document.addEventListener("DOMContentLoaded", function() {
-    const list = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-    list.map((el) => {
-      el.addEventListener("click", preventDefault);
-      const payload = document.getElementById(el.id.concat("-payload"));
-      const opts = {
-        title: el.id,
-        content: payload.innerHTML,
-        html: true,
-        trigger: 'focus'
-      };
-      new bootstrap.Popover(el, opts);
-    })
-  });
-</script>
-<script src="/_public/sort-table.js"></script>
+<script type="module" src="/_public/js/contracts.js"></script>

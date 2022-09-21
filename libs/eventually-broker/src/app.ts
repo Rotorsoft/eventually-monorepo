@@ -1,6 +1,7 @@
 import { config, dispose, log } from "@rotorsoft/eventually";
 import express, { Express, RequestHandler } from "express";
 import { engine } from "express-handlebars";
+import helmet from "helmet";
 import { Server } from "http";
 import { Socket } from "net";
 import path from "path";
@@ -38,6 +39,21 @@ export const app = async ({
   prehandlers && prehandlers.forEach((handler) => app.use(handler));
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          "style-src": ["'self'", "https://cdn.jsdelivr.net/npm/"],
+          "script-src": [
+            "'self'",
+            "https://cdn.jsdelivr.net/npm/",
+            "https://cdn.skypack.dev/"
+          ]
+        }
+      }
+    })
+  );
   app.use("/_public", express.static(path.resolve(__dirname, "./public")));
   app.engine(
     "hbs",

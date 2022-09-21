@@ -2,6 +2,16 @@ body {
     font-family: monospace;
 }
 
+.foot-note {
+    font-size:50%; 
+    font-weight: lighter;
+    color: silver;
+}
+
+.same-width {
+    width:28%;
+}
+
 .stat {
     font-size: 10px;
 }

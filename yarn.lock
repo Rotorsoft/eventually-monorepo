@@ -840,6 +840,7 @@ __metadata:
     cron-validator: ^1.3.1
     express: ^4.17.3
     express-handlebars: ^6.0.3
+    helmet: ^6.0.0
     joi: ^17.6.0
     pg: ^8.7.1
     pg-listen: ^1.7.0
@@ -3335,6 +3336,13 @@ __metadata:
   dependencies:
     function-bind: ^1.1.1
   checksum: b9ad53d53be4af90ce5d1c38331e712522417d017d5ef1ebd0507e07c2fbad8686fffb8e12ddecd4c39ca9b9b47431afbb975b8abf7f3c3b82c98e9aad052792
+  languageName: node
+  linkType: hard
+
+"helmet@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "helmet@npm:6.0.0"
+  checksum: 0dd89d5b77c5334e815f5d29376ca7af0ad1007136890f497be3455d9ed9734e7203e13d9931e29e4d2ced1c632c52440f16d2a02e8835fd8b8706a12052faad
   languageName: node
   linkType: hard
 
