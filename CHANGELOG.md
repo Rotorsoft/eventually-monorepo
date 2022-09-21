@@ -1,3 +1,5 @@
+#### 2022-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.4...@rotorsoft/eventually-broker-v1.4.5) @rotorsoft/eventually-broker-v1.4.5
+  - PATCH [cb876076](https://github.com/Rotorsoft/eventually-monorepo/commit/cb87607630bfbc39b7ca18db99f0de682466b86c) fix: add helmet middleware and move scripts to files
 #### 2022-09-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.3...@rotorsoft/eventually-broker-v1.4.4) @rotorsoft/eventually-broker-v1.4.4
   - PATCH [d60b4e82](https://github.com/Rotorsoft/eventually-monorepo/commit/d60b4e82e81a7d570bba278b249defafbc468c5d) fix: add prehandlers to broker builder
 #### 2022-09-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.2...@rotorsoft/eventually-broker-v1.4.3) @rotorsoft/eventually-broker-v1.4.3
