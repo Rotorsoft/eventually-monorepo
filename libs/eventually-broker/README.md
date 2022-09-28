@@ -8,25 +8,53 @@
 
 TODO: Documentation
 
-## Service Graph
+### Service Paths
+
+* GET `/services` - Lists all services
+* GET `/services/:id` - Shows service with id, admins can edit
+* GET `/services/:id/events` - Queries service events
+* GET `/services/:id/events/:eid` - Gets service event by id
+* GET `/services/:id/stream/:sid` - Queries service stream
+* GET `/services?add=true` - Admins can add new services
+* POST `/services` - Adds a new service
+* POST `/services/:id` - Updates an existing service
+* DELETE `/services/:id` - Deletes existing service
+
+### Subscription Paths
+
+* GET `/subscriptions` - Lists all subscriptions
+* GET `/subscriptions/:id` - Shows subscription with id, admins can edit
+* GET `/subscriptions?add=true` - Admins can add new subscription
+* GET `/subscriptions?search=criteria` - Filters subscriptions by criteria
+* POST `/subscriptions` - Adds a new subscription
+* POST `/subscriptions/:id` - Updates an existing subscription
+* DELETE `/subscriptions/:id` - Deletes existing subscription
+
+## Services Graph
 
 TODO: Documentation
+
+* GET `/graph`
 
 ## Correlation Explorer
 
 TODO: Documentation
 
-## Contract Explorer
+* GET `/correlations/:id`
+
+## Contracts Explorer
+
+* GET `/contracts`
 
 The broker automatically polls HTTP services every 30 seconds at **GET** `/swagger` and expects a JSON representation of the OpenAPI Spec3. It uses this data to consolidate event contracts into a single view. The spec interpreter follows these simple conventions:
 
 * All event schemas (consumed or produced) by the service are included in the spec components section `#/components/schemas`
 * All event handler paths are represented as **POST** methods and include references `#ref` to **consumed** event schemas in the `requestBody`
 * Events not found referenced by handler paths are considered events **produced** by this service
-* All event schemas are object types with the following mandatory fields:
+* All event schemas are object types with the following fields:
   * name: `string` - constrained by `enum` with the event name
   * created: `datetime`
-  * data: `object` - event payload schema
+  * data: (optional) - event payload schema
 
 ### Example
 
@@ -120,3 +148,11 @@ The broker automatically polls HTTP services every 30 seconds at **GET** `/swagg
   }
 }
 ```
+
+## APIs
+
+* GET `/api/events`
+
+## Customizing the Broker
+
+TODO: Document how to customize application with injected handlers, middleware, secrets, etc.
