@@ -1,4 +1,4 @@
-import { sort_table } from "/_public/js/sort-table.js";
+import { sort_table } from "/public/js/sort-table.js";
 
 function preventDefault(e) {
   e.preventDefault();

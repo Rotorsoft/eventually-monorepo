@@ -1,5 +1,5 @@
-import { getState } from "/_public/js/utils.js";
-import { sort_table } from "/_public/js/sort-table.js";
+import { getState } from "/public/js/utils.js";
+import { sort_table } from "/public/js/sort-table.js";
 
 const usnf = new Intl.NumberFormat("en-US");
 
@@ -18,7 +18,7 @@ const refresh = (state) => {
 
   const statusTd = document.getElementById(`status-${id}`);
   statusTd &&
-    (statusTd.innerHTML = `<i class="bi ${endpointStatus.icon} text-${endpointStatus.color}"></i>&nbsp;<a href="/${id}">${id}</a>`);
+    (statusTd.innerHTML = `<i class="bi ${endpointStatus.icon} text-${endpointStatus.color}"></i>&nbsp;<a href="/subscriptions/${id}">${id}</a>`);
 
   const positionSpan =
     position < channelPosition
@@ -54,7 +54,7 @@ const refresh = (state) => {
 };
 
 const connect = () => {
-  const es = new EventSource("/_monitor-all");
+  const es = new EventSource("/monitor");
   es.addEventListener("state", ({ data }) => {
     const state = JSON.parse(data);
     refresh(state);

@@ -1,30 +1,11 @@
-import { log, randomId } from "@rotorsoft/eventually";
+import { log, Payload } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
-import { state, SubscriptionViewModel } from "../cluster";
-import { toViewState } from "../utils";
+import { state } from "../cluster";
+import { toSubscriptionsView, toViewState } from "../models";
 import * as schemas from "./schemas";
 
 export const router = Router();
-
-const rows = (subs: Subscription[]): { rows: SubscriptionViewModel[] } => ({
-  rows: subs
-    .map((sub) => ({
-      ...state().viewModel(sub),
-      ...sub,
-      pll: state().serviceLogLink(sub.producer),
-      cll: state().serviceLogLink(sub.consumer)
-    }))
-    .sort((a, b) =>
-      a.active < b.active
-        ? 1
-        : a.active > b.active
-        ? -1
-        : b.total - a.total
-        ? b.total - a.total
-        : b.position - a.position
-    )
-});
 
 const shortId = (id: string): string =>
   id.length > 20 ? id.substring(0, 20) + "..." : id;
@@ -40,61 +21,36 @@ const defaultSubscription = {
   retry_timeout_secs: 10
 };
 
-router.get("/_monitor-all", (req, res) => {
-  const session = randomId();
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Accel-Buffering", "no");
-  req.on("close", () => state().unsubscribeSSE(session));
-  state().subscribeSSE(session, res);
-});
-
-router.get("/_monitor/:id", (req, res) => {
-  const session = randomId();
-  const id = req.params.id;
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("X-Accel-Buffering", "no");
-  req.on("close", () => {
-    state().unsubscribeSSE(session);
-  });
-  state().subscribeSSE(session, res, id);
-});
-
-router.get("/_graph", async (_, res) => {
-  const subs = await subscriptions().loadSubscriptions();
-  const services = state().services();
-  res.render("subscriptions-graph", { services, ...rows(subs) });
-});
-
-router.get("/", async (req, res) => {
-  const subs = await subscriptions().loadSubscriptions();
-  res.render("subscriptions", toViewState(req, rows(subs)));
-});
-
-router.post(
+router.get(
   "/",
-  async (req: Request<never, never, { search: string }, never, never>, res) => {
-    const search = req.body.search;
-    if (search) {
-      const subs = await subscriptions().searchSubscriptions(search);
-      res.render("subscriptions", rows(subs));
-    } else res.redirect("/");
+  async (
+    req: Request<never, Payload, never, { add?: boolean; search?: string }>,
+    res
+  ) => {
+    req.query.add
+      ? res.render(
+          "add-subscription",
+          toViewState(req as unknown as Request, {
+            ...defaultSubscription,
+            services: state().services()
+          })
+        )
+      : res.render(
+          "subscriptions",
+          toViewState(
+            req as unknown as Request,
+            toSubscriptionsView(
+              req.query.search
+                ? await subscriptions().searchSubscriptions(req.query.search)
+                : await subscriptions().loadSubscriptions()
+            )
+          )
+        );
   }
 );
 
-router.get("/_add", (req, res) => {
-  res.render(
-    "add-subscription",
-    toViewState(req, {
-      ...defaultSubscription,
-      services: state().services()
-    })
-  );
-});
-
 router.post(
-  "/_add",
+  "/",
   async (req: Request<never, never, Subscription, never, never>, res) => {
     const services = state().services();
     try {
@@ -130,31 +86,6 @@ router.post(
     }
   }
 );
-
-router.get("/_toggle/:id", async (req, res) => {
-  const id = req.params.id;
-  try {
-    await subscriptions().toggleSubscription(id);
-  } catch (error) {
-    log().error(error);
-  }
-  res.redirect(`/_wait/${id}`);
-});
-
-router.get("/_refresh/:id", (req, res) => {
-  const id = req.params.id;
-  try {
-    state().refreshSubscription("RESTART", id);
-  } catch (error) {
-    log().error(error);
-  }
-  res.redirect(`/_wait/${id}`);
-});
-
-router.get("/_wait/:id", (req, res) => {
-  const id = req.params.id;
-  res.render("wait", { id });
-});
 
 router.get("/:id", async (req, res) => {
   const id = req.params.id;
@@ -224,7 +155,7 @@ router.post(
         );
       } else {
         await subscriptions().updateSubscription({ ...value, id });
-        res.redirect(`/_wait/${id}`);
+        res.redirect(`/command/wait/${id}`);
       }
     } catch (error) {
       log().error(error);

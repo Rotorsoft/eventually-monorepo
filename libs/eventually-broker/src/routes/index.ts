@@ -1,5 +1,9 @@
-export { router as subscriptions } from "./subscriptions";
-export { router as services } from "./services";
-export { router as correlation } from "./correlation";
-export { router as contracts } from "./contracts";
 export { router as about } from "./about";
+export { router as api } from "./api";
+export { router as command } from "./command";
+export { router as contracts } from "./contracts";
+export { router as correlation } from "./correlations";
+export { router as graph } from "./graph";
+export { router as monitor } from "./monitor";
+export { router as services } from "./services";
+export { router as subscriptions } from "./subscriptions";

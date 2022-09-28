@@ -1,5 +1,5 @@
-import { getState } from "/_public/js/utils.js";
-import { d3, d3_tree, CHAR_W } from "/_public/js/d3-layouts.js";
+import { getState } from "/public/js/utils.js";
+import { d3, d3_tree, CHAR_W } from "/public/js/d3-layouts.js";
 
 document.addEventListener("DOMContentLoaded", function () {
   const correlation = getState();
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .attr("text-anchor", "middle")
       .attr("font-weight", "bold")
       .html(
-        id ? `<a href="/_services/${service}/events/${id}">${name}</a>` : name
+        id ? `<a href="/services/${service}/events/${id}">${name}</a>` : name
       );
     service &&
       g
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .attr("text-anchor", "middle")
         .attr("font-style", "italic")
         .attr("y", CHAR_W * 3)
-        .html(`<a href="/_services/${service}/stream/${stream}">${stream}</a>`);
+        .html(`<a href="/services/${service}/stream/${stream}">${stream}</a>`);
     created &&
       g
         .append("text")

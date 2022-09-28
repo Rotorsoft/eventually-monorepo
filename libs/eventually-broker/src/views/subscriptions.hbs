@@ -8,7 +8,7 @@
   </div>
   <div class="col-6 d-flex justify-content-end">
     {{#if isAdmin}}
-    <a href="/_add" type="button" class="btn btn-primary align-self-center"><i
+    <a href="/subscriptions?add=true" type="button" class="btn btn-primary align-self-center"><i
         class="bi bi-plus"
       ></i>
       Add</a>
@@ -36,18 +36,18 @@
         <td class="text-end" id="position-{{this.id}}"></td>
         <td class="text-end" id="session-{{this.id}}"></td>
         <td>
-          <a href="/_services/{{this.producer}}">{{this.producer}}</a>
+          <a href="/services/{{this.producer}}">{{this.producer}}</a>
           {{#if this.pll}}
-            <a href="{{this.pll}}" target="_blank" rel="noopener noreferrer"><img src="/_public/assets/external-link.svg"
+            <a href="{{this.pll}}" target="_blank" rel="noopener noreferrer"><img src="/public/assets/external-link.svg"
             alt="Logs"
             width="12"
             height="12" /></a>
           {{/if}}
         </td>
         <td>
-          <a href="/_services/{{this.consumer}}">{{this.consumer}}</a>
+          <a href="/services/{{this.consumer}}">{{this.consumer}}</a>
           {{#if this.cll}}
-            <a href="{{this.cll}}" target="_blank" rel="noopener noreferrer"><img src="/_public/assets/external-link.svg"
+            <a href="{{this.cll}}" target="_blank" rel="noopener noreferrer"><img src="/public/assets/external-link.svg"
             alt="Logs"
             width="12"
             height="12" /></a>
@@ -62,4 +62,4 @@
 </table>
 
 <div id="__state__" hidden>{{{json this.rows}}}</hidden>
-<script type="module" src="/_public/js/subscriptions.js"></script>
+<script type="module" src="/public/js/subscriptions.js"></script>

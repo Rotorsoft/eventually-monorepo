@@ -21,9 +21,9 @@
 
 {{> alert}}
 
-<form class="row my-3" method="post" action="/_services/{{this.id}}">
+<form class="row my-3" method="post" action="/services/{{this.id}}">
   {{> service-form edit=isAdmin}}
 </form>
 
 <div id="__state__" hidden>{{{json this}}}</hidden>
-<script type="module" src="/_public/js/edit-service.js"></script>
+<script type="module" src="/public/js/edit-service.js"></script>

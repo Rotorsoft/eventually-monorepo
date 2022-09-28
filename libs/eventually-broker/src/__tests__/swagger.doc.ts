@@ -472,6 +472,40 @@ export const swagger = {
         security: [{}]
       }
     },
+    "/projector/project": {
+      post: {
+        operationId: "Project",
+        tags: ["Projector"],
+        summary: "Project Events",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/ProfileUpdated"
+              }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "OK",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: {}
+                }
+              }
+            }
+          },
+          default: {
+            description: "Internal Server Error"
+          }
+        },
+        security: [{}]
+      }
+    },
     "/profile-system/update-profile": {
       post: {
         operationId: "UpdateProfile",

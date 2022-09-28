@@ -1,5 +1,5 @@
 export const wait = (id) =>
-  setTimeout(() => (document.location = `/${id}`), 1000);
+  setTimeout(() => (document.location = `/subscriptions/${id}`), 1000);
 
 export const getState = () => {
   const __state__ = document.getElementById("__state__");

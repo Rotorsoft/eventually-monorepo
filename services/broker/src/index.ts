@@ -40,7 +40,7 @@ const logHandler = (
 const bootstrap = async (): Promise<void> => {
   await broker({
     subscriptionStoreFactory: PostgresSubscriptionStore,
-    prehandlers: [
+    handlers: [
       session({
         secret: "this is random",
         resave: true,

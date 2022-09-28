@@ -1,5 +1,5 @@
 import { CommittedEvent, Payload } from "@rotorsoft/eventually";
-import { RequestHandler, Router } from "express";
+import { RequestHandler } from "express";
 import { OpenAPIV3_1 } from "openapi-types";
 import { Breaker } from "./breaker";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
@@ -128,8 +128,7 @@ export type AppOptions = {
   resolvers?: ChannelResolvers;
   port?: number;
   middleware?: RequestHandler[];
-  prehandlers?: RequestHandler[];
-  prerouters?: Array<{ path: string; router: Router }>;
+  handlers?: RequestHandler[];
   serviceLogLinkTemplate?: string;
   secrets?: SecretOptions;
 };

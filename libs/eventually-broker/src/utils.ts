@@ -1,6 +1,5 @@
-import { Actor, log, Payload } from "@rotorsoft/eventually";
+import { log, Payload } from "@rotorsoft/eventually";
 import { AxiosRequestHeaders } from "axios";
-import { Request } from "express";
 
 const usnf = new Intl.NumberFormat("en-US");
 const usdf = new Intl.DateTimeFormat("en-US", {
@@ -38,19 +37,6 @@ export const formatDateLocal = (date: Date): string => {
   } catch {
     return "";
   }
-};
-
-/**
- * Prepare view state
- *
- * @param req Request
- * @param state Payload
- * @returns View State
- */
-export const toViewState = (req: Request, state: Payload): Payload => {
-  const { user } = req as Request & { user: Actor };
-  const isAdmin = user && user?.roles?.includes("admin");
-  return Object.assign({}, state, { user, isAdmin });
 };
 
 /**

@@ -2,7 +2,7 @@
   <div class="col-6">{{>subscription-bc crumb='Services'}}</div>
   <div class="col-6 d-flex justify-content-end">
     {{#if isAdmin}}
-    <a href="/_services/_add" type="button" class="btn btn-primary align-self-center"><i
+    <a href="/services?add=true" type="button" class="btn btn-primary align-self-center"><i
         class="bi bi-plus"
       ></i>
       Add</a>
@@ -25,9 +25,9 @@
       <tr>
         <td class="text-end">{{inc @index}}</td>
         <td scope="row">
-          <a href="/_services/{{this.id}}">{{this.id}}</a>
+          <a href="/services/{{this.id}}">{{this.id}}</a>
           {{#if this.sll}}
-            <a href="{{this.sll}}" target="_blank" rel="noopener noreferrer"><img src="/_public/assets/external-link.svg"
+            <a href="{{this.sll}}" target="_blank" rel="noopener noreferrer"><img src="/public/assets/external-link.svg"
             alt="Logs"
             width="12"
             height="12" /></a>
@@ -35,7 +35,7 @@
         </td>
         <td>
           {{#if this.allPath}}
-            <a href="/_services/{{this.id}}/events">{{this.channel}}</a>
+            <a href="/services/{{this.id}}/events">{{this.channel}}</a>
           {{else}}
             {{this.channel}}
           {{/if}}

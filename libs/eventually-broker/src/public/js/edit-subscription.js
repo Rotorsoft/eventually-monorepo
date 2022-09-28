@@ -1,4 +1,4 @@
-import { getState } from "/_public/js/utils.js";
+import { getState } from "/public/js/utils.js";
 
 const usnf = new Intl.NumberFormat("en-US");
 
@@ -44,7 +44,7 @@ const refresh = ({
   const status = channelStatus || (active ? "Running" : "Inactive");
   const refreshBtn =
     delBtn && active
-      ? `<a href="/_refresh/${id}" title="Refresh"
+      ? `<a href="/command/refresh/${id}" title="Refresh"
           type="button"
           class="btn btn-lg p-0"><i class="bi bi-arrow-repeat text-primary"></i>
         </a>`
@@ -58,7 +58,7 @@ const refresh = ({
   const toggleTitle = active ? "Stop" : "Start";
   const toggleButton =
     delBtn && endpointStatus
-      ? `<a href="/_toggle/${id}" title=${toggleTitle}
+      ? `<a href="/command/toggle/${id}" title=${toggleTitle}
         type="button"
         class="btn btn-lg p-0"><i class="bi ${toggleIcon} text-${endpointStatus.color}"></i>
       </a>`
@@ -132,14 +132,11 @@ const refresh = ({
 };
 
 const connect = () => {
-  const es = new EventSource(`/_monitor/{{this.id}}`);
+  const es = new EventSource(`/monitor/{{this.id}}`);
   es.addEventListener("state", ({ data }) => {
     const state = JSON.parse(data);
     refresh(state);
   });
-  es.onerror = (error) => {
-    console.error("sse error... retrying...");
-  };
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -148,23 +145,23 @@ document.addEventListener("DOMContentLoaded", function () {
   delId = document.getElementById("deleteId");
   delBtn = document.getElementById("deleteButton");
   if (delId && delBtn) {
-    delId.onkeyup = (ev) => {
+    delId.onkeyup = () => {
       const enable = delId.value === sub.id;
       enable
         ? delBtn.classList.remove("disabled")
         : delBtn.classList.add("disabled");
     };
     delBtn.onclick = () => {
-      fetch(`/${sub.id}`, { method: "delete" })
+      fetch(`/subscriptions/${sub.id}`, { method: "delete" })
         .then((response) => response.json())
         .then((json) => {
-          if (json.deleted) document.location = "/";
+          if (json.deleted) document.location = "/subscriptions";
           else {
             delId.value = "";
             alert(json.message);
           }
         })
-        .catch((error) => {
+        .catch(() => {
           delId.value = "";
           alert(json.message);
         });

@@ -7,7 +7,6 @@ const pgChannel = joi.string().trim().max(100).regex(regex.pg_channel);
 const outboxChannel = joi.string().trim().max(100).regex(regex.outbox_channel);
 const voidChannel = joi.string().trim().max(100).regex(regex.void_channel);
 
-// TODO: Have a custom implementation to run macros in a more flexible way
 const cronChannel = joi
   .string()
   .trim()

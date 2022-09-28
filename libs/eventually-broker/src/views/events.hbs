@@ -82,17 +82,17 @@
       <tr>
         <td>
           <a id="{{@index}}" href="#" data-bs-toggle="popover" data-bs-placement="right">
-            <img src="/_public/assets/eye.svg" alt="View" width="12" height="12" />
+            <img src="/public/assets/eye.svg" alt="View" width="12" height="12" />
           </a>
         </td>
-        <td class="text-end"><a href="/_services/{{../id}}/events/{{this.id}}">{{this.id}}</a></td>
+        <td class="text-end"><a href="/services/{{../id}}/events/{{this.id}}">{{this.id}}</a></td>
         <td>  
           {{this.name}}
         </td>
-        <td><a href="/_services/{{../id}}/stream/{{this.stream}}">{{this.stream}}</a></td>
+        <td><a href="/services/{{../id}}/stream/{{this.stream}}">{{this.stream}}</a></td>
         <td class="text-end">{{this.version}}</td>
         <td>
-          <a href="/_correlation/{{this.metadata.correlation}}">
+          <a href="/correlations/{{this.metadata.correlation}}">
             {{this.metadata.correlation}}
           </a>
         <td>{{toDateFormat this.created}}</td>
@@ -103,4 +103,4 @@
 </table>
 
 <div id="__state__" hidden>{{{json this}}}</hidden>
-<script type="module" src="/_public/js/events.js"></script>
+<script type="module" src="/public/js/events.js"></script>

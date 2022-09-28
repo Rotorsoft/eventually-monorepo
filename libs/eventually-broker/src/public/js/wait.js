@@ -1,4 +1,4 @@
-import { getState, wait } from "/_public/js/utils.js";
+import { getState, wait } from "/public/js/utils.js";
 
 document.addEventListener("DOMContentLoaded", function () {
   const state = getState();

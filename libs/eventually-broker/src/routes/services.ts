@@ -2,8 +2,8 @@ import { AllQuery, CommittedEvent, log, Payload } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import { state } from "../cluster";
+import { toViewState } from "../models";
 import { getStream } from "../queries";
-import { toViewState } from "../utils";
 import * as schemas from "./schemas";
 
 export const router = Router();
@@ -21,17 +21,25 @@ const defaultService = {
   url: "http://service"
 };
 
-router.get("/", (req, res) => {
-  const services = state().services();
-  res.render("services", toViewState(req, { rows: prepare(services) }));
-});
-
-router.get("/_add", (req, res) => {
-  res.render("add-service", toViewState(req, defaultService));
-});
+router.get(
+  "/",
+  (req: Request<never, Payload, never, { add?: boolean }>, res) => {
+    req.query.add
+      ? res.render(
+          "add-service",
+          toViewState(req as unknown as Request, defaultService)
+        )
+      : res.render(
+          "services",
+          toViewState(req as unknown as Request, {
+            rows: prepare(state().services())
+          })
+        );
+  }
+);
 
 router.post(
-  "/_add",
+  "/",
   async (req: Request<never, never, Service, never, never>, res) => {
     try {
       const { value, error } = schemas.addService.validate(req.body, {
@@ -49,7 +57,7 @@ router.post(
         );
       } else {
         await subscriptions().createService(value);
-        res.redirect("/_services");
+        res.redirect("/services");
       }
     } catch (error) {
       log().error(error);
@@ -104,7 +112,7 @@ router.post(
         );
       } else {
         await subscriptions().updateService({ ...value, id });
-        res.redirect("/_services");
+        res.redirect("/services");
       }
     } catch (error) {
       log().error(error);

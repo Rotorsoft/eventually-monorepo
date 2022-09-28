@@ -1,5 +1,5 @@
-import { getState } from "/_public/js/utils.js";
-import { d3, d3_graph, R, CHAR_W } from "/_public/js/d3-layouts.js";
+import { getState } from "/public/js/utils.js";
+import { d3, d3_graph, R, CHAR_W } from "/public/js/d3-layouts.js";
 
 const MAXL = Math.round((2 * R) / CHAR_W) - 1;
 const usnf = new Intl.NumberFormat("en-US");
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   const connect = () => {
-    const es = new EventSource("/_monitor-all");
+    const es = new EventSource("/monitor");
     es.addEventListener("state", ({ data }) => {
       const state = JSON.parse(data);
       state.color = link_color(state);

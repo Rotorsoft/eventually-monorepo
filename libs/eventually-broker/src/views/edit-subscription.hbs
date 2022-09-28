@@ -64,9 +64,9 @@
 
 {{> alert}}
 
-<form class="row my-3" method="post" action="/{{this.id}}">
+<form class="row my-3" method="post" action="/subscriptions/{{this.id}}">
   {{> subscription-form edit=isAdmin}}
 </form>
 
 <div id="__state__" hidden>{{{json this}}}</hidden>
-<script type="module" src="/_public/js/edit-subscription.js"></script>
+<script type="module" src="/public/js/edit-subscription.js"></script>

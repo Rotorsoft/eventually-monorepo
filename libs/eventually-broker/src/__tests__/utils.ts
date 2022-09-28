@@ -87,6 +87,21 @@ export const post = async (
   }
 };
 
+export const put = async (
+  path: string,
+  body: Record<string, unknown>,
+  port: number
+): Promise<AxiosResponse<any, any>> => {
+  try {
+    const url = `http://localhost:${port}${path}`;
+    const response = await axios.put<any>(url, body);
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 export const _delete = (
   path: string,
   port: number

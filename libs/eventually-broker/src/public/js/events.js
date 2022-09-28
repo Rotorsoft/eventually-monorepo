@@ -1,4 +1,4 @@
-import { getState } from "/_public/js/utils.js";
+import { getState } from "/public/js/utils.js";
 
 //let after
 let names;
@@ -43,7 +43,7 @@ function filter(id) {
       toQueryString("created_before", toISOString(created_before.value))
     }
     `.replaceAll(" ", "");
-  document.location = `/_services/${id}/events?${query}`;
+  document.location = `/services/${id}/events?${query}`;
 }
 
 function nextFromLast(id, stream) {

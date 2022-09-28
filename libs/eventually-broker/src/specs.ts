@@ -225,25 +225,6 @@ export const getConflicts = (event: EventContract): string[] => {
   return conflicts;
 };
 
-export type ServiceContracts = { events: ExtendedSchemaObject[] };
-export const getServiceContracts = (
-  services: Service[],
-  names?: string[]
-): Record<string, ServiceContracts> => {
-  return Object.assign(
-    {},
-    ...services
-      .filter((service) => service.schemas)
-      .map((service) => ({
-        [service.id]: {
-          events: Object.values(service.schemas).filter(
-            (schema) => !names || names.includes(schema.name)
-          )
-        }
-      }))
-  );
-};
-
 export type EventContract = {
   name: string;
   schema?: ExtendedSchemaObject;

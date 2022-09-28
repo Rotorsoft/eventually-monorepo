@@ -1,4 +1,4 @@
-import { getState } from "/_public/js/utils.js";
+import { getState } from "/public/js/utils.js";
 
 document.addEventListener("DOMContentLoaded", function () {
   const service = getState();
@@ -14,10 +14,10 @@ document.addEventListener("DOMContentLoaded", function () {
         : delBtn.classList.add("disabled");
     };
     delBtn.onclick = () => {
-      fetch(`/_services/${service.id}`, { method: "delete" })
+      fetch(`/services/${service.id}`, { method: "delete" })
         .then((response) => response.json())
         .then((json) => {
-          if (json.deleted) document.location = "/_services";
+          if (json.deleted) document.location = "/services";
           else {
             delId.value = "";
             alert(json.message);
