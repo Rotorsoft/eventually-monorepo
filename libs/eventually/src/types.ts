@@ -1,5 +1,4 @@
 import * as joi from "joi";
-import { SnapshotStore } from ".";
 
 /**
  * Resource disposer function
@@ -101,10 +100,7 @@ export type Streamable = { stream: () => string };
 export type Reducible<M extends Payload, E> = Streamable & {
   schema: () => joi.ObjectSchema<M>;
   init: () => Readonly<M>;
-  snapshot?: {
-    threshold: number;
-    factory?: () => SnapshotStore;
-  };
+  factory?: string;
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
     state: Readonly<M>,

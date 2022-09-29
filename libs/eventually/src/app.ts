@@ -128,10 +128,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
   ): Promise<Snapshot<M> & { count: number }> {
-    const snapshot =
-      useSnapshots &&
-      reducible.snapshot &&
-      (await this.readSnapshot(reducible));
+    const snapshot = useSnapshots && (await this.readSnapshot(reducible));
     let state = snapshot?.state || reducible.init();
     let event = snapshot?.event;
     let count = 0;

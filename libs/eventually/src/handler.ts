@@ -39,7 +39,10 @@ export const handleMessage = async <M extends Payload, C, E>(
     metadata.causation.command?.expectedVersion,
     notify
   );
-  if (!reducible) return committed.map((event) => ({ event }));
+  if (!reducible)
+    return committed.map((event) => ({
+      event
+    }));
 
   let state = snapshot.state;
   const snapshots = committed.map((event) => {
@@ -56,13 +59,11 @@ export const handleMessage = async <M extends Payload, C, E>(
       `   === ${JSON.stringify(state)}`,
       ` @ ${event.version}`
     );
-    return { event, state };
+    return { event, state } as Snapshot<M>;
   });
 
-  if (reducible.snapshot && snapshot.count > reducible.snapshot?.threshold) {
-    const snapstore = app().getSnapshotStore(reducible);
-    await snapstore.upsert(reducible.stream(), snapshots[snapshots.length - 1]);
-  }
+  // async snapshotting
+  void app().writeSnapshot(reducible, snapshots.at(-1), snapshot.count);
 
   return snapshots;
 };

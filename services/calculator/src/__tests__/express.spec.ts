@@ -2,6 +2,7 @@ import {
   app,
   bind,
   dispose,
+  InMemorySnapshotStore,
   Message,
   Payload,
   Snapshot
@@ -32,7 +33,10 @@ app(expressApp)
     DigitPressed: schemas.DigitPressed,
     OperatorPressed: schemas.OperatorPressed
   })
-  .withCommandHandlers(Calculator)
+  .withAggregate(Calculator, "calculator", {
+    store: InMemorySnapshotStore(),
+    threshold: 2
+  })
   .withEventHandlers(StatelessCounter)
   .build([GcpGatewayMiddleware]);
 
@@ -98,7 +102,7 @@ describe("express app", () => {
         operator: "/",
         result: -1
       });
-      expect(event.metadata.causation.command.actor).toEqual({
+      expect(event?.metadata?.causation?.command?.actor).toEqual({
         name: "actor-name",
         roles: ["admin"]
       });
@@ -237,7 +241,7 @@ describe("express app", () => {
       await t.sleep(200);
       await pressKey(id, "2");
       const [snap] = await pressKey(id, ".");
-      dot_correlation = snap.event.metadata.correlation;
+      dot_correlation = snap?.event?.metadata?.correlation || "";
       await t.sleep(200);
       created_before = new Date();
       await t.sleep(200);

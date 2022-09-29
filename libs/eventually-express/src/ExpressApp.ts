@@ -13,6 +13,7 @@ import {
   ProcessManagerFactory,
   ReducibleFactory,
   reduciblePath,
+  SnapshotStore,
   store
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -153,12 +154,31 @@ export class ExpressApp extends AppBase {
           );
           let etag = "-1";
           if (Array.isArray(result)) {
-            if (result.length)
-              etag = result[result.length - 1].event.version.toString();
+            result.length && (etag = result.at(-1).event.version.toString());
           } else if (result.event) {
             etag = result.event.version.toString();
           }
           res.setHeader("ETag", etag);
+          return res.status(200).send(result);
+        } catch (error) {
+          next(error);
+        }
+      }
+    );
+  }
+
+  // TODO: build snapshot query interface and add it to swagger doc
+  private _buildSnapshotQuery(store: SnapshotStore, path: string): void {
+    this._router.get(
+      path,
+      async (
+        req: Request, // TODO: pass query options here
+        res: Response,
+        next: NextFunction
+      ) => {
+        try {
+          // TODO: add query options to snapshot store
+          const result = await store.read(req.params.stream);
           return res.status(200).send(result);
         } catch (error) {
           next(error);
@@ -197,10 +217,7 @@ export class ExpressApp extends AppBase {
                   )
                 );
                 snapshots.length &&
-                  res.setHeader(
-                    "ETag",
-                    snapshots[snapshots.length - 1].event.version
-                  );
+                  res.setHeader("ETag", snapshots.at(-1).event.version);
                 return res.status(200).send(snapshots);
               } catch (error) {
                 next(error);
@@ -217,13 +234,20 @@ export class ExpressApp extends AppBase {
       this._buildGetter(aggregate, this.load.bind(this) as Getter, getpath);
       this.log.info("bgGreen", " GET ", getpath);
 
-      const streampath = reduciblePath(aggregate).concat("/stream");
+      const streampath = getpath.concat("/stream");
       this._buildGetter(
         aggregate,
         this.stream.bind(this) as Getter,
         streampath
       );
       this.log.info("bgGreen", " GET ", streampath);
+
+      const options = this._snapshotOptions[aggregate.name];
+      if (options && options.expose) {
+        const querypath = getpath.concat("/query");
+        this._buildSnapshotQuery(options.store, querypath);
+        this.log.info("bgGreen", " GET ", querypath);
+      }
     });
   }
 
