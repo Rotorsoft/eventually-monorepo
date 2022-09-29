@@ -1,3 +1,5 @@
+#### 2022-09-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.0...@rotorsoft/eventually-broker-v1.5.1) @rotorsoft/eventually-broker-v1.5.1
+  - PATCH [46de1348](https://github.com/Rotorsoft/eventually-monorepo/commit/46de1348f6320b3bc62b23ebb509d96d7616718c) fix: body parsing alerts
 #### 2022-09-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.5...@rotorsoft/eventually-broker-v1.5.0) @rotorsoft/eventually-broker-v1.5.0
   - MINOR [731b6272](https://github.com/Rotorsoft/eventually-monorepo/commit/731b6272bc3be372ed3a1b7b5c45e5592c460535) feat: refactored paths, api path
 #### 2022-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.4...@rotorsoft/eventually-broker-v1.4.5) @rotorsoft/eventually-broker-v1.4.5
