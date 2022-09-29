@@ -21,6 +21,20 @@ const defaultSubscription = {
   retry_timeout_secs: 10
 };
 
+const toSubscription = (
+  body: Subscription
+): Omit<Subscription, "active" | "position" | "updated" | "endpoint"> => ({
+  id: body.id,
+  producer: body.producer,
+  consumer: body.consumer,
+  path: body.path,
+  streams: body.streams,
+  names: body.names,
+  batch_size: body.batch_size,
+  retries: body.retries,
+  retry_timeout_secs: body.retry_timeout_secs
+});
+
 router.get(
   "/",
   async (
@@ -64,7 +78,7 @@ router.post(
           toViewState(req, {
             class: "alert-warning",
             message: error.details.map((m) => m.message).join(", "),
-            ...req.body,
+            ...toSubscription(req.body),
             services
           })
         );
@@ -79,7 +93,7 @@ router.post(
         toViewState(req, {
           class: "alert-danger",
           message: "Oops, something went wrong! Please check your logs.",
-          ...req.body,
+          ...toSubscription(req.body),
           services
         })
       );
@@ -137,7 +151,7 @@ router.post(
     const props = {
       shortid: shortId(id),
       services: state().services(),
-      ...req.body
+      ...toSubscription(req.body)
     };
     try {
       const { value, error } = schemas.editSubscription.validate(req.body, {

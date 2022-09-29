@@ -21,6 +21,12 @@ const defaultService = {
   url: "http://service"
 };
 
+const toService = (body: Service): Pick<Service, "id" | "channel" | "url"> => ({
+  id: body.id,
+  channel: body.channel,
+  url: body.url
+});
+
 router.get(
   "/",
   (req: Request<never, Payload, never, { add?: boolean }>, res) => {
@@ -52,7 +58,7 @@ router.post(
           toViewState(req, {
             class: "alert-warning",
             message: error.details.map((m) => m.message).join(", "),
-            ...req.body
+            ...toService(req.body)
           })
         );
       } else {
@@ -66,7 +72,7 @@ router.post(
         toViewState(req, {
           class: "alert-danger",
           message: "Oops, something went wrong! Please check your logs.",
-          ...req.body
+          ...toService(req.body)
         })
       );
     }
@@ -107,7 +113,7 @@ router.post(
           toViewState(req, {
             class: "alert-warning",
             message: error.details.map((m) => m.message).join(", "),
-            ...req.body
+            ...toService(req.body)
           })
         );
       } else {
@@ -121,7 +127,7 @@ router.post(
         toViewState(req, {
           class: "alert-danger",
           message: "Oops, something went wrong! Please check your logs.",
-          ...req.body
+          ...toService(req.body)
         })
       );
     }
