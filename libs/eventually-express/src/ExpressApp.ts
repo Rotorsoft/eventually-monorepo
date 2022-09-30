@@ -6,6 +6,7 @@ import {
   bind,
   CommittedEvent,
   config,
+  decamelize,
   Errors,
   formatTime,
   Getter,
@@ -13,6 +14,8 @@ import {
   ProcessManagerFactory,
   ReducibleFactory,
   reduciblePath,
+  Snapshot,
+  SnapshotsQuery,
   SnapshotStore,
   store
 } from "@rotorsoft/eventually";
@@ -165,18 +168,20 @@ export class ExpressApp extends AppBase {
     );
   }
 
-  // TODO: build snapshot query interface and add it to swagger doc
+  // TODO: add to swagger doc
   private _buildSnapshotQuery(store: SnapshotStore, path: string): void {
     this._router.get(
       path,
       async (
-        req: Request, // TODO: pass query options here
+        req: Request<any, Snapshot<Payload>, any, SnapshotsQuery>,
         res: Response,
         next: NextFunction
       ) => {
         try {
-          // TODO: add query options to snapshot store
-          const result = await store.read(req.params.stream);
+          const { limit = 10 } = req.query;
+          const result = await store.query({
+            limit
+          });
           return res.status(200).send(result);
         } catch (error) {
           next(error);
@@ -242,7 +247,7 @@ export class ExpressApp extends AppBase {
 
       const options = this._snapshotOptions[aggregate.name];
       if (options && options.expose) {
-        const querypath = getpath.concat("/query");
+        const querypath = `/${decamelize(aggregate.name)}`;
         this._buildSnapshotQuery(options.store, querypath);
         this.log.info("bgGreen", " GET ", querypath);
       }

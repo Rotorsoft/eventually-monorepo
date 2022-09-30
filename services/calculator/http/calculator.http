@@ -1,8 +1,10 @@
-@host = http://localhost:3000
+@host = http://localhost:3002
 ###
 
 GET {{host}}/stats
 ###
+
+GET {{host}}/calculator
 
 GET {{host}}/calculator/calc1
 ###
@@ -15,7 +17,7 @@ GET {{host}}/counter/Counter-Calculator-calc1
 GET {{host}}/counter/Counter-Calculator-calc1/stream
 ###
 
-POST {{host}}/calculator/calc1/press-key
+POST {{host}}/calculator/calc2/press-key
 Content-Type: application/json
 
 {

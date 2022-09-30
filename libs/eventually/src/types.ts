@@ -231,6 +231,14 @@ export type AllQuery = {
 };
 
 /**
+ * Options to query snapshots
+ * - limit? limit the number of snapthots to return
+ */
+export type SnapshotsQuery = {
+  readonly limit?: number;
+};
+
+/**
  * Apps are getters of reducibles
  */
 export type Getter = <M extends Payload, C, E>(

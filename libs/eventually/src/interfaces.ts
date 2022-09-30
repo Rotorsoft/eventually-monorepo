@@ -7,6 +7,7 @@ import {
   Payload,
   Seeder,
   Snapshot,
+  SnapshotsQuery,
   StoreStat
 } from "./types";
 
@@ -134,4 +135,11 @@ export interface SnapshotStore extends Disposable, Seedable {
     stream: string,
     data: Snapshot<M>
   ) => Promise<void>;
+
+  /**
+   * Queries the snapshot store
+   * @param query query parameters
+   * @returns array of snapshots
+   */
+  query: <M extends Payload>(query: SnapshotsQuery) => Promise<Snapshot<M>[]>;
 }
