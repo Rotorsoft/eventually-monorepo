@@ -36,7 +36,7 @@ describe("trace in test mode", () => {
 
       await app().command(bind("PressKey", { key: "1" }, id));
 
-      const { state } = await app().load(Calculator(id));
+      const { state } = await app().load(Calculator, id);
       expect(state).toEqual({
         left: "1",
         result: 0

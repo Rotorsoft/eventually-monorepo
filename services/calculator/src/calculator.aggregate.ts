@@ -36,7 +36,6 @@ export const Calculator = (
   Omit<Commands, "Whatever" | "Forget">,
   Omit<Events, "Ignored1" | "Ignored2" | "Forgotten" | "Complex">
 > => ({
-  factory: "Calculator",
   stream: () => `Calculator-${id}`,
 
   schema: () => schemas.CalculatorModel,

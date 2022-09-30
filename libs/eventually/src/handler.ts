@@ -4,9 +4,43 @@ import {
   Message,
   MessageHandler,
   Payload,
+  Reducible,
   Snapshot
 } from "./types";
 import { getReducible, getStreamable, validateMessage } from "./utils";
+
+/**
+ * Loads current model state
+ * @param reducible the reducible
+ * @param useSnapshots flag to use snapshot store
+ * @param callback optional reduction predicate
+ * @returns current model state
+ */
+export const load = async <M extends Payload, E>(
+  reducible: Reducible<M, E>,
+  useSnapshots = true,
+  callback?: (snapshot: Snapshot<M>) => void
+): Promise<Snapshot<M> & { count: number }> => {
+  const snapshot = useSnapshots && (await app().readSnapshot(reducible));
+  let state = snapshot?.state || reducible.init();
+  let event = snapshot?.event;
+  let count = 0;
+
+  await store().query(
+    (e) => {
+      event = e;
+      const apply = (reducible as any)["apply".concat(e.name)];
+      state = apply && apply(state, e);
+      count++;
+      callback && callback({ event, state });
+    },
+    { stream: reducible.stream(), after: event?.id }
+  );
+
+  log().trace("gray", `   ... ${reducible.stream()} loaded ${count} event(s)`);
+
+  return { event, state, count };
+};
 
 /**
  * Generic message handler
@@ -25,7 +59,7 @@ export const handleMessage = async <M extends Payload, C, E>(
   const streamable = getStreamable(handler);
   const reducible = getReducible(handler);
   const snapshot = reducible
-    ? await app().load(reducible)
+    ? await load(reducible)
     : { event: undefined, count: 0 };
 
   const events = await callback(snapshot.state);
@@ -62,7 +96,7 @@ export const handleMessage = async <M extends Payload, C, E>(
     return { event, state } as Snapshot<M>;
   });
 
-  // async snapshotting
+  // TODO: reliable async snapshotting
   void app().writeSnapshot(reducible, snapshots.at(-1), snapshot.count);
 
   return snapshots;

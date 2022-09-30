@@ -212,7 +212,8 @@ export class Builder {
   async readSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>
   ): Promise<Snapshot<M> | undefined> {
-    const snap = this._snapshotOptions[reducible.factory];
+    const { name } = Object.getPrototypeOf(reducible);
+    const snap = this._snapshotOptions[name];
     return snap && (await snap.store.read(reducible.stream()));
   }
 
@@ -222,7 +223,8 @@ export class Builder {
     count: number
   ): Promise<void> {
     try {
-      const snap = this._snapshotOptions[reducible.factory];
+      const { name } = Object.getPrototypeOf(reducible);
+      const snap = this._snapshotOptions[name];
       snap &&
         count > snap.threshold &&
         (await snap.store.upsert(reducible.stream(), snapshot));

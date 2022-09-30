@@ -132,10 +132,9 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildGetter<M extends Payload, C, E>(
-    reducible: ReducibleFactory<M, C, E>,
+    factory: ReducibleFactory<M, C, E>,
     callback: Getter,
-    path: string,
-    overrideId = false
+    path: string
   ): void {
     this._router.get(
       path,
@@ -147,9 +146,8 @@ export class ExpressApp extends AppBase {
         try {
           const { id } = req.params;
           const result = await callback(
-            overrideId
-              ? { ...reducible(undefined), stream: () => id }
-              : (reducible as AggregateFactory<M, C, E>)(id),
+            factory,
+            id,
             ["true", "1"].includes(req.query.useSnapshots as string)
           );
           let etag = "-1";
@@ -281,16 +279,11 @@ export class ExpressApp extends AppBase {
 
     Object.values(managers).map((manager) => {
       const getpath = reduciblePath(manager);
-      this._buildGetter(manager, this.load.bind(this) as Getter, getpath, true);
+      this._buildGetter(manager, this.load.bind(this) as Getter, getpath);
       this.log.info("bgGreen", " GET ", getpath);
 
       const streampath = reduciblePath(manager).concat("/stream");
-      this._buildGetter(
-        manager,
-        this.stream.bind(this) as Getter,
-        streampath,
-        true
-      );
+      this._buildGetter(manager, this.stream.bind(this) as Getter, streampath);
       this.log.info("bgGreen", " GET ", streampath);
     });
   }

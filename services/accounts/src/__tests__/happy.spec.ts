@@ -66,20 +66,21 @@ describe("happy path", () => {
     await app().event(policies.IntegrateAccount2, t);
 
     // then
-    const [seed] = (
-      await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
-    ).filter((e) => e.data.id === t.data.id);
+    // const [seed] = (
+    //   await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
+    // ).filter((e) => e?.data?.id === t?.data?.id);
     const snapshots = await app().stream(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      policies.WaitForAllAndComplete(seed as any)
+      policies.WaitForAllAndComplete,
+      `WaitForAllAndComplete:${t?.data?.id}`
     );
     expect(snapshots.length).toBe(2);
-    expect(snapshots[0].state.id).toBe(t.data.id);
-    expect(snapshots[1].state.id).toBe(t.data.id);
-    expect(snapshots[0].state.account1).toBeDefined();
-    expect(snapshots[0].state.account3).not.toBeDefined();
-    expect(snapshots[1].state.account1).toBeDefined();
-    expect(snapshots[1].state.account3).toBeDefined();
+    expect(snapshots[0]?.state?.id).toBe(t?.data?.id);
+    expect(snapshots[1]?.state?.id).toBe(t?.data?.id);
+    expect(snapshots[0]?.state?.account1).toBeDefined();
+    expect(snapshots[0]?.state?.account3).not.toBeDefined();
+    expect(snapshots[1]?.state?.account1).toBeDefined();
+    expect(snapshots[1]?.state?.account3).toBeDefined();
   });
 
   it("should complete integration 2-1", async () => {
@@ -92,37 +93,38 @@ describe("happy path", () => {
     await app().event(policies.IntegrateAccount1, t);
 
     // then
-    const [seed] = (
-      await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
-    ).filter((e) => e.data.id === t.data.id);
+    // const [seed] = (
+    //   await app().query({ names: ["Account1Created"], after: -1, limit: 100 })
+    // ).filter((e) => e?.data?.id === t?.data?.id);
     const snapshots = await app().stream(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      policies.WaitForAllAndComplete(seed as any)
+      policies.WaitForAllAndComplete,
+      `WaitForAllAndComplete:${t?.data?.id}`
     );
     expect(snapshots.length).toBe(2);
-    expect(snapshots[0].state.id).toBe(t.data.id);
-    expect(snapshots[1].state.id).toBe(t.data.id);
-    expect(snapshots[0].state.account3).toBeDefined();
-    expect(snapshots[0].state.account1).not.toBeDefined();
-    expect(snapshots[1].state.account1).toBeDefined();
-    expect(snapshots[1].state.account3).toBeDefined();
+    expect(snapshots[0]?.state?.id).toBe(t?.data?.id);
+    expect(snapshots[1]?.state?.id).toBe(t?.data?.id);
+    expect(snapshots[0]?.state?.account3).toBeDefined();
+    expect(snapshots[0]?.state?.account1).not.toBeDefined();
+    expect(snapshots[1]?.state?.account1).toBeDefined();
+    expect(snapshots[1]?.state?.account3).toBeDefined();
 
     // expect flow events
     const [sys2] = (
       await app().query({
         stream: systems.ExternalSystem2().stream()
       })
-    ).filter((e) => e.data.id === t.data.id);
+    ).filter((e) => e?.data?.id === t?.data?.id);
     const [sys3] = (
       await app().query({
         stream: systems.ExternalSystem3().stream()
       })
-    ).filter((e) => e.data.id === t.data.id);
+    ).filter((e) => e?.data?.id === t?.data?.id);
     const [sys4] = (
       await app().query({
         stream: systems.ExternalSystem4().stream()
       })
-    ).filter((e) => e.data.id === t.data.id);
+    ).filter((e) => e?.data?.id === t?.data?.id);
     expect(sys2.id).toBeLessThan(sys3.id);
     expect(sys3.id).toBeLessThan(sys4.id);
   });

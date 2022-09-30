@@ -27,7 +27,7 @@ const policy = async (
       );
   } else {
     const id = event.stream.substring("Calculator-".length);
-    const { state } = await app().load(Calculator(id));
+    const { state } = await app().load(Calculator, id);
     if (
       (state.left || "").length >= threshold ||
       (state.right || "").length >= threshold
@@ -45,8 +45,9 @@ export const Counter: ProcessManagerFactory<
   CounterState,
   Commands,
   CounterEvents
-> = (event) => ({
-  stream: () => `Counter-${event.stream}`,
+> = (eventOrId: CommittedEvent<keyof CounterEvents, Payload>) => ({
+  stream: () =>
+    typeof eventOrId === "string" ? eventOrId : `Counter-${eventOrId.stream}`,
   schema: () => schemas.CounterState,
   init: (): CounterState => ({ count: 0 }),
   snapshot: {

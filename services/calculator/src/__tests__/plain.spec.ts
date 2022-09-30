@@ -44,7 +44,7 @@ describe("trace in prod mode", () => {
 
       await app().command(bind("PressKey", { key: "1" }, id));
 
-      const { state } = await app().load(Calculator(id));
+      const { state } = await app().load(Calculator, id);
       expect(state).toEqual({
         left: "1",
         result: 0
@@ -64,7 +64,7 @@ describe("trace in prod mode", () => {
       const date = new Date();
       const msg = { date: date.toISOString() };
       const { value } = TestSchema.validate(msg);
-      expect(value.date).toEqual(date);
+      expect(value?.date).toEqual(date);
     });
   });
 });
