@@ -92,7 +92,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const handler = factory(event);
     Object.setPrototypeOf(handler, factory);
     const on = (handler as any)["on".concat(name)];
-    if (!on) throw new RegistrationError(event);
+    if (typeof on !== "function") throw new RegistrationError(event);
     const data = validateMessage(event);
 
     const metadata: CommittedEventMetadata = {
