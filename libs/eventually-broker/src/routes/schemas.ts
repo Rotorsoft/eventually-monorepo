@@ -40,7 +40,7 @@ export const editSubscription = joi
     consumer: joi.string().trim().max(100).regex(regex.name),
     path: joi.string().trim().max(100).regex(regex.path),
     streams: joi.string().trim().max(100),
-    names: joi.string().trim().max(500),
+    names: joi.string().trim().max(750),
     batch_size: joi.number().integer().min(0).max(1000),
     retries: joi.number().integer().min(0).max(10),
     retry_timeout_secs: joi.number().integer().min(3).max(100)
