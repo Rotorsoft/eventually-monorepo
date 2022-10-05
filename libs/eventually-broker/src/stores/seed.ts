@@ -31,6 +31,7 @@ alter table public.subscriptions add column if not exists batch_size int not nul
 alter table public.subscriptions add column if not exists retries int not null default 3;
 alter table public.subscriptions add column if not exists retry_timeout_secs int not null default 10;
 alter table public.subscriptions alter column names type varchar(500);
+alter table public.subscriptions alter column names type varchar(750);
 
 create or replace function notify() returns trigger as
 $trigger$

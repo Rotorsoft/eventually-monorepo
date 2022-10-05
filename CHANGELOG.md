@@ -1,3 +1,5 @@
+#### 2022-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.1...@rotorsoft/eventually-broker-v1.5.2) @rotorsoft/eventually-broker-v1.5.2
+  - PATCH [b78e55fb](https://github.com/Rotorsoft/eventually-monorepo/commit/b78e55fb08842fb5aecfb13efb8645bda214a97e) fix: increase names limit to 750
 #### 2022-09-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.0...@rotorsoft/eventually-broker-v1.5.1) @rotorsoft/eventually-broker-v1.5.1
   - PATCH [46de1348](https://github.com/Rotorsoft/eventually-monorepo/commit/46de1348f6320b3bc62b23ebb509d96d7616718c) fix: body parsing alerts
 #### 2022-09-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.4.5...@rotorsoft/eventually-broker-v1.5.0) @rotorsoft/eventually-broker-v1.5.0
