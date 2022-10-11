@@ -64,4 +64,11 @@ describe("snapshots", () => {
     expect(result.event).toEqual(event);
     expect(result.state).toEqual(state);
   });
+
+  it("should query", async () => {
+    await db.upsert("snapshot2", { event, state });
+    const result = await db.query({ limit: 1 });
+    expect(result[0].event).toEqual(event);
+    expect(result[0].state).toEqual(state);
+  });
 });

@@ -23,11 +23,12 @@ import { Counter, IgnoredHandler } from "../counter.policy";
 
 const chance = new Chance();
 const t = tester();
+const ss = InMemorySnapshotStore();
 
 app()
   .withCommandHandlers(Forget)
   .withAggregate(Calculator, "testing calculator", {
-    store: InMemorySnapshotStore(),
+    store: ss,
     threshold: 2
   })
   .withPolicy(IgnoredHandler, "ignored")
@@ -54,7 +55,6 @@ describe("in memory", () => {
   beforeAll(async () => {
     // just to cover seeds
     await store().seed();
-    const ss = InMemorySnapshotStore();
     await ss.seed();
 
     jest.clearAllMocks();
@@ -99,6 +99,10 @@ describe("in memory", () => {
       // With Snapshot loading
       const snapshots2 = await app().stream(Calculator, id, true);
       expect(snapshots2.length).toEqual(2);
+
+      // Query snapshot
+      const snapresult = await ss.query({ limit: 1 });
+      expect(snapresult.length).toBe(1);
     });
 
     it("should compute correctly 2", async () => {
