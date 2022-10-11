@@ -1,3 +1,5 @@
+#### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.34...@rotorsoft/eventually-express-v4.1.0) @rotorsoft/eventually-express-v4.1.0
+  - MINOR [18532870](https://github.com/Rotorsoft/eventually-monorepo/commit/18532870f00d23beca0d69ef7d687cfaef8504d2) feat: refactor snapshot stored, builder options to expose snapshots via query endpoint
 #### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.5...@rotorsoft/eventually-v4.2.0) @rotorsoft/eventually-v4.2.0
   - MINOR [18532870](https://github.com/Rotorsoft/eventually-monorepo/commit/18532870f00d23beca0d69ef7d687cfaef8504d2) feat: refactor snapshot stored, builder options to expose snapshots via query endpoint
 #### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.2...@rotorsoft/eventually-broker-v1.5.3) @rotorsoft/eventually-broker-v1.5.3
