@@ -1,3 +1,5 @@
+#### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.22...@rotorsoft/eventually-pg-v4.0.23) @rotorsoft/eventually-pg-v4.0.23
+  - PATCH [8a1e06f1](https://github.com/Rotorsoft/eventually-monorepo/commit/8a1e06f1a6a989fa316b62dd90943fb935987099) fix: add unit tests
 #### 2022-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.1...@rotorsoft/eventually-broker-v1.5.2) @rotorsoft/eventually-broker-v1.5.2
   - PATCH [b78e55fb](https://github.com/Rotorsoft/eventually-monorepo/commit/b78e55fb08842fb5aecfb13efb8645bda214a97e) fix: increase names limit to 750
 #### 2022-09-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.0...@rotorsoft/eventually-broker-v1.5.1) @rotorsoft/eventually-broker-v1.5.1
