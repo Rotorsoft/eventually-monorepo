@@ -1,5 +1,5 @@
 import { Builder } from "./builder";
-import { handleMessage } from "./handler";
+import { handleMessage, load } from "./handler";
 import { Disposable } from "./interfaces";
 import { log } from "./log";
 import {
@@ -11,7 +11,7 @@ import {
   EventHandlerFactory,
   Getter,
   Payload,
-  Reducible,
+  ReducibleFactory,
   Snapshot
 } from "./types";
 import {
@@ -59,6 +59,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
     const data = validateMessage(command);
     const handler = factory(id);
+    Object.setPrototypeOf(handler, factory);
     return await handleMessage(
       handler,
       (state: M) => (handler as any)["on".concat(name)](data, state, actor),
@@ -89,6 +90,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const { name, stream, id } = event;
     this.log.trace("magenta", `\n>>> ${factory.name}`, event);
     const handler = factory(event);
+    Object.setPrototypeOf(handler, factory);
     const on = (handler as any)["on".concat(name)];
     if (typeof on !== "function") throw new RegistrationError(event);
     const data = validateMessage(event);
@@ -117,56 +119,39 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
 
   /**
    * Loads current model state
-   * @param reducible a reducible artifact
+   * @param factory the reducible factory
+   * @param id the reducible id
    * @param useSnapshots flag to use snapshot store
    * @param callback optional reduction predicate
-   * @param noSnapshots boolean flag to load the stream without snapshost
    * @returns current model state
    */
-  async load<M extends Payload>(
-    reducible: Reducible<M, unknown>,
+  async load<M extends Payload, C, E>(
+    factory: ReducibleFactory<M, C, E>,
+    id: string,
     useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
-  ): Promise<Snapshot<M> & { count: number }> {
-    const snapshot =
-      useSnapshots &&
-      reducible.snapshot &&
-      (await this.readSnapshot(reducible));
-    let state = snapshot?.state || reducible.init();
-    let event = snapshot?.event;
-    let count = 0;
-
-    await store().query(
-      (e) => {
-        event = e;
-        const apply = (reducible as any)["apply".concat(e.name)];
-        state = apply && apply(state, e);
-        count++;
-        callback && callback({ event, state });
-      },
-      { stream: reducible.stream(), after: event?.id }
-    );
-
-    this.log.trace(
-      "gray",
-      `   ... ${reducible.stream()} loaded ${count} event(s)`
-    );
-
-    return { event, state, count };
+  ): Promise<Snapshot<M> & { applyCount: number }> {
+    const reducible = factory(id);
+    Object.setPrototypeOf(reducible, factory);
+    return load(reducible, useSnapshots, callback);
   }
 
   /**
    * Loads stream
-   * @param reducible a reducible artifact
+   * @param factory the reducible factory
+   * @param id the reducible id
    * @param useSnapshots flag to use snapshot store
    * @returns stream log with events and state transitions
    */
-  async stream<M extends Payload, E>(
-    reducible: Reducible<M, E>,
+  async stream<M extends Payload, C, E>(
+    factory: ReducibleFactory<M, C, E>,
+    id: string,
     useSnapshots = false
   ): Promise<Snapshot<M>[]> {
     const log: Snapshot<M>[] = [];
-    await this.load(reducible, useSnapshots, (snapshot) => log.push(snapshot));
+    await this.load(factory, id, useSnapshots, (snapshot) =>
+      log.push(snapshot)
+    );
     return log;
   }
 

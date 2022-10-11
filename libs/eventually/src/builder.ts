@@ -17,7 +17,6 @@ import {
   Snapshot
 } from ".";
 import { SnapshotStore } from "./interfaces";
-import { InMemorySnapshotStore } from "./__dev__";
 
 export type Factories = {
   commandHandlers: {
@@ -65,8 +64,14 @@ type Schemas<M> = {
   [Key in keyof M & string]: Joi.ObjectSchema<M[Key] & Payload>;
 };
 
+type SnapshotOptions = {
+  store: SnapshotStore;
+  threshold?: number;
+  expose?: boolean;
+};
+
 export class Builder {
-  protected readonly _snapshotStores: Record<string, SnapshotStore> = {};
+  protected readonly _snapshotOptions: Record<string, SnapshotOptions> = {};
   protected readonly _factories: Factories = {
     commandHandlers: {},
     eventHandlers: {}
@@ -91,8 +96,8 @@ export class Builder {
     });
   }
 
-  private _registerEventHandlerFactory<C, E>(
-    factory: EventHandlerFactory<Payload, C, E>,
+  private _registerEventHandlerFactory<M extends Payload, C, E>(
+    factory: EventHandlerFactory<M, C, E>,
     description?: string
   ): void {
     if (this._factories.eventHandlers[factory.name])
@@ -101,8 +106,8 @@ export class Builder {
     this.documentation[factory.name] = { description };
   }
 
-  private _registerCommandHandlerFactory<C, E>(
-    factory: CommandHandlerFactory<Payload, C, E>,
+  private _registerCommandHandlerFactory<M extends Payload, C, E>(
+    factory: CommandHandlerFactory<M, C, E>,
     description?: string
   ): void {
     if (this._factories.commandHandlers[factory.name])
@@ -156,8 +161,8 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withProcessManager<C, E>(
-    factory: ProcessManagerFactory<Payload, C, E>,
+  withProcessManager<M extends Payload, C, E>(
+    factory: ProcessManagerFactory<M, C, E>,
     description?: string
   ): this {
     this._registerEventHandlerFactory(factory, description);
@@ -179,11 +184,14 @@ export class Builder {
    * Registers aggregate factory
    * @param factory the factory
    * @param description describes the factory
+   * @param snapshotOptions optional snapshotting options
    */
-  withAggregate<C, E>(
-    factory: AggregateFactory<Payload, C, E>,
-    description?: string
+  withAggregate<M extends Payload, C, E>(
+    factory: AggregateFactory<M, C, E>,
+    description?: string,
+    snapshotOptions?: SnapshotOptions
   ): this {
+    snapshotOptions && (this._snapshotOptions[factory.name] = snapshotOptions);
     this._registerCommandHandlerFactory(factory, description);
     return this;
   }
@@ -201,20 +209,29 @@ export class Builder {
     return this;
   }
 
-  getSnapshotStore<M extends Payload, E>(
+  async readSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>
-  ): SnapshotStore {
-    const factory = reducible?.snapshot?.factory || InMemorySnapshotStore;
-    let store = this._snapshotStores[factory.name];
-    !store && (store = this._snapshotStores[factory.name] = factory());
-    return store;
+  ): Promise<Snapshot<M> | undefined> {
+    const { name } = Object.getPrototypeOf(reducible);
+    const snap = this._snapshotOptions[name];
+    return snap && (await snap.store.read(reducible.stream()));
   }
 
-  protected async readSnapshot<M extends Payload, E>(
-    reducible: Reducible<M, E>
-  ): Promise<Snapshot<M>> {
-    const store = this.getSnapshotStore(reducible);
-    return await store.read(reducible.stream());
+  async writeSnapshot<M extends Payload, E>(
+    reducible: Reducible<M, E>,
+    snapshot: Snapshot<M>,
+    applyCount: number
+  ): Promise<void> {
+    try {
+      const { name } = Object.getPrototypeOf(reducible);
+      const snap = this._snapshotOptions[name];
+      snap &&
+        applyCount > snap.threshold &&
+        (await snap.store.upsert(reducible.stream(), snapshot));
+    } catch {
+      // fail quietly for now
+      // TODO: monitor failures to recover
+    }
   }
 
   /**

@@ -41,7 +41,7 @@ const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 export const config = singleton(function config() {
   const pkg = getPackage();
   const parts = pkg.name.split("/");
-  const service = parts[parts.length - 1];
+  const service = parts.at(-1);
 
   return extend(
     {

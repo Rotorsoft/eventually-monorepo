@@ -5,9 +5,12 @@ import { Commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import { Counter, StatelessCounter } from "./counter.policy";
 import * as schemas from "./calculator.schemas";
-import { PostgresStore } from "libs/eventually-pg/dist";
+import { PostgresSnapshotStore, PostgresStore } from "libs/eventually-pg/dist";
 
 void bootstrap(async (): Promise<void> => {
+  const snapshotStore = PostgresSnapshotStore("calculators");
+  await snapshotStore.seed();
+
   store(PostgresStore("calculator"));
   await store().seed();
 
@@ -19,7 +22,11 @@ void bootstrap(async (): Promise<void> => {
       DigitPressed: schemas.DigitPressed,
       OperatorPressed: schemas.OperatorPressed
     })
-    .withAggregate(Calculator, `Aggregates **calculator** instances`)
+    .withAggregate(Calculator, `Aggregates **calculator** instances`, {
+      store: snapshotStore,
+      threshold: 0,
+      expose: true
+    })
     .withProcessManager(
       Counter,
       `Counts keys and *resets* calculator when the

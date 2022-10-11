@@ -1,4 +1,4 @@
-import { Aggregate, bind, InMemorySnapshotStore } from "@rotorsoft/eventually";
+import { Aggregate, bind } from "@rotorsoft/eventually";
 import { Commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import {
@@ -36,10 +36,6 @@ export const Calculator = (
   Omit<Commands, "Whatever" | "Forget">,
   Omit<Events, "Ignored1" | "Ignored2" | "Forgotten" | "Complex">
 > => ({
-  snapshot: {
-    factory: InMemorySnapshotStore,
-    threshold: 2
-  },
   stream: () => `Calculator-${id}`,
 
   schema: () => schemas.CalculatorModel,

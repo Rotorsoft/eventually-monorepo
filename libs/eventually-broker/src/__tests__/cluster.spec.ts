@@ -50,9 +50,7 @@ const TestPushChannel = (): PushChannel => ({
           statusText: "VOID"
         };
     });
-    return Promise.resolve(
-      events[events.length - 1].response?.statusCode || 200
-    );
+    return Promise.resolve(events.at(-1)?.response?.statusCode || 200);
   }
 });
 

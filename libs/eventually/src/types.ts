@@ -1,5 +1,4 @@
 import * as joi from "joi";
-import { SnapshotStore } from ".";
 
 /**
  * Resource disposer function
@@ -101,10 +100,6 @@ export type Streamable = { stream: () => string };
 export type Reducible<M extends Payload, E> = Streamable & {
   schema: () => joi.ObjectSchema<M>;
   init: () => Readonly<M>;
-  snapshot?: {
-    threshold: number;
-    factory?: () => SnapshotStore;
-  };
 } & {
   [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
     state: Readonly<M>,
@@ -167,7 +162,7 @@ export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> & {
   ) => Promise<Command<keyof C & string, Payload> | undefined>;
 };
 export type ProcessManagerFactory<M extends Payload, C, E> = (
-  event: CommittedEvent<keyof E & string, Payload>
+  eventOrId: CommittedEvent<keyof E & string, Payload> | string
 ) => ProcessManager<M, C, E>;
 
 /**
@@ -236,10 +231,19 @@ export type AllQuery = {
 };
 
 /**
+ * Options to query snapshots
+ * - limit? limit the number of snapthots to return
+ */
+export type SnapshotsQuery = {
+  readonly limit?: number;
+};
+
+/**
  * Apps are getters of reducibles
  */
-export type Getter = <M extends Payload, E>(
-  reducible: Reducible<M, E>,
+export type Getter = <M extends Payload, C, E>(
+  factory: ReducibleFactory<M, C, E>,
+  id: string,
   useSnapshot?: boolean,
   callback?: (snapshot: Snapshot<M>) => void
 ) => Promise<Snapshot<M> | Snapshot<M>[]>;

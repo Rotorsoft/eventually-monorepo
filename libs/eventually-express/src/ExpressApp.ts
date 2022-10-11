@@ -6,6 +6,7 @@ import {
   bind,
   CommittedEvent,
   config,
+  decamelize,
   Errors,
   formatTime,
   Getter,
@@ -13,6 +14,9 @@ import {
   ProcessManagerFactory,
   ReducibleFactory,
   reduciblePath,
+  Snapshot,
+  SnapshotsQuery,
+  SnapshotStore,
   store
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -131,10 +135,9 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildGetter<M extends Payload, C, E>(
-    reducible: ReducibleFactory<M, C, E>,
+    factory: ReducibleFactory<M, C, E>,
     callback: Getter,
-    path: string,
-    overrideId = false
+    path: string
   ): void {
     this._router.get(
       path,
@@ -146,19 +149,39 @@ export class ExpressApp extends AppBase {
         try {
           const { id } = req.params;
           const result = await callback(
-            overrideId
-              ? { ...reducible(undefined), stream: () => id }
-              : (reducible as AggregateFactory<M, C, E>)(id),
+            factory,
+            id,
             ["true", "1"].includes(req.query.useSnapshots as string)
           );
           let etag = "-1";
           if (Array.isArray(result)) {
-            if (result.length)
-              etag = result[result.length - 1].event.version.toString();
+            result.length && (etag = result.at(-1).event.version.toString());
           } else if (result.event) {
             etag = result.event.version.toString();
           }
           res.setHeader("ETag", etag);
+          return res.status(200).send(result);
+        } catch (error) {
+          next(error);
+        }
+      }
+    );
+  }
+
+  // TODO: add snapshot query endpoints to swagger spec
+  private _buildSnapshotQuery(store: SnapshotStore, path: string): void {
+    this._router.get(
+      path,
+      async (
+        req: Request<any, Snapshot<Payload>, any, SnapshotsQuery>,
+        res: Response,
+        next: NextFunction
+      ) => {
+        try {
+          const { limit = 10 } = req.query;
+          const result = await store.query({
+            limit
+          });
           return res.status(200).send(result);
         } catch (error) {
           next(error);
@@ -197,10 +220,7 @@ export class ExpressApp extends AppBase {
                   )
                 );
                 snapshots.length &&
-                  res.setHeader(
-                    "ETag",
-                    snapshots[snapshots.length - 1].event.version
-                  );
+                  res.setHeader("ETag", snapshots.at(-1).event.version);
                 return res.status(200).send(snapshots);
               } catch (error) {
                 next(error);
@@ -217,13 +237,20 @@ export class ExpressApp extends AppBase {
       this._buildGetter(aggregate, this.load.bind(this) as Getter, getpath);
       this.log.info("bgGreen", " GET ", getpath);
 
-      const streampath = reduciblePath(aggregate).concat("/stream");
+      const streampath = getpath.concat("/stream");
       this._buildGetter(
         aggregate,
         this.stream.bind(this) as Getter,
         streampath
       );
       this.log.info("bgGreen", " GET ", streampath);
+
+      const options = this._snapshotOptions[aggregate.name];
+      if (options && options.expose) {
+        const querypath = `/${decamelize(aggregate.name)}`;
+        this._buildSnapshotQuery(options.store, querypath);
+        this.log.info("bgGreen", " GET ", querypath);
+      }
     });
   }
 
@@ -257,16 +284,11 @@ export class ExpressApp extends AppBase {
 
     Object.values(managers).map((manager) => {
       const getpath = reduciblePath(manager);
-      this._buildGetter(manager, this.load.bind(this) as Getter, getpath, true);
+      this._buildGetter(manager, this.load.bind(this) as Getter, getpath);
       this.log.info("bgGreen", " GET ", getpath);
 
       const streampath = reduciblePath(manager).concat("/stream");
-      this._buildGetter(
-        manager,
-        this.stream.bind(this) as Getter,
-        streampath,
-        true
-      );
+      this._buildGetter(manager, this.stream.bind(this) as Getter, streampath);
       this.log.info("bgGreen", " GET ", streampath);
     });
   }

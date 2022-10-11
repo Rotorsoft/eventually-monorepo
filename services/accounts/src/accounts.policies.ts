@@ -38,12 +38,21 @@ export const WaitForAllAndComplete: ProcessManagerFactory<
   models.WaitForAllState,
   Pick<commands.Commands, "CompleteIntegration">,
   Pick<events.Events, "Account1Created" | "Account3Created">
-> = (event) => ({
+> = (eventOrId) => ({
   stream: () =>
-    `WaitForAllAndComplete:${(event.data as models.ExternalAccount).id}`,
+    typeof eventOrId === "string"
+      ? eventOrId
+      : `WaitForAllAndComplete:${
+          (eventOrId.data as models.ExternalAccount).id
+        }`,
 
   schema: () => schemas.WaitForAllState,
-  init: () => ({ id: (event.data as models.ExternalAccount).id }),
+  init: () => ({
+    id:
+      typeof eventOrId === "string"
+        ? eventOrId.substring("WaitForAllAndComplete:".length)
+        : (eventOrId.data as models.ExternalAccount).id
+  }),
 
   onAccount1Created: (event, data) => {
     // make sure all accounts are created

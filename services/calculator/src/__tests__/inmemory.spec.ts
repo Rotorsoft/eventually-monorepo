@@ -26,7 +26,10 @@ const t = tester();
 
 app()
   .withCommandHandlers(Forget)
-  .withAggregate(Calculator, "testing calculator")
+  .withAggregate(Calculator, "testing calculator", {
+    store: InMemorySnapshotStore(),
+    threshold: 2
+  })
   .withPolicy(IgnoredHandler, "ignored")
   .withProcessManager(Counter, "counter")
   .withSchemas<Pick<Commands, "PressKey">>({
@@ -82,7 +85,7 @@ describe("in memory", () => {
       await pressKey(id, "=");
 
       // THEN
-      const { state } = await app().load(Calculator(id));
+      const { state } = await app().load(Calculator, id);
       expect(state).toEqual({
         left: "3.3",
         operator: "+",
@@ -90,11 +93,11 @@ describe("in memory", () => {
       });
 
       // With no Snapshot loading
-      const snapshots1 = await app().stream(Calculator(id));
+      const snapshots1 = await app().stream(Calculator, id);
       expect(snapshots1.length).toEqual(6);
 
       // With Snapshot loading
-      const snapshots2 = await app().stream(Calculator(id), true);
+      const snapshots2 = await app().stream(Calculator, id, true);
       expect(snapshots2.length).toEqual(2);
     });
 
@@ -114,14 +117,14 @@ describe("in memory", () => {
       await pressKey(id, "=");
 
       // THEN
-      const { state } = await app().load(Calculator(id));
+      const { state } = await app().load(Calculator, id);
       expect(state).toEqual({
         left: "-1",
         operator: "/",
         result: -1
       });
 
-      const snapshots = await app().stream(Calculator(id));
+      const snapshots = await app().stream(Calculator, id);
       expect(snapshots.length).toBe(9);
     });
 
@@ -139,7 +142,7 @@ describe("in memory", () => {
 
       // WHEN
       await pressKey(id, "=");
-      const snapshots = await app().stream(Calculator(id));
+      const snapshots = await app().stream(Calculator, id);
       expect(snapshots.length).toBe(9);
     });
 
@@ -157,7 +160,7 @@ describe("in memory", () => {
 
       // WHEN
       await pressKey(id, "=");
-      const snapshots = await app().stream(Calculator(id), true);
+      const snapshots = await app().stream(Calculator, id, true);
       expect(snapshots.length).toBe(1);
     });
 
@@ -175,7 +178,7 @@ describe("in memory", () => {
       await pressKey(id, "=");
 
       // THEN
-      const { state } = await app().load(Calculator(id));
+      const { state } = await app().load(Calculator, id);
       expect(state).toEqual({
         left: "0.3",
         operator: "+",
@@ -194,9 +197,9 @@ describe("in memory", () => {
       await app().command(command);
 
       // THEN
-      const snap = await app().load(Calculator(id));
-      expect(snap.event.metadata.correlation.length).toEqual(24);
-      expect(snap.event.metadata.causation.command).toEqual(cmdmeta);
+      const snap = await app().load(Calculator, id);
+      expect(snap?.event?.metadata?.correlation.length).toEqual(24);
+      expect(snap?.event?.metadata?.causation.command).toEqual(cmdmeta);
     });
 
     it("should throw concurrency error", async () => {
@@ -239,11 +242,14 @@ describe("in memory", () => {
       await pressKey(id, "3");
 
       // THEN
-      const { event, state } = await app().load(Calculator(id));
+      const { event, state } = await app().load(Calculator, id);
       expect(state).toEqual(expect.objectContaining({ result: 0 }));
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const stream = await app().stream(Counter(event as any));
+      const stream = await app().stream(
+        Counter,
+        "Counter-".concat(event.stream)
+      );
       expect(stream.length).toBe(5);
     });
 
@@ -261,7 +267,7 @@ describe("in memory", () => {
       await pressKey(id, ".");
 
       // THEN
-      const { state } = await app().load(Calculator(id));
+      const { state } = await app().load(Calculator, id);
       expect(state).toEqual(expect.objectContaining({ result: 0 }));
     });
   });
@@ -359,12 +365,13 @@ describe("in memory", () => {
     });
 
     it("should cover empty calculator", async () => {
-      const test8 = Calculator(chance.guid());
+      const id = chance.guid();
+      const test8 = Calculator(id);
       await app().event(
         Counter,
         event("DigitPressed", test8.stream(), { digit: "0" })
       );
-      const { state } = await app().load(test8);
+      const { state } = await app().load(Calculator, id);
       expect(state).toEqual({ result: 0 });
     });
 
