@@ -245,10 +245,10 @@ export class ExpressApp extends AppBase {
       );
       this.log.info("bgGreen", " GET ", streampath);
 
-      const options = this._snapshotOptions[aggregate.name];
-      if (options && options.expose) {
+      const snapOpts = this._snapshotOptions[aggregate.name];
+      if (snapOpts && snapOpts.expose) {
         const querypath = `/${decamelize(aggregate.name)}`;
-        this._buildSnapshotQuery(options.store, querypath);
+        this._buildSnapshotQuery(snapOpts.store, querypath);
         this.log.info("bgGreen", " GET ", querypath);
       }
     });

@@ -209,6 +209,11 @@ export class Builder {
     return this;
   }
 
+  /**
+   * Reads snapshot from store when configured with options
+   * @param reducible The reducible artifact
+   * @returns The snapshot
+   */
   async readSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>
   ): Promise<Snapshot<M> | undefined> {
@@ -217,6 +222,12 @@ export class Builder {
     return snap && (await snap.store.read(reducible.stream()));
   }
 
+  /**
+   * Writes snapshot to store when configured with options
+   * @param reducible The reducible artifact
+   * @param snapshot The snapshot
+   * @param applyCount The number of events applied after last snapshot
+   */
   async writeSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>,
     snapshot: Snapshot<M>,
