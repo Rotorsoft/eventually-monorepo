@@ -220,16 +220,17 @@ export class Builder {
   async writeSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>,
     snapshot: Snapshot<M>,
-    count: number
+    applyCount: number
   ): Promise<void> {
     try {
       const { name } = Object.getPrototypeOf(reducible);
       const snap = this._snapshotOptions[name];
       snap &&
-        count > snap.threshold &&
+        applyCount > snap.threshold &&
         (await snap.store.upsert(reducible.stream(), snapshot));
     } catch {
-      // fail quietly for now - TODO: monitor this
+      // fail quietly for now
+      // TODO: monitor failures to recover
     }
   }
 

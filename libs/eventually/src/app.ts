@@ -130,7 +130,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     id: string,
     useSnapshots = true,
     callback?: (snapshot: Snapshot<M>) => void
-  ): Promise<Snapshot<M> & { count: number }> {
+  ): Promise<Snapshot<M> & { applyCount: number }> {
     const reducible = factory(id);
     Object.setPrototypeOf(reducible, factory);
     return load(reducible, useSnapshots, callback);

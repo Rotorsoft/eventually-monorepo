@@ -20,26 +20,29 @@ export const load = async <M extends Payload, E>(
   reducible: Reducible<M, E>,
   useSnapshots = true,
   callback?: (snapshot: Snapshot<M>) => void
-): Promise<Snapshot<M> & { count: number }> => {
+): Promise<Snapshot<M> & { applyCount: number }> => {
   const snapshot = useSnapshots && (await app().readSnapshot(reducible));
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
-  let count = 0;
+  let applyCount = 0;
 
   await store().query(
     (e) => {
       event = e;
       const apply = (reducible as any)["apply".concat(e.name)];
       state = apply && apply(state, e);
-      count++;
+      applyCount++;
       callback && callback({ event, state });
     },
     { stream: reducible.stream(), after: event?.id }
   );
 
-  log().trace("gray", `   ... ${reducible.stream()} loaded ${count} event(s)`);
+  log().trace(
+    "gray",
+    `   ... ${reducible.stream()} loaded ${applyCount} event(s)`
+  );
 
-  return { event, state, count };
+  return { event, state, applyCount };
 };
 
 /**
@@ -60,7 +63,7 @@ export const handleMessage = async <M extends Payload, C, E>(
   const reducible = getReducible(handler);
   const snapshot = reducible
     ? await load(reducible)
-    : { event: undefined, count: 0 };
+    : { event: undefined, applyCount: 0 };
 
   const events = await callback(snapshot.state);
   events.map((event) => validateMessage(event));
@@ -96,8 +99,8 @@ export const handleMessage = async <M extends Payload, C, E>(
     return { event, state } as Snapshot<M>;
   });
 
-  // TODO: reliable async snapshotting
-  void app().writeSnapshot(reducible, snapshots.at(-1), snapshot.count);
+  // TODO: implement reliable async snapshotting - persist queue? start on app load?
+  void app().writeSnapshot(reducible, snapshots.at(-1), snapshot.applyCount);
 
   return snapshots;
 };

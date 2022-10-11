@@ -168,7 +168,7 @@ export class ExpressApp extends AppBase {
     );
   }
 
-  // TODO: add to swagger doc
+  // TODO: add snapshot query endpoints to swagger spec
   private _buildSnapshotQuery(store: SnapshotStore, path: string): void {
     this._router.get(
       path,
