@@ -1,3 +1,5 @@
+#### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.1.5...@rotorsoft/eventually-v4.2.0) @rotorsoft/eventually-v4.2.0
+  - MINOR [18532870](https://github.com/Rotorsoft/eventually-monorepo/commit/18532870f00d23beca0d69ef7d687cfaef8504d2) feat: refactor snapshot stored, builder options to expose snapshots via query endpoint
 #### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.2...@rotorsoft/eventually-broker-v1.5.3) @rotorsoft/eventually-broker-v1.5.3
   - PATCH [8a1e06f1](https://github.com/Rotorsoft/eventually-monorepo/commit/8a1e06f1a6a989fa316b62dd90943fb935987099) fix: add unit tests
 #### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.22...@rotorsoft/eventually-pg-v4.0.23) @rotorsoft/eventually-pg-v4.0.23
