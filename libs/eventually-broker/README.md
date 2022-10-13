@@ -46,6 +46,8 @@ TODO: Documentation
 
 * GET `/contracts`
 
+## Discovering Service Contracts
+
 The broker automatically polls HTTP services every 30 seconds at **GET** `/swagger` and expects a JSON representation of the OpenAPI Spec3. It uses this data to consolidate event contracts into a single view. The spec interpreter follows these simple conventions:
 
 * All event schemas (consumed or produced) by the service are included in the spec components section `#/components/schemas`
