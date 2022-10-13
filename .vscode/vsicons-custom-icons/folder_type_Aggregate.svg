@@ -1,1 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:lucid="lucid" width="244.38" height="194.22"><g transform="translate(20 20)" lucid:page-tab-id="0_0"><path d="M187.4 0H112L94.83 30.84H0v123.38h204.38V0zm0 30.84h-66.6l8.98-15.42h57.63z" stroke="#000" stroke-opacity="0" stroke-width="4.69" fill="#ffeca9"/><path d="M0 40.78c0-3.32 2.7-6 6-6h192.38c3.3 0 6 2.68 6 6v107.44c0 3.3-2.7 6-6 6H6c-3.3 0-6-2.7-6-6z" stroke="#000" stroke-opacity="0" stroke-width="3" fill="#fff" fill-opacity="0"/><use xlink:href="#a" transform="matrix(1,0,0,1,5,39.77604166666677) translate(63.12654320987661 79.8819444444443)"/><defs><path fill="#333" d="M199 0l-22-63H83L61 0H9l90-248h61L250 0h-51zm-33-102l-36-108c-10 38-24 72-36 108h72" id="b"/><use transform="matrix(0.2654320987654316,0,0,0.2654320987654316,0,0)" xlink:href="#b" id="a"/></defs></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Vectornator (http://vectornator.io/) -->
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="0 0 1024 1024" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<filter color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse" height="968.551" id="Filter" width="975.506" x="23.1012" y="33.5411">
+<feDropShadow dx="-3.67321e-05" dy="10" flood-color="#000000" flood-opacity="0.333" in="SourceGraphic" result="Shadow" stdDeviation="5"/>
+<feGaussianBlur in="Shadow" result="Blur" stdDeviation="1.65576"/>
+</filter>
+<clipPath id="TextBounds">
+<rect height="938.416" width="646.768" x="183.214" y="37.0166"/>
+</clipPath>
+<filter color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse" height="605.526" id="Filter_2" width="547.179" x="226.907" y="206.401">
+<feDropShadow dx="-6.51144" dy="18.9103" flood-color="#000000" flood-opacity="0.473" in="SourceGraphic" result="Shadow" stdDeviation="9"/>
+</filter>
+</defs>
+<g id="Layer-1" vectornator:layerName="Layer 1">
+<path d="M596.259 42.6805L932.068 42.6805C958.246 42.6805 979.468 63.9024 979.468 90.081L979.468 925.552C979.468 951.731 958.246 972.953 932.068 972.953L89.6412 972.953C63.4626 972.953 42.2407 951.731 42.2407 925.552L42.2407 90.081C42.2407 63.9024 63.4626 42.6805 89.6412 42.6805L596.259 42.6805Z" fill="#f1d244" fill-rule="nonzero" filter="url(#Filter)" stroke="#000000" stroke-linecap="butt" stroke-linejoin="round" stroke-width="10" vectornator:shadowAngle="1.5708" vectornator:shadowColor="#000000" vectornator:shadowOffset="10" vectornator:shadowOpacity="0.333" vectornator:shadowRadius="10"/>
+<path clip-path="url(#TextBounds)" d="M588.65 652.35L422.085 652.35L392.137 775.017L251.419 775.017L425.368 206.401L588.65 206.401L762.598 775.017L618.598 775.017L588.65 652.35ZM443.419 554.709L566.496 554.709L504.957 303.222L443.419 554.709Z" fill="#303030" filter="url(#Filter_2)" stroke="none" vectornator:shadowAngle="1.90241" vectornator:shadowColor="#000000" vectornator:shadowOffset="20" vectornator:shadowOpacity="0.473" vectornator:shadowRadius="18"/>
+</g>
+</svg>

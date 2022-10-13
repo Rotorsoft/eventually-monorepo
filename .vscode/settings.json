@@ -26,7 +26,7 @@
       "format": "svg"
     },
     {
-      "icon": "script",
+      "icon": "Policy",
       "extensions": [".policies.ts", ".policy.ts"],
       "format": "svg"
     },
@@ -41,7 +41,7 @@
       "format": "svg"
     },
     {
-      "icon": "ini",
+      "icon": "System",
       "extensions": [".systems.ts", ".system.ts"],
       "format": "svg"
     }
@@ -50,6 +50,10 @@
     { "icon": "Aggregate", "extensions": ["aggregates"], "format": "svg" },
     { "icon": "Policy", "extensions": ["policies"], "format": "svg" },
     { "icon": "Projector", "extensions": ["projectors"], "format": "svg" },
+    { "icon": "Event", "extensions": ["events"], "format": "svg" },
+    { "icon": "System", "extensions": ["systems"], "format": "svg" },
+    { "icon": "Command", "extensions": ["commands"], "format": "svg" },
+    { "icon": "Message", "extensions": ["messages"], "format": "svg" },
     { "icon": "json", "extensions": ["schemas"] }
   ]
 }
