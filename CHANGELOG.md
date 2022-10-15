@@ -1,3 +1,5 @@
+#### 2022-10-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.1.0...@rotorsoft/eventually-express-v4.1.1) @rotorsoft/eventually-express-v4.1.1
+  - PATCH [35952744](https://github.com/Rotorsoft/eventually-monorepo/commit/359527446a6412a8fadf5c0684b8ff3a140810bd) fix: add schemas option to handlers - to deprecate withschemas in builder
 #### 2022-10-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.2.0...@rotorsoft/eventually-v4.2.1) @rotorsoft/eventually-v4.2.1
   - PATCH [35952744](https://github.com/Rotorsoft/eventually-monorepo/commit/359527446a6412a8fadf5c0684b8ff3a140810bd) fix: add schemas option to handlers - to deprecate withschemas in builder
 #### 2022-10-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.0.34...@rotorsoft/eventually-express-v4.1.0) @rotorsoft/eventually-express-v4.1.0
