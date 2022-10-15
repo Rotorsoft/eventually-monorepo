@@ -4911,6 +4911,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"openapi-types@npm:^12.0.2":
+  version: 12.0.2
+  resolution: "openapi-types@npm:12.0.2"
+  checksum: 097edc46adb5a8fc2a3419e2e0adbb5516737fd83b4041ec62ee28427e85d9f18c6ead9231b9d1c8f718d86eeccf3c0997437414011d8bb1597387a047493fea
+  languageName: node
+  linkType: hard
+
 "openid-client@npm:^5.1.9":
   version: 5.1.9
   resolution: "openid-client@npm:5.1.9"
