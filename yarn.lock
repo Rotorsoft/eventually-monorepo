@@ -852,11 +852,13 @@ __metadata:
   resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
+    "@types/express": ^4.17.14
     axios: ^0.26.0
     cors: ^2.8.5
     express: ^4.17.1
     joi: ^17.6.0
     joi-to-swagger: ^6.0.1
+    openapi-types: ^12.0.2
     swagger-ui-express: ^4.3.0
   languageName: unknown
   linkType: soft
@@ -868,7 +870,6 @@ __metadata:
     "@types/chance": ^1
     "@types/cors": ^2.8.12
     "@types/cron": ^2.0.0
-    "@types/express": ^4.17.13
     "@types/jest": ^27.0.1
     "@types/minimist": ^1
     "@types/node": ^17.0.40
@@ -885,7 +886,6 @@ __metadata:
     husky: ^7.0.0
     jest: ^27.5.1
     minimist: ^1.2.6
-    openapi-types: ^11.0.0
     pinst: ^3.0.0
     prettier: ^2.6.1
     ts-jest: ^27.1.4
@@ -1103,7 +1103,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express@npm:*, @types/express@npm:^4.17.13":
+"@types/express@npm:*":
   version: 4.17.13
   resolution: "@types/express@npm:4.17.13"
   dependencies:
@@ -1112,6 +1112,18 @@ __metadata:
     "@types/qs": "*"
     "@types/serve-static": "*"
   checksum: 12a2a0e6c4b993fc0854bec665906788aea0d8ee4392389d7a98a5de1eefdd33c9e1e40a91f3afd274011119c506f7b4126acb97fae62ae20b654974d44cba12
+  languageName: node
+  linkType: hard
+
+"@types/express@npm:^4.17.14":
+  version: 4.17.14
+  resolution: "@types/express@npm:4.17.14"
+  dependencies:
+    "@types/body-parser": "*"
+    "@types/express-serve-static-core": ^4.17.18
+    "@types/qs": "*"
+    "@types/serve-static": "*"
+  checksum: 15c1af46d02de834e4a225eccaa9d85c0370fdbb3ed4e1bc2d323d24872309961542b993ae236335aeb3e278630224a6ea002078d39e651d78a3b0356b1eaa79
   languageName: node
   linkType: hard
 
@@ -4892,10 +4904,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openapi-types@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "openapi-types@npm:11.0.0"
-  checksum: 2c54c8edcd20b25713fceb51b5b3829b80c67ee070779f32e99e7fe26cf08afa3d53a047e62fe6e6831f80cd6a803b17ad16b0ae3c6f3abe638363832b6a917f
+"openapi-types@npm:^12.0.2":
+  version: 12.0.2
+  resolution: "openapi-types@npm:12.0.2"
+  checksum: 097edc46adb5a8fc2a3419e2e0adbb5516737fd83b4041ec62ee28427e85d9f18c6ead9231b9d1c8f718d86eeccf3c0997437414011d8bb1597387a047493fea
   languageName: node
   linkType: hard
 

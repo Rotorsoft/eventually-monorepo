@@ -125,19 +125,23 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
     const reducible = getReducible(handler(null));
     if (!reducible) return;
     if (components.schemas[handler.name]) return reducible;
-    const { swagger } = j2s(reducible.schema(), components);
-    components.schemas[handler.name] = swagger;
-    components.schemas[handler.name.concat("Snapshot")] = {
-      type: "object",
-      properties: {
-        event: {
-          anyOf: eventsOf(reducible).map((name) => ({
-            $ref: `#/components/schemas/${name}`
-          }))
-        },
-        state: { $ref: `#/components/schemas/${handler.name}` }
-      }
-    };
+    const schema =
+      reducible.schemas?.state || (reducible.schema && reducible.schema());
+    if (schema) {
+      const { swagger } = j2s(schema, components);
+      components.schemas[handler.name] = swagger;
+      components.schemas[handler.name.concat("Snapshot")] = {
+        type: "object",
+        properties: {
+          event: {
+            anyOf: eventsOf(reducible).map((name) => ({
+              $ref: `#/components/schemas/${name}`
+            }))
+          },
+          state: { $ref: `#/components/schemas/${handler.name}` }
+        }
+      };
+    }
     return reducible;
   };
 

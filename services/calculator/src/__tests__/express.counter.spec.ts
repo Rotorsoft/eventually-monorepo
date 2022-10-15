@@ -2,10 +2,7 @@ import { app, bind, dispose, Snapshot } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import { Commands } from "../calculator.commands";
-import { Events } from "../calculator.events";
 import { Counter } from "../counter.policy";
-import * as schemas from "../calculator.schemas";
 import { CalculatorModel, Keys } from "../calculator.models";
 
 const chance = new Chance();
@@ -13,13 +10,6 @@ const port = 4001;
 const t = tester(port);
 
 const _app = app(new ExpressApp())
-  .withSchemas<Pick<Commands, "PressKey">>({
-    PressKey: schemas.PressKey
-  })
-  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
-    DigitPressed: schemas.DigitPressed,
-    OperatorPressed: schemas.OperatorPressed
-  })
   .withCommandHandlers(Calculator)
   .withEventHandlers(Counter);
 

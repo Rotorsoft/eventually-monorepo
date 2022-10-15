@@ -14,7 +14,8 @@ import {
   PolicyFactory,
   ProcessManagerFactory,
   Reducible,
-  Snapshot
+  Snapshot,
+  WithSchemas
 } from ".";
 import { SnapshotStore } from "./interfaces";
 
@@ -96,6 +97,13 @@ export class Builder {
     });
   }
 
+  private _registerSchemas<C, E>(handler: WithSchemas<C, E>): void {
+    handler.schemas &&
+      Object.entries(handler.schemas).map(([key, value]): void => {
+        this._msg(key).schema = value as any;
+      });
+  }
+
   private _registerEventHandlerFactory<M extends Payload, C, E>(
     factory: EventHandlerFactory<M, C, E>,
     description?: string
@@ -104,6 +112,7 @@ export class Builder {
       throw Error(`Duplicate event handler ${factory.name}`);
     this._factories.eventHandlers[factory.name] = factory;
     this.documentation[factory.name] = { description };
+    this._registerSchemas(factory(""));
   }
 
   private _registerCommandHandlerFactory<M extends Payload, C, E>(
@@ -114,6 +123,7 @@ export class Builder {
       throw Error(`Duplicate command handler ${factory.name}`);
     this._factories.commandHandlers[factory.name] = factory;
     this.documentation[factory.name] = { description };
+    this._registerSchemas(factory(""));
   }
 
   /**

@@ -14,9 +14,6 @@ import {
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import * as schemas from "../calculator.schemas";
-import { Commands } from "../calculator.commands";
-import { Events } from "../calculator.events";
 import { CalculatorModel, Keys } from "../calculator.models";
 import { StatelessCounter } from "../counter.policy";
 
@@ -26,13 +23,6 @@ const t = tester(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .withSchemas<Pick<Commands, "PressKey">>({
-    PressKey: schemas.PressKey
-  })
-  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
-    DigitPressed: schemas.DigitPressed,
-    OperatorPressed: schemas.OperatorPressed
-  })
   .withAggregate(Calculator, "calculator", {
     store: InMemorySnapshotStore(),
     threshold: 2

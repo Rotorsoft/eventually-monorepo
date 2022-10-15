@@ -4,9 +4,6 @@ process.env.LOG_LEVEL = "trace";
 import joi from "joi";
 import { app, bind, dispose, formatTime } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
-import { Commands } from "../calculator.commands";
-import { Events } from "../calculator.events";
-import * as schemas from "../calculator.schemas";
 import { Chance } from "chance";
 
 type TestMsg = {
@@ -18,16 +15,7 @@ const TestSchema = joi.object<TestMsg>({
 
 const chance = new Chance();
 
-app()
-  .withCommandHandlers(Calculator)
-  .withSchemas<Pick<Commands, "PressKey">>({
-    PressKey: schemas.PressKey
-  })
-  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
-    DigitPressed: schemas.DigitPressed,
-    OperatorPressed: schemas.OperatorPressed
-  })
-  .build();
+app().withCommandHandlers(Calculator).build();
 
 describe("trace in prod mode", () => {
   beforeAll(async () => {

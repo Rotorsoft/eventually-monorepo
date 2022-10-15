@@ -15,10 +15,7 @@ import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Forget } from "../forget.system";
-import * as schemas from "../calculator.schemas";
-import { Commands } from "../calculator.commands";
 import { Keys, CalculatorModel } from "../calculator.models";
-import { Events } from "../calculator.events";
 import { Counter, IgnoredHandler } from "../counter.policy";
 
 const chance = new Chance();
@@ -33,13 +30,6 @@ app()
   })
   .withPolicy(IgnoredHandler, "ignored")
   .withProcessManager(Counter, "counter")
-  .withSchemas<Pick<Commands, "PressKey">>({
-    PressKey: schemas.PressKey
-  })
-  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
-    DigitPressed: schemas.DigitPressed,
-    OperatorPressed: schemas.OperatorPressed
-  })
   .build();
 
 const pressKey = (

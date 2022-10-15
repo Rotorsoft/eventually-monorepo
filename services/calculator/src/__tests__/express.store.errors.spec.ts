@@ -2,22 +2,11 @@ import { app, dispose, store, ValidationError } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import * as joi from "joi";
 import { Calculator } from "../calculator.aggregate";
-import { Commands } from "../calculator.commands";
-import { Events } from "../calculator.events";
-import * as schemas from "../calculator.schemas";
 
 const port = 4002;
 const t = tester(port);
 
-const exapp = app(new ExpressApp())
-  .withSchemas<Pick<Commands, "PressKey">>({
-    PressKey: schemas.PressKey
-  })
-  .withSchemas<Pick<Events, "DigitPressed" | "OperatorPressed">>({
-    DigitPressed: schemas.DigitPressed,
-    OperatorPressed: schemas.OperatorPressed
-  })
-  .withCommandHandlers(Calculator);
+const exapp = app(new ExpressApp()).withCommandHandlers(Calculator);
 
 jest.spyOn(store(), "query").mockRejectedValue("Error");
 jest.spyOn(store(), "stats").mockRejectedValue("Error");

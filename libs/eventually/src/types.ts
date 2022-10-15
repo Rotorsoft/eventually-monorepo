@@ -98,12 +98,13 @@ export type Streamable = { stream: () => string };
  * Artifacts that reduce models from event streams
  */
 export type Reducible<M extends Payload, E> = Streamable & {
-  schema: () => joi.ObjectSchema<M>;
+  schema?: () => joi.ObjectSchema<M>;
+  schemas?: { state?: joi.ObjectSchema<M> };
   init: () => Readonly<M>;
 } & {
-  [Name in keyof E as `apply${Capitalize<Name & string>}`]: (
+  [Key in keyof E as `apply${Capitalize<Key & string>}`]: (
     state: Readonly<M>,
-    event: CommittedEvent<Name & string, E[Name] & Payload>
+    event: CommittedEvent<Key & string, E[Key] & Payload>
   ) => Readonly<M>;
 };
 
@@ -116,16 +117,26 @@ export type Snapshot<M extends Payload> = {
 };
 
 /**
+ * Message handlers with schema definitions
+ */
+export type WithSchemas<C, E> = {
+  schemas?: {
+    [Key in keyof (C & E)]?: joi.ObjectSchema<(C & E)[Key] & Payload>;
+  };
+};
+
+/**
  * Aggregates handle commands and produce events
  * - Define the consistency boundaries of a business model (entity graph)
  * - Have reducible state
  */
-export type Aggregate<M extends Payload, C, E> = Reducible<M, E> & {
-  [Name in keyof C as `on${Capitalize<Name & string>}`]: (
-    data?: C[Name] & Payload,
-    state?: Readonly<M>
-  ) => Promise<Message<keyof E & string, Payload>[]>;
-};
+export type Aggregate<M extends Payload, C, E> = Reducible<M, E> &
+  WithSchemas<C, E> & {
+    [Key in keyof C as `on${Capitalize<Key & string>}`]: (
+      data?: C[Key] & Payload,
+      state?: Readonly<M>
+    ) => Promise<Message<keyof E & string, Payload>[]>;
+  };
 export type AggregateFactory<M extends Payload, C, E> = (
   id: string
 ) => Aggregate<M, C, E>;
@@ -134,19 +145,20 @@ export type AggregateFactory<M extends Payload, C, E> = (
  * External Systems handle commands and produce events
  * - Have their own stream
  */
-export type ExternalSystem<C, E> = Streamable & {
-  [Name in keyof C as `on${Capitalize<Name & string>}`]: (
-    data?: C[Name] & Payload
-  ) => Promise<Message<keyof E & string, Payload>[]>;
-};
+export type ExternalSystem<C, E> = Streamable &
+  WithSchemas<C, E> & {
+    [Key in keyof C as `on${Capitalize<Key & string>}`]: (
+      data?: C[Key] & Payload
+    ) => Promise<Message<keyof E & string, Payload>[]>;
+  };
 export type ExternalSystemFactory<C, E> = () => ExternalSystem<C, E>;
 
 /**
  * Policies handle events and optionally produce commands
  */
-export type Policy<C, E> = {
-  [Name in keyof E as `on${Capitalize<Name & string>}`]: (
-    event: CommittedEvent<Name & string, E[Name] & Payload>
+export type Policy<C, E> = WithSchemas<C, E> & {
+  [Key in keyof E as `on${Capitalize<Key & string>}`]: (
+    event: CommittedEvent<Key & string, E[Key] & Payload>
   ) => Promise<Command<keyof C & string, Payload> | undefined>;
 };
 export type PolicyFactory<C, E> = () => Policy<C, E>;
@@ -155,12 +167,13 @@ export type PolicyFactory<C, E> = () => Policy<C, E>;
  * Process Managers handle events and optionally produce commands
  * - Have reducible state, allowing to expand the consistency boundaries of multiple events into a local state machine
  */
-export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> & {
-  [Name in keyof E as `on${Capitalize<Name & string>}`]: (
-    event: CommittedEvent<Name & string, E[Name] & Payload>,
-    state: Readonly<M>
-  ) => Promise<Command<keyof C & string, Payload> | undefined>;
-};
+export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> &
+  WithSchemas<C, E> & {
+    [Key in keyof E as `on${Capitalize<Key & string>}`]: (
+      event: CommittedEvent<Key & string, E[Key] & Payload>,
+      state: Readonly<M>
+    ) => Promise<Command<keyof C & string, Payload> | undefined>;
+  };
 export type ProcessManagerFactory<M extends Payload, C, E> = (
   eventOrId: CommittedEvent<keyof E & string, Payload> | string
 ) => ProcessManager<M, C, E>;

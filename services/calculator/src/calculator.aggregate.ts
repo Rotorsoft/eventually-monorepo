@@ -38,7 +38,12 @@ export const Calculator = (
 > => ({
   stream: () => `Calculator-${id}`,
 
-  schema: () => schemas.CalculatorModel,
+  schemas: {
+    state: schemas.CalculatorModel,
+    PressKey: schemas.PressKey,
+    DigitPressed: schemas.DigitPressed,
+    OperatorPressed: schemas.OperatorPressed
+  },
 
   init: (): CalculatorModel => ({
     result: 0
