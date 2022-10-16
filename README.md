@@ -8,20 +8,27 @@
 
 This tutorial was inspired by [https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68](https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68). Here we show a different approach to coding the same service using [Eventually](./libs/eventually/README.md).
 
-### **1** Domain Model
+### **1.** Domain Model
 
-> We recommend using [Event Storming](https://www.eventstormingcom/) or [Event Modeling](https://eventmodeling.org/) to clearly define `what` we are trying to build in simple `business friendly` terms.
+In [Eventually](./libs/eventually/README.md) **the model** is the truth and code is just a side effect. All important decisions are made on the model surface before they get transferred to code.
 
-* A hotel adminstrator can open rooms to reservations via `OpenRoom` commands
-* A `Room` aggregate receives `BookRoom` commands from customers and emits `RoomBooked` events when the room is available
-* Events are projected into a `Hotel` read model
-* Customers query `Hotel` for available rooms via `SearchRoom` query commands
+> We recommend using [Event Storming](https://www.eventstormingcom/) or [Event Modeling](https://eventmodeling.org/) to clearly define what we are trying to build in lego-like business friendly terms.
+
+In this particular API, we are modeling:
+
+* A hotel adminstrator that can open rooms to reservations - via `OpenRoom` commands
+* Customers that can query a `Hotel` for available rooms - via `SearchRoom` query commands
+* Customers that can book available rooms - via `BookRoom` commands
+
+The Event Storming model is super simple and captures:
+
+* A `Room` aggregate receiving `OpenRoom`, `BookRoom` commands and emitting `RoomOpened`, `RoomBooked` events that are projected into a `Hotel` read model
 
 ![Hotel Reservation System Model](./assets/hotel.png)
 
-### **2** Schemas
+### **2.** Schemas
 
-* `Aggregates` and `Read Models` are event projections backed by data models with a schema
+Aggregates and Read Models have **State** that can be stored. We must think about the shape and validation guards of these schemas next...*following the original post*:
 
 ```typescript
 export enum RoomType {
@@ -47,19 +54,19 @@ export type Room = {
 export type Hotel = Record<number, Room>;
 ```
 
-* Messages also have payloads defined and validated by schemas
+Message payloads also have schemas...
 
 ```typescript
 export type OpenRoom = Room;
-export type BookRoom = Reservation & { number: number };
 export type RoomOpened = Room;
+export type BookRoom = Reservation & { number: number };
 export type RoomBooked = Reservation & { number: number };
 export type SearchRoom = Pick<Reservation, "checkin" | "checkout">;
 ```
 
-### **3** Transfer Model to Code
+### **3.** Transfer Model to Code
 
-* Create Typescript project
+With a model and clear schemas we are ready to code...
 
 ```bash
 mkdir hotel
@@ -70,7 +77,7 @@ npm i --save joi @rotorsoft/eventually @rotorsoft/eventually-express
 npm i --save-dev ts-node-dev jest @types/jest
 ```
 
-`package.json`
+#### *package.json*
 
 ```json
 {
@@ -97,7 +104,7 @@ npm i --save-dev ts-node-dev jest @types/jest
 }
 ```
 
-`tsconfig.json`
+#### *tsconfig.json*
 
 ```json
 {
@@ -117,7 +124,7 @@ npm i --save-dev ts-node-dev jest @types/jest
 }
 ```
 
-* Add a dummy entry point `./src/index.ts`
+Add a dummy entry point *./src/index.ts*
 
 ```typescript
 import { app } from "@rotorsoft/eventually";
@@ -127,15 +134,15 @@ app(new ExpressApp()).build();
 void app().listen();
 ```
 
-* Make sure it runs
+and make sure it runs...
 
 ```bash
 LOG_LEVEL="trace" npm run start:dev
 ```
 
-* Transfer model files
+#### Transfer model files
 
-`./src/Room.models.ts`
+#### *./src/Room.models.ts*
 
 ```typescript
 export enum RoomType {
@@ -161,7 +168,7 @@ export type Room = {
 export type SearchRoom = Pick<Reservation, "checkin" | "checkout">;
 ```
 
-`./src/Room.schemas.ts`
+#### *./src/Room.schemas.ts*
 
 ```typescript
 import joi from "joi";
@@ -201,7 +208,7 @@ export const SearchRoom = joi
   .presence("required");
 ```
 
-`./src/Room.commands.ts`
+#### *./src/Room.commands.ts*
 
 ```typescript
 import { Reservation, Room } from "./Room.models";
@@ -212,7 +219,7 @@ export type RoomCommands = {
 };
 ```
 
-`./src/Room.events.ts`
+#### *./src/Room.events.ts*
 
 ```typescript
 import { Reservation, Room } from "./Room.models";
@@ -223,7 +230,7 @@ export type RoomEvents = {
 };
 ```
 
-`./src/Room.aggregate.ts` - dummy version
+#### A dummy version of *./src/Room.aggregate.ts`*
 
 ```typescript
 import { Aggregate } from "@rotorsoft/eventually";
@@ -258,7 +265,7 @@ export const Room = (
 });
 ```
 
-* Register aggregate with app builder
+Now we can finish *./src/index.ts* by registering the new aggregate with the app builder...
 
 ```typescript
 import { app, bootstrap } from "@rotorsoft/eventually";
@@ -271,15 +278,11 @@ void bootstrap(async (): Promise<void> => {
 });
 ```
 
-* Check endpoints
+Since we are using **ExpressApp**, the aggregate should be now exposed by HTTP endpoints...
 
 ```bash
 LOG_LEVEL="trace" npm run start:dev
-```
-
-Expect to see the following endpoints in the console trace
-
-```bash
+...
 POST /room/:id/book-room
 GET  /room/:id
 GET  /room/:id/stream
@@ -287,9 +290,13 @@ GET  /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_af
 GET  /stats
 ```
 
-### **4** Write Tests
+### **4.** Write Tests First
 
-> Place your tests under `/src/__tests__`
+In this case we will just implement a couple of basic tests following the original post, but these should be enough to cover most of the code we will write later...
+
+> Always decide what you are testing before implementing the core logic (model guards/invariants and projections)
+
+#### *./src/\_\_tests\_\_/Room.spec.ts*
 
 ```typescript
 import {
@@ -375,13 +382,13 @@ describe("Room", () => {
 });
 ```
 
-The new project structure will look like this
+Your project should look like this...
 
 ![Hotel Project](./assets/hotel-project.png)
 
-### **5** Finish Service
+### **5.** Finish the API
 
-* Finish Room aggregate
+At this point all tests are failing. We can now focus on closing the implementation gaps...
 
 ```typescript
 import { Aggregate, bind } from "@rotorsoft/eventually";
@@ -390,24 +397,20 @@ import { RoomEvents } from "./Room.events";
 import * as schemas from "./Room.schemas";
 import * as models from "./Room.models";
 
-const dayDiff = (reservation: models.Reservation): number => {
-  const diffInTime =
-    reservation.checkout.getTime() - reservation.checkin.getTime();
-  return Math.round(diffInTime / (1000 * 3600 * 24));
+const nights = (reservation: models.Reservation): number => {
+  const dtime = reservation.checkout.getTime() - reservation.checkin.getTime();
+  return Math.round(dtime / (1000 * 3600 * 24));
 };
 
-const isBooked = (room: models.Room, from: Date, to: Date): boolean => {
-  return (
-    room.reservations &&
-    room.reservations.some(
-      (r) =>
-        (from >= r.checkin && from <= r.checkout) ||
-        (to >= r.checkin && to <= r.checkout) ||
-        (r.checkin >= from && r.checkin <= to) ||
-        (r.checkout >= from && r.checkout <= to)
-    )
+const isBooked = (room: models.Room, from: Date, to: Date): boolean =>
+  room.reservations &&
+  room.reservations.some(
+    (r) =>
+      (from >= r.checkin && from <= r.checkout) ||
+      (to >= r.checkin && to <= r.checkout) ||
+      (r.checkin >= from && r.checkin <= to) ||
+      (r.checkout >= from && r.checkout <= to)
   );
-};
 
 export const Room = (
   id: string
@@ -439,20 +442,28 @@ export const Room = (
     ...state,
     reservations: (state?.reservations || []).concat({
       ...event.data,
-      totalPrice: dayDiff(event.data) * state.price,
+      totalPrice: nights(event.data) * state.price,
     }),
   }),
 });
 ```
 
-* Finish Hotel Projection - TODO
-
-In this first pass we are using the snapshot store to represent the `Hotel` projection with limited querying capabilities. Future versions of the framework will provide app builder functions to define projections and queries.
-
-* Unit Test
-
-At this point all unit tests should pass covering most of the code
+At this point all unit tests should pass with excellent coverage...
 
 ![Unit Test Coverage](./assets/coverage.png)
 
-* Test with Postman - TODO
+### Finish Hotel Projection - TODO
+
+In this first pass we are using a snapshot store to represent the `Hotel` projection with limited querying capabilities. Future versions of the framework will develop these capabilities and probably provide an app builder interface to define read model projections and queries.
+
+### Testing the API
+
+You can use any of the following HTTP test clients to validate the API:
+
+* REST Client VSCode extension
+* Thunder Client VSCode extension
+* Postman
+
+Here are the steps for option 1...
+
+TODO:
