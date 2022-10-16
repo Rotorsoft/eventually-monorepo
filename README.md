@@ -6,11 +6,11 @@
 
 ## Writing a Hotel Reservation System
 
-This tutorial was inspired by [https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68](https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68). Here we show a different approach to coding the same service using [Eventually](./libs/eventually/README.md).
+This tutorial was inspired by [https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68](https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68). Here we will show a different approach to coding the same API using [Eventually](./libs/eventually/README.md).
 
 ### **1.** Domain Model
 
-In [Eventually](./libs/eventually/README.md) **the model** is the truth and code is just a side effect. All important decisions are made on the model surface before they get transferred to code.
+In [Eventually](./libs/eventually/README.md) **the model** is king and code is just a side effect. All important decisions are made on the modeling surface before they get transferred to code.
 
 > We recommend using [Event Storming](https://www.eventstormingcom/) or [Event Modeling](https://eventmodeling.org/) to clearly define what we are trying to build in lego-like business friendly terms.
 
@@ -181,7 +181,7 @@ export const Reservation = joi
     checkout: joi.date(),
     totalPrice: joi.number(),
   })
-  .presence("required");
+  .options({ presence: "required" });
 
 export const Room = joi
   .object<models.Room>({
@@ -190,7 +190,7 @@ export const Room = joi
     price: joi.number(),
     reservations: joi.array().optional().items(Reservation),
   })
-  .presence("required");
+  .options({ presence: "required" });
 
 export const BookRoom = joi
   .object({
@@ -205,7 +205,7 @@ export const SearchRoom = joi
     checkin: joi.date(),
     checkout: joi.date(),
   })
-  .presence("required");
+  .options({ presence: "required" });
 ```
 
 #### *./src/Room.commands.ts*
@@ -268,12 +268,18 @@ export const Room = (
 Now we can finish *./src/index.ts* by registering the new aggregate with the app builder...
 
 ```typescript
-import { app, bootstrap } from "@rotorsoft/eventually";
+import { app, bootstrap, InMemorySnapshotStore } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Room } from "./Room.aggregate";
 
 void bootstrap(async (): Promise<void> => {
-  app(new ExpressApp()).withAggregate(Room, "Hotel Room").build();
+  app(new ExpressApp())
+    .withAggregate(Room, "Hotel Room", {
+      store: InMemorySnapshotStore(),
+      threshold: -1,
+      expose: true,
+    })
+    .build();
   await app().listen();
 });
 ```
@@ -464,6 +470,84 @@ You can use any of the following HTTP test clients to validate the API:
 * Thunder Client VSCode extension
 * Postman
 
-Here are the steps for option 1...
+Here is a sample REST Client file:
 
-TODO:
+#### *./http/Room.http*
+
+```bash
+@host = http://localhost:3000
+
+### Try to open room 101 with invalid command
+POST {{host}}/room/101/open-room
+Content-Type: application/json
+
+{
+  "number": "101"
+}
+
+### Open room 101
+POST {{host}}/room/101/open-room
+Content-Type: application/json
+
+{
+  "number": "101",
+  "price": 100,
+  "type": "single"
+}
+
+### Try to open room 102 with invalid type
+POST {{host}}/room/102/open-room
+Content-Type: application/json
+
+{
+  "number": "102",
+  "price": 200,
+  "type": "invalid"
+}
+
+### Open room 102
+POST {{host}}/room/102/open-room
+Content-Type: application/json
+
+{
+  "number": "102",
+  "price": 200,
+  "type": "double"
+}
+
+### Book room 101
+POST {{host}}/room/101/book-room
+Content-Type: application/json
+
+{
+  "id": "booking-1",
+  "number": "101",
+  "checkin": "2022-12-01",
+  "checkout": "2022-12-03",
+  "totalPrice": 0
+}
+
+### Try to book room 101 again
+POST {{host}}/room/101/book-room
+Content-Type: application/json
+
+{
+  "id": "booking-1",
+  "number": "101",
+  "checkin": "2022-12-01",
+  "checkout": "2022-12-03",
+  "totalPrice": 0
+}
+
+### Get Room 101
+GET {{host}}/room/101
+
+### Get Room 101 stream
+GET {{host}}/room/101/stream
+
+### Get Rooms
+GET {{host}}/room
+
+### Get API stats
+GET {{host}}/stats
+```
