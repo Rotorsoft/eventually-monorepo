@@ -4,6 +4,7 @@ import {
   CommandHandlerFactory,
   commandHandlerPath,
   CommittedEvent,
+  decamelize,
   EventHandlerFactory,
   eventHandlerPath,
   Message,
@@ -16,6 +17,10 @@ import axios, { AxiosResponse } from "axios";
 
 type Tester = {
   get: (path: string) => Promise<AxiosResponse<any>>;
+  invoke: <M extends Payload>(
+    adapter: string,
+    payload: M
+  ) => Promise<Snapshot<Payload>[]>;
   command: <M extends Payload, C, E>(
     handler: CommandHandlerFactory<M, C, E>,
     command: Command<keyof C & string, Payload>,
@@ -49,6 +54,17 @@ export const tester = (port = 3000): Tester => {
   return {
     get: (path: string): Promise<AxiosResponse<any>> =>
       axios.get<any>(url(path)),
+
+    async invoke<M extends Payload>(
+      adapter: string,
+      payload: M
+    ): Promise<Snapshot<Payload>[]> {
+      const { data } = await axios.post<M, AxiosResponse<Snapshot<Payload>[]>>(
+        url("/".concat(decamelize(adapter))),
+        payload
+      );
+      return data;
+    },
 
     command: async <M extends Payload, C, E>(
       handler: CommandHandlerFactory<M, C, E>,

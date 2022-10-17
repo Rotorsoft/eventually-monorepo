@@ -53,6 +53,13 @@ export type Command<Name extends string, Type extends Payload> = Message<
 };
 
 /**
+ * Adapters adapt a payload P to a Command
+ */
+export type CommandAdapter<P extends Payload, C extends Payload> = (
+  payload: P
+) => Command<keyof C & string, C[keyof C & string] & Payload>;
+
+/**
  * Committed event metadata
  * - `correlation` Id that correlates message flows across time and systems
  * - `causation` The direct cause of the event

@@ -41,6 +41,21 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
   abstract listen(): Promise<void>;
 
   /**
+   * Invokes command through adapter
+   * @param adapter adapter name
+   * @param message message payload
+   */
+  async invoke<M extends Payload>(
+    adapter: string,
+    payload: M
+  ): Promise<Snapshot<Payload>[]> {
+    const _adapter = this._adapters[adapter];
+    if (!_adapter) throw new RegistrationError({ name: adapter });
+    const data = validateMessage({ name: adapter, data: payload });
+    return this.command(_adapter(data));
+  }
+
+  /**
    * Handles command
    * @param command command message
    * @param metadata optional metadata to track causation

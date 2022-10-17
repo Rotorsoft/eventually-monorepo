@@ -13,21 +13,45 @@ import {
   tester
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
+import joi from "joi";
 import { Calculator } from "../calculator.aggregate";
-import { CalculatorModel, Keys } from "../calculator.models";
+import { Commands } from "../calculator.commands";
+import {
+  CalculatorModel,
+  DIGITS,
+  Keys,
+  OPERATORS,
+  SYMBOLS
+} from "../calculator.models";
 import { StatelessCounter } from "../counter.policy";
 
 const chance = new Chance();
 const port = 4000;
 const t = tester(port);
 
+type AdaptPressKey = { id: string; key: Keys };
+
 const expressApp = new ExpressApp();
 app(expressApp)
   .withAggregate(Calculator, "calculator", {
     store: InMemorySnapshotStore(),
-    threshold: 2
+    threshold: 2,
+    expose: true
   })
   .withEventHandlers(StatelessCounter)
+  .withCommandAdapter<AdaptPressKey, Commands>(
+    "PressKeyAdapter1",
+    ({ id, key }) => ({ name: "PressKey", id, data: { key } }),
+    joi.object<AdaptPressKey>({
+      id: joi.string().required(),
+      key: joi
+        .string()
+        .required()
+        .min(1)
+        .max(1)
+        .valid(...DIGITS, ...OPERATORS, ...SYMBOLS)
+    })
+  )
   .build([GcpGatewayMiddleware]);
 
 const pressKey = (
@@ -60,7 +84,9 @@ describe("express app", () => {
       await pressKey(id, "2");
       await pressKey(id, ".");
       await pressKey(id, "3");
-      await pressKey(id, "=");
+
+      //await pressKey(id, "=");
+      await t.invoke("PressKeyAdapter1", { id, key: "=" });
 
       const { state } = await t.load(Calculator, id);
       expect(state).toEqual({
@@ -144,7 +170,7 @@ describe("express app", () => {
     });
 
     it("should throw 404 error", async () => {
-      await expect(t.get("/calculator")).rejects.toThrowError(
+      await expect(t.get("/calculato")).rejects.toThrowError(
         "Request failed with status code 404"
       );
     });
@@ -308,6 +334,11 @@ describe("express app", () => {
       });
       expect(stream.length).toBe(1);
       expect(stream[0].name).toBe("DotPressed");
+    });
+
+    it("should read snapshot", async () => {
+      const snaps = await t.get("/calculator");
+      expect(snaps).toBeDefined();
     });
   });
 

@@ -232,6 +232,30 @@ export class ExpressApp extends AppBase {
       }
     );
 
+    Object.keys(this._adapters).map((name) => {
+      const path = decamelize("/".concat(name));
+      this._router.post(
+        path,
+        async (
+          req: Request<never, any, Payload, never> & {
+            actor?: Actor;
+          },
+          res: Response,
+          next: NextFunction
+        ) => {
+          try {
+            const snapshots = await this.invoke(name, req.body);
+            snapshots.length &&
+              res.setHeader("ETag", snapshots.at(-1).event.version);
+            return res.status(200).send(snapshots);
+          } catch (error) {
+            next(error);
+          }
+        }
+      );
+      this.log.info("bgBlue", " POST ", path);
+    });
+
     Object.values(aggregates).map((aggregate) => {
       const getpath = reduciblePath(aggregate);
       this._buildGetter(aggregate, this.load.bind(this) as Getter, getpath);

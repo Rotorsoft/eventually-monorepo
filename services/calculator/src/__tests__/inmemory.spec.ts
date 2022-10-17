@@ -13,15 +13,24 @@ import {
 } from "@rotorsoft/eventually";
 import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
+import joi from "joi";
 import { Calculator } from "../calculator.aggregate";
-import { Forget } from "../forget.system";
-import { Keys, CalculatorModel } from "../calculator.models";
+import { Commands } from "../calculator.commands";
+import {
+  CalculatorModel,
+  Keys,
+  DIGITS,
+  OPERATORS,
+  SYMBOLS
+} from "../calculator.models";
 import { Counter, IgnoredHandler } from "../counter.policy";
+import { Forget } from "../forget.system";
 
 const chance = new Chance();
 const t = tester();
 const ss = InMemorySnapshotStore();
 
+type AdaptPressKey = { id: string; key: Keys };
 app()
   .withCommandHandlers(Forget)
   .withAggregate(Calculator, "testing calculator", {
@@ -30,6 +39,19 @@ app()
   })
   .withPolicy(IgnoredHandler, "ignored")
   .withProcessManager(Counter, "counter")
+  .withCommandAdapter<AdaptPressKey, Commands>(
+    "PressKeyAdapter1",
+    ({ id, key }) => ({ name: "PressKey", id, data: { key } }),
+    joi.object<AdaptPressKey>({
+      id: joi.string().required(),
+      key: joi
+        .string()
+        .required()
+        .min(1)
+        .max(1)
+        .valid(...DIGITS, ...OPERATORS, ...SYMBOLS)
+    })
+  )
   .build();
 
 const pressKey = (
@@ -72,7 +94,7 @@ describe("in memory", () => {
       await pressKey(id, "3");
 
       // WHEN
-      await pressKey(id, "=");
+      await app().invoke("PressKeyAdapter1", { id, key: "=" });
 
       // THEN
       const { state } = await app().load(Calculator, id);
