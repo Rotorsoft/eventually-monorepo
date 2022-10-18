@@ -5,6 +5,7 @@ import { log } from "./log";
 import {
   AllQuery,
   Command,
+  CommandAdapterFactory,
   CommandHandlerFactory,
   CommittedEvent,
   CommittedEventMetadata,
@@ -42,17 +43,16 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
 
   /**
    * Invokes command through adapter
-   * @param adapter adapter name
+   * @param adapter adapter
    * @param message message payload
    */
-  async invoke<M extends Payload>(
-    adapter: string,
-    payload: M
-  ): Promise<Snapshot<Payload>[]> {
-    const _adapter = this._adapters[adapter];
-    if (!_adapter) throw new RegistrationError({ name: adapter });
-    const data = validateMessage({ name: adapter, data: payload });
-    return this.command(_adapter(data));
+  async invoke<C, P extends Payload, E>(
+    factory: CommandAdapterFactory<C, P>,
+    payload: P
+  ): Promise<Snapshot<C[keyof C] & Payload>[]> {
+    const data = validateMessage({ name: factory.name, data: payload }) as P;
+    const command = factory().adapt(data);
+    return this.command<C[keyof C] & Payload, C, E>(command);
   }
 
   /**

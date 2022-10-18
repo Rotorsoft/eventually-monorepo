@@ -53,13 +53,6 @@ export type Command<Name extends string, Type extends Payload> = Message<
 };
 
 /**
- * Adapters adapt a payload P to a Command
- */
-export type CommandAdapter<P extends Payload, C extends Payload> = (
-  payload: P
-) => Command<keyof C & string, C[keyof C & string] & Payload>;
-
-/**
  * Committed event metadata
  * - `correlation` Id that correlates message flows across time and systems
  * - `causation` The direct cause of the event
@@ -184,6 +177,20 @@ export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> &
 export type ProcessManagerFactory<M extends Payload, C, E> = (
   eventOrId: CommittedEvent<keyof E & string, Payload> | string
 ) => ProcessManager<M, C, E>;
+
+/**
+ * Command adapters convert payloads to commands
+ */
+export type CommandAdapter<C, P extends Payload> = {
+  adapt: (
+    payload: P
+  ) => Command<keyof C & string, C[keyof C & string] & Payload>;
+  schema: joi.ObjectSchema<P>;
+};
+export type CommandAdapterFactory<C, P extends Payload> = () => CommandAdapter<
+  C,
+  P
+>;
 
 /**
  * All message handler factory types

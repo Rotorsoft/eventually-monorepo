@@ -1,6 +1,7 @@
 import {
   AllQuery,
   Command,
+  CommandAdapterFactory,
   CommandHandlerFactory,
   commandHandlerPath,
   CommittedEvent,
@@ -17,17 +18,17 @@ import axios, { AxiosResponse } from "axios";
 
 type Tester = {
   get: (path: string) => Promise<AxiosResponse<any>>;
-  invoke: <M extends Payload>(
-    adapter: string,
-    payload: M
+  invoke: <C, P extends Payload>(
+    factory: CommandAdapterFactory<C, P>,
+    payload: P
   ) => Promise<Snapshot<Payload>[]>;
   command: <M extends Payload, C, E>(
-    handler: CommandHandlerFactory<M, C, E>,
+    factory: CommandHandlerFactory<M, C, E>,
     command: Command<keyof C & string, Payload>,
     headers?: Record<string, string>
   ) => Promise<Snapshot<M>[]>;
   event: <M extends Payload, C, E>(
-    handler: EventHandlerFactory<M, C, E>,
+    factory: EventHandlerFactory<M, C, E>,
     event: Message<keyof E & string, Payload>
   ) => Promise<{
     status: number;
@@ -55,19 +56,19 @@ export const tester = (port = 3000): Tester => {
     get: (path: string): Promise<AxiosResponse<any>> =>
       axios.get<any>(url(path)),
 
-    async invoke<M extends Payload>(
-      adapter: string,
-      payload: M
+    async invoke<C, P extends Payload>(
+      factory: CommandAdapterFactory<C, P>,
+      payload: P
     ): Promise<Snapshot<Payload>[]> {
-      const { data } = await axios.post<M, AxiosResponse<Snapshot<Payload>[]>>(
-        url("/".concat(decamelize(adapter))),
+      const { data } = await axios.post<P, AxiosResponse<Snapshot<Payload>[]>>(
+        url("/".concat(decamelize(factory.name))),
         payload
       );
       return data;
     },
 
     command: async <M extends Payload, C, E>(
-      handler: CommandHandlerFactory<M, C, E>,
+      factory: CommandHandlerFactory<M, C, E>,
       command: Command<keyof C & string, Payload>,
       headers: Record<string, string> = {}
     ): Promise<Snapshot<M>[]> => {
@@ -75,7 +76,7 @@ export const tester = (port = 3000): Tester => {
         (headers["If-Match"] = command.expectedVersion.toString());
       const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
         url(
-          commandHandlerPath(handler, command.name).replace(":id", command.id)
+          commandHandlerPath(factory, command.name).replace(":id", command.id)
         ),
         command.data || {},
         { headers }
@@ -84,7 +85,7 @@ export const tester = (port = 3000): Tester => {
     },
 
     event: async <M extends Payload, C, E>(
-      handler: EventHandlerFactory<M, C, E>,
+      factory: EventHandlerFactory<M, C, E>,
       event: Message<keyof E & string, Payload>
     ): Promise<{
       status: number;
@@ -93,7 +94,7 @@ export const tester = (port = 3000): Tester => {
       const { status, data } = await axios.post<
         Payload,
         AxiosResponse<Message<keyof C & string, Payload> | undefined>
-      >(url(eventHandlerPath(handler)), event);
+      >(url(eventHandlerPath(factory)), event);
       return { status, data };
     },
 

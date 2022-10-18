@@ -13,23 +13,14 @@ import {
   tester
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import joi from "joi";
 import { Calculator } from "../calculator.aggregate";
-import { Commands } from "../calculator.commands";
-import {
-  CalculatorModel,
-  DIGITS,
-  Keys,
-  OPERATORS,
-  SYMBOLS
-} from "../calculator.models";
+import { CalculatorModel, Keys } from "../calculator.models";
 import { StatelessCounter } from "../counter.policy";
+import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 
 const chance = new Chance();
 const port = 4000;
 const t = tester(port);
-
-type AdaptPressKey = { id: string; key: Keys };
 
 const expressApp = new ExpressApp();
 app(expressApp)
@@ -39,19 +30,7 @@ app(expressApp)
     expose: true
   })
   .withEventHandlers(StatelessCounter)
-  .withCommandAdapter<AdaptPressKey, Commands>(
-    "PressKeyAdapter1",
-    ({ id, key }) => ({ name: "PressKey", id, data: { key } }),
-    joi.object<AdaptPressKey>({
-      id: joi.string().required(),
-      key: joi
-        .string()
-        .required()
-        .min(1)
-        .max(1)
-        .valid(...DIGITS, ...OPERATORS, ...SYMBOLS)
-    })
-  )
+  .withCommandAdapter(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);
 
 const pressKey = (
@@ -85,8 +64,7 @@ describe("express app", () => {
       await pressKey(id, ".");
       await pressKey(id, "3");
 
-      //await pressKey(id, "=");
-      await t.invoke("PressKeyAdapter1", { id, key: "=" });
+      await t.invoke(PressKeyAdapter, { id, key: "=" } as ExternalPayload);
 
       const { state } = await t.load(Calculator, id);
       expect(state).toEqual({
