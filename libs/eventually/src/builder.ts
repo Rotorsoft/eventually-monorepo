@@ -1,7 +1,7 @@
 import Joi from "joi";
 import {
   AggregateFactory,
-  CommandAdapter,
+  CommandAdapterFactory,
   CommandHandlerFactory,
   commandHandlerPath,
   config,
@@ -26,6 +26,9 @@ export type Factories = {
   };
   eventHandlers: {
     [name: string]: EventHandlerFactory<Payload, unknown, unknown>;
+  };
+  commandAdapters: {
+    [name: string]: CommandAdapterFactory<Payload, Payload>;
   };
 };
 
@@ -73,14 +76,11 @@ type SnapshotOptions = {
 };
 
 export class Builder {
-  protected readonly _adapters: Record<
-    string,
-    CommandAdapter<Payload, Payload>
-  > = {};
   protected readonly _snapshotOptions: Record<string, SnapshotOptions> = {};
   protected readonly _factories: Factories = {
     commandHandlers: {},
-    eventHandlers: {}
+    eventHandlers: {},
+    commandAdapters: {}
   };
   readonly endpoints: Endpoints = {
     version: "",
@@ -197,17 +197,13 @@ export class Builder {
 
   /**
    * Registers command adapters
-   * @param name adapter name
    * @param adapter command adapter
-   * @param schema payload validation guard
    */
-  withCommandAdapter<P extends Payload, C extends Payload>(
-    name: string,
-    adapter: CommandAdapter<P, C>,
-    schema: Joi.ObjectSchema<P>
+  withCommandAdapter<C, P extends Payload>(
+    factory: CommandAdapterFactory<C, P>
   ): this {
-    this._adapters[name] = adapter as CommandAdapter<Payload, Payload>;
-    this._msg(name).schema = schema;
+    this._factories.commandAdapters[factory.name] = factory;
+    this._msg(factory.name).schema = factory().schema;
     return this;
   }
 

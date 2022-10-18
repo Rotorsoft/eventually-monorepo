@@ -232,8 +232,8 @@ export class ExpressApp extends AppBase {
       }
     );
 
-    Object.keys(this._adapters).map((name) => {
-      const path = decamelize("/".concat(name));
+    Object.values(this._factories.commandAdapters).map((factory) => {
+      const path = decamelize("/".concat(factory.name));
       this._router.post(
         path,
         async (
@@ -244,7 +244,7 @@ export class ExpressApp extends AppBase {
           next: NextFunction
         ) => {
           try {
-            const snapshots = await this.invoke(name, req.body);
+            const snapshots = await this.invoke(factory, req.body);
             snapshots.length &&
               res.setHeader("ETag", snapshots.at(-1).event.version);
             return res.status(200).send(snapshots);
