@@ -26,6 +26,16 @@ Content-Type: application/json
 
 ###
 
+POST {{host}}/press-key-adapter
+Content-Type: application/json
+
+{
+  "id": "calc2",
+  "key": "2"
+}
+
+###
+
 POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 

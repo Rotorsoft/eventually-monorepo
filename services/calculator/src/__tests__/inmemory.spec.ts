@@ -14,9 +14,10 @@ import {
 import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import { Forget } from "../forget.system";
-import { Keys, CalculatorModel } from "../calculator.models";
+import { CalculatorModel, Keys } from "../calculator.models";
 import { Counter, IgnoredHandler } from "../counter.policy";
+import { Forget } from "../forget.system";
+import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 
 const chance = new Chance();
 const t = tester();
@@ -30,6 +31,7 @@ app()
   })
   .withPolicy(IgnoredHandler, "ignored")
   .withProcessManager(Counter, "counter")
+  .withCommandAdapter(PressKeyAdapter)
   .build();
 
 const pressKey = (
@@ -72,7 +74,7 @@ describe("in memory", () => {
       await pressKey(id, "3");
 
       // WHEN
-      await pressKey(id, "=");
+      await app().invoke(PressKeyAdapter, { id, key: "=" } as ExternalPayload);
 
       // THEN
       const { state } = await app().load(Calculator, id);

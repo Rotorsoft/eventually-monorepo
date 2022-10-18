@@ -179,6 +179,20 @@ export type ProcessManagerFactory<M extends Payload, C, E> = (
 ) => ProcessManager<M, C, E>;
 
 /**
+ * Command adapters convert payloads to commands
+ */
+export type CommandAdapter<C, P extends Payload> = {
+  adapt: (
+    payload: P
+  ) => Command<keyof C & string, C[keyof C & string] & Payload>;
+  schema: joi.ObjectSchema<P>;
+};
+export type CommandAdapterFactory<C, P extends Payload> = () => CommandAdapter<
+  C,
+  P
+>;
+
+/**
  * All message handler factory types
  */
 export type MessageHandlerFactory<M extends Payload, C, E> =

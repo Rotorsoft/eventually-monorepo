@@ -3,6 +3,7 @@ import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Calculator } from "./calculator.aggregate";
 import { Counter, StatelessCounter } from "./counter.policy";
 import { PostgresSnapshotStore, PostgresStore } from "libs/eventually-pg/dist";
+import { PressKeyAdapter } from "./presskey.adapter";
 
 void bootstrap(async (): Promise<void> => {
   const snapshotStore = PostgresSnapshotStore("calculators");
@@ -22,7 +23,8 @@ void bootstrap(async (): Promise<void> => {
       `Counts keys and *resets* calculator when the
   number of consecutire key presses without resoulution exceeds some **limit**`
     )
-    .withEventHandlers(StatelessCounter);
+    .withEventHandlers(StatelessCounter)
+    .withCommandAdapter(PressKeyAdapter);
 
   _app.build();
   await _app.listen();

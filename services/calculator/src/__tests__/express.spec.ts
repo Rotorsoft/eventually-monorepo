@@ -16,6 +16,7 @@ import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { CalculatorModel, Keys } from "../calculator.models";
 import { StatelessCounter } from "../counter.policy";
+import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 
 const chance = new Chance();
 const port = 4000;
@@ -25,9 +26,11 @@ const expressApp = new ExpressApp();
 app(expressApp)
   .withAggregate(Calculator, "calculator", {
     store: InMemorySnapshotStore(),
-    threshold: 2
+    threshold: 2,
+    expose: true
   })
   .withEventHandlers(StatelessCounter)
+  .withCommandAdapter(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);
 
 const pressKey = (
@@ -60,7 +63,8 @@ describe("express app", () => {
       await pressKey(id, "2");
       await pressKey(id, ".");
       await pressKey(id, "3");
-      await pressKey(id, "=");
+
+      await t.invoke(PressKeyAdapter, { id, key: "=" } as ExternalPayload);
 
       const { state } = await t.load(Calculator, id);
       expect(state).toEqual({
@@ -144,7 +148,7 @@ describe("express app", () => {
     });
 
     it("should throw 404 error", async () => {
-      await expect(t.get("/calculator")).rejects.toThrowError(
+      await expect(t.get("/calculato")).rejects.toThrowError(
         "Request failed with status code 404"
       );
     });
@@ -308,6 +312,11 @@ describe("express app", () => {
       });
       expect(stream.length).toBe(1);
       expect(stream[0].name).toBe("DotPressed");
+    });
+
+    it("should read snapshot", async () => {
+      const snaps = await t.get("/calculator");
+      expect(snaps).toBeDefined();
     });
   });
 
