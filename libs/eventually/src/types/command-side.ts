@@ -1,93 +1,5 @@
-import * as joi from "joi";
-
-/**
- * Resource disposer function
- */
-export type Disposer = () => Promise<void>;
-/**
- * Resource Seeder function
- */
-export type Seeder = () => Promise<void>;
-
-//=====================================================================================
-// COMMAND LEVEL
-//=====================================================================================
-/**
- * Message payloads are objects
- */
-export type Payload = Record<string, unknown>;
-
-/**
- * Messages have
- * - `name` Bound message name
- * - `data?` Optional payload
- */
-export type Message<Name extends string, Type extends Payload> = {
-  readonly name: Name;
-  readonly data?: Type;
-};
-
-/**
- * Actors invoke public commands
- * - `name` Actor name
- * - `roles` Actor roles
- */
-export type Actor = {
-  name: string;
-  roles: string[];
-};
-
-/**
- * Commands are messages with optional target arguments
- * - `id?` Target aggregate id
- * - `expectedVersion?` Target aggregate expected version
- * - `actor?` Actor invoking this command
- */
-export type Command<Name extends string, Type extends Payload> = Message<
-  Name,
-  Type
-> & {
-  readonly id?: string;
-  readonly expectedVersion?: number;
-  readonly actor?: Actor;
-};
-
-/**
- * Committed event metadata
- * - `correlation` Id that correlates message flows across time and systems
- * - `causation` The direct cause of the event
- */
-export type CommittedEventMetadata = {
-  correlation: string;
-  causation: {
-    command?: Command<string, Payload>;
-    event?: {
-      name: string;
-      stream: string;
-      id: number;
-    };
-  };
-};
-
-/**
- * Committed events have:
- * - `id` Event index in the "all" stream
- * - `stream` Reducible stream name
- * - `version` Unique sequence number within the stream
- * - `created` Date-Time of creation
- * - `name` Event name
- * - `data?` Otional payload
- * - `metadata?` Optional metadata
- */
-export type CommittedEvent<Name extends string, Type extends Payload> = {
-  readonly id: number;
-  readonly stream: string;
-  readonly version: number;
-  readonly created: Date;
-  readonly name: Name;
-  readonly data?: Type;
-  readonly metadata?: CommittedEventMetadata;
-};
+import joi from "joi";
+import { Command, CommittedEvent, Message, Payload } from "./messages";
 
 /**
  * Artifacts that commit events to a stream
@@ -230,9 +142,6 @@ export type MessageHandler<M extends Payload, C, E> =
   | ProcessManager<M, C, E>
   | Policy<C, E>;
 
-//=====================================================================================
-// QUERY LEVEL
-//=====================================================================================
 /**
  * Options to query the all stream
  * - stream? filter by stream
@@ -263,26 +172,4 @@ export type AllQuery = {
  */
 export type SnapshotsQuery = {
   readonly limit?: number;
-};
-
-/**
- * Apps are getters of reducibles
- */
-export type Getter = <M extends Payload, C, E>(
-  factory: ReducibleFactory<M, C, E>,
-  id: string,
-  useSnapshot?: boolean,
-  callback?: (snapshot: Snapshot<M>) => void
-) => Promise<Snapshot<M> | Snapshot<M>[]>;
-
-/**
- * Store stats
- */
-export type StoreStat = {
-  name: string;
-  count: number;
-  firstId?: number;
-  lastId?: number;
-  firstCreated?: Date;
-  lastCreated?: Date;
 };

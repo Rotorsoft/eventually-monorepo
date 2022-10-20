@@ -13,15 +13,10 @@ import {
   Getter,
   Payload,
   ReducibleFactory,
+  RegistrationError,
   Snapshot
 } from "./types";
-import {
-  bind,
-  randomId,
-  RegistrationError,
-  store,
-  validateMessage
-} from "./utils";
+import { bind, randomId, store, validateMessage } from "./utils";
 
 interface Reader {
   load: Getter;
@@ -74,10 +69,11 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
     const data = validateMessage(command);
     const handler = factory(id);
-    Object.setPrototypeOf(handler, factory);
+    Object.setPrototypeOf(handler, factory as object);
     return await handleMessage(
       handler,
-      (state: M) => (handler as any)["on".concat(name)](data, state, actor),
+      (state: M) =>
+        (handler as any)["on".concat(name as string)](data, state, actor),
       {
         correlation: metadata?.correlation || randomId(),
         causation: {
@@ -105,8 +101,8 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const { name, stream, id } = event;
     this.log.trace("magenta", `\n>>> ${factory.name}`, event);
     const handler = factory(event);
-    Object.setPrototypeOf(handler, factory);
-    const on = (handler as any)["on".concat(name)];
+    Object.setPrototypeOf(handler, factory as object);
+    const on = (handler as any)["on".concat(name as string)];
     if (typeof on !== "function") throw new RegistrationError(event);
     const data = validateMessage(event);
 
@@ -147,7 +143,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     callback?: (snapshot: Snapshot<M>) => void
   ): Promise<Snapshot<M> & { applyCount: number }> {
     const reducible = factory(id);
-    Object.setPrototypeOf(reducible, factory);
+    Object.setPrototypeOf(reducible, factory as object);
     return load(reducible, useSnapshots, callback);
   }
 

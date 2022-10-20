@@ -1,5 +1,5 @@
-import { Disposable } from "./interfaces";
-import { Disposer } from "./types";
+import { Disposable, Disposer } from "./interfaces";
+import { ExitCodes } from "./types/enums";
 
 const instances: Record<string, Disposable> = {};
 /**
@@ -20,10 +20,6 @@ export const singleton =
     return instances[target.name] as T;
   };
 
-export enum ExitCodes {
-  UNIT_TEST = "UNIT_TEST",
-  ERROR = "ERROR"
-}
 const disposers: Disposer[] = [];
 const disposeAndExit = async (
   code: ExitCodes = ExitCodes.UNIT_TEST

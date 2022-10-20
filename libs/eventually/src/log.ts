@@ -1,8 +1,9 @@
 import chalk from "chalk";
 import { config } from "./config";
-import { Color, Environments, Log, LogLevels } from "./interfaces";
+import { Color, Log } from "./interfaces";
+import { Environments, LogLevels } from "./types/enums";
 import { singleton } from "./singleton";
-import { RegistrationError, ValidationError } from "./utils";
+import { RegistrationError, ValidationError } from "./types/errors";
 
 /** Uncolored and stringified for deployed non-dev envs */
 const plain = (

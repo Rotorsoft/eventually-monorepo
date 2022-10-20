@@ -2,21 +2,11 @@ import * as dotenv from "dotenv";
 import * as joi from "joi";
 import { singleton } from "./singleton";
 import * as fs from "fs";
-import { Config, Environments, LogLevels } from "./interfaces";
+import { Config } from "./interfaces";
+import { Package } from "./types/app";
+import { Environments, LogLevels } from "./types/enums";
 
 dotenv.config();
-
-type Package = {
-  name: string;
-  version: string;
-  description: string;
-  author: {
-    name: string;
-    email: string;
-  };
-  license: string;
-  dependencies: Record<string, string>;
-};
 
 const getPackage = (): Package => {
   const pkg = fs.readFileSync("package.json");

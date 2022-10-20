@@ -71,7 +71,7 @@ describe("pg", () => {
       undefined
     );
 
-    let first: number;
+    let first = 0;
     const events: CommittedEvent<string, Payload>[] = [];
     await db.query(
       (e) => {
@@ -123,7 +123,7 @@ describe("pg", () => {
 
     await expect(
       db.commit(a1, [event("test2")], { correlation: "", causation: {} }, 1)
-    ).rejects.toThrowError(Errors.ConcurrencyError);
+    ).rejects.toThrowError(Errors.ConcurrencyError as string);
   });
 
   it("should get store stats", async () => {

@@ -1,12 +1,12 @@
-import { app, ConcurrencyError } from "..";
-import { Store } from "../interfaces";
+import { app } from "..";
+import { Store, StoreStat } from "../interfaces";
 import {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
+  ConcurrencyError,
   Message,
-  Payload,
-  StoreStat
+  Payload
 } from "../types";
 
 export const InMemoryStore = (): Store => {

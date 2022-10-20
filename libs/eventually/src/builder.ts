@@ -1,79 +1,29 @@
-import Joi from "joi";
+import { config } from "./config";
 import {
   AggregateFactory,
   CommandAdapterFactory,
   CommandHandlerFactory,
-  commandHandlerPath,
-  config,
+  Endpoints,
   EventHandlerFactory,
-  eventHandlerPath,
-  eventsOf,
   ExternalSystemFactory,
-  getReducible,
-  messagesOf,
+  Factories,
+  MessageMetadata,
   Payload,
   PolicyFactory,
   ProcessManagerFactory,
   Reducible,
+  Schemas,
   Snapshot,
+  SnapshotOptions,
   WithSchemas
-} from ".";
-import { SnapshotStore } from "./interfaces";
-
-export type Factories = {
-  commandHandlers: {
-    [name: string]: CommandHandlerFactory<Payload, unknown, unknown>;
-  };
-  eventHandlers: {
-    [name: string]: EventHandlerFactory<Payload, unknown, unknown>;
-  };
-  commandAdapters: {
-    [name: string]: CommandAdapterFactory<Payload, Payload>;
-  };
-};
-
-export type Endpoints = {
-  version: string;
-  commandHandlers: {
-    [name: string]: {
-      type: "aggregate" | "external-system";
-      factory: CommandHandlerFactory<Payload, unknown, unknown>;
-      commands: Record<string, string>;
-      events: string[];
-    };
-  };
-  eventHandlers: {
-    [name: string]: {
-      type: "policy" | "process-manager";
-      factory: EventHandlerFactory<Payload, unknown, unknown>;
-      path: string;
-      events: string[];
-    };
-  };
-  schemas: {
-    [name: string]: Joi.Description;
-  };
-};
-
-export type MessageMetadata = {
-  name: string;
-  schema?: Joi.ObjectSchema<Payload>;
-  commandHandlerFactory?: CommandHandlerFactory<Payload, unknown, unknown>;
-  eventHandlerFactories: Record<
-    string,
-    EventHandlerFactory<Payload, unknown, unknown>
-  >;
-};
-
-type Schemas<M> = {
-  [Key in keyof M & string]: Joi.ObjectSchema<M[Key] & Payload>;
-};
-
-type SnapshotOptions = {
-  store: SnapshotStore;
-  threshold?: number;
-  expose?: boolean;
-};
+} from "./types";
+import {
+  commandHandlerPath,
+  eventHandlerPath,
+  eventsOf,
+  getReducible,
+  messagesOf
+} from "./utils";
 
 export class Builder {
   protected readonly _snapshotOptions: Record<string, SnapshotOptions> = {};

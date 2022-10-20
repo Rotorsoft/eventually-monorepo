@@ -1,8 +1,8 @@
 import * as crypto from "crypto";
-import * as joi from "joi";
 import { app } from ".";
 import { Store } from "./interfaces";
 import { singleton } from "./singleton";
+import { RegistrationError, ValidationError } from "./types";
 import {
   Actor,
   Command,
@@ -164,41 +164,6 @@ export const commandHandlerPath = <M extends Payload, C, E>(
 export const eventHandlerPath = <M extends Payload, C, E>(
   handler: EventHandlerFactory<M, C, E>
 ): string => "/".concat(decamelize(handler.name));
-
-export enum Errors {
-  ValidationError = "ERR_VALIDATION",
-  ConcurrencyError = "ERR_CONCURRENCY",
-  RegistrationError = "ERR_REGISTRATION"
-}
-
-export class ValidationError extends Error {
-  public readonly details;
-  constructor(errors: joi.ValidationError, message?: Message<string, Payload>) {
-    super(Errors.ValidationError);
-    this.details = {
-      errors: errors.details.flatMap((item) => item.message),
-      message
-    };
-  }
-}
-
-export class ConcurrencyError extends Error {
-  constructor(
-    public readonly lastVersion: number,
-    public readonly events: Message<string, Payload>[],
-    public readonly expectedVersion: number
-  ) {
-    super(Errors.ConcurrencyError);
-  }
-}
-
-export class RegistrationError extends Error {
-  public readonly details;
-  constructor(message: Message<string, Payload>) {
-    super(Errors.RegistrationError);
-    this.details = `Message [${message.name}] not registered with app builder!`;
-  }
-}
 
 /**
  * Validates message payloads
