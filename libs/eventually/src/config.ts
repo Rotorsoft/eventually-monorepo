@@ -1,8 +1,8 @@
 import * as dotenv from "dotenv";
-import * as joi from "joi";
-import { singleton } from "./singleton";
 import * as fs from "fs";
+import * as joi from "joi";
 import { Config } from "./interfaces";
+import { singleton } from "./singleton";
 import { Package } from "./types/app";
 import { Environments, LogLevels } from "./types/enums";
 

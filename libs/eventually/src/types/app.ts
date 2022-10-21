@@ -3,9 +3,7 @@ import { SnapshotStore } from "../interfaces";
 import {
   CommandAdapterFactory,
   CommandHandlerFactory,
-  EventHandlerFactory,
-  ReducibleFactory,
-  Snapshot
+  EventHandlerFactory
 } from "./command-side";
 import { Payload } from "./messages";
 
@@ -33,11 +31,14 @@ export type Factories = {
   };
 };
 
+export type CommandHandlerType = "aggregate" | "external-system";
+export type EventHandlerType = "policy" | "process-manager";
+
 export type Endpoints = {
   version: string;
   commandHandlers: {
     [name: string]: {
-      type: "aggregate" | "external-system";
+      type: CommandHandlerType;
       factory: CommandHandlerFactory<Payload, unknown, unknown>;
       commands: Record<string, string>;
       events: string[];
@@ -45,7 +46,7 @@ export type Endpoints = {
   };
   eventHandlers: {
     [name: string]: {
-      type: "policy" | "process-manager";
+      type: EventHandlerType;
       factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
       events: string[];
@@ -75,13 +76,3 @@ export type SnapshotOptions = {
   threshold?: number;
   expose?: boolean;
 };
-
-/**
- * Apps are getters of reducibles
- */
-export type Getter = <M extends Payload, C, E>(
-  factory: ReducibleFactory<M, C, E>,
-  id: string,
-  useSnapshot?: boolean,
-  callback?: (snapshot: Snapshot<M>) => void
-) => Promise<Snapshot<M> | Snapshot<M>[]>;

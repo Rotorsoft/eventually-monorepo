@@ -1,22 +1,26 @@
 import { config } from "./config";
 import {
+  CommandHandlerType,
+  Endpoints,
+  EventHandlerType,
+  Factories,
+  MessageMetadata,
+  Schemas,
+  SnapshotOptions
+} from "./types/app";
+import {
   AggregateFactory,
   CommandAdapterFactory,
   CommandHandlerFactory,
-  Endpoints,
   EventHandlerFactory,
   ExternalSystemFactory,
-  Factories,
-  MessageMetadata,
-  Payload,
   PolicyFactory,
   ProcessManagerFactory,
   Reducible,
-  Schemas,
   Snapshot,
-  SnapshotOptions,
   WithSchemas
-} from "./types";
+} from "./types/command-side";
+import { Payload } from "./types/messages";
 import {
   commandHandlerPath,
   eventHandlerPath,
@@ -233,7 +237,9 @@ export class Builder {
     Object.values(this._factories.commandHandlers).forEach((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
-      const type = reducible ? "aggregate" : "external-system";
+      const type: CommandHandlerType = reducible
+        ? "aggregate"
+        : "external-system";
       const events =
         reducible &&
         eventsOf(reducible).map((name) => {
@@ -258,7 +264,7 @@ export class Builder {
     Object.values(this._factories.eventHandlers).forEach((factory) => {
       const handler = factory(undefined);
       const reducible = getReducible(handler);
-      const type = reducible ? "process-manager" : "policy";
+      const type: EventHandlerType = reducible ? "process-manager" : "policy";
       const path = eventHandlerPath(factory);
       const events = messagesOf(handler).map((name) => {
         const msg = this._msg(name);

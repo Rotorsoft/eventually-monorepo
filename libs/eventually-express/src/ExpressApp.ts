@@ -1,72 +1,33 @@
 import {
-  Actor,
   AggregateFactory,
-  AllQuery,
   AppBase,
-  bind,
-  CommittedEvent,
   config,
   decamelize,
-  Errors,
-  formatTime,
-  Getter,
   Payload,
   ProcessManagerFactory,
+  Reducer,
   ReducibleFactory,
   reduciblePath,
-  Snapshot,
-  SnapshotsQuery,
-  SnapshotStore,
-  store
+  SnapshotStore
 } from "@rotorsoft/eventually";
 import cors from "cors";
-import express, {
-  NextFunction,
-  Request,
-  RequestHandler,
-  Response,
-  Router,
-  urlencoded
-} from "express";
+import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
-import * as swaggerUI from "swagger-ui-express";
-import { swagger } from "./swagger";
 import { OpenAPIV3_1 } from "openapi-types";
-
-const redoc = (title: string): string => `<!DOCTYPE html>
-<html>
-  <head>
-    <title>${title}</title>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <redoc spec-url='/swagger'></redoc>
-    <script src="https://unpkg.com/redoc@latest/bundles/redoc.standalone.js"> </script>
-  </body>
-</html>`;
-
-const rapidoc = (title: string): string => `<!doctype html>
-<html>
-<head>
-  <title>${title}</title>
-  <meta charset="utf-8">
-  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
-</head>
-<body>
-  <rapi-doc
-    spec-url="/swagger"
-    theme = "dark"
-  > </rapi-doc>
-</body>
-</html>`;
+import * as swaggerUI from "swagger-ui-express";
+import { rapidoc, redoc } from "./docs";
+import {
+  allStreamHandler,
+  appHandler,
+  commandHandler,
+  errorHandler,
+  eventHandler,
+  getHandler,
+  invokeHandler,
+  snapshotQueryHandler,
+  statsHandler
+} from "./handlers";
+import { swagger } from "./swagger";
 
 export class ExpressApp extends AppBase {
   private _app = express();
@@ -79,54 +40,12 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildStatsRoute(): void {
-    this._router.get("/stats", async (_, res: Response, next: NextFunction) => {
-      try {
-        const stats = await store().stats();
-        return res.status(200).send(stats);
-      } catch (error) {
-        next(error);
-      }
-    });
+    this._router.get("/stats", statsHandler);
     this.log.info("bgGreen", " GET ", "/stats");
   }
 
   private _buildAllStreamRoute(): void {
-    this._router.get(
-      "/all",
-      async (
-        req: Request<any, CommittedEvent<string, Payload>[], any, AllQuery>,
-        res: Response,
-        next: NextFunction
-      ) => {
-        try {
-          const {
-            stream,
-            names,
-            before,
-            after = -1,
-            limit = 1,
-            created_before,
-            created_after,
-            correlation,
-            backward
-          } = req.query;
-          const result = await this.query({
-            stream,
-            names: names && (Array.isArray(names) ? names : [names]),
-            after: after && +after,
-            before: before && +before,
-            limit: limit && +limit,
-            created_after: created_after && new Date(created_after),
-            created_before: created_before && new Date(created_before),
-            correlation,
-            backward
-          });
-          return res.status(200).send(result);
-        } catch (error) {
-          next(error);
-        }
-      }
-    );
+    this._router.get("/all", allStreamHandler);
     this.log.info(
       "bgGreen",
       " GET ",
@@ -134,60 +53,34 @@ export class ExpressApp extends AppBase {
     );
   }
 
-  private _buildGetter<M extends Payload, C, E>(
-    factory: ReducibleFactory<M, C, E>,
-    callback: Getter,
-    path: string
+  private _buildGetters(
+    factory: ReducibleFactory<Payload, unknown, unknown>
   ): void {
+    const path = reduciblePath(factory);
     this._router.get(
       path,
-      async (
-        req: Request<{ id: string }>,
-        res: Response,
-        next: NextFunction
-      ) => {
-        try {
-          const { id } = req.params;
-          const result = await callback(
-            factory,
-            id,
-            ["true", "1"].includes(req.query.useSnapshots as string)
-          );
-          let etag = "-1";
-          if (Array.isArray(result)) {
-            result.length && (etag = result.at(-1).event.version.toString());
-          } else if (result.event) {
-            etag = result.event.version.toString();
-          }
-          res.setHeader("ETag", etag);
-          return res.status(200).send(result);
-        } catch (error) {
-          next(error);
-        }
-      }
+      getHandler(
+        factory,
+        this.load.bind(this) as Reducer<Payload, unknown, unknown>
+      )
     );
+    this.log.info("bgGreen", " GET ", path);
+
+    const streamPath = path.concat("/stream");
+    this._router.get(
+      streamPath,
+      getHandler(
+        factory,
+        this.stream.bind(this) as Reducer<Payload, unknown, unknown>
+      )
+    );
+    this.log.info("bgGreen", " GET ", streamPath);
   }
 
   // TODO: add snapshot query endpoints to swagger spec
   private _buildSnapshotQuery(store: SnapshotStore, path: string): void {
-    this._router.get(
-      path,
-      async (
-        req: Request<any, Snapshot<Payload>, any, SnapshotsQuery>,
-        res: Response,
-        next: NextFunction
-      ) => {
-        try {
-          const { limit = 10 } = req.query;
-          const result = await store.query({
-            limit
-          });
-          return res.status(200).send(result);
-        } catch (error) {
-          next(error);
-        }
-      }
-    );
+    this._router.get(path, snapshotQueryHandler(store));
+    this.log.info("bgGreen", " GET ", path);
   }
 
   private _buildCommandHandlers(): void {
@@ -195,85 +88,31 @@ export class ExpressApp extends AppBase {
       string,
       AggregateFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this.endpoints.commandHandlers).map(
+    Object.values(this.endpoints.commandHandlers).forEach(
       ({ type, factory, commands }) => {
         type === "aggregate" && (aggregates[factory.name] = factory as any);
-        Object.entries(commands).map(([name, path]) => {
-          this._router.post(
-            path,
-            async (
-              req: Request<{ id: string }, any, Payload, never> & {
-                actor?: Actor;
-              },
-              res: Response,
-              next: NextFunction
-            ) => {
-              try {
-                const ifMatch = req.headers["if-match"] || undefined;
-                const snapshots = await this.command(
-                  bind(
-                    name,
-                    req.body,
-                    req.params.id,
-                    type === "aggregate" && ifMatch ? +ifMatch : undefined,
-                    req.actor
-                  )
-                );
-                snapshots.length &&
-                  res.setHeader("ETag", snapshots.at(-1).event.version);
-                return res.status(200).send(snapshots);
-              } catch (error) {
-                next(error);
-              }
-            }
-          );
+        Object.entries(commands).forEach(([name, path]) => {
+          this._router.post(path, commandHandler(name, type));
           this.log.info("bgBlue", " POST ", path);
         });
       }
     );
 
-    Object.values(this._factories.commandAdapters).map((factory) => {
+    Object.values(this._factories.commandAdapters).forEach((factory) => {
       const path = decamelize("/".concat(factory.name));
-      this._router.post(
-        path,
-        async (
-          req: Request<never, any, Payload, never> & {
-            actor?: Actor;
-          },
-          res: Response,
-          next: NextFunction
-        ) => {
-          try {
-            const snapshots = await this.invoke(factory, req.body);
-            snapshots.length &&
-              res.setHeader("ETag", snapshots.at(-1).event.version);
-            return res.status(200).send(snapshots);
-          } catch (error) {
-            next(error);
-          }
-        }
-      );
+      this._router.post(path, invokeHandler(factory));
       this.log.info("bgBlue", " POST ", path);
     });
 
-    Object.values(aggregates).map((aggregate) => {
-      const getpath = reduciblePath(aggregate);
-      this._buildGetter(aggregate, this.load.bind(this) as Getter, getpath);
-      this.log.info("bgGreen", " GET ", getpath);
-
-      const streampath = getpath.concat("/stream");
-      this._buildGetter(
-        aggregate,
-        this.stream.bind(this) as Getter,
-        streampath
-      );
-      this.log.info("bgGreen", " GET ", streampath);
+    Object.values(aggregates).forEach((aggregate) => {
+      this._buildGetters(aggregate);
 
       const snapOpts = this._snapshotOptions[aggregate.name];
       if (snapOpts && snapOpts.expose) {
-        const querypath = `/${decamelize(aggregate.name)}`;
-        this._buildSnapshotQuery(snapOpts.store, querypath);
-        this.log.info("bgGreen", " GET ", querypath);
+        this._buildSnapshotQuery(
+          snapOpts.store,
+          `/${decamelize(aggregate.name)}`
+        );
       }
     });
   }
@@ -283,41 +122,20 @@ export class ExpressApp extends AppBase {
       string,
       ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
-    Object.values(this.endpoints.eventHandlers).map(
+    Object.values(this.endpoints.eventHandlers).forEach(
       ({ type, factory, path, events }) => {
         type === "process-manager" && (managers[factory.name] = factory as any);
-        this._router.post(
-          path,
-          async (
-            req: Request<never, any, CommittedEvent<string, Payload>>,
-            res: Response,
-            next: NextFunction
-          ) => {
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              const response = await this.event(factory, req.body as any);
-              return res.status(200).send(response);
-            } catch (error) {
-              next(error);
-            }
-          }
-        );
+        this._router.post(path, eventHandler(factory));
         this.log.info("bgMagenta", " POST ", path, events);
       }
     );
 
-    Object.values(managers).map((manager) => {
-      const getpath = reduciblePath(manager);
-      this._buildGetter(manager, this.load.bind(this) as Getter, getpath);
-      this.log.info("bgGreen", " GET ", getpath);
-
-      const streampath = reduciblePath(manager).concat("/stream");
-      this._buildGetter(manager, this.stream.bind(this) as Getter, streampath);
-      this.log.info("bgGreen", " GET ", streampath);
-    });
+    Object.values(managers).forEach((manager) => this._buildGetters(manager));
   }
 
   build(middleware?: RequestHandler[]): express.Express {
+    const { service } = config();
+
     super.build();
     this._buildCommandHandlers();
     this._buildEventHandlers();
@@ -333,10 +151,9 @@ export class ExpressApp extends AppBase {
     middleware && this._app.use(middleware);
     this._app.use(this._router);
 
+    // swagger and other spec endpoints - TODO: pick one
     this._swagger = swagger(this);
-    this._app.get("/swagger", (_, res: Response) => {
-      res.json(this._swagger);
-    });
+    this._app.get("/swagger", (_, res) => res.json(this._swagger));
     this._app.use(
       "/swagger-ui",
       swaggerUI.serve,
@@ -346,24 +163,21 @@ export class ExpressApp extends AppBase {
         }
       })
     );
-    this._app.get("/redoc", (_, res) => {
-      res.type("html");
-      res.send(redoc(config().service));
-    });
-    this._app.get("/rapidoc", (_, res) => {
-      res.type("html");
-      res.send(rapidoc(config().service));
-    });
-    this._app.get("/_endpoints", (_, res) => {
-      res.json(this.endpoints);
-    });
-    this._app.get("/_health", (_, res) => {
-      res.status(200).json({ status: "OK", date: new Date().toISOString() });
-    });
+    this._app.get("/redoc", (_, res) => res.type("html").send(redoc(service)));
+    this._app.get("/rapidoc", (_, res) =>
+      res.type("html").send(rapidoc(service))
+    );
+
+    // health related
+    this._app.get("/_endpoints", (_, res) => res.json(this.endpoints));
+    this._app.get("/_health", (_, res) =>
+      res.status(200).json({ status: "OK", date: new Date().toISOString() })
+    );
     this._app.get("/__killme", () => {
       this.log.info("red", "KILLME");
       process.exit(0);
     });
+
     return this._app;
   }
 
@@ -373,59 +187,11 @@ export class ExpressApp extends AppBase {
    * @param port to override port in config
    */
   async listen(silent = false, port?: number): Promise<void> {
-    const {
-      service,
-      version,
-      env,
-      logLevel,
-      description,
-      author,
-      license,
-      dependencies
-    } = config();
+    const { service, version, env, logLevel } = config();
     port = port || config().port;
 
-    this._app.get("/", (_: Request, res: Response) => {
-      res.status(200).json({
-        env,
-        service,
-        version,
-        description,
-        author,
-        license,
-        dependencies,
-        logLevel,
-        mem: process.memoryUsage(),
-        uptime: formatTime(process.uptime()),
-        swagger: "/swagger",
-        "swagger-ui": "/swagger-ui",
-        redoc: "/redoc",
-        rapidoc: "/rapidoc",
-        health: "/_health",
-        endpoints: "/_endpoints",
-        contracts: "/_contracts"
-      });
-    });
-
-    // ensure catch-all is last handler
-    this._app.use(
-      // eslint-disable-next-line
-      (error: Error, _: Request, res: Response, __: NextFunction) => {
-        this.log.error(error);
-        // eslint-disable-next-line
-        const { message, stack, ...other } = error;
-        switch (message) {
-          case Errors.ValidationError:
-            return res.status(400).send({ message, ...other });
-          case Errors.RegistrationError:
-            return res.status(404).send({ message, ...other });
-          case Errors.ConcurrencyError:
-            return res.status(409).send({ message, ...other });
-          default:
-            return res.status(500).send({ message });
-        }
-      }
-    );
+    this._app.get("/", appHandler);
+    this._app.use(errorHandler); // ensure catch-all is last handler
 
     const _config = { env, port, logLevel, service, version };
     if (silent) this.log.info("white", "Config", undefined, _config);

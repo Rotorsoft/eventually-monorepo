@@ -20,6 +20,13 @@ export type Reducible<M extends Payload, E> = Streamable & {
   ) => Readonly<M>;
 };
 
+export type Reducer<M extends Payload, C, E> = (
+  factory: ReducibleFactory<M, C, E>,
+  id: string,
+  useSnapshot?: boolean,
+  callback?: (snapshot: Snapshot<M>) => void
+) => Promise<Snapshot<M> | Snapshot<M>[]>;
+
 /**
  * Reducible snapshots after events are applied
  */

@@ -4,23 +4,25 @@ import { Disposable } from "./interfaces";
 import { log } from "./log";
 import {
   AllQuery,
-  Command,
   CommandAdapterFactory,
   CommandHandlerFactory,
+  EventHandlerFactory,
+  Reducer,
+  ReducibleFactory,
+  Snapshot
+} from "./types/command-side";
+import { RegistrationError } from "./types/errors";
+import {
+  Command,
   CommittedEvent,
   CommittedEventMetadata,
-  EventHandlerFactory,
-  Getter,
-  Payload,
-  ReducibleFactory,
-  RegistrationError,
-  Snapshot
-} from "./types";
+  Payload
+} from "./types/messages";
 import { bind, randomId, store, validateMessage } from "./utils";
 
 interface Reader {
-  load: Getter;
-  stream: Getter;
+  load: Reducer<Payload, unknown, unknown>;
+  stream: Reducer<Payload, unknown, unknown>;
 }
 
 /**
