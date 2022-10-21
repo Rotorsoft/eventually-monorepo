@@ -1,3 +1,5 @@
+#### 2022-10-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.1.1...@rotorsoft/eventually-express-v4.1.2) @rotorsoft/eventually-express-v4.1.2
+  - PATCH [e0efc083](https://github.com/Rotorsoft/eventually-monorepo/commit/e0efc0834b6b8fb57a78e97f1fa13ef25ff6c9eb) fix: refactor express app
 #### 2022-10-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.2.2...@rotorsoft/eventually-v4.2.3) @rotorsoft/eventually-v4.2.3
   - PATCH [e0efc083](https://github.com/Rotorsoft/eventually-monorepo/commit/e0efc0834b6b8fb57a78e97f1fa13ef25ff6c9eb) fix: refactor express app
 #### 2022-10-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.23...@rotorsoft/eventually-pg-v4.0.24) @rotorsoft/eventually-pg-v4.0.24
