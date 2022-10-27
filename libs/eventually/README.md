@@ -96,11 +96,17 @@ Artifact | Handler | Getters
 | **All** Stream | `N/A` | `GET /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]` |
 | ![Projector](./assets/projector.png) | `POST /projector` | `TBD: Fee form query API` |
 
-## Testing your code
+## Testing
 
-We group unit tests inside `__tests__` folders. Tests should mainly focus on testing business logic and follow this basic pattern:
+We group unit tests inside `__tests__` folders. Tests should mainly focus on testing business flows in a BDD like pattern:
 
 - `given` [messages] `when` [message] `expect` [state]
+
+### Framework Ports
+
+The framework provides a number of input/output ports (abstract interfaces) to help with this:
+
+![Framework Ports](./assets/ports.png)
 
 ## Version 4 Breaking Changes
 
