@@ -48,6 +48,9 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
       job.start();
     },
     pull: async () => {
+      if (!job || job.nextDate().toMillis() > new Date().valueOf())
+        return Promise.resolve([]);
+
       const [subscription] = await subscriptions().loadSubscriptionsByProducer(
         id
       );
