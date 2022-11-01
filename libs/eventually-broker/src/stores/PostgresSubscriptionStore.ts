@@ -1,5 +1,5 @@
 import { config } from "@rotorsoft/eventually-pg";
-import { Pool } from "pg";
+import { Pool, types } from "pg";
 import {
   PostgresStreamListener,
   Service,
@@ -7,6 +7,8 @@ import {
   SubscriptionStore
 } from "..";
 import { seed } from "./seed";
+
+types.setTypeParser(types.builtins.INT8, (val) => parseInt(val, 10));
 
 export const PostgresSubscriptionStore = (): SubscriptionStore => {
   const pool = new Pool(config.pg);

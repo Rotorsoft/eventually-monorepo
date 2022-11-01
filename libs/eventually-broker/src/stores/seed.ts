@@ -12,6 +12,7 @@ create table if not exists public.services (
 
 alter table public.services add column if not exists position integer not null default -1;
 alter table public.services add column if not exists updated timestamptz not null default now();
+alter table public.services alter column position type bigint;
 
 create table if not exists public.subscriptions (
   id varchar(100) primary key,
@@ -32,6 +33,7 @@ alter table public.subscriptions add column if not exists retries int not null d
 alter table public.subscriptions add column if not exists retry_timeout_secs int not null default 10;
 alter table public.subscriptions alter column names type varchar(500);
 alter table public.subscriptions alter column names type varchar(750);
+alter table public.subscriptions alter column position type bigint;
 
 create or replace function notify() returns trigger as
 $trigger$
