@@ -1,3 +1,5 @@
+#### 2022-11-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.6.0...@rotorsoft/eventually-broker-v1.6.1) @rotorsoft/eventually-broker-v1.6.1
+  - PATCH [f55bf231](https://github.com/Rotorsoft/eventually-monorepo/commit/f55bf231bb19c9392dad1f41a36d0f332f5627e0) fix: alter position column type to bigint
 #### 2022-11-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.3...@rotorsoft/eventually-broker-v1.6.0) @rotorsoft/eventually-broker-v1.6.0
   - MINOR [950be3da](https://github.com/Rotorsoft/eventually-monorepo/commit/950be3dad9d2baca4d6e6df9995d04683c660bb5) feat: pull options with new manual operation
   - PATCH [560972b2](https://github.com/Rotorsoft/eventually-monorepo/commit/560972b21759cfa3f1bc94424677936794680d74) fix: simplify cron channel, use camelized channel id as event name
