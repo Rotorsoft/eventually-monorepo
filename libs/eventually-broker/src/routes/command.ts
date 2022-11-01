@@ -18,7 +18,7 @@ router.get("/toggle/:id", async (req, res) => {
 router.get("/refresh/:id", (req, res) => {
   const id = req.params.id;
   try {
-    state().refreshSubscription("RESTART", id);
+    state().refreshSubscription("MANUAL", id);
   } catch (error) {
     log().error(error);
   }

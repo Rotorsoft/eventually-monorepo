@@ -1,5 +1,11 @@
 import { CommittedEvent, Disposable, Payload } from "@rotorsoft/eventually";
-import { PushEvent, Service, Subscription, TriggerCallback } from "./types";
+import {
+  PullOptions,
+  PushEvent,
+  Service,
+  Subscription,
+  TriggerCallback
+} from "./types";
 
 /**
  * Listens for changes in streams
@@ -15,10 +21,7 @@ export interface StreamListener {
 export interface PullChannel extends Disposable {
   label: string;
   listen: (callback: TriggerCallback) => Promise<void>;
-  pull: (
-    position: number,
-    limit: number
-  ) => Promise<CommittedEvent<string, Payload>[]>;
+  pull: (options: PullOptions) => Promise<CommittedEvent<string, Payload>[]>;
 }
 
 /**

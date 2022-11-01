@@ -15,7 +15,7 @@ export const PostgresPullChannel = (channel: URL): PullChannel => {
     },
     label: "",
     listen: (callback: TriggerCallback) => listener.listen(callback),
-    pull: async (position: number, limit: number) => {
+    pull: async ({ position, limit }) => {
       const events: CommittedEvent<string, Payload>[] = [];
       await store().query((e) => events.push(e), {
         after: position,

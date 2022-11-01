@@ -148,10 +148,11 @@ export const work = async (options: AppOptions): Promise<void> => {
         // pull events
         state.stats.batches++;
         state.endpointStatus.name = undefined;
-        const events = (await pullchannel().pull(
-          state.position,
-          state.batchSize
-        )) as PushEvent[];
+        const events = (await pullchannel().pull({
+          operation: trigger.operation,
+          position: state.position,
+          limit: state.batchSize
+        })) as PushEvent[];
         count = events.length;
         log().trace(
           "magenta",

@@ -36,9 +36,9 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
       return Promise.resolve();
     },
 
-    pull: (position) =>
+    pull: ({ operation, position }) =>
       Promise.resolve(
-        position < tick
+        position < tick || operation === "MANUAL"
           ? [
               {
                 id: tick, // set position to current tick

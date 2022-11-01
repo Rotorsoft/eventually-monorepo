@@ -35,13 +35,21 @@ describe("channels", () => {
     const table = "pull_test";
     store(PostgresStore(table));
     pullchannel(PostgresPullChannel(new URL(`pg://${table}`)));
-    const events = await pullchannel().pull(-1, 1);
+    const events = await pullchannel().pull({
+      operation: "RESTART",
+      position: -1,
+      limit: 1
+    });
     expect(events.length).toBe(0);
   });
 
   it("should void pull", async () => {
     const channel = VoidPullChannel();
-    const events = await channel.pull(-1, 1);
+    const events = await channel.pull({
+      operation: "RESTART",
+      position: -1,
+      limit: 1
+    });
     expect(events.length).toBe(0);
   });
 
@@ -58,7 +66,11 @@ describe("channels", () => {
     const channel = CronPullChannel(new URL(cronExp), "test-cron");
     const events: CommittedEvent<string, Payload>[] = [];
     await channel.listen(async (trigger) => {
-      const pulled = await channel.pull(trigger.position || 0, 1);
+      const pulled = await channel.pull({
+        operation: "RESTART",
+        position: trigger.position || 0,
+        limit: 1
+      });
       pulled.forEach((e) => {
         events.push(e);
       });
@@ -74,14 +86,35 @@ describe("channels", () => {
     const channel = CronPullChannel(new URL(cronExp), "test-cron");
     const events: CommittedEvent<string, Payload>[] = [];
     await channel.listen(async (trigger) => {
-      const pulled = await channel.pull(trigger.position || 0, 1);
+      const pulled = await channel.pull({
+        operation: "RESTART",
+        position: trigger.position || 0,
+        limit: 1
+      });
       pulled.forEach((e) => {
         events.push(e);
       });
     });
-    await channel.pull(0, 1);
+    await channel.pull({
+      operation: "RESTART",
+      position: 0,
+      limit: 1
+    });
     await new Promise((resolve) => setTimeout(resolve, 2500));
     await channel.dispose();
     expect(events.length).toBe(0);
+  });
+
+  it("should manual cron pull", async () => {
+    const cronExp = encodeURI("cron://5 0 * * * *");
+    const channel = CronPullChannel(new URL(cronExp), "test-cron");
+    await channel.listen(jest.fn());
+    const events = await channel.pull({
+      operation: "MANUAL",
+      position: 0,
+      limit: 1
+    });
+    await channel.dispose();
+    expect(events.length).toBe(1);
   });
 });

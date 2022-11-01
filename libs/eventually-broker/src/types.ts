@@ -80,7 +80,9 @@ export type Operation =
   | "INSERT"
   | "UPDATE"
   | "DELETE"
-  | "RETRY";
+  | "RETRY"
+  | "MANUAL";
+
 /**
  * Trigger payload
  * - `id`: trigger id (record id, event name)
@@ -93,6 +95,18 @@ export type TriggerPayload = {
   operation: Operation;
   position?: number;
   payload?: any;
+};
+
+/**
+ * Pull options
+ * - `operation`: triggering operation
+ * - `position`: subscription position
+ * - `limit`: pull limit - # of events in batch
+ */
+export type PullOptions = {
+  operation: Operation;
+  position: number;
+  limit: number;
 };
 
 /**
