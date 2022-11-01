@@ -1,3 +1,5 @@
+#### 2022-11-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.2.3...@rotorsoft/eventually-v4.2.4) @rotorsoft/eventually-v4.2.4
+  - PATCH [560972b2](https://github.com/Rotorsoft/eventually-monorepo/commit/560972b21759cfa3f1bc94424677936794680d74) fix: simplify cron channel, use camelized channel id as event name
 #### 2022-10-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.1.1...@rotorsoft/eventually-express-v4.1.2) @rotorsoft/eventually-express-v4.1.2
   - PATCH [e0efc083](https://github.com/Rotorsoft/eventually-monorepo/commit/e0efc0834b6b8fb57a78e97f1fa13ef25ff6c9eb) fix: refactor express app
 #### 2022-10-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.2.2...@rotorsoft/eventually-v4.2.3) @rotorsoft/eventually-v4.2.3
