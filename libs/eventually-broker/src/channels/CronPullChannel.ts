@@ -41,7 +41,7 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
         position < tick || operation === "MANUAL"
           ? [
               {
-                id: tick, // set position to current tick
+                id: Date.now(), // set position to current time
                 stream: id,
                 name: eventName,
                 created: new Date(),
