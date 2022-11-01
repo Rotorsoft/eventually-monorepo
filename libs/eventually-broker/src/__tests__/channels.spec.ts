@@ -1,7 +1,7 @@
-import { dispose, store } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, Payload, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import axios from "axios";
-import { pullchannel, PushEvent, Service, subscriptions } from "..";
+import { pullchannel, PushEvent } from "..";
 import {
   PostgresPullChannel,
   HttpPostPushChannel,
@@ -11,41 +11,6 @@ import {
 import { CronPullChannel } from "../channels/CronPullChannel";
 import { createCommittedEvent } from "./utils";
 
-const cronChannel: Service = {
-  id: "test-cron",
-  channel: "cron://0 0 * * * *",
-  url: "http://test",
-  position: -1,
-  updated: new Date()
-};
-
-const sub = {
-  id: "test-sub",
-  active: true,
-  producer: "test-cron",
-  consumer: "http://test",
-  names: ".*",
-  position: -1,
-  updated: new Date(),
-  path: ".*",
-  streams: ".*",
-  batch_size: 100,
-  retries: 3,
-  retry_timeout_secs: 10,
-  endpoint: "http://test/path"
-};
-
-const startMockFn = jest.fn();
-
-jest.mock("cron", () => {
-  class MockCronJob {
-    stop = jest.fn();
-    start = startMockFn;
-  }
-  return {
-    CronJob: MockCronJob
-  };
-});
 jest.spyOn(axios, "post").mockResolvedValue({ status: 200, statusText: "OK" });
 
 describe("channels", () => {
@@ -88,42 +53,35 @@ describe("channels", () => {
     expect(code).toBe(204);
   });
 
-  it("should restart cron with cron expression if next run is greater than now", async () => {
-    const today = new Date();
-    cronChannel.updated = new Date(today.getTime() + 5 * 60 * 60 * 1000);
-    jest
-      .spyOn(subscriptions(), "loadServices")
-      .mockResolvedValue([cronChannel]);
-    const callbackMockFn = jest.fn();
-    const cronExp = encodeURI("cron://0 0 * * * *");
-    const channel = CronPullChannel(new URL(cronExp), "test-cron");
-    await channel.listen(callbackMockFn);
-    expect(startMockFn).toHaveBeenCalled();
-  });
-
-  it("should restart and run cron if next run is less than now", async () => {
-    const today = new Date();
-    cronChannel.updated = new Date(today.getTime() - 5 * 60 * 60 * 1000);
-    const callbackMockFn = jest.fn();
-    const cronExp = encodeURI("cron://0 0 * * * *");
-    const channel = CronPullChannel(new URL(cronExp), "test-cron");
-    await channel.listen(callbackMockFn);
-    expect(callbackMockFn).toHaveBeenCalledWith({
-      id: cronChannel.id,
-      operation: "RESTART",
-      position: cronChannel.position + 1
-    });
-  });
-
   it("should cron pull", async () => {
-    const today = new Date();
-    cronChannel.updated = new Date(today.getTime() - 5 * 60 * 60 * 1000);
-    jest
-      .spyOn(subscriptions(), "loadSubscriptionsByProducer")
-      .mockResolvedValue([sub]);
-    const cronExp = encodeURI("cron://0 0 * * * *");
+    const cronExp = encodeURI("cron://* * * * * *");
     const channel = CronPullChannel(new URL(cronExp), "test-cron");
-    const events = await channel.pull(-1, 2);
-    expect(events.length).toBe(1);
+    const events: CommittedEvent<string, Payload>[] = [];
+    await channel.listen(async (trigger) => {
+      const pulled = await channel.pull(trigger.position || 0, 1);
+      pulled.forEach((e) => {
+        events.push(e);
+      });
+    });
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await channel.dispose();
+    expect(events.length).toBeGreaterThanOrEqual(2);
+    expect(events[0].name).toBe("TestCron");
+  });
+
+  it("should not cron pull", async () => {
+    const cronExp = encodeURI("cron://5 0 * * * *");
+    const channel = CronPullChannel(new URL(cronExp), "test-cron");
+    const events: CommittedEvent<string, Payload>[] = [];
+    await channel.listen(async (trigger) => {
+      const pulled = await channel.pull(trigger.position || 0, 1);
+      pulled.forEach((e) => {
+        events.push(e);
+      });
+    });
+    await channel.pull(0, 1);
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await channel.dispose();
+    expect(events.length).toBe(0);
   });
 });

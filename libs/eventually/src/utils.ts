@@ -47,8 +47,20 @@ export const bind = <Name extends string, Type extends Payload>(
 });
 
 /**
+ * Camelizes string
+ * @param value decamelized string
+ * @returns camelized string
+ */
+export const camelize = (value: string): string =>
+  value
+    .split("-")
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join("");
+
+/**
  * Decamelizes string
- * @param value camel-case string
+ * @param value camelized string
  * @returns decamelized string
  */
 export const decamelize = (value: string): string =>

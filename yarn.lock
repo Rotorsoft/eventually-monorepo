@@ -832,7 +832,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-broker@workspace:libs/eventually-broker"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4"
+    "@rotorsoft/eventually": "workspace:^4.2"
     "@rotorsoft/eventually-pg": "workspace:^4"
     axios: ^0.26.1
     cron: ^2.1.0
@@ -906,7 +906,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually@workspace:^4, @rotorsoft/eventually@workspace:libs/eventually":
+"@rotorsoft/eventually@workspace:^4, @rotorsoft/eventually@workspace:^4.2, @rotorsoft/eventually@workspace:libs/eventually":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:

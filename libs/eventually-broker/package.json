@@ -18,7 +18,7 @@
     "build": "npx tsc --build && cp -R ./src/views ./dist/views && cp -R ./src/public ./dist/public"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually": "workspace:^4.2",
     "@rotorsoft/eventually-pg": "workspace:^4",
     "axios": "^0.26.1",
     "cron": "^2.1.0",
