@@ -99,7 +99,7 @@ export type ProcessManagerFactory<M extends Payload, C, E> = (
 
 /**
  * Command adapters convert payloads to commands
- * This is like a "Policy" with a more flexible input interface
+ * This is a "Policy" with a flexible input interface
  */
 export type CommandAdapter<P extends Payload, C> = {
   adapt: (
