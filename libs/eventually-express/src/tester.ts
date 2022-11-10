@@ -19,7 +19,7 @@ import axios, { AxiosResponse } from "axios";
 type Tester = {
   get: (path: string) => Promise<AxiosResponse<any>>;
   invoke: <C, P extends Payload>(
-    factory: CommandAdapterFactory<C, P>,
+    factory: CommandAdapterFactory<P, C>,
     payload: P
   ) => Promise<Snapshot<Payload>[]>;
   command: <M extends Payload, C, E>(
@@ -56,8 +56,8 @@ export const tester = (port = 3000): Tester => {
     get: (path: string): Promise<AxiosResponse<any>> =>
       axios.get<any>(url(path)),
 
-    async invoke<C, P extends Payload>(
-      factory: CommandAdapterFactory<C, P>,
+    async invoke<P extends Payload, C>(
+      factory: CommandAdapterFactory<P, C>,
       payload: P
     ): Promise<Snapshot<Payload>[]> {
       const { data } = await axios.post<P, AxiosResponse<Snapshot<Payload>[]>>(

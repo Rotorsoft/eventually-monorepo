@@ -40,11 +40,11 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
 
   /**
    * Invokes command through adapter
-   * @param adapter adapter
-   * @param message message payload
+   * @param factory adapter factory
+   * @param payload message payload
    */
-  async invoke<C, P extends Payload, E>(
-    factory: CommandAdapterFactory<C, P>,
+  async invoke<P extends Payload, C, E>(
+    factory: CommandAdapterFactory<P, C>,
     payload: P
   ): Promise<Snapshot<C[keyof C] & Payload>[]> {
     const data = validateMessage({ name: factory.name, data: payload }) as P;

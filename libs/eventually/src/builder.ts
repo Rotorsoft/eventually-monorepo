@@ -151,12 +151,13 @@ export class Builder {
 
   /**
    * Registers command adapters
-   * @param adapter command adapter
+   * @param factory command adapter factory
    */
-  withCommandAdapter<C, P extends Payload>(
-    factory: CommandAdapterFactory<C, P>
+  withCommandAdapter<P extends Payload, C>(
+    factory: CommandAdapterFactory<P, C>
   ): this {
-    this._factories.commandAdapters[factory.name] = factory;
+    this._factories.commandAdapters[factory.name] =
+      factory as CommandAdapterFactory<Payload, unknown>;
     this._msg(factory.name).schema = factory().schema;
     return this;
   }

@@ -99,16 +99,17 @@ export type ProcessManagerFactory<M extends Payload, C, E> = (
 
 /**
  * Command adapters convert payloads to commands
+ * This is like a "Policy" with a more flexible input interface
  */
-export type CommandAdapter<C, P extends Payload> = {
+export type CommandAdapter<P extends Payload, C> = {
   adapt: (
     payload: P
   ) => Command<keyof C & string, C[keyof C & string] & Payload>;
   schema: joi.ObjectSchema<P>;
 };
-export type CommandAdapterFactory<C, P extends Payload> = () => CommandAdapter<
-  C,
-  P
+export type CommandAdapterFactory<P extends Payload, C> = () => CommandAdapter<
+  P,
+  C
 >;
 
 /**

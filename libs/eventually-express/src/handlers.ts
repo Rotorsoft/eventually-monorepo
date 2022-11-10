@@ -144,7 +144,7 @@ export const commandHandler =
   };
 
 export const invokeHandler =
-  (factory: CommandAdapterFactory<Payload, Payload>) =>
+  (factory: CommandAdapterFactory<Payload, unknown>) =>
   async (
     req: Request<never, any, Payload, never> & {
       actor?: Actor;

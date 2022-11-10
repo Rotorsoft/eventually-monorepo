@@ -27,7 +27,7 @@ export type Factories = {
     [name: string]: EventHandlerFactory<Payload, unknown, unknown>;
   };
   commandAdapters: {
-    [name: string]: CommandAdapterFactory<Payload, Payload>;
+    [name: string]: CommandAdapterFactory<Payload, unknown>;
   };
 };
 

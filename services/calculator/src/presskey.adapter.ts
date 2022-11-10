@@ -6,8 +6,8 @@ import { DIGITS, Keys, OPERATORS, SYMBOLS } from "./calculator.models";
 export type ExternalPayload = { id: string; key: Keys };
 
 export const PressKeyAdapter = (): CommandAdapter<
-  Pick<Commands, "PressKey">,
-  ExternalPayload
+  ExternalPayload,
+  Pick<Commands, "PressKey">
 > => ({
   adapt: ({ id, key }) => bind("PressKey", { key }, id),
   schema: joi.object<ExternalPayload>({
