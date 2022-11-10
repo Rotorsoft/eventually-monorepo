@@ -126,7 +126,7 @@ export type PushResponse = {
 /**
  * Push event
  */
-export type PushEvent = CommittedEvent<string, Payload> & {
+export type PushEvent = CommittedEvent & {
   response?: PushResponse;
 };
 

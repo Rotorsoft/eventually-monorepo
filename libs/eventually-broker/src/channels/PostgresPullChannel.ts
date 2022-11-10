@@ -1,4 +1,4 @@
-import { CommittedEvent, Payload, store } from "@rotorsoft/eventually";
+import { CommittedEvent, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { PullChannel } from "../interfaces";
 import { PostgresStreamListener } from "../stores";
@@ -16,7 +16,7 @@ export const PostgresPullChannel = (channel: URL): PullChannel => {
     label: "",
     listen: (callback: TriggerCallback) => listener.listen(callback),
     pull: async ({ position, limit }) => {
-      const events: CommittedEvent<string, Payload>[] = [];
+      const events: CommittedEvent[] = [];
       await store().query((e) => events.push(e), {
         after: position,
         limit

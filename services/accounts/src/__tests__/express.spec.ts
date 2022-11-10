@@ -26,9 +26,9 @@ const expressApp = app(new ExpressApp())
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,
-    policies.IntegrateAccount3,
-    policies.WaitForAllAndComplete
+    policies.IntegrateAccount3
   )
+  .withProcessManager(policies.WaitForAllAndComplete)
   .withCommandHandlers(
     systems.ExternalSystem2,
     systems.ExternalSystem3,
@@ -63,7 +63,7 @@ describe("express", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      t.command(systems.ExternalSystem1, bind("CreateAccount1", null))
+      t.command(systems.ExternalSystem1, bind("CreateAccount1", { id: "" }))
     ).rejects.toThrowError("Request failed with status code 400");
   });
 });

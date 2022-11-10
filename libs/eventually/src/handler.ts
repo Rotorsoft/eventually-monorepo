@@ -1,8 +1,10 @@
 import { app, log, store } from ".";
 import {
+  CommittedEvent,
   CommittedEventMetadata,
   Message,
   MessageHandler,
+  Messages,
   Payload,
   Reducible,
   Snapshot
@@ -16,11 +18,11 @@ import { getReducible, getStreamable, validateMessage } from "./utils";
  * @param callback optional reduction predicate
  * @returns current model state
  */
-export const load = async <M extends Payload, E>(
+export const load = async <M extends Payload, E extends Messages>(
   reducible: Reducible<M, E>,
   useSnapshots = true,
-  callback?: (snapshot: Snapshot<M>) => void
-): Promise<Snapshot<M> & { applyCount: number }> => {
+  callback?: (snapshot: Snapshot<M, E>) => void
+): Promise<Snapshot<M, E> & { applyCount: number }> => {
   const snapshot = useSnapshots && (await app().readSnapshot(reducible));
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
@@ -28,9 +30,9 @@ export const load = async <M extends Payload, E>(
 
   await store().query(
     (e) => {
-      event = e;
-      const apply = (reducible as any)["apply".concat(e.name)];
-      state = apply && apply(state, e);
+      event = e as CommittedEvent<E>;
+      const apply = (reducible as any)["apply".concat(event.name)];
+      state = apply && apply(state, event);
       applyCount++;
       callback && callback({ event, state });
     },
@@ -53,12 +55,16 @@ export const load = async <M extends Payload, E>(
  * @param notify Notify commits
  * @returns Reduced snapshots
  */
-export const handleMessage = async <M extends Payload, C, E>(
+export const handleMessage = async <
+  M extends Payload,
+  C extends Messages,
+  E extends Messages
+>(
   handler: MessageHandler<M, C, E>,
-  callback: (state: M) => Promise<Message<string, Payload>[]>,
+  callback: (state: M) => Promise<Message<E>[]>,
   metadata: CommittedEventMetadata,
   notify = true
-): Promise<Snapshot<M>[]> => {
+): Promise<Snapshot<M, E>[]> => {
   const streamable = getStreamable(handler);
   const reducible = getReducible(handler);
   const snapshot = reducible
@@ -69,13 +75,13 @@ export const handleMessage = async <M extends Payload, C, E>(
   events.map((event) => validateMessage(event));
   if (!(events.length && streamable)) return [];
 
-  const committed = await store().commit(
+  const committed = (await store().commit(
     streamable.stream(),
-    events,
+    events as Message[],
     metadata,
     metadata.causation.command?.expectedVersion,
     notify
-  );
+  )) as CommittedEvent<E>[];
   if (!reducible)
     return committed.map((event) => ({
       event
@@ -96,7 +102,7 @@ export const handleMessage = async <M extends Payload, C, E>(
       `   === ${JSON.stringify(state)}`,
       ` @ ${event.version}`
     );
-    return { event, state } as Snapshot<M>;
+    return { event, state } as Snapshot<M, E>;
   });
 
   // TODO: implement reliable async snapshotting - persist queue? start on app load?

@@ -3,7 +3,6 @@ import {
   bind,
   CommittedEvent,
   Message,
-  Payload,
   Policy,
   ProcessManagerFactory
 } from "@rotorsoft/eventually";
@@ -15,9 +14,9 @@ import * as schemas from "./calculator.schemas";
 
 const policy = async (
   counter: CounterState,
-  event: CommittedEvent<string, Payload>,
+  event: CommittedEvent,
   threshold: number
-): Promise<Message<keyof Commands, undefined>> => {
+): Promise<Message<Commands>> => {
   if (counter) {
     if (counter.count >= threshold - 1)
       return bind(
@@ -45,7 +44,7 @@ export const Counter: ProcessManagerFactory<
   CounterState,
   Commands,
   CounterEvents
-> = (eventOrId: CommittedEvent<keyof CounterEvents, Payload>) => ({
+> = (eventOrId: CommittedEvent<CounterEvents>) => ({
   stream: () =>
     typeof eventOrId === "string" ? eventOrId : `Counter-${eventOrId.stream}`,
   schema: () => schemas.CounterState,
@@ -54,8 +53,8 @@ export const Counter: ProcessManagerFactory<
     threshold: 2
   },
 
-  onDigitPressed: (event, state) => policy(state, event, 5),
-  onDotPressed: (event, state) => policy(state, event, 5),
+  onDigitPressed: (event, state) => policy(state, event as CommittedEvent, 5),
+  onDotPressed: (event, state) => policy(state, event as CommittedEvent, 5),
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined,
 
@@ -70,8 +69,8 @@ export const Counter: ProcessManagerFactory<
 });
 
 export const StatelessCounter = (): Policy<Commands, CounterEvents> => ({
-  onDigitPressed: (event) => policy(undefined, event, 5),
-  onDotPressed: (event) => policy(undefined, event, 5),
+  onDigitPressed: (event) => policy(undefined, event as CommittedEvent, 5),
+  onDotPressed: (event) => policy(undefined, event as CommittedEvent, 5),
   onEqualsPressed: () => undefined,
   onOperatorPressed: () => undefined
 });

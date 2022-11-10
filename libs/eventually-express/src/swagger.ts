@@ -64,7 +64,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
 
   const getReducibleGetters = (
     paths: Record<string, any>,
-    handler: MessageHandlerFactory<Payload, unknown, unknown>
+    handler: MessageHandlerFactory<Payload, any, any>
   ): void => {
     if (!getReducible(handler(null))) return;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -120,8 +120,8 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
   };
 
   const getReducibleComponent = (
-    handler: MessageHandlerFactory<Payload, unknown, unknown>
-  ): Reducible<Payload, unknown> => {
+    handler: MessageHandlerFactory<Payload, any, any>
+  ): Reducible<Payload, any> => {
     const reducible = getReducible(handler(null));
     if (!reducible) return;
     if (components.schemas[handler.name]) return reducible;

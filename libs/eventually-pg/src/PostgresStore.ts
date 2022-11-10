@@ -5,7 +5,6 @@ import {
   ConcurrencyError,
   log,
   Message,
-  Payload,
   Store,
   StoreStat
 } from "@rotorsoft/eventually";
@@ -37,7 +36,7 @@ export const PostgresStore = (table: string): Store => {
     },
 
     query: async (
-      callback: (event: CommittedEvent<string, Payload>) => void,
+      callback: (event: CommittedEvent) => void,
       query?: AllQuery
     ): Promise<number> => {
       const {
@@ -85,17 +84,17 @@ export const PostgresStore = (table: string): Store => {
       }
 
       const result = await pool.query<Event>(sql, values);
-      result.rows.map((e) => callback(e as CommittedEvent<string, Payload>));
+      result.rows.map((e) => callback(e as CommittedEvent));
 
       return result.rowCount;
     },
 
     commit: async (
       stream: string,
-      events: Message<string, Payload>[],
+      events: Message[],
       metadata: CommittedEventMetadata,
       expectedVersion?: number
-    ): Promise<CommittedEvent<string, Payload>[]> => {
+    ): Promise<CommittedEvent[]> => {
       const client = await pool.connect();
       let version = -1;
       try {
@@ -116,7 +115,7 @@ export const PostgresStore = (table: string): Store => {
           VALUES($1, $2, $3, $4, $5) RETURNING *`,
               [name, data, stream, version, metadata]
             );
-            return committed.rows[0] as CommittedEvent<string, Payload>;
+            return committed.rows[0] as CommittedEvent;
           })
         );
 

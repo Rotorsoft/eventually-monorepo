@@ -1,4 +1,4 @@
-import { bind, dispose, store } from "@rotorsoft/eventually";
+import { bind, CommittedEvent, dispose, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import {
   PostgresStreamListener,
@@ -30,10 +30,18 @@ describe("listener", () => {
 
   it("should trigger subscription", async () => {
     await listener.listen(pump);
-    await store().commit("aggregate1", [bind("test3", { value: "1" })], {
-      correlation: "",
-      causation: {}
-    });
+    await store().commit(
+      "aggregate1",
+      [
+        bind("test3", {
+          value: "1"
+        }) as CommittedEvent
+      ],
+      {
+        correlation: "",
+        causation: {}
+      }
+    );
     await new Promise((resolve) => setTimeout(resolve, 3000));
     expect(pumped).toBeGreaterThan(0);
   });
