@@ -5,12 +5,11 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   ConcurrencyError,
-  Message,
-  Payload
+  Message
 } from "../types";
 
 export const InMemoryStore = (): Store => {
-  const _events: CommittedEvent<string, Payload>[] = [];
+  const _events: CommittedEvent[] = [];
 
   /**
    * !!! IMPORTANT !!!
@@ -20,9 +19,7 @@ export const InMemoryStore = (): Store => {
    * A broker service should manage subscriptions when using a database as the store or in a distributed deployment
    * @param committed the committed events
    */
-  const _notify = async (
-    committed: CommittedEvent<string, Payload>[]
-  ): Promise<void> => {
+  const _notify = async (committed: CommittedEvent[]): Promise<void> => {
     for (const event of committed) {
       const msg = app().messages[event.name];
       await Promise.all(
@@ -44,7 +41,7 @@ export const InMemoryStore = (): Store => {
     seed: () => undefined,
 
     query: (
-      callback: (event: CommittedEvent<string, Payload>) => void,
+      callback: (event: CommittedEvent) => void,
       query?: AllQuery
     ): Promise<number> => {
       const {
@@ -75,11 +72,11 @@ export const InMemoryStore = (): Store => {
 
     commit: async (
       stream: string,
-      events: Message<string, Payload>[],
+      events: Message[],
       metadata: CommittedEventMetadata,
       expectedVersion?: number,
       notify?: boolean
-    ): Promise<CommittedEvent<string, Payload>[]> => {
+    ): Promise<CommittedEvent[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
         throw new ConcurrencyError(
@@ -90,7 +87,7 @@ export const InMemoryStore = (): Store => {
 
       let version = aggregate.length;
       const committed = events.map(({ name, data }) => {
-        const committed: CommittedEvent<string, Payload> = {
+        const committed: CommittedEvent = {
           id: _events.length,
           stream,
           version,

@@ -1,9 +1,4 @@
-import {
-  CommittedEvent,
-  dispose,
-  Errors,
-  Payload
-} from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, Errors } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";
@@ -72,7 +67,7 @@ describe("pg", () => {
     );
 
     let first = 0;
-    const events: CommittedEvent<string, Payload>[] = [];
+    const events: CommittedEvent[] = [];
     await db.query(
       (e) => {
         first = first || e.id;
@@ -87,22 +82,22 @@ describe("pg", () => {
     expect(events[l - 2].data).toStrictEqual({ value: "2" });
     expect(events[l - 3].data).toStrictEqual({ value: "1" });
 
-    const events2: CommittedEvent<string, Payload>[] = [];
+    const events2: CommittedEvent[] = [];
     await db.query((e) => events2.push(e), { after: 2, limit: 2 });
     expect(events2[0].id).toBe(3);
     expect(events2.length).toBe(2);
 
-    const events3: CommittedEvent<string, Payload>[] = [];
+    const events3: CommittedEvent[] = [];
     await db.query((e) => events3.push(e), { names: ["test1"], limit: 5 });
     expect(events3[0].name).toBe("test1");
     expect(events3.length).toBeGreaterThanOrEqual(3);
     events3.map((evt) => expect(evt.name).toBe("test1"));
 
-    const events4: CommittedEvent<string, Payload>[] = [];
+    const events4: CommittedEvent[] = [];
     await db.query((e) => events4.push(e), { after: 2, before: 4 });
     expect(events4.length).toBe(1);
 
-    const events5: CommittedEvent<string, Payload>[] = [];
+    const events5: CommittedEvent[] = [];
     await db.query((e) => events5.push(e), {
       stream: a1,
       created_after,
@@ -110,11 +105,11 @@ describe("pg", () => {
     });
     expect(events5.length).toBe(2);
 
-    const events6: CommittedEvent<string, Payload>[] = [];
+    const events6: CommittedEvent[] = [];
     await db.query((e) => events6.push(e), { limit: 5 });
     expect(events6.length).toBe(5);
 
-    const events7: CommittedEvent<string, Payload>[] = [];
+    const events7: CommittedEvent[] = [];
     await db.query((e) => events7.push(e), {
       limit: 10,
       correlation: query_correlation

@@ -7,6 +7,7 @@ import {
   Errors,
   InMemorySnapshotStore,
   log,
+  Messages,
   Payload,
   Snapshot,
   store
@@ -14,6 +15,7 @@ import {
 import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
+import { Events } from "../calculator.events";
 import { CalculatorModel, Keys } from "../calculator.models";
 import { Counter, IgnoredHandler } from "../counter.policy";
 import { Forget } from "../forget.system";
@@ -37,10 +39,10 @@ app()
 const pressKey = (
   id: string,
   key: Keys
-): Promise<Snapshot<CalculatorModel>[]> =>
+): Promise<Snapshot<CalculatorModel, Events>[]> =>
   app().command(bind("PressKey", { key }, id));
 
-const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
+const reset = (id: string): Promise<Snapshot<CalculatorModel, Events>[]> =>
   app().command(bind("Reset", undefined, id));
 
 describe("in memory", () => {
@@ -347,11 +349,11 @@ describe("in memory", () => {
   });
 
   describe("misc", () => {
-    const event = <E>(
+    const event = <E extends Messages>(
       name: keyof E & string,
       stream: string,
-      data?: Payload
-    ): CommittedEvent<keyof E & string, Payload> => ({
+      data?: E[keyof E] & Payload
+    ): CommittedEvent<E> => ({
       id: 0,
       stream,
       version: 0,

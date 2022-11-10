@@ -1,7 +1,7 @@
 import { app, bind, dispose, Snapshot } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { Calculator } from "../calculator.aggregate";
+import { Calculator, CalculatorEvents } from "../calculator.aggregate";
 import { Counter } from "../counter.policy";
 import { CalculatorModel, Keys } from "../calculator.models";
 
@@ -11,12 +11,12 @@ const t = tester(port);
 
 const _app = app(new ExpressApp())
   .withCommandHandlers(Calculator)
-  .withEventHandlers(Counter);
+  .withProcessManager(Counter);
 
 const pressKey = (
   id: string,
   key: Keys
-): Promise<Snapshot<CalculatorModel>[]> =>
+): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
   t.command(Calculator, bind("PressKey", { key }, id));
 
 describe("express app", () => {

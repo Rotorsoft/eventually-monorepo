@@ -11,6 +11,7 @@ import {
   EventHandlerFactory,
   formatTime,
   log,
+  Messages,
   Payload,
   Reducer,
   ReducibleFactory,
@@ -35,7 +36,7 @@ export const statsHandler = async (
 };
 
 export const allStreamHandler = async (
-  req: Request<any, CommittedEvent<string, Payload>[], any, AllQuery>,
+  req: Request<any, CommittedEvent[], any, AllQuery>,
   res: Response,
   next: NextFunction
 ): Promise<Response> => {
@@ -69,7 +70,7 @@ export const allStreamHandler = async (
 };
 
 export const getHandler =
-  <M extends Payload, C, E>(
+  <M extends Payload, C extends Messages, E extends Messages>(
     factory: ReducibleFactory<M, C, E>,
     callback: Reducer<M, C, E>
   ) =>
@@ -101,7 +102,7 @@ export const getHandler =
 export const snapshotQueryHandler =
   (store: SnapshotStore) =>
   async (
-    req: Request<any, Snapshot<Payload>, any, SnapshotsQuery>,
+    req: Request<any, Snapshot<Payload, any>, any, SnapshotsQuery>,
     res: Response,
     next: NextFunction
   ): Promise<Response> => {
@@ -144,7 +145,7 @@ export const commandHandler =
   };
 
 export const invokeHandler =
-  (factory: CommandAdapterFactory<Payload, unknown>) =>
+  (factory: CommandAdapterFactory<Payload, any>) =>
   async (
     req: Request<never, any, Payload, never> & {
       actor?: Actor;
@@ -162,9 +163,9 @@ export const invokeHandler =
   };
 
 export const eventHandler =
-  (factory: EventHandlerFactory<Payload, unknown, unknown>) =>
+  (factory: EventHandlerFactory<Payload, any, any>) =>
   async (
-    req: Request<never, any, CommittedEvent<string, Payload>>,
+    req: Request<never, any, CommittedEvent>,
     res: Response,
     next: NextFunction
   ): Promise<Response> => {

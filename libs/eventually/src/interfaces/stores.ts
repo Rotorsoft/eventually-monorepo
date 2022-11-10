@@ -3,6 +3,7 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   Message,
+  Messages,
   Payload
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
@@ -27,7 +28,7 @@ export interface Store extends Disposable, Seedable {
    * @returns number of records
    */
   query: (
-    callback: (event: CommittedEvent<string, Payload>) => void,
+    callback: (event: CommittedEvent) => void,
     query?: AllQuery
   ) => Promise<number>;
 
@@ -42,11 +43,11 @@ export interface Store extends Disposable, Seedable {
    */
   commit: (
     stream: string,
-    events: Message<string, Payload>[],
+    events: Message[],
     metadata: CommittedEventMetadata,
     expectedVersion?: number,
     notify?: boolean
-  ) => Promise<CommittedEvent<string, Payload>[]>;
+  ) => Promise<CommittedEvent[]>;
 
   /**
    * Gets store stats
@@ -58,15 +59,17 @@ export interface SnapshotStore extends Disposable, Seedable {
   /**
    * Reads snapshot from store for stream
    */
-  read: <M extends Payload>(stream: string) => Promise<Snapshot<M>>;
+  read: <M extends Payload, E extends Messages>(
+    stream: string
+  ) => Promise<Snapshot<M, E>>;
 
   /**
    * Commits a snapshot into stream for stream
    * @param data the current state to be sotred
    */
-  upsert: <M extends Payload>(
+  upsert: <M extends Payload, E extends Messages>(
     stream: string,
-    data: Snapshot<M>
+    data: Snapshot<M, E>
   ) => Promise<void>;
 
   /**
@@ -74,5 +77,7 @@ export interface SnapshotStore extends Disposable, Seedable {
    * @param query query parameters
    * @returns array of snapshots
    */
-  query: <M extends Payload>(query: SnapshotsQuery) => Promise<Snapshot<M>[]>;
+  query: <M extends Payload, E extends Messages>(
+    query: SnapshotsQuery
+  ) => Promise<Snapshot<M, E>[]>;
 }

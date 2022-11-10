@@ -148,12 +148,7 @@ router.delete("/:id", async (req, res) => {
 router.get(
   "/:id/events",
   async (
-    req: Request<
-      { id: string },
-      CommittedEvent<string, Payload>[],
-      never,
-      AllQuery
-    >,
+    req: Request<{ id: string }, CommittedEvent[], never, AllQuery>,
     res
   ) => {
     try {

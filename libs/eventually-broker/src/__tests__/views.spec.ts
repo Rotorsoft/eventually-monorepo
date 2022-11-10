@@ -1,6 +1,6 @@
 import { events } from "./events";
 import * as queries from "../queries";
-import { dispose } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { subscriptions } from "..";
 import { broker } from "../broker";
@@ -16,7 +16,9 @@ import {
 import { state } from "../cluster";
 
 const port = 3001;
-jest.spyOn(queries, "getServiceStream").mockResolvedValue(events);
+jest
+  .spyOn(queries, "getServiceStream")
+  .mockResolvedValue(events as CommittedEvent[]);
 
 describe("views", () => {
   beforeAll(async () => {

@@ -1,16 +1,17 @@
 /**
- * Message payloads are objects
+ * Messages are defined as types
  */
 export type Payload = Record<string, unknown>;
+export type Messages = Record<string, Payload | undefined>;
 
 /**
  * Messages have
  * - `name` Bound message name
  * - `data?` Optional payload
  */
-export type Message<Name extends string, Type extends Payload> = {
-  readonly name: Name;
-  readonly data?: Type;
+export type Message<T extends Messages = any> = {
+  readonly name: keyof T & string;
+  readonly data?: Readonly<T[keyof T]>;
 };
 
 /**
@@ -29,10 +30,7 @@ export type Actor = {
  * - `expectedVersion?` Target aggregate expected version
  * - `actor?` Actor invoking this command
  */
-export type Command<Name extends string, Type extends Payload> = Message<
-  Name,
-  Type
-> & {
+export type Command<T extends Messages = any> = Message<T> & {
   readonly id?: string;
   readonly expectedVersion?: number;
   readonly actor?: Actor;
@@ -46,7 +44,7 @@ export type Command<Name extends string, Type extends Payload> = Message<
 export type CommittedEventMetadata = {
   correlation: string;
   causation: {
-    command?: Command<string, Payload>;
+    command?: Command;
     event?: {
       name: string;
       stream: string;
@@ -56,7 +54,7 @@ export type CommittedEventMetadata = {
 };
 
 /**
- * Committed events have:
+ * Committed events are messages with:
  * - `id` Event index in the "all" stream
  * - `stream` Reducible stream name
  * - `version` Unique sequence number within the stream
@@ -65,12 +63,10 @@ export type CommittedEventMetadata = {
  * - `data?` Otional payload
  * - `metadata?` Optional metadata
  */
-export type CommittedEvent<Name extends string, Type extends Payload> = {
+export type CommittedEvent<T extends Messages = any> = Message<T> & {
   readonly id: number;
   readonly stream: string;
   readonly version: number;
   readonly created: Date;
-  readonly name: Name;
-  readonly data?: Type;
   readonly metadata?: CommittedEventMetadata;
 };
