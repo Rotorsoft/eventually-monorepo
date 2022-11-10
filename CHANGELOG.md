@@ -1,3 +1,6 @@
+#### 2022-11-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.2.4...@rotorsoft/eventually-v4.2.5) @rotorsoft/eventually-v4.2.5
+  - PATCH [6376b853](https://github.com/Rotorsoft/eventually-monorepo/commit/6376b853159e8353b34d02cec487ec381185645a) fix: change to output parameters
+  - PATCH [83c4cb4d](https://github.com/Rotorsoft/eventually-monorepo/commit/83c4cb4d50d72712895964729d278f3a98105ee2) fix: small refactor of command adapter
 #### 2022-11-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.6.0...@rotorsoft/eventually-broker-v1.6.1) @rotorsoft/eventually-broker-v1.6.1
   - PATCH [f55bf231](https://github.com/Rotorsoft/eventually-monorepo/commit/f55bf231bb19c9392dad1f41a36d0f332f5627e0) fix: alter position column type to bigint
 #### 2022-11-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.5.3...@rotorsoft/eventually-broker-v1.6.0) @rotorsoft/eventually-broker-v1.6.0
