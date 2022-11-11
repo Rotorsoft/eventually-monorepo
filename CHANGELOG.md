@@ -1,3 +1,5 @@
+#### 2022-11-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.3.0...@rotorsoft/eventually-v4.3.1) @rotorsoft/eventually-v4.3.1
+  - PATCH [7f363439](https://github.com/Rotorsoft/eventually-monorepo/commit/7f363439278cc15e2189412e3be040383afb50e4) fix: reverted to feature with refactored types
 #### 2022-11-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.6.1...@rotorsoft/eventually-broker-v1.7.0) @rotorsoft/eventually-broker-v1.7.0
 
 - MINOR [30777784](https://github.com/Rotorsoft/eventually-monorepo/commit/307777843d184747ebe5c7ad9dd8c7da493d3882) feat: refactor TS types for better intellisense and readonly messages
