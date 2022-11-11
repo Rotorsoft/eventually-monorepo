@@ -1,3 +1,5 @@
+#### 2022-11-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.6.1...@rotorsoft/eventually-broker-v1.7.0) @rotorsoft/eventually-broker-v1.7.0
+  - MINOR [30777784](https://github.com/Rotorsoft/eventually-monorepo/commit/307777843d184747ebe5c7ad9dd8c7da493d3882) feat: refactor TS types for better intellisense and readonly messages
 #### 2022-11-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.1.3...@rotorsoft/eventually-express-v4.2.0) @rotorsoft/eventually-express-v4.2.0
   - MINOR [30777784](https://github.com/Rotorsoft/eventually-monorepo/commit/307777843d184747ebe5c7ad9dd8c7da493d3882) feat: refactor TS types for better intellisense and readonly messages
 #### 2022-11-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.0.24...@rotorsoft/eventually-pg-v4.1.0) @rotorsoft/eventually-pg-v4.1.0
