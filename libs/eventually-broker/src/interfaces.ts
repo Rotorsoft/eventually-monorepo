@@ -21,7 +21,7 @@ export interface StreamListener {
 export interface PullChannel extends Disposable {
   label: string;
   listen: (callback: TriggerCallback) => Promise<void>;
-  pull: (options: PullOptions) => Promise<CommittedEvent[]>;
+  pull: (options: PullOptions) => Promise<CommittedEvent<string, Payload>[]>;
 }
 
 /**

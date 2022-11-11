@@ -16,15 +16,13 @@ import {
   Command,
   CommittedEvent,
   CommittedEventMetadata,
-  Message,
-  Messages,
   Payload
 } from "./types/messages";
 import { bind, randomId, store, validateMessage } from "./utils";
 
 interface Reader {
-  load: Reducer<Payload, any, any>;
-  stream: Reducer<Payload, any, any>;
+  load: Reducer<Payload, unknown, unknown>;
+  stream: Reducer<Payload, unknown, unknown>;
 }
 
 /**
@@ -45,18 +43,13 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param factory adapter factory
    * @param payload message payload
    */
-  async invoke<
-    P extends Payload,
-    M extends Payload,
-    C extends Messages,
-    E extends Messages
-  >(
+  async invoke<P extends Payload, C, E>(
     factory: CommandAdapterFactory<P, C>,
     payload: P
-  ): Promise<Snapshot<M, E>[]> {
+  ): Promise<Snapshot<C[keyof C] & Payload>[]> {
     const data = validateMessage({ name: factory.name, data: payload }) as P;
     const command = factory().adapt(data);
-    return this.command(command);
+    return this.command<C[keyof C] & Payload, C, E>(command);
   }
 
   /**
@@ -65,18 +58,18 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param metadata optional metadata to track causation
    * @returns array of snapshots produced by this command
    */
-  async command<M extends Payload, C extends Messages, E extends Messages>(
-    command: Command<C>,
+  async command<M extends Payload, C, E>(
+    command: Command<keyof C & string, Payload>,
     metadata?: CommittedEventMetadata
-  ): Promise<Snapshot<M, E>[]> {
+  ): Promise<Snapshot<M>[]> {
     const { actor, name, id, expectedVersion } = command;
     const msg = this.messages[name];
     if (!msg || !msg.commandHandlerFactory)
-      throw new RegistrationError(command as Message);
+      throw new RegistrationError(command);
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
-    const data = validateMessage<C>(command);
+    const data = validateMessage(command);
     const handler = factory(id);
     Object.setPrototypeOf(handler, factory as object);
     return await handleMessage(
@@ -87,7 +80,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
         correlation: metadata?.correlation || randomId(),
         causation: {
           ...metadata?.causation,
-          command: { actor, name, id, expectedVersion } as Command
+          command: { actor, name, id, expectedVersion }
           // TODO: flag to include command.data in metadata
         }
       }
@@ -100,11 +93,11 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param event the committed event payload
    * @returns optional command response and reducible state
    */
-  async event<M extends Payload, C extends Messages, E extends Messages>(
+  async event<M extends Payload, C, E>(
     factory: EventHandlerFactory<M, C, E>,
-    event: CommittedEvent<E>
+    event: CommittedEvent<keyof E & string, Payload>
   ): Promise<{
-    command: Command<C> | undefined;
+    command: Command<keyof C & string, Payload> | undefined;
     state?: M;
   }> {
     const { name, stream, id } = event;
@@ -112,22 +105,21 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const handler = factory(event);
     Object.setPrototypeOf(handler, factory as object);
     const on = (handler as any)["on".concat(name as string)];
-    if (typeof on !== "function")
-      throw new RegistrationError(event as unknown as Message);
-    const data = validateMessage<E>(event);
+    if (typeof on !== "function") throw new RegistrationError(event);
+    const data = validateMessage(event);
 
     const metadata: CommittedEventMetadata = {
       correlation: event.metadata?.correlation || randomId(),
       causation: { event: { name, stream, id } }
     };
-    let command: Command<C> | undefined;
+    let command: Command<keyof C & string, Payload> | undefined;
     const snapshots = await handleMessage(
       handler,
       async (state: M) => {
         command = await on(event, state);
         // handle commands synchronously
         command && (await this.command<M, C, E>(command, metadata));
-        return [bind<E>(name, data)];
+        return [bind(name, data)];
       },
       metadata,
       false // dont notify events committed by process managers to avoid loops
@@ -146,12 +138,12 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param callback optional reduction predicate
    * @returns current model state
    */
-  async load<M extends Payload, C extends Messages, E extends Messages>(
+  async load<M extends Payload, C, E>(
     factory: ReducibleFactory<M, C, E>,
     id: string,
     useSnapshots = true,
-    callback?: (snapshot: Snapshot<M, E>) => void
-  ): Promise<Snapshot<M, E> & { applyCount: number }> {
+    callback?: (snapshot: Snapshot<M>) => void
+  ): Promise<Snapshot<M> & { applyCount: number }> {
     const reducible = factory(id);
     Object.setPrototypeOf(reducible, factory as object);
     return load(reducible, useSnapshots, callback);
@@ -164,12 +156,12 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param useSnapshots flag to use snapshot store
    * @returns stream log with events and state transitions
    */
-  async stream<M extends Payload, C extends Messages, E extends Messages>(
+  async stream<M extends Payload, C, E>(
     factory: ReducibleFactory<M, C, E>,
     id: string,
     useSnapshots = false
-  ): Promise<Snapshot<M, E>[]> {
-    const log: Snapshot<M, E>[] = [];
+  ): Promise<Snapshot<M>[]> {
+    const log: Snapshot<M>[] = [];
     await this.load(factory, id, useSnapshots, (snapshot) =>
       log.push(snapshot)
     );
@@ -182,8 +174,8 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    */
   async query(
     query: AllQuery = { after: -1, limit: 1 }
-  ): Promise<CommittedEvent[]> {
-    const events: CommittedEvent[] = [];
+  ): Promise<CommittedEvent<string, Payload>[]> {
+    const events: CommittedEvent<string, Payload>[] = [];
     await store().query((e) => events.push(e), query);
     return events;
   }

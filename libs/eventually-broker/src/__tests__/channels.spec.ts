@@ -1,4 +1,4 @@
-import { CommittedEvent, dispose, store } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, Payload, store } from "@rotorsoft/eventually";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import axios from "axios";
 import { pullchannel, PushEvent } from "..";
@@ -64,7 +64,7 @@ describe("channels", () => {
   it("should cron pull", async () => {
     const cronExp = encodeURI("cron://* * * * * *");
     const channel = CronPullChannel(new URL(cronExp), "test-cron");
-    const events: CommittedEvent[] = [];
+    const events: CommittedEvent<string, Payload>[] = [];
     await channel.listen(async (trigger) => {
       const pulled = await channel.pull({
         operation: "RESTART",
@@ -84,7 +84,7 @@ describe("channels", () => {
   it("should not cron pull", async () => {
     const cronExp = encodeURI("cron://5 0 * * * *");
     const channel = CronPullChannel(new URL(cronExp), "test-cron");
-    const events: CommittedEvent[] = [];
+    const events: CommittedEvent<string, Payload>[] = [];
     await channel.listen(async (trigger) => {
       const pulled = await channel.pull({
         operation: "RESTART",

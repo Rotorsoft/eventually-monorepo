@@ -1,9 +1,10 @@
 import {
   app,
   bind,
-  CommittedEvent,
   dispose,
   InMemorySnapshotStore,
+  Message,
+  Payload,
   Snapshot
 } from "@rotorsoft/eventually";
 import {
@@ -12,7 +13,7 @@ import {
   tester
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { Calculator, CalculatorEvents } from "../calculator.aggregate";
+import { Calculator } from "../calculator.aggregate";
 import { CalculatorModel, Keys } from "../calculator.models";
 import { StatelessCounter } from "../counter.policy";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
@@ -35,15 +36,13 @@ app(expressApp)
 const pressKey = (
   id: string,
   key: Keys
-): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
+): Promise<Snapshot<CalculatorModel>[]> =>
   t.command(Calculator, bind("PressKey", { key }, id), {
     "X-Apigateway-Api-Userinfo":
       "eyJzdWIiOiJhY3Rvci1uYW1lIiwicm9sZXMiOlsiYWRtaW4iXSwiZW1haWwiOiJhY3RvckBlbWFpbC5jb20ifQ=="
   });
 
-const reset = (
-  id: string
-): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
+const reset = (id: string): Promise<Snapshot<CalculatorModel>[]> =>
   t.command(Calculator, bind("Reset", undefined, id));
 
 describe("express app", () => {
@@ -144,7 +143,7 @@ describe("express app", () => {
 
     it("should throw validation error", async () => {
       await expect(
-        t.command(Calculator, bind("PressKey", undefined, chance.guid()))
+        t.command(Calculator, bind("PressKey", {}, chance.guid()))
       ).rejects.toThrowError("Request failed with status code 400");
     });
 
@@ -181,7 +180,7 @@ describe("express app", () => {
       const snapshots = await pressKey(chance.guid(), "1");
       const { status, data } = await t.event(
         StatelessCounter,
-        snapshots[0].event as CommittedEvent
+        snapshots[0].event as Message<"DigitPressed", Payload>
       );
       expect(status).toBe(200);
       expect(data).toStrictEqual({});
@@ -191,7 +190,7 @@ describe("express app", () => {
       const snapshots = await pressKey(chance.guid(), ".");
       const { status, data } = await t.event(
         StatelessCounter,
-        snapshots[0].event as CommittedEvent
+        snapshots[0].event as Message<"DotPressed", Payload>
       );
       expect(status).toBe(200);
       expect(data).toStrictEqual({});
@@ -199,13 +198,16 @@ describe("express app", () => {
 
     it("should throw validation error", async () => {
       await expect(
-        t.event(StatelessCounter, {
-          id: 1,
-          stream: chance.guid(),
-          version: 1,
-          created: new Date(),
-          name: "DigitPressed"
-        })
+        t.event(
+          StatelessCounter,
+          bind("DigitPressed", {
+            id: 1,
+            stream: chance.guid(),
+            version: 1,
+            created: new Date(),
+            name: "DigitPressed"
+          })
+        )
       ).rejects.toThrowError("Request failed with status code 400");
     });
 

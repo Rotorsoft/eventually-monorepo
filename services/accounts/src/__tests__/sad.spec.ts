@@ -16,14 +16,19 @@ jest.mock("../accounts.systems.ts", () => {
   };
 });
 
-import { app, CommittedEvent, dispose, store } from "@rotorsoft/eventually";
+import {
+  app,
+  CommittedEvent,
+  dispose,
+  Payload,
+  store
+} from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
 import * as schemas from "../accounts.schemas";
-import { Events } from "../accounts.events";
 
 const chance = new Chance();
 
@@ -44,9 +49,9 @@ app()
   .withEventHandlers(
     policies.IntegrateAccount1,
     policies.IntegrateAccount2,
-    policies.IntegrateAccount3
+    policies.IntegrateAccount3,
+    policies.WaitForAllAndComplete
   )
-  .withProcessManager(policies.WaitForAllAndComplete)
   .withCommandHandlers(
     systems.ExternalSystem1,
     systems.ExternalSystem2,
@@ -55,9 +60,7 @@ app()
   )
   .build();
 
-const trigger = (
-  id: string
-): CommittedEvent<Pick<Events, "AccountCreated">> => ({
+const trigger = (id: string): CommittedEvent<"AccountCreated", Payload> => ({
   id: 1,
   version: 1,
   stream: "main",
@@ -91,20 +94,20 @@ describe("sad path", () => {
 
     expect(spyCommit).toHaveBeenCalledTimes(2);
     const sys2 = (
-      (await app().query({
+      await app().query({
         stream: systems.ExternalSystem2().stream()
-      })) as CommittedEvent<Events>[]
-    ).filter((e) => e.data?.id === t.data?.id);
+      })
+    ).filter((e) => e.data.id === t.data.id);
     const sys3 = (
-      (await app().query({
+      await app().query({
         stream: systems.ExternalSystem3().stream()
-      })) as CommittedEvent<Events>[]
-    ).filter((e) => e.data?.id === t.data?.id);
+      })
+    ).filter((e) => e.data.id === t.data.id);
     const sys4 = (
-      (await app().query({
+      await app().query({
         stream: systems.ExternalSystem4().stream()
-      })) as CommittedEvent<Events>[]
-    ).filter((e) => e.data?.id === t.data?.id);
+      })
+    ).filter((e) => e.data.id === t.data.id);
     expect(sys2.length).toBe(1);
     expect(sys3.length).toBe(1);
     expect(sys4.length).toBe(0);

@@ -1,11 +1,5 @@
 import joi from "joi";
-import {
-  Command,
-  CommittedEvent,
-  Message,
-  Messages,
-  Payload
-} from "./messages";
+import { Command, CommittedEvent, Message, Payload } from "./messages";
 
 /**
  * Artifacts that commit events to a stream
@@ -15,42 +9,38 @@ export type Streamable = { stream: () => string };
 /**
  * Artifacts that reduce models from event streams
  */
-export type Reducible<M extends Payload, E extends Messages> = Streamable & {
+export type Reducible<M extends Payload, E> = Streamable & {
   schema?: () => joi.ObjectSchema<M>;
   schemas?: { state?: joi.ObjectSchema<M> };
   init: () => Readonly<M>;
 } & {
   [Key in keyof E as `apply${Capitalize<Key & string>}`]: (
     state: Readonly<M>,
-    event: Readonly<CommittedEvent<Pick<E, Key>>>
+    event: CommittedEvent<Key & string, E[Key] & Payload>
   ) => Readonly<M>;
 };
 
-export type Reducer<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = (
+export type Reducer<M extends Payload, C, E> = (
   factory: ReducibleFactory<M, C, E>,
   id: string,
   useSnapshot?: boolean,
-  callback?: (snapshot: Snapshot<M, E>) => void
-) => Promise<Snapshot<M, E> | Snapshot<M, E>[]>;
+  callback?: (snapshot: Snapshot<M>) => void
+) => Promise<Snapshot<M> | Snapshot<M>[]>;
 
 /**
  * Reducible snapshots after events are applied
  */
-export type Snapshot<M extends Payload, E extends Messages> = {
-  readonly event: CommittedEvent<E>;
+export type Snapshot<M extends Payload> = {
+  readonly event: CommittedEvent<string, Payload>;
   readonly state?: M;
 };
 
 /**
  * Message handlers with schema definitions
  */
-export type WithSchemas<C extends Messages, E extends Messages> = {
+export type WithSchemas<C, E> = {
   schemas?: {
-    [Key in keyof (C & E)]?: joi.ObjectSchema<(C & E)[Key]>;
+    [Key in keyof (C & E)]?: joi.ObjectSchema<(C & E)[Key] & Payload>;
   };
 };
 
@@ -59,142 +49,102 @@ export type WithSchemas<C extends Messages, E extends Messages> = {
  * - Define the consistency boundaries of a business model (entity graph)
  * - Have reducible state
  */
-export type Aggregate<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = Reducible<M, E> &
+export type Aggregate<M extends Payload, C, E> = Reducible<M, E> &
   WithSchemas<C, E> & {
     [Key in keyof C as `on${Capitalize<Key & string>}`]: (
-      data?: Readonly<C[Key]>,
+      data?: C[Key] & Payload,
       state?: Readonly<M>
-    ) => Promise<Message<E>[]>;
+    ) => Promise<Message<keyof E & string, Payload>[]>;
   };
-export type AggregateFactory<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = (id: string) => Aggregate<M, C, E>;
+export type AggregateFactory<M extends Payload, C, E> = (
+  id: string
+) => Aggregate<M, C, E>;
 
 /**
  * External Systems handle commands and produce events
  * - Have their own stream
  */
-export type ExternalSystem<
-  C extends Messages,
-  E extends Messages
-> = Streamable &
+export type ExternalSystem<C, E> = Streamable &
   WithSchemas<C, E> & {
     [Key in keyof C as `on${Capitalize<Key & string>}`]: (
-      data?: Readonly<C[Key]>
-    ) => Promise<Message<E>[]>;
+      data?: C[Key] & Payload
+    ) => Promise<Message<keyof E & string, Payload>[]>;
   };
-export type ExternalSystemFactory<
-  C extends Messages,
-  E extends Messages
-> = () => ExternalSystem<C, E>;
+export type ExternalSystemFactory<C, E> = () => ExternalSystem<C, E>;
 
 /**
  * Policies handle events and optionally produce commands
  */
-export type Policy<C extends Messages, E extends Messages> = WithSchemas<
-  C,
-  E
-> & {
+export type Policy<C, E> = WithSchemas<C, E> & {
   [Key in keyof E as `on${Capitalize<Key & string>}`]: (
-    event: Readonly<CommittedEvent<Pick<E, Key>>>
-  ) => Promise<Command<C> | undefined>;
+    event: CommittedEvent<Key & string, E[Key] & Payload>
+  ) => Promise<Command<keyof C & string, Payload> | undefined>;
 };
-export type PolicyFactory<
-  C extends Messages,
-  E extends Messages
-> = () => Policy<C, E>;
+export type PolicyFactory<C, E> = () => Policy<C, E>;
 
 /**
  * Process Managers handle events and optionally produce commands
  * - Have reducible state, allowing to expand the consistency boundaries of multiple events into a local state machine
  */
-export type ProcessManager<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = Reducible<M, E> &
+export type ProcessManager<M extends Payload, C, E> = Reducible<M, E> &
   WithSchemas<C, E> & {
     [Key in keyof E as `on${Capitalize<Key & string>}`]: (
-      event: Readonly<CommittedEvent<Pick<E, Key>>>,
+      event: CommittedEvent<Key & string, E[Key] & Payload>,
       state: Readonly<M>
-    ) => Promise<Command<C> | undefined>;
+    ) => Promise<Command<keyof C & string, Payload> | undefined>;
   };
-export type ProcessManagerFactory<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = (eventOrId: CommittedEvent<E> | string) => ProcessManager<M, C, E>;
+export type ProcessManagerFactory<M extends Payload, C, E> = (
+  eventOrId: CommittedEvent<keyof E & string, Payload> | string
+) => ProcessManager<M, C, E>;
 
 /**
  * Command adapters convert payloads to commands
  * This is a "Policy" with a flexible input interface
  */
-export type CommandAdapter<P extends Payload, C extends Messages> = {
-  adapt: (payload: Readonly<P>) => Command<C>;
+export type CommandAdapter<P extends Payload, C> = {
+  adapt: (
+    payload: P
+  ) => Command<keyof C & string, C[keyof C & string] & Payload>;
   schema: joi.ObjectSchema<P>;
 };
-export type CommandAdapterFactory<
-  P extends Payload,
-  C extends Messages
-> = () => CommandAdapter<P, C>;
+export type CommandAdapterFactory<P extends Payload, C> = () => CommandAdapter<
+  P,
+  C
+>;
 
 /**
  * All message handler factory types
  */
-export type MessageHandlerFactory<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> =
+export type MessageHandlerFactory<M extends Payload, C, E> =
   | AggregateFactory<M, C, E>
   | ExternalSystemFactory<C, E>
   | ProcessManagerFactory<M, C, E>
   | PolicyFactory<C, E>;
 
-export type ReducibleFactory<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = AggregateFactory<M, C, E> | ProcessManagerFactory<M, C, E>;
+export type ReducibleFactory<M extends Payload, C, E> =
+  | AggregateFactory<M, C, E>
+  | ProcessManagerFactory<M, C, E>;
 
-export type CommandHandlerFactory<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = AggregateFactory<M, C, E> | ExternalSystemFactory<C, E>;
+export type CommandHandlerFactory<M extends Payload, C, E> =
+  | AggregateFactory<M, C, E>
+  | ExternalSystemFactory<C, E>;
 
-export type EventHandlerFactory<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = ProcessManagerFactory<M, C, E> | PolicyFactory<C, E>;
+export type EventHandlerFactory<M extends Payload, C, E> =
+  | ProcessManagerFactory<M, C, E>
+  | PolicyFactory<C, E>;
 
-export type CommandHandler<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = Aggregate<M, C, E> | ExternalSystem<C, E>;
+export type CommandHandler<M extends Payload, C, E> =
+  | Aggregate<M, C, E>
+  | ExternalSystem<C, E>;
 
-export type EventHandler<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> = ProcessManager<M, C, E> | Policy<C, E>;
+export type EventHandler<M extends Payload, C, E> =
+  | ProcessManager<M, C, E>
+  | Policy<C, E>;
 
 /**
  * All message handler types
  */
-export type MessageHandler<
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
-> =
+export type MessageHandler<M extends Payload, C, E> =
   | Aggregate<M, C, E>
   | ExternalSystem<C, E>
   | ProcessManager<M, C, E>

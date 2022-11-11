@@ -1,4 +1,4 @@
-import { AllQuery, CommittedEvent, log } from "@rotorsoft/eventually";
+import { AllQuery, CommittedEvent, log, Payload } from "@rotorsoft/eventually";
 import axios from "axios";
 import { state } from "./cluster";
 import { getEventContract } from "./specs";
@@ -10,14 +10,14 @@ const HTTP_TIMEOUT = 5000;
 export const getServiceStream = async (
   service: Service,
   query: AllQuery
-): Promise<CommittedEvent[] | undefined> => {
+): Promise<CommittedEvent<string, Payload>[] | undefined> => {
   const url = new URL(service.url);
   if (!url.protocol.startsWith("http")) return;
   if (!service.allPath) return;
   const secretsQueryString =
     state().serviceSecretsQueryString(service.id) || "?";
   const path = `${url.origin}/all${secretsQueryString}&${toQueryString(query)}`;
-  const { data } = await axios.get<CommittedEvent[]>(path, {
+  const { data } = await axios.get<CommittedEvent<string, Payload>[]>(path, {
     timeout: HTTP_TIMEOUT
   });
   return data;
@@ -54,12 +54,11 @@ export const getCorrelation = async (
     services
       .filter((s) => s.breaker)
       .map(async (s) => {
-        const { data } = await s.breaker.exec<CommittedEvent[]>(async () => {
+        const { data } = await s.breaker.exec<
+          CommittedEvent<string, Payload>[]
+        >(async () => {
           try {
-            const data = await getServiceStream(s, {
-              correlation,
-              limit: 20
-            });
+            const data = await getServiceStream(s, { correlation, limit: 20 });
             return { data };
           } catch (err) {
             log().error(err);
@@ -107,8 +106,10 @@ export const getCorrelation = async (
 export const getStream = async (
   service: Service,
   query: AllQuery
-): Promise<CommittedEvent[]> => {
-  const { data } = await service.breaker.exec<CommittedEvent[]>(async () => {
+): Promise<CommittedEvent<string, Payload>[]> => {
+  const { data } = await service.breaker.exec<
+    CommittedEvent<string, Payload>[]
+  >(async () => {
     try {
       const data = await getServiceStream(service, query);
       return { data: query.backward ? data : data.reverse() };

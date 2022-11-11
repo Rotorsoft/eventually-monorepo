@@ -1,4 +1,10 @@
-import { CommittedEvent, dispose, ExitCodes, log } from "@rotorsoft/eventually";
+import {
+  CommittedEvent,
+  dispose,
+  ExitCodes,
+  log,
+  Payload
+} from "@rotorsoft/eventually";
 import {
   AppOptions,
   Operation,
@@ -103,7 +109,7 @@ export const work = async (options: AppOptions): Promise<void> => {
 
   const ignore = (
     subState: SubscriptionState,
-    event: CommittedEvent
+    event: CommittedEvent<string, Payload>
   ): boolean =>
     !(
       subState.streamsRegExp.test(event.stream) &&

@@ -1,4 +1,4 @@
-import { CommittedEvent } from "@rotorsoft/eventually";
+import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import {
   ChildProcess,
@@ -56,14 +56,13 @@ export const createCommittedEvent = (
   id = 0,
   name = "name",
   stream = "stream"
-): CommittedEvent =>
-  ({
-    id,
-    name,
-    stream,
-    version: 0,
-    created: new Date()
-  } as CommittedEvent);
+): CommittedEvent<string, Payload> => ({
+  id,
+  name,
+  stream,
+  version: 0,
+  created: new Date()
+});
 
 export const get = (
   path: string,

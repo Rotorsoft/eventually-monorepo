@@ -21,13 +21,13 @@ export type Package = {
 
 export type Factories = {
   commandHandlers: {
-    [name: string]: CommandHandlerFactory<Payload, any, any>;
+    [name: string]: CommandHandlerFactory<Payload, unknown, unknown>;
   };
   eventHandlers: {
-    [name: string]: EventHandlerFactory<Payload, any, any>;
+    [name: string]: EventHandlerFactory<Payload, unknown, unknown>;
   };
   commandAdapters: {
-    [name: string]: CommandAdapterFactory<Payload, any>;
+    [name: string]: CommandAdapterFactory<Payload, unknown>;
   };
 };
 
@@ -39,7 +39,7 @@ export type Endpoints = {
   commandHandlers: {
     [name: string]: {
       type: CommandHandlerType;
-      factory: CommandHandlerFactory<Payload, any, any>;
+      factory: CommandHandlerFactory<Payload, unknown, unknown>;
       commands: Record<string, string>;
       events: string[];
     };
@@ -47,7 +47,7 @@ export type Endpoints = {
   eventHandlers: {
     [name: string]: {
       type: EventHandlerType;
-      factory: EventHandlerFactory<Payload, any, any>;
+      factory: EventHandlerFactory<Payload, unknown, unknown>;
       path: string;
       events: string[];
     };
@@ -57,15 +57,18 @@ export type Endpoints = {
   };
 };
 
-export type MessageMetadata<T> = {
-  name: keyof T;
-  schema?: joi.ObjectSchema<T[keyof T]>;
-  commandHandlerFactory?: CommandHandlerFactory<Payload, any, any>;
-  eventHandlerFactories: Record<string, EventHandlerFactory<Payload, any, any>>;
+export type MessageMetadata = {
+  name: string;
+  schema?: joi.ObjectSchema<Payload>;
+  commandHandlerFactory?: CommandHandlerFactory<Payload, unknown, unknown>;
+  eventHandlerFactories: Record<
+    string,
+    EventHandlerFactory<Payload, unknown, unknown>
+  >;
 };
 
 export type Schemas<M> = {
-  [Key in keyof M & string]: joi.ObjectSchema<M[Key]>;
+  [Key in keyof M & string]: joi.ObjectSchema<M[Key] & Payload>;
 };
 
 export type SnapshotOptions = {

@@ -2,12 +2,7 @@ import * as crypto from "crypto";
 import { app } from ".";
 import { Store } from "./interfaces";
 import { singleton } from "./singleton";
-import {
-  MessageMetadata,
-  Messages,
-  RegistrationError,
-  ValidationError
-} from "./types";
+import { RegistrationError, ValidationError } from "./types";
 import {
   Actor,
   Command,
@@ -37,13 +32,13 @@ export const store = singleton(function store(store?: Store) {
  * @param actor Optional actor when binding external commands
  * @returns The bound message
  */
-export const bind = <T extends Messages>(
-  name: keyof T & string,
-  data?: Readonly<T[keyof T]>,
+export const bind = <Name extends string, Type extends Payload>(
+  name: Name,
+  data?: Type,
   id?: string,
   expectedVersion?: number,
   actor?: Actor
-): Message<T> | Command<T> => ({
+): Message<Name, Type> | Command<Name, Type> => ({
   name,
   data,
   id,
@@ -115,7 +110,7 @@ const funcsOf = (prefix: string, object: Record<string, unknown>): string[] => {
  * @param reducible the reducible
  * @returns array of event names
  */
-export const eventsOf = <M extends Payload, E extends Messages>(
+export const eventsOf = <M extends Payload, E>(
   reducible: Reducible<M, E>
 ): string[] => funcsOf("apply", reducible);
 
@@ -124,11 +119,7 @@ export const eventsOf = <M extends Payload, E extends Messages>(
  * @param handler The message handler
  * @returns array of message names
  */
-export const messagesOf = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
+export const messagesOf = <M extends Payload, C, E>(
   handler: CommandHandler<M, C, E> | EventHandler<M, C, E>
 ): string[] => funcsOf("on", handler);
 
@@ -137,11 +128,7 @@ export const messagesOf = <
  * @param handler a message handler
  * @returns a reducible type or undefined
  */
-export const getReducible = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
+export const getReducible = <M extends Payload, C, E>(
   handler: MessageHandler<M, C, E>
 ): Reducible<M, E> | undefined =>
   "init" in handler ? (handler as Reducible<M, E>) : undefined;
@@ -151,11 +138,7 @@ export const getReducible = <
  * @param handler a message handler
  * @returns a streamable type or undefined
  */
-export const getStreamable = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
+export const getStreamable = <M extends Payload, C, E>(
   handler: MessageHandler<M, C, E>
 ): Streamable | undefined =>
   "stream" in handler ? (handler as Streamable) : undefined;
@@ -165,11 +148,7 @@ export const getStreamable = <
  * @param reducible reducible factory
  * @returns the reducible path
  */
-export const reduciblePath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
+export const reduciblePath = <M extends Payload, C, E>(
   reducible: ReducibleFactory<M, C, E>
 ): string => "/".concat(decamelize(reducible.name), "/:id");
 
@@ -179,11 +158,7 @@ export const reduciblePath = <
  * @param name command name
  * @returns normalized path
  */
-export const commandHandlerPath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
+export const commandHandlerPath = <M extends Payload, C, E>(
   handler: CommandHandlerFactory<M, C, E>,
   name: string
 ): string =>
@@ -198,11 +173,7 @@ export const commandHandlerPath = <
  * @param handler event handler factory
  * @returns normalized path
  */
-export const eventHandlerPath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
+export const eventHandlerPath = <M extends Payload, C, E>(
   handler: EventHandlerFactory<M, C, E>
 ): string => "/".concat(decamelize(handler.name));
 
@@ -212,17 +183,17 @@ export const eventHandlerPath = <
  * @param message the message
  * @returns validated payload when schema is provided
  */
-export const validateMessage = <T extends Messages>(
-  message: Message<T>
-): Readonly<T[keyof T]> | undefined => {
-  const metadata = app().messages[message.name] as MessageMetadata<T>;
-  if (!metadata) throw new RegistrationError(message as Message);
+export const validateMessage = (
+  message: Message<string, Payload>
+): Payload | undefined => {
+  const metadata = app().messages[message.name];
+  if (!metadata) throw new RegistrationError(message);
   if (metadata.schema) {
     const { value, error } = metadata.schema.validate(message.data, {
       abortEarly: false,
       allowUnknown: true
     });
-    if (error) throw new ValidationError(error, message as Message);
+    if (error) throw new ValidationError(error, message);
     return value;
   }
   return message.data;

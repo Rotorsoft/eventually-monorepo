@@ -53,18 +53,26 @@ export class ExpressApp extends AppBase {
     );
   }
 
-  private _buildGetters(factory: ReducibleFactory<Payload, any, any>): void {
+  private _buildGetters(
+    factory: ReducibleFactory<Payload, unknown, unknown>
+  ): void {
     const path = reduciblePath(factory);
     this._router.get(
       path,
-      getHandler(factory, this.load.bind(this) as Reducer<Payload, any, any>)
+      getHandler(
+        factory,
+        this.load.bind(this) as Reducer<Payload, unknown, unknown>
+      )
     );
     this.log.info("bgGreen", " GET ", path);
 
     const streamPath = path.concat("/stream");
     this._router.get(
       streamPath,
-      getHandler(factory, this.stream.bind(this) as Reducer<Payload, any, any>)
+      getHandler(
+        factory,
+        this.stream.bind(this) as Reducer<Payload, unknown, unknown>
+      )
     );
     this.log.info("bgGreen", " GET ", streamPath);
   }
@@ -76,7 +84,10 @@ export class ExpressApp extends AppBase {
   }
 
   private _buildCommandHandlers(): void {
-    const aggregates: Record<string, AggregateFactory<Payload, any, any>> = {};
+    const aggregates: Record<
+      string,
+      AggregateFactory<Payload, unknown, unknown>
+    > = {};
     Object.values(this.endpoints.commandHandlers).forEach(
       ({ type, factory, commands }) => {
         type === "aggregate" && (aggregates[factory.name] = factory as any);
@@ -109,7 +120,7 @@ export class ExpressApp extends AppBase {
   private _buildEventHandlers(): void {
     const managers: Record<
       string,
-      ProcessManagerFactory<Payload, any, any>
+      ProcessManagerFactory<Payload, unknown, unknown>
     > = {};
     Object.values(this.endpoints.eventHandlers).forEach(
       ({ type, factory, path, events }) => {

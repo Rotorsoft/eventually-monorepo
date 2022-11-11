@@ -9,7 +9,6 @@ import {
   EventHandlerFactory,
   eventHandlerPath,
   Message,
-  Messages,
   Payload,
   ReducibleFactory,
   reduciblePath,
@@ -19,39 +18,34 @@ import axios, { AxiosResponse } from "axios";
 
 type Tester = {
   get: (path: string) => Promise<AxiosResponse<any>>;
-  invoke: <
-    P extends Payload,
-    M extends Payload,
-    C extends Messages,
-    E extends Messages
-  >(
+  invoke: <C, P extends Payload>(
     factory: CommandAdapterFactory<P, C>,
     payload: P
-  ) => Promise<Snapshot<M, E>[]>;
-  command: <M extends Payload, C extends Messages, E extends Messages>(
+  ) => Promise<Snapshot<Payload>[]>;
+  command: <M extends Payload, C, E>(
     factory: CommandHandlerFactory<M, C, E>,
-    command: Command<C>,
+    command: Command<keyof C & string, Payload>,
     headers?: Record<string, string>
-  ) => Promise<Snapshot<M, E>[]>;
-  event: <M extends Payload, C extends Messages, E extends Messages>(
+  ) => Promise<Snapshot<M>[]>;
+  event: <M extends Payload, C, E>(
     factory: EventHandlerFactory<M, C, E>,
-    event: CommittedEvent<E>
+    event: Message<keyof E & string, Payload>
   ) => Promise<{
     status: number;
-    data: Message<C> | undefined;
+    data: Message<keyof C & string, Payload> | undefined;
   }>;
-  load: <M extends Payload, C extends Messages, E extends Messages>(
+  load: <M extends Payload, C, E>(
     reducible: ReducibleFactory<M, C, E>,
     id: string
-  ) => Promise<Snapshot<M, E>>;
-  stream: <M extends Payload, C extends Messages, E extends Messages>(
+  ) => Promise<Snapshot<M>>;
+  stream: <M extends Payload, C, E>(
     reducible: ReducibleFactory<M, C, E>,
     id: string,
     options?: {
       useSnapshots?: boolean;
     }
-  ) => Promise<Snapshot<M, E>[]>;
-  read: (query?: AllQuery) => Promise<CommittedEvent[]>;
+  ) => Promise<Snapshot<M>[]>;
+  read: (query?: AllQuery) => Promise<CommittedEvent<string, Payload>[]>;
   sleep: (millis: number) => Promise<void>;
 };
 
@@ -62,33 +56,25 @@ export const tester = (port = 3000): Tester => {
     get: (path: string): Promise<AxiosResponse<any>> =>
       axios.get<any>(url(path)),
 
-    async invoke<
-      P extends Payload,
-      M extends Payload,
-      C extends Messages,
-      E extends Messages
-    >(
+    async invoke<P extends Payload, C>(
       factory: CommandAdapterFactory<P, C>,
       payload: P
-    ): Promise<Snapshot<M, E>[]> {
-      const { data } = await axios.post<P, AxiosResponse<Snapshot<M, E>[]>>(
+    ): Promise<Snapshot<Payload>[]> {
+      const { data } = await axios.post<P, AxiosResponse<Snapshot<Payload>[]>>(
         url("/".concat(decamelize(factory.name))),
         payload
       );
       return data;
     },
 
-    command: async <M extends Payload, C extends Messages, E extends Messages>(
+    command: async <M extends Payload, C, E>(
       factory: CommandHandlerFactory<M, C, E>,
-      command: Command<C>,
+      command: Command<keyof C & string, Payload>,
       headers: Record<string, string> = {}
-    ): Promise<Snapshot<M, E>[]> => {
+    ): Promise<Snapshot<M>[]> => {
       command.expectedVersion &&
         (headers["If-Match"] = command.expectedVersion.toString());
-      const { data } = await axios.post<
-        Payload,
-        AxiosResponse<Snapshot<M, E>[]>
-      >(
+      const { data } = await axios.post<Payload, AxiosResponse<Snapshot<M>[]>>(
         url(
           commandHandlerPath(factory, command.name).replace(":id", command.id)
         ),
@@ -98,38 +84,38 @@ export const tester = (port = 3000): Tester => {
       return data;
     },
 
-    event: async <M extends Payload, C extends Messages, E extends Messages>(
+    event: async <M extends Payload, C, E>(
       factory: EventHandlerFactory<M, C, E>,
-      event: CommittedEvent<E>
+      event: Message<keyof E & string, Payload>
     ): Promise<{
       status: number;
-      data: Message<C> | undefined;
+      data: Message<keyof C & string, Payload> | undefined;
     }> => {
       const { status, data } = await axios.post<
         Payload,
-        AxiosResponse<Message<C> | undefined>
+        AxiosResponse<Message<keyof C & string, Payload> | undefined>
       >(url(eventHandlerPath(factory)), event);
       return { status, data };
     },
 
-    load: async <M extends Payload, C extends Messages, E extends Messages>(
+    load: async <M extends Payload, C, E>(
       reducible: ReducibleFactory<M, C, E>,
       id: string
-    ): Promise<Snapshot<M, E>> => {
-      const { data } = await axios.get<any, AxiosResponse<Snapshot<M, E>>>(
+    ): Promise<Snapshot<M>> => {
+      const { data } = await axios.get<any, AxiosResponse<Snapshot<M>>>(
         url(reduciblePath(reducible).replace(":id", id))
       );
       return data;
     },
 
-    stream: async <M extends Payload, C extends Messages, E extends Messages>(
+    stream: async <M extends Payload, C, E>(
       reducible: ReducibleFactory<M, C, E>,
       id: string,
       options: {
         useSnapshots?: boolean;
       } = { useSnapshots: false }
-    ): Promise<Snapshot<M, E>[]> => {
-      const { data } = await axios.get<any, AxiosResponse<Snapshot<M, E>[]>>(
+    ): Promise<Snapshot<M>[]> => {
+      const { data } = await axios.get<any, AxiosResponse<Snapshot<M>[]>>(
         url(
           reduciblePath(reducible)
             .replace(":id", id)
@@ -143,13 +129,13 @@ export const tester = (port = 3000): Tester => {
 
     read: async (
       query: AllQuery = { after: -1, limit: 1 }
-    ): Promise<CommittedEvent[]> => {
-      const { data } = await axios.get<any, AxiosResponse<CommittedEvent[]>>(
-        url("/all"),
-        {
-          params: query
-        }
-      );
+    ): Promise<CommittedEvent<string, Payload>[]> => {
+      const { data } = await axios.get<
+        any,
+        AxiosResponse<CommittedEvent<string, Payload>[]>
+      >(url("/all"), {
+        params: query
+      });
       return data;
     },
 

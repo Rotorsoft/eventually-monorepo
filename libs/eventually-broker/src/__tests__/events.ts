@@ -1,10 +1,6 @@
-import { Command, CommittedEvent } from "@rotorsoft/eventually";
+import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 
-type Events = {
-  DigitPressed: { digit: string };
-};
-
-export const events: CommittedEvent<Events>[] = [
+export const events: CommittedEvent<string, Payload>[] = [
   {
     id: 1,
     name: "DigitPressed",
@@ -20,7 +16,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           id: "calc1"
-        } as Command
+        }
       }
     }
   },
@@ -39,7 +35,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           id: "calc1"
-        } as Command
+        }
       }
     }
   },
@@ -58,7 +54,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           id: "calc1"
-        } as Command
+        }
       }
     }
   },
@@ -137,7 +133,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           id: "calc1"
-        } as Command
+        }
       }
     }
   },

@@ -1,4 +1,4 @@
-import { bind, Message } from "@rotorsoft/eventually";
+import { bind, Message, Payload } from "@rotorsoft/eventually";
 
 export type E = {
   test1: { value: string };
@@ -6,8 +6,10 @@ export type E = {
   test3: { value: string };
 };
 
-export const event = (name: keyof E, data?: E[keyof E]): Message =>
-  bind<E>(name, data) as Message;
+export const event = (
+  name: keyof E,
+  data?: Payload
+): Message<keyof E & string, Payload> => bind(name, data);
 
 export const sleep = (millis: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, millis));

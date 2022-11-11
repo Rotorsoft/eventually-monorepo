@@ -20,7 +20,7 @@ import {
   Snapshot,
   WithSchemas
 } from "./types/command-side";
-import { Messages, Payload } from "./types/messages";
+import { Payload } from "./types/messages";
 import {
   commandHandlerPath,
   eventHandlerPath,
@@ -42,39 +42,31 @@ export class Builder {
     eventHandlers: {},
     schemas: {}
   };
-  readonly messages: Record<string, MessageMetadata<unknown>> = {};
+  readonly messages: Record<string, MessageMetadata> = {};
   readonly documentation: Record<string, { description: string }> = {};
   private _hasStreams = false;
   get hasStreams(): boolean {
     return this._hasStreams;
   }
 
-  private _msg<T>(name: keyof T & string): MessageMetadata<T> {
-    let msg = this.messages[name] as MessageMetadata<T>;
-    if (!msg) {
-      msg = {
-        name,
-        eventHandlerFactories: {}
-      } as MessageMetadata<T>;
-      this.messages[name] = msg as MessageMetadata<unknown>;
-    }
-    return msg;
+  private _msg(name: string): MessageMetadata {
+    return (this.messages[name] = this.messages[name] || {
+      name,
+      eventHandlerFactories: {}
+    });
   }
 
-  private _registerSchemas<C extends Messages, E extends Messages>(
-    handler: WithSchemas<C, E>
-  ): void {
+  private _registerSchemas<C, E>(handler: WithSchemas<C, E>): void {
     handler.schemas &&
       Object.entries(handler.schemas).map(([key, value]): void => {
-        this._msg(key).schema = value;
+        this._msg(key).schema = value as any;
       });
   }
 
-  private _registerEventHandlerFactory<
-    M extends Payload,
-    C extends Messages,
-    E extends Messages
-  >(factory: EventHandlerFactory<M, C, E>, description?: string): void {
+  private _registerEventHandlerFactory<M extends Payload, C, E>(
+    factory: EventHandlerFactory<M, C, E>,
+    description?: string
+  ): void {
     if (this._factories.eventHandlers[factory.name])
       throw Error(`Duplicate event handler ${factory.name}`);
     this._factories.eventHandlers[factory.name] = factory;
@@ -82,11 +74,10 @@ export class Builder {
     this._registerSchemas(factory(""));
   }
 
-  private _registerCommandHandlerFactory<
-    M extends Payload,
-    C extends Messages,
-    E extends Messages
-  >(factory: CommandHandlerFactory<M, C, E>, description?: string): void {
+  private _registerCommandHandlerFactory<M extends Payload, C, E>(
+    factory: CommandHandlerFactory<M, C, E>,
+    description?: string
+  ): void {
     if (this._factories.commandHandlers[factory.name])
       throw Error(`Duplicate command handler ${factory.name}`);
     this._factories.commandHandlers[factory.name] = factory;
@@ -106,7 +97,7 @@ export class Builder {
    * Registers message schemas
    * @param schemas Message validation schemas
    */
-  withSchemas<M extends Messages>(schemas: Schemas<M>): this {
+  withSchemas<M>(schemas: Schemas<M>): this {
     Object.entries(schemas).map(([key, value]): void => {
       this._msg(key).schema = value as any;
     });
@@ -118,7 +109,7 @@ export class Builder {
    * @param factories event handler factories
    */
   withEventHandlers(
-    ...factories: EventHandlerFactory<Payload, any, any>[]
+    ...factories: EventHandlerFactory<Payload, unknown, unknown>[]
   ): this {
     factories.map((f) => this._registerEventHandlerFactory(f));
     return this;
@@ -129,10 +120,7 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withPolicy<C extends Messages, E extends Messages>(
-    factory: PolicyFactory<C, E>,
-    description?: string
-  ): this {
+  withPolicy<C, E>(factory: PolicyFactory<C, E>, description?: string): this {
     this._registerEventHandlerFactory(factory, description);
     return this;
   }
@@ -142,7 +130,7 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withProcessManager<M extends Payload, C extends Messages, E extends Messages>(
+  withProcessManager<M extends Payload, C, E>(
     factory: ProcessManagerFactory<M, C, E>,
     description?: string
   ): this {
@@ -155,7 +143,7 @@ export class Builder {
    * @param factories command handler factories
    */
   withCommandHandlers(
-    ...factories: CommandHandlerFactory<Payload, any, any>[]
+    ...factories: CommandHandlerFactory<Payload, unknown, unknown>[]
   ): this {
     factories.map((f) => this._registerCommandHandlerFactory(f));
     return this;
@@ -165,10 +153,11 @@ export class Builder {
    * Registers command adapters
    * @param factory command adapter factory
    */
-  withCommandAdapter<P extends Payload, C extends Messages>(
+  withCommandAdapter<P extends Payload, C>(
     factory: CommandAdapterFactory<P, C>
   ): this {
-    this._factories.commandAdapters[factory.name] = factory;
+    this._factories.commandAdapters[factory.name] =
+      factory as CommandAdapterFactory<Payload, unknown>;
     this._msg(factory.name).schema = factory().schema;
     return this;
   }
@@ -179,7 +168,7 @@ export class Builder {
    * @param description describes the factory
    * @param snapshotOptions optional snapshotting options
    */
-  withAggregate<M extends Payload, C extends Messages, E extends Messages>(
+  withAggregate<M extends Payload, C, E>(
     factory: AggregateFactory<M, C, E>,
     description?: string,
     snapshotOptions?: SnapshotOptions
@@ -194,7 +183,7 @@ export class Builder {
    * @param factory the factory
    * @param description describes the factory
    */
-  withExternalSystem<C extends Messages, E extends Messages>(
+  withExternalSystem<C, E>(
     factory: ExternalSystemFactory<C, E>,
     description?: string
   ): this {
@@ -207,9 +196,9 @@ export class Builder {
    * @param reducible The reducible artifact
    * @returns The snapshot
    */
-  async readSnapshot<M extends Payload, E extends Messages>(
+  async readSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>
-  ): Promise<Snapshot<M, E> | undefined> {
+  ): Promise<Snapshot<M> | undefined> {
     const { name } = Object.getPrototypeOf(reducible);
     const snap = this._snapshotOptions[name];
     return snap && (await snap.store.read(reducible.stream()));
@@ -221,9 +210,9 @@ export class Builder {
    * @param snapshot The snapshot
    * @param applyCount The number of events applied after last snapshot
    */
-  async writeSnapshot<M extends Payload, E extends Messages>(
+  async writeSnapshot<M extends Payload, E>(
     reducible: Reducible<M, E>,
-    snapshot: Snapshot<M, E>,
+    snapshot: Snapshot<M>,
     applyCount: number
   ): Promise<void> {
     try {

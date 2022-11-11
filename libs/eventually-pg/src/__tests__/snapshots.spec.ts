@@ -1,4 +1,4 @@
-import { CommittedEvent, dispose } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, Payload } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { PostgresSnapshotStore } from "..";
 import { config } from "../config";
@@ -7,10 +7,10 @@ const table = "snapshots_test";
 const db = PostgresSnapshotStore(table);
 
 describe("snapshots", () => {
-  const event: CommittedEvent = {
+  const event: CommittedEvent<string, Payload> = {
     name: "testEvent",
     data: { value: "testValue" }
-  } as unknown as CommittedEvent;
+  } as unknown as CommittedEvent<string, Payload>;
   const state = { value: "Some test state" };
   let pool: Pool;
 

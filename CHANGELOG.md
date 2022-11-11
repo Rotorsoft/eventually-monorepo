@@ -1,5 +1,3 @@
-#### 2022-11-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.1.2...@rotorsoft/eventually-express-v4.1.3) @rotorsoft/eventually-express-v4.1.3
-  - PATCH [83c4cb4d](https://github.com/Rotorsoft/eventually-monorepo/commit/83c4cb4d50d72712895964729d278f3a98105ee2) fix: small refactor of command adapter
 #### 2022-11-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.2.4...@rotorsoft/eventually-v4.2.5) @rotorsoft/eventually-v4.2.5
   - PATCH [6376b853](https://github.com/Rotorsoft/eventually-monorepo/commit/6376b853159e8353b34d02cec487ec381185645a) fix: change to output parameters
   - PATCH [83c4cb4d](https://github.com/Rotorsoft/eventually-monorepo/commit/83c4cb4d50d72712895964729d278f3a98105ee2) fix: small refactor of command adapter

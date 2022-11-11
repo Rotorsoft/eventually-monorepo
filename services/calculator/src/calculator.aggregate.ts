@@ -29,17 +29,12 @@ const compute = (model: CalculatorModel): CalculatorModel => {
   return model;
 };
 
-export type CalculatorEvents = Omit<
-  Events,
-  "Ignored1" | "Ignored2" | "Forgotten" | "Complex"
->;
-
 export const Calculator = (
   id: string
 ): Aggregate<
   CalculatorModel,
   Omit<Commands, "Whatever" | "Forget">,
-  CalculatorEvents
+  Omit<Events, "Ignored1" | "Ignored2" | "Forgotten" | "Complex">
 > => ({
   stream: () => `Calculator-${id}`,
 

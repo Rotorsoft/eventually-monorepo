@@ -11,8 +11,8 @@ describe("builder errors", () => {
   });
 
   it("should throw duplicate event handler", () => {
-    app().withProcessManager(Counter);
-    expect(() => app().withProcessManager(Counter)).toThrowError(
+    app().withEventHandlers(Counter);
+    expect(() => app().withEventHandlers(Counter)).toThrowError(
       "Duplicate event handler Counter"
     );
   });
