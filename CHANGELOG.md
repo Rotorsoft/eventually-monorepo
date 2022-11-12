@@ -1,3 +1,5 @@
+#### 2022-11-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.3.1...@rotorsoft/eventually-v4.3.2) @rotorsoft/eventually-v4.3.2
+  - PATCH [45f4a8f5](https://github.com/Rotorsoft/eventually-monorepo/commit/45f4a8f50ce59c5485f48fc146a28460840b70ae) fix: encapsulate schemas to allow other validators like zod
 #### 2022-11-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.7.0...@rotorsoft/eventually-broker-v1.7.1) @rotorsoft/eventually-broker-v1.7.1
   - PATCH [7f363439](https://github.com/Rotorsoft/eventually-monorepo/commit/7f363439278cc15e2189412e3be040383afb50e4) fix: reverted to feature with refactored types
 #### 2022-11-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.2.0...@rotorsoft/eventually-express-v4.2.1) @rotorsoft/eventually-express-v4.2.1
