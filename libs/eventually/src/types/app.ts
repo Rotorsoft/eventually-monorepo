@@ -1,4 +1,3 @@
-import joi from "joi";
 import { SnapshotStore } from "../interfaces";
 import {
   CommandAdapterFactory,
@@ -52,20 +51,6 @@ export type Endpoints = {
       events: string[];
     };
   };
-  schemas: {
-    [name: string]: joi.Description;
-  };
-};
-
-export type MessageMetadata<T> = {
-  name: keyof T;
-  schema?: joi.ObjectSchema<T[keyof T]>;
-  commandHandlerFactory?: CommandHandlerFactory<Payload, any, any>;
-  eventHandlerFactories: Record<string, EventHandlerFactory<Payload, any, any>>;
-};
-
-export type Schemas<M> = {
-  [Key in keyof M & string]: joi.ObjectSchema<M[Key]>;
 };
 
 export type SnapshotOptions = {

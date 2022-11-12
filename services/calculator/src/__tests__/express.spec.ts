@@ -14,7 +14,7 @@ import {
 import { Chance } from "chance";
 import { Calculator, CalculatorEvents } from "../calculator.aggregate";
 import { CalculatorModel, Keys } from "../calculator.models";
-import { StatelessCounter } from "../counter.policy";
+import { CounterEvents, StatelessCounter } from "../counter.policy";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 
 const chance = new Chance();
@@ -28,7 +28,7 @@ app(expressApp)
     threshold: 2,
     expose: true
   })
-  .withEventHandlers(StatelessCounter)
+  .withPolicy(StatelessCounter)
   .withCommandAdapter(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);
 
@@ -181,7 +181,7 @@ describe("express app", () => {
       const snapshots = await pressKey(chance.guid(), "1");
       const { status, data } = await t.event(
         StatelessCounter,
-        snapshots[0].event as CommittedEvent
+        snapshots[0].event as CommittedEvent<CounterEvents>
       );
       expect(status).toBe(200);
       expect(data).toStrictEqual({});
@@ -191,7 +191,7 @@ describe("express app", () => {
       const snapshots = await pressKey(chance.guid(), ".");
       const { status, data } = await t.event(
         StatelessCounter,
-        snapshots[0].event as CommittedEvent
+        snapshots[0].event as CommittedEvent<CounterEvents>
       );
       expect(status).toBe(200);
       expect(data).toStrictEqual({});

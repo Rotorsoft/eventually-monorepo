@@ -6,7 +6,7 @@ import { Calculator } from "../calculator.aggregate";
 const port = 4002;
 const t = tester(port);
 
-const exapp = app(new ExpressApp()).withCommandHandlers(Calculator);
+const exapp = app(new ExpressApp()).withAggregate(Calculator);
 
 jest.spyOn(store(), "query").mockRejectedValue("Error");
 jest.spyOn(store(), "stats").mockRejectedValue("Error");
@@ -19,7 +19,8 @@ describe("express app", () => {
         .object({ test: joi.string().required() })
         .required()
         .validate({});
-      if (error) throw new ValidationError(error);
+      if (error)
+        throw new ValidationError(error.details.flatMap((d) => d.message));
       res.send("Query results");
     });
     await exapp.listen(false, port);

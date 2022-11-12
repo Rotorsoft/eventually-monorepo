@@ -2,6 +2,7 @@ import { Builder } from "./builder";
 import { handleMessage, load } from "./handler";
 import { Disposable } from "./interfaces";
 import { log } from "./log";
+import { validate, validateMessage } from "./schema";
 import {
   AllQuery,
   CommandAdapterFactory,
@@ -20,7 +21,7 @@ import {
   Messages,
   Payload
 } from "./types/messages";
-import { bind, randomId, store, validateMessage } from "./utils";
+import { bind, randomId, store } from "./utils";
 
 interface Reader {
   load: Reducer<Payload, any, any>;
@@ -54,9 +55,9 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     factory: CommandAdapterFactory<P, C>,
     payload: P
   ): Promise<Snapshot<M, E>[]> {
-    const data = validateMessage({ name: factory.name, data: payload }) as P;
-    const command = factory().adapt(data);
-    return this.command(command);
+    const adapter = factory();
+    const data = validate(payload, adapter.schema);
+    return this.command(adapter.adapt(data));
   }
 
   /**
@@ -76,7 +77,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
 
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
-    const data = validateMessage<C>(command);
+    const { data } = validateMessage<C>(command);
     const handler = factory(id);
     Object.setPrototypeOf(handler, factory as object);
     return await handleMessage(
@@ -114,7 +115,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const on = (handler as any)["on".concat(name as string)];
     if (typeof on !== "function")
       throw new RegistrationError(event as unknown as Message);
-    const data = validateMessage<E>(event);
+    const { data } = validateMessage<E>(event);
 
     const metadata: CommittedEventMetadata = {
       correlation: event.metadata?.correlation || randomId(),
@@ -134,7 +135,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     );
     return {
       command,
-      state: snapshots.length ? snapshots[0].state : undefined
+      state: (snapshots.length && snapshots.at(-1).state) || undefined
     };
   }
 

@@ -1,4 +1,3 @@
-import joi from "joi";
 import {
   Command,
   CommittedEvent,
@@ -6,6 +5,7 @@ import {
   Messages,
   Payload
 } from "./messages";
+import { Schema, WithSchemas } from "./schemas";
 
 /**
  * Artifacts that commit events to a stream
@@ -16,8 +16,8 @@ export type Streamable = { stream: () => string };
  * Artifacts that reduce models from event streams
  */
 export type Reducible<M extends Payload, E extends Messages> = Streamable & {
-  schema?: () => joi.ObjectSchema<M>;
-  schemas?: { state?: joi.ObjectSchema<M> };
+  schema?: () => Schema<M>;
+  schemas?: { state?: Schema<M> };
   init: () => Readonly<M>;
 } & {
   [Key in keyof E as `apply${Capitalize<Key & string>}`]: (
@@ -43,15 +43,6 @@ export type Reducer<
 export type Snapshot<M extends Payload, E extends Messages> = {
   readonly event: CommittedEvent<E>;
   readonly state?: M;
-};
-
-/**
- * Message handlers with schema definitions
- */
-export type WithSchemas<C extends Messages, E extends Messages> = {
-  schemas?: {
-    [Key in keyof (C & E)]?: joi.ObjectSchema<(C & E)[Key]>;
-  };
 };
 
 /**
@@ -137,7 +128,7 @@ export type ProcessManagerFactory<
  */
 export type CommandAdapter<P extends Payload, C extends Messages> = {
   adapt: (payload: Readonly<P>) => Command<C>;
-  schema: joi.ObjectSchema<P>;
+  schema: Schema<P>;
 };
 export type CommandAdapterFactory<
   P extends Payload,

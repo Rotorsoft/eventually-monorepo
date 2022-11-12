@@ -4,8 +4,6 @@ import {
   Endpoints,
   EventHandlerType,
   Factories,
-  MessageMetadata,
-  Schemas,
   SnapshotOptions
 } from "./types/app";
 import {
@@ -17,10 +15,10 @@ import {
   PolicyFactory,
   ProcessManagerFactory,
   Reducible,
-  Snapshot,
-  WithSchemas
+  Snapshot
 } from "./types/command-side";
 import { Messages, Payload } from "./types/messages";
+import { MessageMetadata, Schemas, WithSchemas } from "./types/schemas";
 import {
   commandHandlerPath,
   eventHandlerPath,
@@ -39,26 +37,20 @@ export class Builder {
   readonly endpoints: Endpoints = {
     version: "",
     commandHandlers: {},
-    eventHandlers: {},
-    schemas: {}
+    eventHandlers: {}
   };
-  readonly messages: Record<string, MessageMetadata<unknown>> = {};
+  readonly messages: Record<string, MessageMetadata> = {};
   readonly documentation: Record<string, { description: string }> = {};
   private _hasStreams = false;
   get hasStreams(): boolean {
     return this._hasStreams;
   }
 
-  private _msg<T>(name: keyof T & string): MessageMetadata<T> {
-    let msg = this.messages[name] as MessageMetadata<T>;
-    if (!msg) {
-      msg = {
-        name,
-        eventHandlerFactories: {}
-      } as MessageMetadata<T>;
-      this.messages[name] = msg as MessageMetadata<unknown>;
-    }
-    return msg;
+  private _msg<T extends Messages>(name: keyof T & string): MessageMetadata<T> {
+    return (this.messages[name] = this.messages[name] || {
+      name,
+      eventHandlerFactories: {}
+    });
   }
 
   private _registerSchemas<C extends Messages, E extends Messages>(
@@ -291,11 +283,6 @@ export class Builder {
       };
       reducible && this.withStreams();
     });
-
-    // schemas
-    Object.values(this.messages).forEach(
-      (msg) => (this.endpoints.schemas[msg.name] = msg.schema?.describe())
-    );
 
     return;
   }

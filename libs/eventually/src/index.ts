@@ -7,6 +7,7 @@ export * from "./builder";
 export * from "./config";
 export * from "./interfaces";
 export * from "./log";
+export * from "./schema";
 export * from "./singleton";
 export * from "./types";
 export * from "./utils";

@@ -1,4 +1,5 @@
 import { app, log, store } from ".";
+import { validateMessage } from "./schema";
 import {
   CommittedEvent,
   CommittedEventMetadata,
@@ -9,7 +10,7 @@ import {
   Reducible,
   Snapshot
 } from "./types";
-import { getReducible, getStreamable, validateMessage } from "./utils";
+import { getReducible, getStreamable } from "./utils";
 
 /**
  * Loads current model state
@@ -67,46 +68,46 @@ export const handleMessage = async <
 ): Promise<Snapshot<M, E>[]> => {
   const streamable = getStreamable(handler);
   const reducible = getReducible(handler);
+
   const snapshot = reducible
     ? await load(reducible)
     : { event: undefined, applyCount: 0 };
 
   const events = await callback(snapshot.state);
-  events.map((event) => validateMessage(event));
-  if (!(events.length && streamable)) return [];
+  if (streamable && events.length) {
+    const committed = (await store().commit(
+      streamable.stream(),
+      events.map(validateMessage),
+      metadata,
+      metadata.causation.command?.expectedVersion,
+      notify
+    )) as CommittedEvent<E>[];
 
-  const committed = (await store().commit(
-    streamable.stream(),
-    events as Message[],
-    metadata,
-    metadata.causation.command?.expectedVersion,
-    notify
-  )) as CommittedEvent<E>[];
-  if (!reducible)
-    return committed.map((event) => ({
-      event
-    }));
-
-  let state = snapshot.state;
-  const snapshots = committed.map((event) => {
-    log().trace(
-      "gray",
-      `   ... ${streamable.stream()} committed ${event.name} @ ${
-        event.version
-      }`,
-      event.data
-    );
-    state = (reducible as any)["apply".concat(event.name)](state, event);
-    log().trace(
-      "gray",
-      `   === ${JSON.stringify(state)}`,
-      ` @ ${event.version}`
-    );
-    return { event, state } as Snapshot<M, E>;
-  });
-
-  // TODO: implement reliable async snapshotting - persist queue? start on app load?
-  void app().writeSnapshot(reducible, snapshots.at(-1), snapshot.applyCount);
-
-  return snapshots;
+    if (reducible) {
+      let state = snapshot.state;
+      const snapshots = committed.map((event) => {
+        log().trace(
+          "gray",
+          `   ... ${reducible.stream()} committed ${event.name} @ ${
+            event.version
+          }`,
+          event.data
+        );
+        state = (reducible as any)["apply".concat(event.name)](state, event);
+        log().trace(
+          "gray",
+          `   === ${JSON.stringify(state)}`,
+          ` @ ${event.version}`
+        );
+        return { event, state };
+      });
+      // TODO: implement reliable async snapshotting - persist queue? start on app load?
+      void app().writeSnapshot(
+        reducible,
+        snapshots.at(-1),
+        snapshot.applyCount
+      );
+      return snapshots;
+    } else return committed.map((event) => ({ event }));
+  } else return [];
 };

@@ -1,13 +1,6 @@
 import * as crypto from "crypto";
-import { app } from ".";
 import { Store } from "./interfaces";
 import { singleton } from "./singleton";
-import {
-  MessageMetadata,
-  Messages,
-  RegistrationError,
-  ValidationError
-} from "./types";
 import {
   Actor,
   Command,
@@ -17,6 +10,7 @@ import {
   EventHandlerFactory,
   Message,
   MessageHandler,
+  Messages,
   Payload,
   Reducible,
   ReducibleFactory,
@@ -205,25 +199,3 @@ export const eventHandlerPath = <
 >(
   handler: EventHandlerFactory<M, C, E>
 ): string => "/".concat(decamelize(handler.name));
-
-/**
- * Validates message payloads
- *
- * @param message the message
- * @returns validated payload when schema is provided
- */
-export const validateMessage = <T extends Messages>(
-  message: Message<T>
-): Readonly<T[keyof T]> | undefined => {
-  const metadata = app().messages[message.name] as MessageMetadata<T>;
-  if (!metadata) throw new RegistrationError(message as Message);
-  if (metadata.schema) {
-    const { value, error } = metadata.schema.validate(message.data, {
-      abortEarly: false,
-      allowUnknown: true
-    });
-    if (error) throw new ValidationError(error, message as Message);
-    return value;
-  }
-  return message.data;
-};

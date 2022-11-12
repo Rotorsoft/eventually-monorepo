@@ -8,7 +8,7 @@ describe("config", () => {
     expect(config().env).toEqual(Environments.development);
 
     await expect(import("@rotorsoft/eventually-pg")).rejects.toThrowError(
-      '"pg.host" is not allowed to be empty'
+      "ERR_VALIDATION"
     );
   });
 

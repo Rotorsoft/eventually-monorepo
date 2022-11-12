@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as joi from "joi";
 import { Config } from "./interfaces";
+import { extend } from "./schema";
 import { singleton } from "./singleton";
 import { Package } from "./types/app";
 import { Environments, LogLevels } from "./types/enums";
@@ -11,19 +12,6 @@ dotenv.config();
 const getPackage = (): Package => {
   const pkg = fs.readFileSync("package.json");
   return JSON.parse(pkg.toString()) as unknown as Package;
-};
-
-export const extend = <S extends Record<string, any>, T extends Config>(
-  source: S,
-  schema: joi.ObjectSchema<S>,
-  target?: T
-): S & T => {
-  const { error, value } = schema.validate(source, {
-    abortEarly: false,
-    allowUnknown: true
-  });
-  if (error) throw Error(error.message);
-  return Object.assign(target || {}, value) as S & T;
 };
 
 const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;

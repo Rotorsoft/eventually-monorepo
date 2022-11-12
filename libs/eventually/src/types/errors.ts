@@ -1,15 +1,11 @@
-import joi from "joi";
 import { Message } from "../types";
 import { Errors } from "../types/enums";
 
 export class ValidationError extends Error {
   public readonly details;
-  constructor(errors: joi.ValidationError, message?: Message) {
+  constructor(errors: string[], message?: Message) {
     super(Errors.ValidationError);
-    this.details = {
-      errors: errors.details.flatMap((item) => item.message),
-      message
-    };
+    this.details = { errors, message };
   }
 }
 

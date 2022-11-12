@@ -1,65 +1,42 @@
 import {
   Builder,
   config,
-  Errors,
   eventsOf,
   getReducible,
   MessageHandlerFactory,
   messagesOf,
   Payload,
   Reducible,
-  reduciblePath,
-  StoreStat
+  reduciblePath
 } from "@rotorsoft/eventually";
-import * as fs from "fs";
-import * as joi from "joi";
-import j2s, { ComponentsSchema } from "joi-to-swagger";
 import { OpenAPIV3_1 } from "openapi-types";
-
-type Security = {
-  schemes: Record<string, any>;
-  operations: Record<string, Array<any>>;
-};
-
-const getSecurity = (): Security => {
-  try {
-    const sec = fs.readFileSync("security.json");
-    return JSON.parse(sec.toString()) as Security;
-  } catch {
-    return {
-      schemes: {},
-      operations: {}
-    };
-  }
-};
+import {
+  CommittedEventSchema,
+  getComponents,
+  getSecurity,
+  StoreStatSchema,
+  toSwaggerSchema
+} from "./schemas";
 
 export const swagger = (app: Builder): OpenAPIV3_1.Document => {
   const getSchemas = (): void => {
-    Object.entries(app.messages).map(
-      ([name, { schema, commandHandlerFactory }]) => {
+    Object.entries(app.messages)
+      .filter(([name]) => name != "state")
+      .map(([name, { schema, commandHandlerFactory }]) => {
         if (commandHandlerFactory) {
           components.schemas[name] = schema
-            ? j2s(schema).swagger
+            ? toSwaggerSchema(schema)
             : { type: "object" };
         } else {
-          const data = schema || joi.object().forbidden();
-          const description = data._flags?.description;
-          data._flags.description = undefined;
-          components.schemas[name] = j2s(
-            joi.object({
-              name: joi.string().required().valid(name),
-              id: joi.number().integer().required(),
-              stream: joi.string().required(),
-              version: joi.number().integer().required(),
-              created: joi.date().required(),
-              data
-            })
-          ).swagger;
+          const description = schema?._flags?.description;
+          description && (schema._flags.description = undefined);
+          components.schemas[name] = toSwaggerSchema(
+            CommittedEventSchema(name, schema)
+          );
           components.schemas[name].name = name;
           components.schemas[name].description = description;
         }
-      }
-    );
+      });
   };
 
   const getReducibleGetters = (
@@ -128,8 +105,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
     const schema =
       reducible.schemas?.state || (reducible.schema && reducible.schema());
     if (schema) {
-      const { swagger } = j2s(schema, components);
-      components.schemas[handler.name] = swagger;
+      components.schemas[handler.name] = toSwaggerSchema(schema, components);
       components.schemas[handler.name.concat("Snapshot")] = {
         type: "object",
         properties: {
@@ -290,109 +266,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
   };
 
   const sec = getSecurity();
-  const components: ComponentsSchema = {
-    parameters: {
-      id: {
-        in: "path",
-        name: "id",
-        description: "Reducible Id",
-        schema: { type: "string" },
-        required: true
-      },
-      stream: {
-        in: "query",
-        name: "stream",
-        description: "Filter by stream name",
-        schema: { type: "string" }
-      },
-      names: {
-        in: "query",
-        name: "names",
-        description: "Filter by event names",
-        schema: { type: "array", items: { type: "string" } }
-      },
-      after: {
-        in: "query",
-        name: "after",
-        description: "Get all stream after this event id",
-        schema: { type: "integer", default: -1 }
-      },
-      limit: {
-        in: "query",
-        name: "limit",
-        description: "Max number of events to query",
-        schema: { type: "integer", default: 1 }
-      },
-      before: {
-        in: "query",
-        name: "before",
-        description: "Get all stream before this event id",
-        schema: { type: "integer" }
-      },
-      created_after: {
-        in: "query",
-        name: "created_after",
-        description: "Get all stream created after this date/time",
-        schema: { type: "string", format: "date-time" }
-      },
-      created_before: {
-        in: "query",
-        name: "created_before",
-        description: "Get all stream created before this date/time",
-        schema: { type: "string", format: "date-time" }
-      }
-    },
-    securitySchemes: sec.schemes,
-    schemas: {
-      ValidationError: {
-        type: "object",
-        properties: {
-          message: {
-            type: "string",
-            enum: [Errors.ValidationError]
-          },
-          details: {
-            type: "array",
-            items: { type: "string" }
-          }
-        },
-        required: ["message", "details"]
-      },
-      RegistrationError: {
-        type: "object",
-        properties: {
-          message: {
-            type: "string",
-            enum: [Errors.RegistrationError]
-          },
-          details: { type: "string" }
-        }
-      },
-      ConcurrencyError: {
-        type: "object",
-        properties: {
-          message: {
-            type: "string",
-            enum: [Errors.ConcurrencyError]
-          },
-          lastVersion: { type: "integer" },
-          events: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                name: { type: "string" },
-                data: { type: "object" }
-              },
-              required: ["name"]
-            }
-          },
-          expectedVersion: { type: "integer" }
-        },
-        required: ["message", "lastEvent", "events", "expectedVersion"]
-      }
-    }
-  };
+  const components = getComponents(sec);
   const tags: { name: string; description: string }[] = [];
   const paths: Record<string, OpenAPIV3_1.PathItemObject> = {};
 
@@ -408,16 +282,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
               "application/json": {
                 schema: {
                   type: "array",
-                  items: j2s(
-                    joi.object<StoreStat>({
-                      name: joi.string().required(),
-                      count: joi.number().integer().required(),
-                      firstId: joi.number().integer(),
-                      lastId: joi.number().integer(),
-                      firstCreated: joi.date(),
-                      lastCreated: joi.date()
-                    })
-                  ).swagger
+                  items: toSwaggerSchema(StoreStatSchema())
                 }
               }
             }
@@ -448,16 +313,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
               "application/json": {
                 schema: {
                   type: "array",
-                  items: j2s(
-                    joi.object({
-                      name: joi.string().required(),
-                      id: joi.number().integer().required(),
-                      stream: joi.string().required(),
-                      version: joi.number().integer().required(),
-                      created: joi.date().required(),
-                      data: joi.object()
-                    })
-                  ).swagger
+                  items: toSwaggerSchema(CommittedEventSchema(""))
                 }
               }
             }
