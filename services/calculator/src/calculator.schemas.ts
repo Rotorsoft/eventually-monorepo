@@ -1,4 +1,5 @@
 import * as joi from "joi";
+import z from "zod";
 import * as models from "./calculator.models";
 
 export const CalculatorModel = joi.object<models.CalculatorModel>({
@@ -32,19 +33,28 @@ export const OperatorPressed = joi
   })
   .description("Generated when operator is pressed")
   .required();
-export const PressKey = joi
+
+// export const PressKey = joi
+//   .object({
+//     key: joi
+//       .string()
+//       .required()
+//       .min(1)
+//       .max(1)
+//       .valid(...models.DIGITS, ...models.OPERATORS, ...models.SYMBOLS)
+//   })
+//   .description(
+//     "Invoked when user presses a key - either digit, operator, or symbol"
+//   )
+//   .required();
+
+export const PressKey = z
   .object({
-    key: joi
-      .string()
-      .required()
-      .min(1)
-      .max(1)
-      .valid(...models.DIGITS, ...models.OPERATORS, ...models.SYMBOLS)
+    key: z.enum([...models.DIGITS, ...models.OPERATORS, ...models.SYMBOLS])
   })
-  .description(
+  .describe(
     "Invoked when user presses a key - either digit, operator, or symbol"
-  )
-  .required();
+  );
 
 export const SubSubComplex = joi.object<models.SubSubComplex>({
   arrayFld: joi.array().items(joi.string()).required(),

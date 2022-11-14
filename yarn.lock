@@ -14,6 +14,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@anatine/zod-openapi@npm:^1.10.0":
+  version: 1.10.0
+  resolution: "@anatine/zod-openapi@npm:1.10.0"
+  dependencies:
+    ts-deepmerge: ^4.0.0
+  peerDependencies:
+    openapi3-ts: ^2.0.0 || ^3.0.0
+    zod: ^3.17.0 || ^3.18.0
+  checksum: 615370df0a13fee1075c3e0f5055a7bf31814920f0a45b1ca7077bcd6f5b31884c7d6e0227e97278ab554cebdc411f94aa40985dbab78860eb00d8047fc609a8
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:7.12.11":
   version: 7.12.11
   resolution: "@babel/code-frame@npm:7.12.11"
@@ -825,6 +837,7 @@ __metadata:
     "@rotorsoft/eventually-express": "workspace:^4"
     "@rotorsoft/eventually-pg": "workspace:^4"
     joi: ^17.6.0
+    zod: ^3.19.1
   languageName: unknown
   linkType: soft
 
@@ -851,6 +864,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
   dependencies:
+    "@anatine/zod-openapi": ^1.10.0
     "@rotorsoft/eventually": "workspace:^4"
     "@types/express": ^4.17.14
     axios: ^0.26.0
@@ -859,6 +873,7 @@ __metadata:
     joi: ^17.6.0
     joi-to-swagger: ^6.0.1
     openapi-types: ^12.0.2
+    openapi3-ts: ^3.1.1
     swagger-ui-express: ^4.3.0
   languageName: unknown
   linkType: soft
@@ -913,6 +928,7 @@ __metadata:
     chalk: ~4
     dotenv: ^16.0.0
     joi: ^17.6.0
+    zod: ^3.19.1
   languageName: unknown
   linkType: soft
 
@@ -4799,6 +4815,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"openapi3-ts@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "openapi3-ts@npm:3.1.1"
+  dependencies:
+    yaml: ^2.1.3
+  checksum: 33d102741c9c1b1426299254b83f229ddc274c7f91bde6843b45e4ae5753c5461e8618f7411769fdea0e3129393ddb81bf5cac127a2c54912344e2b6e54ca924
+  languageName: node
+  linkType: hard
+
 "openid-client@npm:^5.1.9":
   version: 5.1.9
   resolution: "openid-client@npm:5.1.9"
@@ -5979,6 +6004,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ts-deepmerge@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "ts-deepmerge@npm:4.0.0"
+  checksum: f0b3102a411895f1b2dce4387a94ea15a5ba0ca010e532ee3b88f942725d7c8d228ec9be20f4f7e95ebfd7aa1078cd8ac0dfa335358553423ee8b473d83a8d66
+  languageName: node
+  linkType: hard
+
 "ts-jest@npm:^27.1.4":
   version: 27.1.4
   resolution: "ts-jest@npm:27.1.4"
@@ -6524,6 +6556,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"yaml@npm:^2.1.3":
+  version: 2.1.3
+  resolution: "yaml@npm:2.1.3"
+  checksum: 91316062324a93f9cb547469092392e7d004ff8f70c40fecb420f042a4870b2181557350da56c92f07bd44b8f7a252b0be26e6ade1f548e1f4351bdd01c9d3c7
+  languageName: node
+  linkType: hard
+
 "yargs-parser@npm:20.x, yargs-parser@npm:^20.2.2":
   version: 20.2.9
   resolution: "yargs-parser@npm:20.2.9"
@@ -6550,5 +6589,12 @@ __metadata:
   version: 3.1.1
   resolution: "yn@npm:3.1.1"
   checksum: 2c487b0e149e746ef48cda9f8bad10fc83693cd69d7f9dcd8be4214e985de33a29c9e24f3c0d6bcf2288427040a8947406ab27f7af67ee9456e6b84854f02dd6
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.19.1":
+  version: 3.19.1
+  resolution: "zod@npm:3.19.1"
+  checksum: 56e420ea5845912324a8fc61833714a2aec84954e418b52660d76502183c6e62fef9447cbfa64349640c5ce190cf2c24267e006bb80f066183e2f3fa9fe11864
   languageName: node
   linkType: hard

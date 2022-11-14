@@ -14,9 +14,34 @@ import {
   CommittedEventSchema,
   getComponents,
   getSecurity,
-  StoreStatSchema,
-  toSwaggerSchema
+  toOpenAPISchema
 } from "./schemas";
+
+const response = (
+  schema: string,
+  description: string,
+  array = false
+): OpenAPIV3_1.ResponseObject => ({
+  description,
+  content: {
+    "application/json": {
+      schema: array
+        ? {
+            type: "array",
+            items: schema
+              ? {
+                  $ref: `#/components/schemas/${schema}`
+                }
+              : {}
+          }
+        : schema
+        ? {
+            $ref: `#/components/schemas/${schema}`
+          }
+        : {}
+    }
+  }
+});
 
 export const swagger = (app: Builder): OpenAPIV3_1.Document => {
   const getSchemas = (): void => {
@@ -25,16 +50,12 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
       .map(([name, { schema, commandHandlerFactory }]) => {
         if (commandHandlerFactory) {
           components.schemas[name] = schema
-            ? toSwaggerSchema(schema)
+            ? toOpenAPISchema(schema)
             : { type: "object" };
         } else {
-          const description = schema?._flags?.description;
-          description && (schema._flags.description = undefined);
-          components.schemas[name] = toSwaggerSchema(
+          components.schemas[name] = toOpenAPISchema(
             CommittedEventSchema(name, schema)
           );
-          components.schemas[name].name = name;
-          components.schemas[name].description = description;
         }
       });
   };
@@ -55,16 +76,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
         tags: [handler.name],
         summary: `Get ${handler.name} by Id`,
         responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: {
-                  $ref: `#/components/schemas/${handler.name}Snapshot`
-                }
-              }
-            }
-          },
+          "200": response(handler.name.concat("Snapshot"), "OK"),
           default: { description: "Internal Server Error" }
         }
       }
@@ -77,19 +89,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
         tags: [handler.name],
         summary: `Get ${handler.name} Stream by Id`,
         responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "array",
-                  items: {
-                    $ref: `#/components/schemas/${handler.name}Snapshot`
-                  }
-                }
-              }
-            }
-          },
+          "200": response(handler.name.concat("Snapshot"), "OK", true),
           default: { description: "Internal Server Error" }
         }
       }
@@ -105,7 +105,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
     const schema =
       reducible.schemas?.state || (reducible.schema && reducible.schema());
     if (schema) {
-      components.schemas[handler.name] = toSwaggerSchema(schema, components);
+      components.schemas[handler.name] = toOpenAPISchema(schema, components);
       components.schemas[handler.name.concat("Snapshot")] = {
         type: "object",
         properties: {
@@ -153,37 +153,13 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
                 }
               },
               responses: {
-                "200": {
-                  description: "OK",
-                  content: {
-                    "application/json": {
-                      schema: {
-                        type: "array",
-                        items: reducible
-                          ? {
-                              $ref: `#/components/schemas/${factory.name}Snapshot`
-                            }
-                          : {}
-                      }
-                    }
-                  }
-                },
-                "400": {
-                  description: "Validation Error",
-                  content: {
-                    "application/json": {
-                      schema: { $ref: "#/components/schemas/ValidationError" }
-                    }
-                  }
-                },
-                "409": {
-                  description: "Concurrency Error",
-                  content: {
-                    "application/json": {
-                      schema: { $ref: "#/components/schemas/ConcurrencyError" }
-                    }
-                  }
-                },
+                "200": response(
+                  reducible ? factory.name.concat("Snapshot") : "",
+                  "OK",
+                  true
+                ),
+                "400": response("ValidationError", "Validation Error"),
+                "409": response("ConcurrencyError", "Concurrency Error"),
                 default: { description: "Internal Server Error" }
               },
               security: sec.operations[name] || [{}]
@@ -218,45 +194,9 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
             }
           },
           responses: {
-            "200": {
-              description: "OK",
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "object",
-                    properties: {
-                      response: {
-                        type: "object",
-                        properties: {
-                          command: { type: "object" },
-                          id: { type: "string" },
-                          expectedVersion: { type: "integer" }
-                        }
-                      },
-                      state: {
-                        type: "object"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              description: "Validation Error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ValidationError" }
-                }
-              }
-            },
-            "404": {
-              description: "Registration Error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/RegistrationError" }
-                }
-              }
-            },
+            "200": response("PolicyResponse", "OK"),
+            "400": response("ValidationError", "Validation Error"),
+            "404": response("RegistrationError", "Registration Error"),
             default: { description: "Internal Server Error" }
           },
           security: sec.operations[factory.name] || [{}]
@@ -276,17 +216,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
         operationId: "getStats",
         summary: "Get Store Stats",
         responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "array",
-                  items: toSwaggerSchema(StoreStatSchema())
-                }
-              }
-            }
-          },
+          "200": response("StoreStats", "OK"),
           default: { description: "Internal Server Error" }
         },
         security: sec.operations["stats"] || [{}]
@@ -307,17 +237,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
         operationId: "getAll",
         summary: "Query All Stream",
         responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "array",
-                  items: toSwaggerSchema(CommittedEventSchema(""))
-                }
-              }
-            }
-          },
+          "200": response("CommittedEvent", "OK", true),
           default: { description: "Internal Server Error" }
         },
         security: sec.operations["all"] || [{}]

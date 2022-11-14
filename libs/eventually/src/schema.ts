@@ -1,3 +1,4 @@
+import { ZodError } from "zod";
 import { app } from ".";
 import {
   Message,
@@ -9,7 +10,7 @@ import {
 import { Schema } from "./types/schemas";
 
 /**
- * Validates payloads
+ * Validates payloads using either `joi` or `zod` schemas
  *
  * @param payload the payload
  * @returns validated payload when schema is provided
@@ -18,15 +19,29 @@ export const validate = <T extends Payload>(
   payload: T,
   schema: Schema<T>
 ): T => {
-  const { value, error } = schema.validate(payload, {
-    abortEarly: false,
-    allowUnknown: true
-  });
-  if (error)
-    throw new ValidationError(
-      error.details.flatMap((detail) => detail.message)
-    );
-  return value;
+  if ("validate" in schema) {
+    const { value, error } = schema.validate(payload, {
+      abortEarly: false,
+      allowUnknown: true
+    });
+    if (error)
+      throw new ValidationError(
+        error.details.flatMap((detail) => detail.message)
+      );
+    return value;
+  } else {
+    try {
+      return schema.parse(payload);
+    } catch (error) {
+      if (error instanceof ZodError)
+        throw new ValidationError(
+          Object.entries(error.flatten().fieldErrors).map(
+            ([field, details]) => `${field}: ${details.join(",")}`
+          )
+        );
+      throw new ValidationError(["zod validation error"]);
+    }
+  }
 };
 
 /**

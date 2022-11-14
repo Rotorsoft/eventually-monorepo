@@ -1,6 +1,4 @@
-import * as fs from "fs";
-import * as joi from "joi";
-import j2s, { ComponentsSchema, SwaggerSchema } from "joi-to-swagger";
+import { generateSchema } from "@anatine/zod-openapi";
 import {
   CommittedEvent,
   Errors,
@@ -8,9 +6,13 @@ import {
   Schema,
   StoreStat
 } from "@rotorsoft/eventually";
+import * as fs from "fs";
+import * as joi from "joi";
+import j2s from "joi-to-swagger";
+import { OpenAPIV3_1 } from "openapi-types";
 
 type Security = {
-  schemes: Payload;
+  schemes: Record<string, OpenAPIV3_1.SecuritySchemeObject>;
   operations: Record<string, Array<any>>;
 };
 
@@ -26,7 +28,7 @@ export const getSecurity = (): Security => {
   }
 };
 
-export const getComponents = (sec: Security): ComponentsSchema => ({
+export const getComponents = (sec: Security): OpenAPIV3_1.ComponentsObject => ({
   parameters: {
     id: {
       in: "path",
@@ -80,53 +82,78 @@ export const getComponents = (sec: Security): ComponentsSchema => ({
   },
   securitySchemes: sec.schemes,
   schemas: {
-    ValidationError: {
-      type: "object",
-      properties: {
-        message: {
-          type: "string",
-          enum: [Errors.ValidationError]
-        },
-        details: {
-          type: "array",
-          items: { type: "string" }
-        }
-      },
-      required: ["message", "details"]
-    },
-    RegistrationError: {
-      type: "object",
-      properties: {
-        message: {
-          type: "string",
-          enum: [Errors.RegistrationError]
-        },
-        details: { type: "string" }
-      }
-    },
-    ConcurrencyError: {
-      type: "object",
-      properties: {
-        message: {
-          type: "string",
-          enum: [Errors.ConcurrencyError]
-        },
-        lastVersion: { type: "integer" },
-        events: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string" },
-              data: { type: "object" }
-            },
-            required: ["name"]
-          }
-        },
-        expectedVersion: { type: "integer" }
-      },
-      required: ["message", "lastEvent", "events", "expectedVersion"]
-    }
+    ValidationError: j2s(
+      joi.object({
+        message: joi.string().required().valid(Errors.ValidationError),
+        details: joi.array().items(joi.string()).required()
+      })
+    ).swagger,
+    RegistrationError: j2s(
+      joi.object({
+        message: joi.string().required().valid(Errors.RegistrationError),
+        details: joi.string().required()
+      })
+    ).swagger,
+    ConcurrencyError: j2s(
+      joi.object({
+        message: joi.string().required().valid(Errors.ConcurrencyError),
+        lastVersion: joi.number().integer().required(),
+        events: joi
+          .array()
+          .items(
+            joi.object({
+              name: joi.string().required(),
+              data: joi.object({})
+            })
+          )
+          .required(),
+        expectedVersion: joi.number().integer().required()
+      })
+    ).swagger,
+    StoreStats: j2s(
+      joi
+        .array()
+        .items(
+          joi.object<StoreStat>({
+            name: joi.string().required(),
+            count: joi.number().integer().required(),
+            firstId: joi.number().integer().required(),
+            lastId: joi.number().integer().required(),
+            firstCreated: joi.date().required(),
+            lastCreated: joi.date().required()
+          })
+        )
+        .required()
+    ).swagger,
+    CommittedEvent: j2s(
+      joi.object({
+        name: joi.string().required(),
+        id: joi.number().integer().required(),
+        stream: joi.string().required(),
+        version: joi.number().integer().required(),
+        created: joi.date().required(),
+        data: joi.object().optional()
+      })
+    ).swagger,
+    PolicyResponse: j2s(
+      joi.object({
+        command: joi
+          .object({
+            name: joi.string().required(),
+            data: joi.object().optional(),
+            id: joi.string().optional(),
+            expectedVersion: joi.number().integer().optional(),
+            actor: joi
+              .object({
+                name: joi.string().required(),
+                roles: joi.array().required().items(joi.string())
+              })
+              .optional()
+          })
+          .optional(),
+        state: joi.object().optional()
+      })
+    ).swagger
   }
 });
 
@@ -143,17 +170,26 @@ export const CommittedEventSchema = <T extends Payload>(
     data: schema || joi.object().forbidden()
   });
 
-export const StoreStatSchema = (): Schema<StoreStat> =>
-  joi.object<StoreStat>({
-    name: joi.string().required(),
-    count: joi.number().integer().required(),
-    firstId: joi.number().integer(),
-    lastId: joi.number().integer(),
-    firstCreated: joi.date(),
-    lastCreated: joi.date()
-  });
-
-export const toSwaggerSchema = <T extends Payload>(
+/**
+ * Converts generic schemas (`joi`, `zod`) into OpenAPI Spec 3.1 SchemaObject
+ *
+ * @param schema the generic schema
+ * @param existingComponets optional existing swagger components
+ * @returns OpenAPI Schema Object
+ */
+export const toOpenAPISchema = <T extends Payload>(
   schema: Schema<T>,
-  existingComponets?: ComponentsSchema
-): SwaggerSchema => j2s(schema, existingComponets).swagger;
+  existingComponets?: OpenAPIV3_1.ComponentsObject
+): OpenAPIV3_1.SchemaObject => {
+  if ("validate" in schema) {
+    const description = schema?._flags?.description;
+    description && (schema._flags.description = undefined);
+    const { swagger } = j2s(schema, existingComponets);
+    swagger.description = description;
+    return swagger;
+  } else {
+    const result = generateSchema(schema) as OpenAPIV3_1.SchemaObject;
+    result.description = schema.description;
+    return result;
+  }
+};

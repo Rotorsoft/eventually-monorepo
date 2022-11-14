@@ -11,9 +11,10 @@ This project aims at exploring practical ideas around reactive micro-services. O
 - [Event Storming](https://www.eventstorming.com/)
 - [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html) - ES
 - [Command Query Responsibility Segregation](https://martinfowler.com/bliki/CQRS.html) - CQRS
+- [Hexagonal Architecture](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
+- [CUPID Principles](https://dannorth.net/2022/02/10/cupid-for-joyful-coding/)
 - [Test Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) - TDD
 - [TypeScript Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
-- [Yarn 2 Zero Installs](https://yarnpkg.com/features/zero-installs)- [Yarn 2 Plug'n'Play](https://yarnpkg.com/features/pnp)
 - [Yarn 2 Workspaces](https://yarnpkg.com/features/workspaces) - Monorepo Structure
 
 ## Logical Domain Models
