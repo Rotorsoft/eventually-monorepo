@@ -1,3 +1,5 @@
+#### 2022-11-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.2.2...@rotorsoft/eventually-express-v4.2.3) @rotorsoft/eventually-express-v4.2.3
+  - PATCH [5019e2a4](https://github.com/Rotorsoft/eventually-monorepo/commit/5019e2a4fb9387681ef67cfbd653818a7a579114) fix: add zod validation support
 #### 2022-11-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.3.2...@rotorsoft/eventually-v4.3.3) @rotorsoft/eventually-v4.3.3
   - PATCH [5019e2a4](https://github.com/Rotorsoft/eventually-monorepo/commit/5019e2a4fb9387681ef67cfbd653818a7a579114) fix: add zod validation support
 #### 2022-11-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.2.1...@rotorsoft/eventually-express-v4.2.2) @rotorsoft/eventually-express-v4.2.2
