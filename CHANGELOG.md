@@ -1,3 +1,5 @@
+#### 2022-11-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.3.3...@rotorsoft/eventually-v4.4.0) @rotorsoft/eventually-v4.4.0
+  - MINOR [860d4db4](https://github.com/Rotorsoft/eventually-monorepo/commit/860d4db47d70d74c75afccce20d78d33f5c5055e) feat: deprecated withCommandHandlers and withEventHandlers, removed swagger-ui-express, replaced joi with zod for internal validations, using TS strict
 #### 2022-11-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.2.2...@rotorsoft/eventually-express-v4.2.3) @rotorsoft/eventually-express-v4.2.3
   - PATCH [5019e2a4](https://github.com/Rotorsoft/eventually-monorepo/commit/5019e2a4fb9387681ef67cfbd653818a7a579114) fix: add zod validation support
 #### 2022-11-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.3.2...@rotorsoft/eventually-v4.3.3) @rotorsoft/eventually-v4.3.3
