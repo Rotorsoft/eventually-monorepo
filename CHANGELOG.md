@@ -1,3 +1,7 @@
+#### 2022-11-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.2.2...@rotorsoft/eventually-express-v4.2.3) @rotorsoft/eventually-express-v4.2.3
+  - PATCH [5019e2a4](https://github.com/Rotorsoft/eventually-monorepo/commit/5019e2a4fb9387681ef67cfbd653818a7a579114) fix: add zod validation support
+#### 2022-11-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.3.2...@rotorsoft/eventually-v4.3.3) @rotorsoft/eventually-v4.3.3
+  - PATCH [5019e2a4](https://github.com/Rotorsoft/eventually-monorepo/commit/5019e2a4fb9387681ef67cfbd653818a7a579114) fix: add zod validation support
 #### 2022-11-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.2.1...@rotorsoft/eventually-express-v4.2.2) @rotorsoft/eventually-express-v4.2.2
   - PATCH [45f4a8f5](https://github.com/Rotorsoft/eventually-monorepo/commit/45f4a8f50ce59c5485f48fc146a28460840b70ae) fix: encapsulate schemas to allow other validators like zod
 #### 2022-11-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.3.1...@rotorsoft/eventually-v4.3.2) @rotorsoft/eventually-v4.3.2
