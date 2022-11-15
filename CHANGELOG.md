@@ -1,3 +1,5 @@
+#### 2022-11-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.7.1...@rotorsoft/eventually-broker-v1.8.0) @rotorsoft/eventually-broker-v1.8.0
+  - MINOR [860d4db4](https://github.com/Rotorsoft/eventually-monorepo/commit/860d4db47d70d74c75afccce20d78d33f5c5055e) feat: deprecated withCommandHandlers and withEventHandlers, removed swagger-ui-express, replaced joi with zod for internal validations, using TS strict
 #### 2022-11-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.2.3...@rotorsoft/eventually-express-v4.3.0) @rotorsoft/eventually-express-v4.3.0
   - MINOR [860d4db4](https://github.com/Rotorsoft/eventually-monorepo/commit/860d4db47d70d74c75afccce20d78d33f5c5055e) feat: deprecated withCommandHandlers and withEventHandlers, removed swagger-ui-express, replaced joi with zod for internal validations, using TS strict
 #### 2022-11-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.1.1...@rotorsoft/eventually-pg-v4.2.0) @rotorsoft/eventually-pg-v4.2.0
