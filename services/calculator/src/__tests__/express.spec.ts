@@ -44,7 +44,7 @@ const pressKey = (
 const reset = (
   id: string
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  t.command(Calculator, bind("Reset", undefined, id));
+  t.command(Calculator, bind("Reset", {}, id));
 
 describe("express app", () => {
   beforeAll(async () => {
@@ -144,7 +144,7 @@ describe("express app", () => {
 
     it("should throw validation error", async () => {
       await expect(
-        t.command(Calculator, bind("PressKey", undefined, chance.guid()))
+        t.command(Calculator, bind("PressKey", {}, chance.guid()))
       ).rejects.toThrowError("Request failed with status code 400");
     });
 
@@ -204,7 +204,8 @@ describe("express app", () => {
           stream: chance.guid(),
           version: 1,
           created: new Date(),
-          name: "DigitPressed"
+          name: "DigitPressed",
+          data: {}
         })
       ).rejects.toThrowError("Request failed with status code 400");
     });
@@ -336,11 +337,6 @@ describe("express app", () => {
 
     it("should get redoc spec", async () => {
       const swagger = await t.get("/redoc");
-      expect(swagger.status).toBe(200);
-    });
-
-    it("should get rapidoc spec", async () => {
-      const swagger = await t.get("/rapidoc");
       expect(swagger.status).toBe(200);
     });
 

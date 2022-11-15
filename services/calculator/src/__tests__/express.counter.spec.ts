@@ -10,7 +10,7 @@ const port = 4001;
 const t = tester(port);
 
 const _app = app(new ExpressApp())
-  .withCommandHandlers(Calculator)
+  .withAggregate(Calculator)
   .withProcessManager(Counter);
 
 const pressKey = (

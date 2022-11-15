@@ -6,7 +6,7 @@ import { StreamListener } from "../interfaces";
 import { TriggerCallback } from "../types";
 
 export const PostgresStreamListener = (stream: string): StreamListener => {
-  let subscriber: Subscriber;
+  let subscriber: Subscriber | undefined;
 
   return {
     listen: async (callback: TriggerCallback) => {

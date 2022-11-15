@@ -37,7 +37,7 @@ export const breaker = (
   let successCount = 0;
   let nextAttempt = Date.now();
 
-  const success = <T>(data: T): Response<T> => {
+  const success = <T>(data?: T): Response<T> => {
     failureCount = 0;
     if (state === States.Yellow) {
       successCount++;
@@ -73,7 +73,7 @@ export const breaker = (
       try {
         const { error, data } = await promise();
         return error ? failure(error) : success(data);
-      } catch (err) {
+      } catch (err: any) {
         return failure(err.message as string);
       }
     },

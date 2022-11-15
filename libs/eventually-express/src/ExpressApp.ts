@@ -13,12 +13,10 @@ import {
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
-import { OpenAPIV3_1 } from "openapi-types";
-import * as swaggerUI from "swagger-ui-express";
-import { rapidoc, redoc } from "./docs";
+import { OpenAPIObject } from "openapi3-ts";
+import { home, redoc } from "./docs";
 import {
   allStreamHandler,
-  appHandler,
   commandHandler,
   errorHandler,
   eventHandler,
@@ -32,10 +30,10 @@ import { swagger } from "./swagger";
 export class ExpressApp extends AppBase {
   private _app = express();
   private _router = Router();
-  private _server: Server;
-  private _swagger: OpenAPIV3_1.Document;
+  private _server: Server | undefined;
+  private _swagger: OpenAPIObject | undefined;
 
-  public getSwagger(): OpenAPIV3_1.Document {
+  public getSwagger(): OpenAPIObject | undefined {
     return this._swagger;
   }
 
@@ -140,22 +138,10 @@ export class ExpressApp extends AppBase {
     middleware && this._app.use(middleware);
     this._app.use(this._router);
 
-    // swagger and other spec endpoints - TODO: pick one
+    // openapi
     this._swagger = swagger(this);
     this._app.get("/swagger", (_, res) => res.json(this._swagger));
-    this._app.use(
-      "/swagger-ui",
-      swaggerUI.serve,
-      swaggerUI.setup(this._swagger, {
-        swaggerOptions: {
-          deepLinking: true
-        }
-      })
-    );
     this._app.get("/redoc", (_, res) => res.type("html").send(redoc(service)));
-    this._app.get("/rapidoc", (_, res) =>
-      res.type("html").send(rapidoc(service))
-    );
 
     // health related
     this._app.get("/_endpoints", (_, res) => res.json(this.endpoints));
@@ -179,7 +165,7 @@ export class ExpressApp extends AppBase {
     const { service, version, env, logLevel } = config();
     port = port || config().port;
 
-    this._app.get("/", appHandler);
+    this._app.get("/", (_, res) => res.type("html").send(home()));
     this._app.use(errorHandler); // ensure catch-all is last handler
 
     const _config = { env, port, logLevel, service, version };
@@ -205,8 +191,8 @@ export class ExpressApp extends AppBase {
   async dispose(): Promise<void> {
     if (this._server) {
       await new Promise((resolve, reject) => {
-        this._server.once("close", resolve);
-        this._server.close(reject);
+        this._server && this._server.once("close", resolve);
+        this._server && this._server.close(reject);
       });
       this._server = undefined;
     }

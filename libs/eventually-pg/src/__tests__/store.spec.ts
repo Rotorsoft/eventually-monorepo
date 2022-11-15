@@ -117,7 +117,12 @@ describe("pg", () => {
     expect(events7.length).toBe(4);
 
     await expect(
-      db.commit(a1, [event("test2")], { correlation: "", causation: {} }, 1)
+      db.commit(
+        a1,
+        [event("test2", { value: "" })],
+        { correlation: "", causation: {} },
+        1
+      )
     ).rejects.toThrowError(Errors.ConcurrencyError as string);
   });
 

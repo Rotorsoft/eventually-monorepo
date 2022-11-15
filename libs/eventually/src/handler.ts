@@ -24,7 +24,8 @@ export const load = async <M extends Payload, E extends Messages>(
   useSnapshots = true,
   callback?: (snapshot: Snapshot<M, E>) => void
 ): Promise<Snapshot<M, E> & { applyCount: number }> => {
-  const snapshot = useSnapshots && (await app().readSnapshot(reducible));
+  const snapshot =
+    (useSnapshots && (await app().readSnapshot(reducible))) || undefined;
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
   let applyCount = 0;
@@ -71,7 +72,7 @@ export const handleMessage = async <
 
   const snapshot = reducible
     ? await load(reducible)
-    : { event: undefined, applyCount: 0 };
+    : { state: {} as M, applyCount: 0 };
 
   const events = await callback(snapshot.state);
   if (streamable && events.length) {
@@ -102,12 +103,9 @@ export const handleMessage = async <
         return { event, state };
       });
       // TODO: implement reliable async snapshotting - persist queue? start on app load?
-      void app().writeSnapshot(
-        reducible,
-        snapshots.at(-1),
-        snapshot.applyCount
-      );
+      const snap = snapshots.at(-1);
+      snap && void app().writeSnapshot(reducible, snap, snapshot.applyCount);
       return snapshots;
-    } else return committed.map((event) => ({ event }));
+    } else return committed.map((event) => ({ state: snapshot.state, event }));
   } else return [];
 };

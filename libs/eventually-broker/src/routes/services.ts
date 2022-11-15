@@ -1,4 +1,10 @@
-import { AllQuery, CommittedEvent, log, Payload } from "@rotorsoft/eventually";
+import {
+  Actor,
+  AllQuery,
+  CommittedEvent,
+  log,
+  Payload
+} from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import { state } from "../cluster";
@@ -33,11 +39,11 @@ router.get(
     req.query.add
       ? res.render(
           "add-service",
-          toViewState(req as unknown as Request, defaultService)
+          toViewState(req as { user?: Actor }, defaultService)
         )
       : res.render(
           "services",
-          toViewState(req as unknown as Request, {
+          toViewState(req as { user?: Actor }, {
             rows: prepare(state().services())
           })
         );
@@ -55,7 +61,7 @@ router.post(
       if (error) {
         res.render(
           "add-service",
-          toViewState(req, {
+          toViewState(req as { user?: Actor }, {
             class: "alert-warning",
             message: error.details.map((m) => m.message).join(", "),
             ...toService(req.body)
@@ -69,7 +75,7 @@ router.post(
       log().error(error);
       res.render(
         "add-service",
-        toViewState(req, {
+        toViewState(req as { user?: Actor }, {
           class: "alert-danger",
           message: "Oops, something went wrong! Please check your logs.",
           ...toService(req.body)
@@ -90,11 +96,14 @@ router.get("/:id", (req, res) => {
       .services()
       .find((s) => s.id === id);
     service
-      ? res.render("edit-service", toViewState(req, service))
-      : res.render("edit-service", toViewState(req, err));
+      ? res.render(
+          "edit-service",
+          toViewState(req as { user?: Actor }, service)
+        )
+      : res.render("edit-service", toViewState(req as { user?: Actor }, err));
   } catch (error) {
     log().error(error);
-    res.render("edit-service", toViewState(req, err));
+    res.render("edit-service", toViewState(req as { user?: Actor }, err));
   }
 });
 
@@ -110,7 +119,7 @@ router.post(
       if (error) {
         res.render(
           "edit-service",
-          toViewState(req, {
+          toViewState(req as { user?: Actor }, {
             class: "alert-warning",
             message: error.details.map((m) => m.message).join(", "),
             ...toService(req.body)
@@ -124,7 +133,7 @@ router.post(
       log().error(error);
       res.render(
         "edit-service",
-        toViewState(req, {
+        toViewState(req as { user?: Actor }, {
           class: "alert-danger",
           message: "Oops, something went wrong! Please check your logs.",
           ...toService(req.body)
@@ -139,7 +148,7 @@ router.delete("/:id", async (req, res) => {
   try {
     await subscriptions().deleteService(id);
     res.json({ deleted: true });
-  } catch (error) {
+  } catch (error: any) {
     log().error(error);
     res.json({ deleted: false, message: error.message });
   }
@@ -168,8 +177,8 @@ router.get(
         backward: !(after || created_after)
       };
 
-      const results = await getStream(service, query);
-      res.render("events", { id, stream: results, query });
+      const events = service ? await getStream(service, query) : [];
+      res.render("events", { id, stream: events, query });
     } catch (error) {
       res.render("services");
     }
@@ -185,8 +194,10 @@ router.get(
       const service = state()
         .services()
         .find((s) => s.id === id);
-      const event = await getStream(service, { after: eventid - 1, limit: 1 });
-      res.json(event);
+      const events = service
+        ? await getStream(service, { after: eventid - 1, limit: 1 })
+        : [];
+      res.json(events);
     } catch (error) {
       res.render("services");
     }
@@ -202,12 +213,14 @@ router.get(
       const service = state()
         .services()
         .find((s) => s.id === id);
-      const payloads = await getStream(service, {
-        stream,
-        limit: 100,
-        backward: true
-      });
-      res.json(payloads);
+      const events = service
+        ? await getStream(service, {
+            stream,
+            limit: 100,
+            backward: true
+          })
+        : [];
+      res.json(events);
     } catch (error) {
       res.render("services");
     }

@@ -11,7 +11,7 @@ export const InMemorySnapshotStore = (): SnapshotStore => {
       return Promise.resolve();
     },
 
-    seed: () => undefined,
+    seed: () => Promise.resolve(),
 
     read: (stream) => {
       _store[stream] &&

@@ -38,7 +38,7 @@ export const InMemoryStore = (): Store => {
       return Promise.resolve();
     },
 
-    seed: () => undefined,
+    seed: () => Promise.resolve(),
 
     query: (
       callback: (event: CommittedEvent) => void,
@@ -53,7 +53,7 @@ export const InMemoryStore = (): Store => {
         created_before,
         created_after,
         correlation
-      } = query;
+      } = query || {};
       let i = after + 1,
         count = 0;
       while (i < _events.length) {

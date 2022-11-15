@@ -1,46 +1,28 @@
-import * as joi from "joi";
-import { Config, config as target, extend } from "@rotorsoft/eventually";
+import z from "zod";
+import { config as target, extend } from "@rotorsoft/eventually";
 
-interface PgConfig {
-  pg: {
-    host: string;
-    user: string;
-    password: string;
-    database: string;
-    snapshotsTable: string;
-    port: number;
-  };
-}
+const Schema = z.object({
+  pg: z.object({
+    host: z.string().min(1),
+    user: z.string().min(1),
+    password: z.string().min(1),
+    database: z.string().min(1),
+    port: z.number().int().min(1000).max(65535)
+  })
+});
 
-const {
-  PG_HOST,
-  PG_USER,
-  PG_PASSWORD,
-  PG_DATABASE,
-  PG_SNAPSHOTS_TABLE,
-  PG_PORT
-} = process.env;
+const { PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE, PG_PORT } = process.env;
 
-export const config: Config & PgConfig = extend(
+export const config = extend(
   {
     pg: {
       host: PG_HOST,
       user: PG_USER,
       password: PG_PASSWORD,
       database: PG_DATABASE,
-      snapshotsTable: PG_SNAPSHOTS_TABLE || "snapshots",
       port: Number.parseInt(PG_PORT || "5432")
     }
   },
-  joi.object<PgConfig>({
-    pg: joi.object({
-      host: joi.string().required(),
-      user: joi.string().required(),
-      password: joi.string().required(),
-      database: joi.string().required(),
-      snapshotsTable: joi.string().optional(),
-      port: joi.number().port().required()
-    })
-  }),
+  Schema,
   target()
 );

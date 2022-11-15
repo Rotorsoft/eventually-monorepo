@@ -1,5 +1,3 @@
-import { Environments, LogLevels } from "../types/enums";
-
 export type Color =
   | "red"
   | "green"
@@ -45,20 +43,4 @@ export interface Log extends Disposable {
   trace(color: Color, message: string, ...params: any[]): void;
   info(color: Color, message: string, ...params: any[]): void;
   error(error: unknown): void;
-}
-
-/**
- * Base configuration
- */
-export interface Config extends Disposable {
-  env: Environments;
-  host: string;
-  port: number;
-  logLevel: LogLevels;
-  service: string;
-  version: string;
-  description: string;
-  author: string;
-  license: string;
-  dependencies: Record<string, string>;
 }

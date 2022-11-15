@@ -9,8 +9,8 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
 
   return {
     name: "InMemorySubscriptionStore",
-    dispose: () => undefined,
-    seed: () => undefined,
+    dispose: () => Promise.resolve(),
+    seed: () => Promise.resolve(),
     listen: (servicesCallback, subscriptionsCallback) => {
       _servicesCallback = servicesCallback;
       _subscriptionsCallback = subscriptionsCallback;

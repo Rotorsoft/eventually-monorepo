@@ -115,6 +115,8 @@ export class FakeChildProcess extends EventEmitter implements Worker {
   constructor(_id: number) {
     super();
     this.id = _id;
+    this.exitedAfterDisconnect = false;
+    this.process = new ChildProcess();
   }
 
   id: number;

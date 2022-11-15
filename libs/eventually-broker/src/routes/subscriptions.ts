@@ -1,4 +1,4 @@
-import { log, Payload } from "@rotorsoft/eventually";
+import { Actor, log, Payload } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state } from "../cluster";
@@ -44,7 +44,7 @@ router.get(
     req.query.add
       ? res.render(
           "add-subscription",
-          toViewState(req as unknown as Request, {
+          toViewState(req as { user?: Actor }, {
             ...defaultSubscription,
             services: state().services()
           })
@@ -52,7 +52,7 @@ router.get(
       : res.render(
           "subscriptions",
           toViewState(
-            req as unknown as Request,
+            req as { user?: Actor },
             toSubscriptionsView(
               req.query.search
                 ? await subscriptions().searchSubscriptions(req.query.search)
@@ -75,7 +75,7 @@ router.post(
       if (error) {
         res.render(
           "add-subscription",
-          toViewState(req, {
+          toViewState(req as { user?: Actor }, {
             class: "alert-warning",
             message: error.details.map((m) => m.message).join(", "),
             ...toSubscription(req.body),
@@ -90,7 +90,7 @@ router.post(
       log().error(error);
       res.render(
         "add-subscription",
-        toViewState(req, {
+        toViewState(req as { user?: Actor }, {
           class: "alert-danger",
           message: "Oops, something went wrong! Please check your logs.",
           ...toSubscription(req.body),
@@ -116,7 +116,7 @@ router.get("/:id", async (req, res) => {
     sub
       ? res.render(
           "edit-subscription",
-          toViewState(req, {
+          toViewState(req as { user?: Actor }, {
             ...props,
             ...sub,
             ...state().viewModel(sub)
@@ -124,7 +124,7 @@ router.get("/:id", async (req, res) => {
         )
       : res.render(
           "edit-subscription",
-          toViewState(req, {
+          toViewState(req as { user?: Actor }, {
             ...props,
             ...err
           })
@@ -133,7 +133,7 @@ router.get("/:id", async (req, res) => {
     log().error(error);
     res.render(
       "edit-subscription",
-      toViewState(req, {
+      toViewState(req as { user?: Actor }, {
         ...props,
         ...err
       })
@@ -161,7 +161,7 @@ router.post(
       if (error) {
         res.render(
           "edit-subscription",
-          toViewState(req, {
+          toViewState(req as { user?: Actor }, {
             class: "alert-warning",
             message: error.details.map((m) => m.message).join(", "),
             ...props
@@ -175,7 +175,7 @@ router.post(
       log().error(error);
       res.render(
         "edit-subscription",
-        toViewState(req, {
+        toViewState(req as { user?: Actor }, {
           class: "alert-danger",
           message: "Oops, something went wrong! Please check your logs.",
           ...props
@@ -190,7 +190,7 @@ router.delete("/:id", async (req, res) => {
   try {
     await subscriptions().deleteSubscription(id);
     res.json({ deleted: true });
-  } catch (error) {
+  } catch (error: any) {
     log().error(error);
     res.json({ deleted: false, message: error.message });
   }

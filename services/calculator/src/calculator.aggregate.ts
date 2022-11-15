@@ -54,19 +54,19 @@ export const Calculator = (
     result: 0
   }),
 
-  applyDigitPressed: (model, event) => {
+  applyDigitPressed: (model, { data }) => {
     if (model.operator) {
-      const right = (model.right || "").concat(event.data.digit);
+      const right = (model.right || "").concat(data.digit || "");
       return { ...model, right };
     }
-    const left = (model.left || "").concat(event.data.digit);
+    const left = (model.left || "").concat(data.digit || "");
     return { ...model, left };
   },
 
-  applyOperatorPressed: (model, event) => {
+  applyOperatorPressed: (model, { data }) => {
     if (model.left) {
       const newmodel = compute(model);
-      return { ...newmodel, operator: event.data.operator };
+      return { ...newmodel, operator: data.operator };
     }
     return { ...model };
   },
@@ -88,20 +88,24 @@ export const Calculator = (
 
   applyIgnored3: (model) => model,
 
-  onPressKey: async (data, state) => {
-    if (data.key === SYMBOLS[0]) {
-      return Promise.resolve([bind("DotPressed")]);
+  onPressKey: async ({ key }, state) => {
+    if (key === SYMBOLS[0]) {
+      return Promise.resolve([bind("DotPressed", {})]);
     }
-    if (data.key === SYMBOLS[1]) {
+    if (key === SYMBOLS[1]) {
       // let's say this is an invalid operation if there is no operator in the model
-      if (!state.operator) throw Error("Don't have an operator!");
-      return Promise.resolve([bind("EqualsPressed")]);
+      if (!state?.operator) throw Error("Don't have an operator!");
+      return Promise.resolve([bind("EqualsPressed", {})]);
     }
-    return DIGITS.includes(data.key as Digits)
-      ? [bind("DigitPressed", { digit: data.key as Digits })]
-      : [bind("OperatorPressed", { operator: data.key as Operators })];
+    return DIGITS.includes(key as Digits)
+      ? [bind("DigitPressed", { digit: key as Digits })]
+      : [bind("OperatorPressed", { operator: key as Operators })];
   },
 
   onReset: async () =>
-    Promise.resolve([bind("Cleared"), bind("Ignored3"), bind("Cleared")])
+    Promise.resolve([
+      bind("Cleared", {}),
+      bind("Ignored3", {}),
+      bind("Cleared", {})
+    ])
 });

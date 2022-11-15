@@ -3,8 +3,7 @@ import { Pool } from "pg";
 import { config } from "./config";
 import { snapshot } from "./seed";
 
-export const PostgresSnapshotStore = (table?: string): SnapshotStore => {
-  table = table || config.pg.snapshotsTable;
+export const PostgresSnapshotStore = (table: string): SnapshotStore => {
   const pool = new Pool(config.pg);
   const store: SnapshotStore = {
     name: `PostgresSnapshotStore:${table}`,

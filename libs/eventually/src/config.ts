@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 import * as fs from "fs";
-import * as joi from "joi";
-import { Config } from "./interfaces";
+import z from "zod";
 import { extend } from "./schema";
 import { singleton } from "./singleton";
 import { Package } from "./types/app";
@@ -14,41 +13,44 @@ const getPackage = (): Package => {
   return JSON.parse(pkg.toString()) as unknown as Package;
 };
 
+const Schema = z.object({
+  name: z.string().min(1),
+  env: z.nativeEnum(Environments),
+  host: z.string().min(5),
+  port: z.number().int().min(1000).max(65535),
+  logLevel: z.nativeEnum(LogLevels),
+  service: z.string().min(1),
+  version: z.string().min(1),
+  description: z.string().min(1),
+  author: z.string().min(1),
+  license: z.string().min(1),
+  dependencies: z.object({})
+});
+export type Config = z.infer<typeof Schema>;
+
 const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
 export const config = singleton(function config() {
   const pkg = getPackage();
   const parts = pkg.name.split("/");
-  const service = parts.at(-1);
-
-  return extend(
-    {
-      name: "config",
-      dispose: (): Promise<void> => Promise.resolve(),
-      env: (NODE_ENV as Environments) || Environments.development,
-      host: HOST || "http://localhost",
-      port: Number.parseInt(PORT || "3000"),
-      logLevel: (LOG_LEVEL as unknown as LogLevels) || LogLevels.error,
-      service,
-      version: pkg.version,
-      description: pkg.description,
-      author: `${pkg.author?.name} (${pkg.author?.email})`,
-      license: pkg.license,
-      dependencies: pkg.dependencies
-    },
-    joi
-      .object<Config>({
-        env: joi.string().valid(...Object.keys(Environments)),
-        host: joi.string().min(5),
-        port: joi.number().port(),
-        logLevel: joi.string().valid(...Object.keys(LogLevels)),
-        service: joi.string(),
-        version: joi.string(),
-        description: joi.string(),
-        author: joi.string(),
-        license: joi.string(),
-        dependencies: joi.object({})
-      })
-      .options({ presence: "required" })
-  );
+  const service = parts.at(-1) || "";
+  return {
+    ...extend(
+      {
+        name: "config",
+        env: (NODE_ENV as Environments) || Environments.development,
+        host: HOST || "http://localhost",
+        port: Number.parseInt(PORT || "3000"),
+        logLevel: (LOG_LEVEL as LogLevels) || LogLevels.error,
+        service,
+        version: pkg.version,
+        description: pkg.description,
+        author: `${pkg.author?.name} (${pkg.author?.email})`,
+        license: pkg.license,
+        dependencies: pkg.dependencies
+      },
+      Schema
+    ),
+    dispose: (): Promise<void> => Promise.resolve()
+  };
 });

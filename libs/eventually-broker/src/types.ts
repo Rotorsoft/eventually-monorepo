@@ -1,16 +1,16 @@
 import { CommittedEvent, Payload } from "@rotorsoft/eventually";
 import { RequestHandler } from "express";
-import { OpenAPIV3_1 } from "openapi-types";
+import { PathItemObject, SchemaObject } from "openapi3-ts";
 import { Breaker } from "./breaker";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
 
-export type ExtendedSchemaObject = OpenAPIV3_1.SchemaObject & {
+export type ExtendedSchemaObject = SchemaObject & {
   name: string;
   refs?: string[];
   inSnapshot?: boolean;
 };
 
-export type ExtendedPathItemObject = OpenAPIV3_1.PathItemObject & {
+export type ExtendedPathItemObject = PathItemObject & {
   path: string;
   refs?: string[];
 };

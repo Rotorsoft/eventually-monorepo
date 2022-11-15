@@ -90,7 +90,10 @@ export const tester = (port = 3000): Tester => {
         AxiosResponse<Snapshot<M, E>[]>
       >(
         url(
-          commandHandlerPath(factory, command.name).replace(":id", command.id)
+          commandHandlerPath(factory, command.name).replace(
+            ":id",
+            command?.id || ""
+          )
         ),
         command.data || {},
         { headers }

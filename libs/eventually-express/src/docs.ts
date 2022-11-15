@@ -1,3 +1,5 @@
+import { config, formatTime } from "@rotorsoft/eventually";
+
 export const redoc = (title: string): string => `<!DOCTYPE html>
 <html>
   <head>
@@ -18,17 +20,45 @@ export const redoc = (title: string): string => `<!DOCTYPE html>
   </body>
 </html>`;
 
-export const rapidoc = (title: string): string => `<!doctype html>
+export const home = (): string => {
+  const { service, env, logLevel } = config();
+  const status = {
+    env,
+    logLevel,
+    upTime: formatTime(process.uptime()),
+    ...Object.entries(process.memoryUsage())
+      .map(([k, v]) => ({
+        [k]: `${Math.round((v / 1024 / 1024) * 100) / 100}MB`
+      }))
+      .reduce((p, c) => Object.assign(p, c))
+  };
+
+  return `<!doctype html>
 <html>
-<head>
-  <title>${title}</title>
-  <meta charset="utf-8">
-  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
-</head>
-<body>
-  <rapi-doc
-    spec-url="/swagger"
-    theme = "dark"
-  > </rapi-doc>
-</body>
+  <head>
+    <title>${service}</title>
+    <meta charset="utf-8">
+    <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+  </head>
+  <body>
+    <rapi-doc spec-url="/swagger" theme="dark" show-header="false">
+      <div style="display:flex; font-size:12px; color:black; padding:12px 12px; margin: 0; background-color: #f76b39;">
+        <div style="display:flex">
+        ${Object.entries(status)
+          .map(
+            ([k, v]) =>
+              `<div style="display:flex;padding:12px;"><b>${k}</b>: ${v}</div>`
+          )
+          .join("")}
+        </div>
+        <div style="display:flex; flex-direction:column;">
+          <div><a href="/swagger">swagger</a></div>
+          <div><a href="/redoc">redoc</a></div>
+          <div><a href="/_health">health</a></div>
+          <div><a href="/_endpoints">endpoints<a></div>
+        </div>
+      </div>
+    </rapi-doc>
+  </body>
 </html>`;
+};

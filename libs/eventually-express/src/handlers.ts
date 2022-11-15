@@ -6,10 +6,8 @@ import {
   CommandAdapterFactory,
   CommandHandlerType,
   CommittedEvent,
-  config,
   Errors,
   EventHandlerFactory,
-  formatTime,
   log,
   Messages,
   Payload,
@@ -26,7 +24,7 @@ export const statsHandler = async (
   _: Request,
   res: Response,
   next: NextFunction
-): Promise<Response> => {
+): Promise<Response | undefined> => {
   try {
     const stats = await store().stats();
     return res.status(200).send(stats);
@@ -39,7 +37,7 @@ export const allStreamHandler = async (
   req: Request<any, CommittedEvent[], any, AllQuery>,
   res: Response,
   next: NextFunction
-): Promise<Response> => {
+): Promise<Response | undefined> => {
   try {
     const {
       stream,
@@ -78,7 +76,7 @@ export const getHandler =
     req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
-  ): Promise<Response> => {
+  ): Promise<Response | undefined> => {
     try {
       const { id } = req.params;
       const result = await callback(
@@ -86,13 +84,13 @@ export const getHandler =
         id,
         ["true", "1"].includes(req.query.useSnapshots as string)
       );
-      let etag = "-1";
+      let etag: string | undefined;
       if (Array.isArray(result)) {
-        result.length && (etag = result.at(-1).event.version.toString());
+        etag = result.at(-1)?.event?.version?.toString();
       } else if (result.event) {
         etag = result.event.version.toString();
       }
-      res.setHeader("ETag", etag);
+      etag && res.setHeader("ETag", etag);
       return res.status(200).send(result);
     } catch (error) {
       next(error);
@@ -105,7 +103,7 @@ export const snapshotQueryHandler =
     req: Request<any, Snapshot<Payload, any>, any, SnapshotsQuery>,
     res: Response,
     next: NextFunction
-  ): Promise<Response> => {
+  ): Promise<Response | undefined> => {
     try {
       const { limit = 10 } = req.query;
       const result = await store.query({
@@ -125,7 +123,7 @@ export const commandHandler =
     },
     res: Response,
     next: NextFunction
-  ): Promise<Response> => {
+  ): Promise<Response | undefined> => {
     try {
       const ifMatch = req.headers["if-match"] || undefined;
       const snapshots = await app().command(
@@ -137,7 +135,8 @@ export const commandHandler =
           req.actor
         )
       );
-      snapshots.length && res.setHeader("ETag", snapshots.at(-1).event.version);
+      const etag = snapshots.at(-1)?.event?.version;
+      etag && res.setHeader("ETag", etag);
       return res.status(200).send(snapshots);
     } catch (error) {
       next(error);
@@ -152,10 +151,11 @@ export const invokeHandler =
     },
     res: Response,
     next: NextFunction
-  ): Promise<Response> => {
+  ): Promise<Response | undefined> => {
     try {
       const snapshots = await app().invoke(factory, req.body);
-      snapshots.length && res.setHeader("ETag", snapshots.at(-1).event.version);
+      const etag = snapshots.at(-1)?.event?.version;
+      etag && res.setHeader("ETag", etag);
       return res.status(200).send(snapshots);
     } catch (error) {
       next(error);
@@ -168,7 +168,7 @@ export const eventHandler =
     req: Request<never, any, CommittedEvent>,
     res: Response,
     next: NextFunction
-  ): Promise<Response> => {
+  ): Promise<Response | undefined> => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const response = await app().event(factory, req.body as any);
@@ -177,39 +177,6 @@ export const eventHandler =
       next(error);
     }
   };
-
-export const appHandler = (_: Request, res: Response): Response => {
-  const {
-    service,
-    version,
-    env,
-    logLevel,
-    description,
-    author,
-    license,
-    dependencies
-  } = config();
-
-  return res.status(200).json({
-    env,
-    service,
-    version,
-    description,
-    author,
-    license,
-    dependencies,
-    logLevel,
-    mem: process.memoryUsage(),
-    uptime: formatTime(process.uptime()),
-    swagger: "/swagger",
-    "swagger-ui": "/swagger-ui",
-    redoc: "/redoc",
-    rapidoc: "/rapidoc",
-    health: "/_health",
-    endpoints: "/_endpoints",
-    contracts: "/_contracts"
-  });
-};
 
 export const errorHandler = (
   error: Error,

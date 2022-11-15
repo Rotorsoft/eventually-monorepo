@@ -7,7 +7,7 @@ import { Chance } from "chance";
 
 const chance = new Chance();
 
-app().withCommandHandlers(Calculator).build();
+app().withAggregate(Calculator).build();
 
 describe("trace in test mode", () => {
   beforeAll(async () => {

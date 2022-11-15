@@ -1,18 +1,16 @@
 import { generateSchema } from "@anatine/zod-openapi";
-import {
-  CommittedEvent,
-  Errors,
-  Payload,
-  Schema,
-  StoreStat
-} from "@rotorsoft/eventually";
+import { Errors, Payload, Schema } from "@rotorsoft/eventually";
 import * as fs from "fs";
-import * as joi from "joi";
 import j2s from "joi-to-swagger";
-import { OpenAPIV3_1 } from "openapi-types";
+import {
+  ComponentsObject,
+  SchemaObject,
+  SecuritySchemeObject
+} from "openapi3-ts";
+import z from "zod";
 
 type Security = {
-  schemes: Record<string, OpenAPIV3_1.SecuritySchemeObject>;
+  schemes: Record<string, SecuritySchemeObject>;
   operations: Record<string, Array<any>>;
 };
 
@@ -28,7 +26,7 @@ export const getSecurity = (): Security => {
   }
 };
 
-export const getComponents = (sec: Security): OpenAPIV3_1.ComponentsObject => ({
+export const getComponents = (sec: Security): ComponentsObject => ({
   parameters: {
     id: {
       in: "path",
@@ -82,93 +80,93 @@ export const getComponents = (sec: Security): OpenAPIV3_1.ComponentsObject => ({
   },
   securitySchemes: sec.schemes,
   schemas: {
-    ValidationError: j2s(
-      joi.object({
-        message: joi.string().required().valid(Errors.ValidationError),
-        details: joi.array().items(joi.string()).required()
+    ValidationError: generateSchema(
+      z.object({
+        message: z.enum([Errors.ValidationError]),
+        details: z.array(z.string())
       })
-    ).swagger,
-    RegistrationError: j2s(
-      joi.object({
-        message: joi.string().required().valid(Errors.RegistrationError),
-        details: joi.string().required()
+    ),
+    RegistrationError: generateSchema(
+      z.object({
+        message: z.enum([Errors.RegistrationError]),
+        details: z.string()
       })
-    ).swagger,
-    ConcurrencyError: j2s(
-      joi.object({
-        message: joi.string().required().valid(Errors.ConcurrencyError),
-        lastVersion: joi.number().integer().required(),
-        events: joi
-          .array()
-          .items(
-            joi.object({
-              name: joi.string().required(),
-              data: joi.object({})
-            })
-          )
-          .required(),
-        expectedVersion: joi.number().integer().required()
-      })
-    ).swagger,
-    StoreStats: j2s(
-      joi
-        .array()
-        .items(
-          joi.object<StoreStat>({
-            name: joi.string().required(),
-            count: joi.number().integer().required(),
-            firstId: joi.number().integer().required(),
-            lastId: joi.number().integer().required(),
-            firstCreated: joi.date().required(),
-            lastCreated: joi.date().required()
+    ),
+    ConcurrencyError: generateSchema(
+      z.object({
+        message: z.enum([Errors.ConcurrencyError]),
+        lastVersion: z.number().int(),
+        events: z.array(
+          z.object({
+            name: z.string(),
+            data: z.object({})
           })
-        )
-        .required()
-    ).swagger,
-    CommittedEvent: j2s(
-      joi.object({
-        name: joi.string().required(),
-        id: joi.number().integer().required(),
-        stream: joi.string().required(),
-        version: joi.number().integer().required(),
-        created: joi.date().required(),
-        data: joi.object().optional()
+        ),
+        expectedVersion: z.number().int()
       })
-    ).swagger,
-    PolicyResponse: j2s(
-      joi.object({
-        command: joi
+    ),
+    StoreStats: generateSchema(
+      z.array(
+        z.object({
+          name: z.string(),
+          count: z.number().int(),
+          firstId: z.number().int(),
+          lastId: z.number().int(),
+          firstCreated: z.date(),
+          lastCreated: z.date()
+        })
+      )
+    ),
+    CommittedEvent: generateSchema(
+      z.object({
+        name: z.string(),
+        id: z.number().int(),
+        stream: z.string(),
+        version: z.number().int(),
+        created: z.date(),
+        data: z.object({}).optional()
+      })
+    ),
+    PolicyResponse: generateSchema(
+      z.object({
+        command: z
           .object({
-            name: joi.string().required(),
-            data: joi.object().optional(),
-            id: joi.string().optional(),
-            expectedVersion: joi.number().integer().optional(),
-            actor: joi
+            name: z.string(),
+            data: z.object({}).optional(),
+            id: z.string().optional(),
+            expectedVersion: z.number().int().optional(),
+            actor: z
               .object({
-                name: joi.string().required(),
-                roles: joi.array().required().items(joi.string())
+                name: z.string(),
+                roles: z.array(z.string())
               })
               .optional()
           })
           .optional(),
-        state: joi.object().optional()
+        state: z.object({}).optional()
       })
-    ).swagger
+    )
   }
 });
 
 export const CommittedEventSchema = <T extends Payload>(
   name: string,
   schema?: Schema<T>
-): Schema<CommittedEvent> =>
-  joi.object({
-    name: joi.string().required().valid(name),
-    id: joi.number().integer().required(),
-    stream: joi.string().required(),
-    version: joi.number().integer().required(),
-    created: joi.date().required(),
-    data: schema || joi.object().forbidden()
-  });
+): SchemaObject => {
+  const committedEventSchema = generateSchema(
+    z.object({
+      name: z.enum([name]),
+      id: z.number().int(),
+      stream: z.string(),
+      version: z.number().int(),
+      created: z.date()
+    })
+  );
+  schema &&
+    committedEventSchema.properties &&
+    (committedEventSchema.properties["data"] = toOpenAPISchema(schema));
+  return committedEventSchema;
+};
 
 /**
  * Converts generic schemas (`joi`, `zod`) into OpenAPI Spec 3.1 SchemaObject
@@ -179,8 +177,8 @@ export const CommittedEventSchema = <T extends Payload>(
  */
 export const toOpenAPISchema = <T extends Payload>(
   schema: Schema<T>,
-  existingComponets?: OpenAPIV3_1.ComponentsObject
-): OpenAPIV3_1.SchemaObject => {
+  existingComponets?: ComponentsObject
+): SchemaObject => {
   if ("validate" in schema) {
     const description = schema?._flags?.description;
     description && (schema._flags.description = undefined);
@@ -188,7 +186,7 @@ export const toOpenAPISchema = <T extends Payload>(
     swagger.description = description;
     return swagger;
   } else {
-    const result = generateSchema(schema) as OpenAPIV3_1.SchemaObject;
+    const result = generateSchema(schema);
     result.description = schema.description;
     return result;
   }

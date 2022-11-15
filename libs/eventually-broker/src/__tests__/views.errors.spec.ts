@@ -15,20 +15,23 @@ import {
 
 const port = 3009;
 const store = InMemorySubscriptionStore();
+const oops = <T>(): T => {
+  throw Error();
+};
 
 describe("views", () => {
   beforeAll(async () => {
     jest.spyOn(cluster, "fork").mockReturnValue(new FakeChildProcess(2));
 
-    store.createService = undefined;
-    store.updateService = undefined;
-    store.deleteService = undefined;
-    store.createSubscription = undefined;
-    store.updateSubscription = undefined;
-    store.deleteSubscription = undefined;
-    store.toggleSubscription = undefined;
-    store.commitSubscriptionPosition = undefined;
-    store.commitServicePosition = undefined;
+    store.createService = oops;
+    store.updateService = oops;
+    store.deleteService = oops;
+    store.createSubscription = oops;
+    store.updateSubscription = oops;
+    store.deleteSubscription = oops;
+    store.toggleSubscription = oops;
+    store.commitSubscriptionPosition = oops;
+    store.commitServicePosition = oops;
     subscriptions(store);
     await broker({ subscriptionStoreFactory: InMemorySubscriptionStore, port });
   });
@@ -84,19 +87,19 @@ describe("views", () => {
   });
 
   it("should pass when toggle throws", async () => {
-    store.toggleSubscription = undefined;
+    store.toggleSubscription = oops;
     const response = await get("/command/toggle/s8", port);
     expect(response.status).toBe(200);
   });
 
   it("should pass when refresh throws", async () => {
-    state().refreshSubscription = undefined;
+    state().refreshSubscription = oops;
     const response = await get("/command/refresh/s8", port);
     expect(response.status).toBe(200);
   });
 
   it("should pass when load throws", async () => {
-    store.loadSubscriptions = undefined;
+    store.loadSubscriptions = oops;
     const response = await get("/subscriptions/s8", port);
     expect(response.status).toBe(200);
   });

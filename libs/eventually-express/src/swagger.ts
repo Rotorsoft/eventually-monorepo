@@ -9,7 +9,7 @@ import {
   Reducible,
   reduciblePath
 } from "@rotorsoft/eventually";
-import { OpenAPIV3_1 } from "openapi-types";
+import { OpenAPIObject, PathItemObject, ResponseObject } from "openapi3-ts";
 import {
   CommittedEventSchema,
   getComponents,
@@ -21,7 +21,7 @@ const response = (
   schema: string,
   description: string,
   array = false
-): OpenAPIV3_1.ResponseObject => ({
+): ResponseObject => ({
   description,
   content: {
     "application/json": {
@@ -43,19 +43,19 @@ const response = (
   }
 });
 
-export const swagger = (app: Builder): OpenAPIV3_1.Document => {
+export const swagger = (app: Builder): OpenAPIObject => {
   const getSchemas = (): void => {
     Object.entries(app.messages)
       .filter(([name]) => name != "state")
       .map(([name, { schema, commandHandlerFactory }]) => {
         if (commandHandlerFactory) {
-          components.schemas[name] = schema
-            ? toOpenAPISchema(schema)
-            : { type: "object" };
+          components.schemas &&
+            (components.schemas[name] = schema
+              ? toOpenAPISchema(schema)
+              : { type: "object" });
         } else {
-          components.schemas[name] = toOpenAPISchema(
-            CommittedEventSchema(name, schema)
-          );
+          components.schemas &&
+            (components.schemas[name] = CommittedEventSchema(name, schema));
         }
       });
   };
@@ -64,7 +64,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
     paths: Record<string, any>,
     handler: MessageHandlerFactory<Payload, any, any>
   ): void => {
-    if (!getReducible(handler(null))) return;
+    if (!getReducible(handler(""))) return;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const path = reduciblePath(handler as any).replace("/:id", "/{id}");
     if (paths[path]) return;
@@ -98,9 +98,9 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
 
   const getReducibleComponent = (
     handler: MessageHandlerFactory<Payload, any, any>
-  ): Reducible<Payload, any> => {
-    const reducible = getReducible(handler(null));
-    if (!reducible) return;
+  ): Reducible<Payload, any> | undefined => {
+    const reducible = getReducible(handler(""));
+    if (!reducible || !components.schemas) return;
     if (components.schemas[handler.name]) return reducible;
     const schema =
       reducible.schemas?.state || (reducible.schema && reducible.schema());
@@ -131,10 +131,10 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
           description: app.documentation[factory.name].description
         });
         Object.entries(commands).map(([name, path]) => {
+          const schema = components.schemas && components.schemas[name];
           const description =
-            components.schemas[name]?.description ||
+            (schema && "description" in schema && schema.description) ||
             `Handles **${name}** Command`;
-          delete components.schemas[name]?.description;
           paths[path.replace("/:id/", "/{id}/")] = {
             parameters: reducible
               ? [{ $ref: "#/components/parameters/id" }]
@@ -186,7 +186,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
             content: {
               "application/json": {
                 schema: {
-                  oneOf: messagesOf(factory(undefined)).map((name) => ({
+                  oneOf: messagesOf(factory("")).map((name) => ({
                     $ref: `#/components/schemas/${name}`
                   }))
                 }
@@ -208,7 +208,7 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
   const sec = getSecurity();
   const components = getComponents(sec);
   const tags: { name: string; description: string }[] = [];
-  const paths: Record<string, OpenAPIV3_1.PathItemObject> = {};
+  const paths: Record<string, PathItemObject> = {};
 
   if (app.hasStreams) {
     paths["/stats"] = {
@@ -247,12 +247,15 @@ export const swagger = (app: Builder): OpenAPIV3_1.Document => {
   getSchemas();
   getPaths();
 
+  const { service, version, description, author, license } = config();
   return {
     openapi: "3.0.3",
     info: {
-      title: config().service,
-      version: config().version,
-      description: config().description
+      title: service,
+      version: version,
+      description: description,
+      contact: { name: author },
+      license: { name: license }
     },
     servers: [{ url: "/" }],
     tags,

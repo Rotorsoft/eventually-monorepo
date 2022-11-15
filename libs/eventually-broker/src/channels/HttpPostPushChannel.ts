@@ -53,14 +53,20 @@ export const HttpPostPushChannel = (
   const axiosRequestHeaders = headers && toAxiosRequestHeaders(headers);
   return {
     label: "",
-    init: () => undefined,
+    init: () => Promise.resolve(),
     push: async (events) => {
       let lastCode = 200;
       while (events.length) {
         const event = events.shift();
-        event.response = await push(endpoint.href, event, axiosRequestHeaders);
-        lastCode = event.response.statusCode;
-        if (!CommittableHttpStatus.includes(lastCode)) break;
+        if (event) {
+          event.response = await push(
+            endpoint.href,
+            event,
+            axiosRequestHeaders
+          );
+          lastCode = event.response.statusCode;
+          if (!CommittableHttpStatus.includes(lastCode)) break;
+        }
       }
       return lastCode;
     }

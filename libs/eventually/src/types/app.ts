@@ -55,6 +55,6 @@ export type Endpoints = {
 
 export type SnapshotOptions = {
   store: SnapshotStore;
-  threshold?: number;
+  threshold: number;
   expose?: boolean;
 };

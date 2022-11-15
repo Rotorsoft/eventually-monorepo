@@ -13,17 +13,14 @@ export const CounterState = joi.object<models.CounterState>({
   count: joi.number().required()
 });
 
-export const DigitPressed = joi
+export const DigitPressed = z
   .object({
-    digit: joi
-      .string()
-      .required()
-      .valid(...models.DIGITS)
+    digit: z.enum([...models.DIGITS])
   })
-  .description(
+  .describe(
     "Generated when a **digit** is pressed\n\nThis is and example to use\n* markup language\n* inside descriptions"
-  )
-  .required();
+  );
+
 export const OperatorPressed = joi
   .object({
     operator: joi

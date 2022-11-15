@@ -36,7 +36,7 @@ const sendState = (state: SubscriptionState, logit = true): void => {
       JSON.stringify(state.stats.events),
       JSON.stringify(state.endpointStatus)
     );
-  process.send({ state });
+  process.send && process.send({ state });
 };
 
 type Sub = {
@@ -46,7 +46,7 @@ type Sub = {
 };
 
 export const work = async (options: AppOptions): Promise<void> => {
-  const config = JSON.parse(process.env.WORKER_ENV) as WorkerConfig;
+  const config = JSON.parse(process.env.WORKER_ENV || "") as WorkerConfig;
   const masterLoop = loop(config.id);
   const subs: Record<string, Sub> = {};
   let refreshTimer: NodeJS.Timeout;
@@ -66,7 +66,8 @@ export const work = async (options: AppOptions): Promise<void> => {
     retry_timeout_secs
   }: Subscription): Promise<SubscriptionState> => {
     const pushUrl = new URL(endpoint);
-    const pushFactory = options.resolvers.push[pushUrl.protocol];
+    const pushFactory =
+      options.resolvers && options.resolvers.push[pushUrl.protocol];
     if (!pushFactory) throw Error(`Cannot resolve push ${endpoint}`);
     const pushChannel = pushFactory(
       pushUrl,
@@ -118,7 +119,7 @@ export const work = async (options: AppOptions): Promise<void> => {
     const sub = subs[id];
     if (!sub || !sub.state.active) return;
 
-    process.send({ trigger });
+    process.send && process.send({ trigger });
     const { state, loop } = sub;
     log().info(
       "blue",
@@ -129,12 +130,13 @@ export const work = async (options: AppOptions): Promise<void> => {
     );
     try {
       channel_position = Math.max(channel_position, state.position);
-      if (trigger.position > channel_position) {
+      const trigger_position = trigger.position || -1;
+      if (trigger_position > channel_position) {
         await subscriptions().commitServicePosition(
           config.id,
-          trigger.position
+          trigger_position
         );
-        channel_position = trigger.position;
+        channel_position = trigger_position;
       }
 
       let count = state.batchSize;
@@ -164,7 +166,8 @@ export const work = async (options: AppOptions): Promise<void> => {
         // push events
         batch.length && (await state.pushChannel.push(batch));
 
-        let lastResponse: PushEvent, lastCommittable: PushEvent;
+        let lastResponse: PushEvent | undefined,
+          lastCommittable: PushEvent | undefined;
         for (const event of events) {
           if (!event.response) break;
           lastResponse = event;
@@ -196,43 +199,45 @@ export const work = async (options: AppOptions): Promise<void> => {
           state.position = lastCommittable.id;
         }
 
-        state.endpointStatus = {
-          name:
-            lastResponse.response.statusCode !== 204 ? lastResponse.name : "",
-          code: lastResponse.response.statusCode,
-          color: "success",
-          icon: "bi-activity",
-          status: lastResponse.response.statusText || "OK"
-        };
-
-        if (lastCommittable !== lastResponse) {
-          const retryable = RetryableHttpStatus.includes(
-            lastResponse.response.statusCode
-          );
-          state.endpointStatus.color = retryable ? "warning" : "danger";
-          state.endpointStatus.icon = "bi-cone-striped";
-          state.endpointStatus.error = {
-            trigger: `${triggerLog(
-              trigger.operation,
-              sub.retry_count,
-              lastResponse.id
-            )}`,
-            messages:
-              (lastResponse.response?.details && [
-                lastResponse.response.details
-              ]) ||
-              [],
-            position: lastResponse.id
+        if (lastResponse && lastResponse.response) {
+          state.endpointStatus = {
+            name:
+              lastResponse.response.statusCode !== 204 ? lastResponse.name : "",
+            code: lastResponse.response.statusCode,
+            color: "success",
+            icon: "bi-activity",
+            status: lastResponse.response.statusText || "OK"
           };
-          sendState(state);
-          return retryable;
+
+          if (lastCommittable !== lastResponse) {
+            const retryable = RetryableHttpStatus.includes(
+              lastResponse.response.statusCode
+            );
+            state.endpointStatus.color = retryable ? "warning" : "danger";
+            state.endpointStatus.icon = "bi-cone-striped";
+            state.endpointStatus.error = {
+              trigger: `${triggerLog(
+                trigger.operation,
+                sub.retry_count,
+                lastResponse.id
+              )}`,
+              messages:
+                (lastResponse.response?.details && [
+                  lastResponse.response.details
+                ]) ||
+                [],
+              position: lastResponse.id
+            };
+            sendState(state);
+            return retryable;
+          }
         }
 
         // send batch state and continue pumping until the end of the stream
         sub.retry_count = 0;
         sendState(state);
       }
-    } catch (error) {
+    } catch (error: any) {
       log().error(error);
       state.endpointStatus = {
         name: undefined,
@@ -341,7 +346,8 @@ export const work = async (options: AppOptions): Promise<void> => {
 
   try {
     const pullUrl = new URL(encodeURI(config.channel));
-    const pullFactory = options.resolvers.pull[pullUrl.protocol];
+    const pullFactory =
+      options.resolvers && options.resolvers.pull[pullUrl.protocol];
     if (!pullFactory) throw Error(`Cannot resolve pull ${config.channel}`);
     pullchannel(pullFactory(pullUrl, config.id));
     await Promise.all(
@@ -360,9 +366,9 @@ export const work = async (options: AppOptions): Promise<void> => {
       10 * 60 * 1000
     );
     await pullchannel().listen(pumpChannel);
-  } catch (error) {
+  } catch (error: any) {
     log().error(error);
-    process.send({ error: { message: error.message } });
+    process.send && process.send({ error: { message: error.message } });
     process.exit(0);
   }
 };

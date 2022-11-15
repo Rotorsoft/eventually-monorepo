@@ -33,7 +33,7 @@ export const store = singleton(function store(store?: Store) {
  */
 export const bind = <T extends Messages>(
   name: keyof T & string,
-  data?: Readonly<T[keyof T]>,
+  data: Readonly<T[keyof T]>,
   id?: string,
   expectedVersion?: number,
   actor?: Actor
@@ -183,7 +183,7 @@ export const commandHandlerPath = <
 ): string =>
   "/".concat(
     decamelize(handler.name),
-    getReducible(handler(undefined)) ? "/:id/" : "/",
+    getReducible(handler("")) ? "/:id/" : "/",
     decamelize(name)
   );
 

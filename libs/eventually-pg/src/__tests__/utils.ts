@@ -6,7 +6,7 @@ export type E = {
   test3: { value: string };
 };
 
-export const event = (name: keyof E, data?: E[keyof E]): Message =>
+export const event = (name: keyof E, data: E[keyof E]): Message =>
   bind<E>(name, data) as Message;
 
 export const sleep = (millis: number): Promise<void> =>

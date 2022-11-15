@@ -17,7 +17,7 @@ GET {{host}}/counter/Counter-Calculator-calc1
 GET {{host}}/counter/Counter-Calculator-calc1/stream
 ###
 
-POST {{host}}/calculator/calc2/press-key
+POST {{host}}/calculator/calc1/press-key
 Content-Type: application/json
 
 {

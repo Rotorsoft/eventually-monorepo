@@ -32,7 +32,7 @@ export const defaultResolvers: ChannelResolvers = {
 
 export const broker = async (
   options: AppOptions = { subscriptionStoreFactory: PostgresSubscriptionStore }
-): Promise<Express> | undefined => {
+): Promise<Express | undefined> => {
   subscriptions(options.subscriptionStoreFactory());
   options.resolvers = {
     push: { ...defaultResolvers.push, ...options?.resolvers?.push },

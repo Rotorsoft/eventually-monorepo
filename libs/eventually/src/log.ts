@@ -49,7 +49,7 @@ const nolog = (): void => {
 
 const testLog = (): Log => ({
   name: "testLog",
-  dispose: () => undefined,
+  dispose: () => Promise.resolve(),
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error: nolog
@@ -57,7 +57,7 @@ const testLog = (): Log => ({
 
 const devLog = (): Log => ({
   name: "devLog",
-  dispose: () => undefined,
+  dispose: () => Promise.resolve(),
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error: (error: unknown): void => {
@@ -71,7 +71,7 @@ const devLog = (): Log => ({
 
 const plainLog = (): Log => ({
   name: "plainLog",
-  dispose: () => undefined,
+  dispose: () => Promise.resolve(),
   trace: config().logLevel === LogLevels.trace ? plain : nolog,
   info: config().logLevel !== LogLevels.error ? plain : nolog,
   error: (error: unknown): void => {

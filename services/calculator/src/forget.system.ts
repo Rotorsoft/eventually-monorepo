@@ -10,5 +10,5 @@ export const Forget: ExternalSystemFactory<
 > = () => ({
   stream: () => "Forget",
   onWhatever: () => Promise.resolve([]),
-  onForget: () => Promise.resolve([bind("Forgotten")])
+  onForget: () => Promise.resolve([bind("Forgotten", {})])
 });

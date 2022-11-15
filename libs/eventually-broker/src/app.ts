@@ -23,11 +23,12 @@ export const app = async ({
   await subscriptions().seed();
   const services = await subscriptions().loadServices();
 
-  await state().init(services, {
-    resolvers,
-    serviceLogLinkTemplate,
-    secrets
-  });
+  resolvers &&
+    (await state().init(services, {
+      resolvers,
+      serviceLogLinkTemplate,
+      secrets
+    }));
 
   subscriptions().listen(
     ({ operation, id }) => state().refreshService(operation, id),

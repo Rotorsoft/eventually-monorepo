@@ -1,6 +1,6 @@
 import { log } from "@rotorsoft/eventually";
 import axios from "axios";
-import { OpenAPIV3_1 } from "openapi-types";
+import { OpenAPIObject, SchemaObject } from "openapi3-ts";
 import { breaker } from "./breaker";
 import { state } from "./cluster";
 import {
@@ -42,18 +42,18 @@ const HTTP_TIMEOUT = 5000;
  */
 const getServiceSwagger = async (
   service: Service
-): Promise<OpenAPIV3_1.Document | undefined> => {
+): Promise<OpenAPIObject | undefined> => {
   const url = new URL(service.url);
   if (!url.protocol.startsWith("http")) return undefined;
   const secretsQueryString = state().serviceSecretsQueryString(service.id);
   const path = `${url.origin}/swagger${secretsQueryString}`;
-  const { data } = await axios.get<OpenAPIV3_1.Document>(path, {
+  const { data } = await axios.get<OpenAPIObject>(path, {
     timeout: HTTP_TIMEOUT
   });
   return data;
 };
 
-const getSnapshotEvents = (schema: OpenAPIV3_1.SchemaObject): string[] => {
+const getSnapshotEvents = (schema: SchemaObject): string[] => {
   const refs = [] as string[];
   schema?.properties?.state &&
     schema?.properties?.event &&
@@ -62,11 +62,10 @@ const getSnapshotEvents = (schema: OpenAPIV3_1.SchemaObject): string[] => {
   return refs;
 };
 
-const getEvent = (
-  schema: OpenAPIV3_1.SchemaObject
-): ExtendedSchemaObject | undefined =>
+const getEvent = (schema: SchemaObject): ExtendedSchemaObject | undefined =>
   schema?.properties?.name &&
-  "enum" in schema?.properties?.name &&
+  "enum" in schema.properties.name &&
+  schema.properties.name.enum?.length &&
   schema?.properties?.created
     ? { ...schema, name: schema.properties.name.enum[0] }
     : undefined;
@@ -74,7 +73,7 @@ const getEvent = (
 const SCHEMA = "#/components/schemas/";
 const getRefs = (object: unknown, refs: string[]): void => {
   if (typeof object === "object") {
-    Object.entries(object).forEach(([key, value]) => {
+    Object.entries(object as object).forEach(([key, value]) => {
       if (key !== "$ref") getRefs(value, refs);
       else if (typeof value === "string" && value.startsWith(SCHEMA))
         refs.push(value.substring(SCHEMA.length));
@@ -82,12 +81,10 @@ const getRefs = (object: unknown, refs: string[]): void => {
   }
 };
 
-const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
-  const handlers: ExtendedPathItemObject[] = Object.entries(
-    document?.paths || {}
-  )
+const getSpec = (document: OpenAPIObject): ServiceSpec => {
+  const handlers = Object.entries(document?.paths || {})
     .map(([path, methods]) =>
-      Object.entries(methods).map(([method, operation]) => {
+      Object.entries(methods as object).map(([method, operation]) => {
         if (
           method === "post" &&
           typeof operation === "object" &&
@@ -98,7 +95,7 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
             path,
             refs: [] as string[]
           };
-          getRefs(operation.requestBody, handler.refs);
+          handler.refs && getRefs(operation.requestBody, handler.refs);
           return handler;
         }
       })
@@ -110,16 +107,16 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
     {},
     ...Object.values(document?.components?.schemas || {})
       .map((schema) => {
-        const event = getEvent(schema);
+        const event = getEvent(schema as SchemaObject);
         return event && { ...event, refs: [] };
       })
       .filter(Boolean)
-      .map((event) => ({ [event.name]: event }))
+      .map((event) => (event ? { [event.name]: event } : {}))
   ) as Record<string, ExtendedSchemaObject>;
 
   // flag snapshot events
   Object.values(document?.components?.schemas || {})
-    .map((schema) => getSnapshotEvents(schema))
+    .map((schema) => getSnapshotEvents(schema as SchemaObject))
     .flat()
     .filter(Boolean)
     .map((name) => {
@@ -129,14 +126,15 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
 
   const { commandHandlers, eventHandlers } = handlers.reduce(
     (map, handler) => {
-      const found = handler.refs.filter((ref) => {
+      const found = handler?.refs?.filter((ref) => {
         const schema = eventSchemas[ref];
-        schema && schema.refs.push(handler.path);
+        schema && schema.refs?.push(handler.path);
         return schema;
       });
-      found.length
-        ? map.eventHandlers.push(handler)
-        : map.commandHandlers.push(handler);
+      handler &&
+        (found?.length
+          ? map.eventHandlers.push(handler)
+          : map.commandHandlers.push(handler));
       return map;
     },
     {
@@ -167,8 +165,8 @@ const getSpec = (document: OpenAPIV3_1.Document): ServiceSpec => {
 
 // TODO: resolve payload conflicts between producer/consumer schemas
 const reduceConflicts = (
-  producer: OpenAPIV3_1.SchemaObject,
-  consumer: OpenAPIV3_1.SchemaObject,
+  producer: SchemaObject,
+  consumer: SchemaObject,
   conflicts: string[],
   path: string
 ): void => {
@@ -198,14 +196,16 @@ const reduceConflicts = (
   } else if (producer.type === "array") {
     // TODO: compare arrays
   } else if (producer.type === "object") {
-    Object.entries(producer.properties).forEach(([key, value]) => {
-      reduceConflicts(
-        value,
-        consumer.properties[key],
-        conflicts,
-        path.concat(key, "/")
-      );
-    });
+    producer.properties &&
+      Object.entries(producer.properties).forEach(([key, value]) => {
+        consumer.properties &&
+          reduceConflicts(
+            value as SchemaObject,
+            consumer.properties[key] as SchemaObject,
+            conflicts,
+            path.concat(key, "/")
+          );
+      });
   } else {
     // TODO: check primitive rules
   }
@@ -213,14 +213,16 @@ const reduceConflicts = (
 
 export const getConflicts = (event: EventContract): string[] => {
   const conflicts = [] as string[];
-  event.schema &&
+  const schema = event?.schema?.properties?.data;
+  schema &&
     Object.values(event.consumers).forEach((consumer) => {
-      reduceConflicts(
-        event.schema.properties.data,
-        consumer.schema.properties.data,
-        conflicts,
-        consumer.id
-      );
+      consumer?.schema?.properties?.data &&
+        reduceConflicts(
+          schema as SchemaObject,
+          consumer.schema.properties.data as SchemaObject,
+          conflicts,
+          consumer.id
+        );
     });
   return conflicts;
 };
@@ -290,18 +292,16 @@ export const refreshServiceSpec = async (service: Service): Promise<void> => {
       failureThreshold: 2,
       successThreshold: 2
     }));
-  const { data } = await service.breaker.exec<OpenAPIV3_1.Document>(
-    async () => {
-      try {
-        const data = await getServiceSwagger(service);
-        return { data };
-      } catch (err) {
-        log().error(err);
-        err.code === "ENOTFOUND" && service.breaker.pause();
-        return { error: err.message };
-      }
+  const { data } = await service.breaker.exec<OpenAPIObject>(async () => {
+    try {
+      const data = await getServiceSwagger(service);
+      return { data };
+    } catch (err: any) {
+      log().error(err);
+      err.code === "ENOTFOUND" && service.breaker && service.breaker.pause();
+      return { error: err.message };
     }
-  );
+  });
   if (data) {
     data.info && Object.assign(service, getSpec(data));
     refreshServiceEventContracts(service);

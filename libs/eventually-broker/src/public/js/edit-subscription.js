@@ -131,8 +131,8 @@ const refresh = ({
     </div>`);
 };
 
-const connect = () => {
-  const es = new EventSource(`/monitor/{{this.id}}`);
+const connect = (sub) => {
+  const es = new EventSource(`/monitor/${sub.id}`);
   es.addEventListener("state", ({ data }) => {
     const state = JSON.parse(data);
     refresh(state);
@@ -174,5 +174,5 @@ document.addEventListener("DOMContentLoaded", function () {
   statsDiv = document.getElementById("stats");
 
   refresh(sub);
-  connect();
+  connect(sub);
 });

@@ -3,6 +3,7 @@ import {
   bind,
   CommittedEvent,
   Message,
+  Payload,
   Policy,
   ProcessManagerFactory
 } from "@rotorsoft/eventually";
@@ -13,25 +14,21 @@ import { CounterState } from "./calculator.models";
 import * as schemas from "./calculator.schemas";
 
 const policy = async (
-  counter: CounterState,
+  counter: CounterState | undefined,
   event: CommittedEvent,
   threshold: number
-): Promise<Message<Commands>> => {
+): Promise<Message<Commands> | undefined> => {
   if (counter) {
     if (counter.count >= threshold - 1)
-      return bind(
-        "Reset",
-        undefined,
-        event.stream.substring("Calculator-".length)
-      );
+      return bind("Reset", {}, event.stream.substring("Calculator-".length));
   } else {
     const id = event.stream.substring("Calculator-".length);
     const { state } = await app().load(Calculator, id);
     if (
-      (state.left || "").length >= threshold ||
-      (state.right || "").length >= threshold
+      (state?.left || "").length >= threshold ||
+      (state?.right || "").length >= threshold
     )
-      return bind("Reset", undefined, id);
+      return bind("Reset", {}, id);
   }
 };
 
@@ -44,7 +41,7 @@ export const Counter: ProcessManagerFactory<
   CounterState,
   Commands,
   CounterEvents
-> = (eventOrId: CommittedEvent<CounterEvents>) => ({
+> = (eventOrId: CommittedEvent<CounterEvents> | string) => ({
   stream: () =>
     typeof eventOrId === "string" ? eventOrId : `Counter-${eventOrId.stream}`,
   schema: () => schemas.CounterState,
@@ -76,7 +73,7 @@ export const StatelessCounter = (): Policy<Commands, CounterEvents> => ({
 });
 
 export const IgnoredHandler = (): Policy<
-  undefined,
+  Record<string, Payload>,
   Pick<Events, "Ignored1" | "Ignored2">
 > => ({
   onIgnored1: () => undefined,

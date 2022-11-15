@@ -51,24 +51,24 @@ export const getCorrelation = async (
 ): Promise<Correlation[]> => {
   const services = state().services();
   const all = await Promise.all(
-    services
-      .filter((s) => s.breaker)
-      .map(async (s) => {
-        const { data } = await s.breaker.exec<CommittedEvent[]>(async () => {
-          try {
-            const data = await getServiceStream(s, {
-              correlation,
-              limit: 20
-            });
-            return { data };
-          } catch (err) {
-            log().error(err);
-            return { error: err.message };
-          }
-        });
-        // TODO: add source to causation
-        return data
-          ? data.map(({ id, name, stream, created, metadata }) => {
+    services.map(async (s) => {
+      if (!s.breaker) return [];
+      const { data } = await s.breaker.exec<CommittedEvent[]>(async () => {
+        try {
+          const data = await getServiceStream(s, {
+            correlation,
+            limit: 20
+          });
+          return { data };
+        } catch (err: any) {
+          log().error(err);
+          return { error: err.message };
+        }
+      });
+      // TODO: add source to causation
+      return data
+        ? data.map(({ id, name, stream, created, metadata }) => {
+            if (metadata) {
               const { command, event } = metadata.causation;
               const contract = event && getEventContract(event.name);
               const producer = contract && Object.keys(contract.producers)[0];
@@ -88,17 +88,21 @@ export const getCorrelation = async (
                       stream: event.stream
                     }
                   : {
-                      name: command?.name,
+                      name: command?.name || "",
                       type: "command",
                       aggregateid: command?.id
                     }
               };
               return cm;
-            })
-          : [];
-      })
+            }
+          })
+        : [];
+    })
   );
-  return all.flat().sort((a, b) => a.created.getTime() - b.created.getTime());
+  return all
+    .flat()
+    .filter((item): item is Correlation => !!item)
+    .sort((a, b) => a.created.getTime() - b.created.getTime());
 };
 
 /**
@@ -108,14 +112,19 @@ export const getStream = async (
   service: Service,
   query: AllQuery
 ): Promise<CommittedEvent[]> => {
-  const { data } = await service.breaker.exec<CommittedEvent[]>(async () => {
-    try {
-      const data = await getServiceStream(service, query);
-      return { data: query.backward ? data : data.reverse() };
-    } catch (err) {
-      log().error(err);
-      return { error: err.message };
-    }
-  });
-  return data || [];
+  if (service.breaker) {
+    const { data } = await service.breaker.exec<CommittedEvent[]>(async () => {
+      try {
+        const data = await getServiceStream(service, query);
+        return data
+          ? { data: query.backward ? data : data.reverse() }
+          : { data: [] };
+      } catch (err: any) {
+        log().error(err);
+        return { error: err.message };
+      }
+    });
+    return data || [];
+  }
+  return [];
 };

@@ -49,7 +49,7 @@ export const PostgresStore = (table: string): Store => {
         created_after,
         backward,
         correlation
-      } = query;
+      } = query || {};
 
       const values: any[] = [after];
       let sql = `SELECT * FROM ${table} WHERE id>$1`;
@@ -132,7 +132,7 @@ export const PostgresStore = (table: string): Store => {
           )
           .catch((error) => {
             log().error(error);
-            throw new ConcurrencyError(version, events, expectedVersion);
+            throw new ConcurrencyError(version, events, expectedVersion || -1);
           });
         return committed;
       } catch (error) {

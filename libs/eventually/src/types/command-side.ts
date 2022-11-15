@@ -41,8 +41,8 @@ export type Reducer<
  * Reducible snapshots after events are applied
  */
 export type Snapshot<M extends Payload, E extends Messages> = {
-  readonly event: CommittedEvent<E>;
-  readonly state?: M;
+  readonly state: M;
+  readonly event?: CommittedEvent<E>; // undefined when initialized
 };
 
 /**
@@ -57,8 +57,8 @@ export type Aggregate<
 > = Reducible<M, E> &
   WithSchemas<C, E> & {
     [Key in keyof C as `on${Capitalize<Key & string>}`]: (
-      data?: Readonly<C[Key]>,
-      state?: Readonly<M>
+      data: Readonly<C[Key]>,
+      state: Readonly<M>
     ) => Promise<Message<E>[]>;
   };
 export type AggregateFactory<
@@ -77,7 +77,7 @@ export type ExternalSystem<
 > = Streamable &
   WithSchemas<C, E> & {
     [Key in keyof C as `on${Capitalize<Key & string>}`]: (
-      data?: Readonly<C[Key]>
+      data: Readonly<C[Key]>
     ) => Promise<Message<E>[]>;
   };
 export type ExternalSystemFactory<
@@ -94,7 +94,7 @@ export type Policy<C extends Messages, E extends Messages> = WithSchemas<
 > & {
   [Key in keyof E as `on${Capitalize<Key & string>}`]: (
     event: Readonly<CommittedEvent<Pick<E, Key>>>
-  ) => Promise<Command<C> | undefined>;
+  ) => Promise<Command<C> | undefined> | undefined;
 };
 export type PolicyFactory<
   C extends Messages,
@@ -114,7 +114,7 @@ export type ProcessManager<
     [Key in keyof E as `on${Capitalize<Key & string>}`]: (
       event: Readonly<CommittedEvent<Pick<E, Key>>>,
       state: Readonly<M>
-    ) => Promise<Command<C> | undefined>;
+    ) => Promise<Command<C> | undefined> | undefined;
   };
 export type ProcessManagerFactory<
   M extends Payload,

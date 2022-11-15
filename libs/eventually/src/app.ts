@@ -78,7 +78,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
     const { data } = validateMessage<C>(command);
-    const handler = factory(id);
+    const handler = factory(id || "");
     Object.setPrototypeOf(handler, factory as object);
     return await handleMessage(
       handler,
@@ -135,7 +135,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     );
     return {
       command,
-      state: (snapshots.length && snapshots.at(-1).state) || undefined
+      state: snapshots.at(-1)?.state
     };
   }
 

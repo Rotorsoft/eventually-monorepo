@@ -7,7 +7,7 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
   const eventName = camelize(id);
   const cron =
     decodeURIComponent(channel.hostname) + decodeURIComponent(channel.pathname);
-  let job: CronJob;
+  let job: CronJob | undefined;
   let tick: number, version: number;
 
   return {

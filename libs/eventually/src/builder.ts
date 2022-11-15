@@ -66,10 +66,11 @@ export class Builder {
     M extends Payload,
     C extends Messages,
     E extends Messages
-  >(factory: EventHandlerFactory<M, C, E>, description?: string): void {
+  >(factory: EventHandlerFactory<M, C, E>, description = ""): void {
     if (this._factories.eventHandlers[factory.name])
       throw Error(`Duplicate event handler ${factory.name}`);
-    this._factories.eventHandlers[factory.name] = factory;
+    this._factories.eventHandlers[factory.name] =
+      factory as EventHandlerFactory<Payload, any, any>;
     this.documentation[factory.name] = { description };
     this._registerSchemas(factory(""));
   }
@@ -78,10 +79,11 @@ export class Builder {
     M extends Payload,
     C extends Messages,
     E extends Messages
-  >(factory: CommandHandlerFactory<M, C, E>, description?: string): void {
+  >(factory: CommandHandlerFactory<M, C, E>, description = ""): void {
     if (this._factories.commandHandlers[factory.name])
       throw Error(`Duplicate command handler ${factory.name}`);
-    this._factories.commandHandlers[factory.name] = factory;
+    this._factories.commandHandlers[factory.name] =
+      factory as CommandHandlerFactory<Payload, any, any>;
     this.documentation[factory.name] = { description };
     this._registerSchemas(factory(""));
   }
@@ -102,17 +104,6 @@ export class Builder {
     Object.entries(schemas).map(([key, value]): void => {
       this._msg(key).schema = value as any;
     });
-    return this;
-  }
-
-  /**
-   * Registers event handler factories
-   * @param factories event handler factories
-   */
-  withEventHandlers(
-    ...factories: EventHandlerFactory<Payload, any, any>[]
-  ): this {
-    factories.map((f) => this._registerEventHandlerFactory(f));
     return this;
   }
 
@@ -143,24 +134,14 @@ export class Builder {
   }
 
   /**
-   * Registers command handler factories
-   * @param factories command handler factories
-   */
-  withCommandHandlers(
-    ...factories: CommandHandlerFactory<Payload, any, any>[]
-  ): this {
-    factories.map((f) => this._registerCommandHandlerFactory(f));
-    return this;
-  }
-
-  /**
    * Registers command adapters
    * @param factory command adapter factory
    */
   withCommandAdapter<P extends Payload, C extends Messages>(
     factory: CommandAdapterFactory<P, C>
   ): this {
-    this._factories.commandAdapters[factory.name] = factory;
+    this._factories.commandAdapters[factory.name] =
+      factory as CommandAdapterFactory<Payload, any>;
     this._msg(factory.name).schema = factory().schema;
     return this;
   }
@@ -239,17 +220,18 @@ export class Builder {
     this.endpoints.version = config().version;
     // command handlers
     Object.values(this._factories.commandHandlers).forEach((factory) => {
-      const handler = factory(undefined);
+      const handler = factory("");
       const reducible = getReducible(handler);
       const type: CommandHandlerType = reducible
         ? "aggregate"
         : "external-system";
       const events =
-        reducible &&
-        eventsOf(reducible).map((name) => {
-          this._msg(name);
-          return name;
-        });
+        (reducible &&
+          eventsOf(reducible).map((name) => {
+            this._msg(name);
+            return name;
+          })) ||
+        [];
       const endpoint = (this.endpoints.commandHandlers[factory.name] = {
         type,
         factory,
@@ -266,7 +248,7 @@ export class Builder {
 
     // event handlers
     Object.values(this._factories.eventHandlers).forEach((factory) => {
-      const handler = factory(undefined);
+      const handler = factory("");
       const reducible = getReducible(handler);
       const type: EventHandlerType = reducible ? "process-manager" : "policy";
       const path = eventHandlerPath(factory);

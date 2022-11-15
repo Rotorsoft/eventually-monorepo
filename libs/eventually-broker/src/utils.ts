@@ -15,7 +15,7 @@ const usdf = new Intl.DateTimeFormat("en-US", {
 
 export const formatInt = (int: number): string => {
   try {
-    usnf.format(int);
+    return usnf.format(int);
   } catch {
     return "-";
   }
@@ -70,7 +70,7 @@ export const toAxiosRequestHeaders = (payload: Payload): AxiosRequestHeaders =>
     h[key] =
       typeof val === "boolean" || typeof val === "number"
         ? val
-        : val.toString();
+        : (val as any).toString();
     return h;
   }, {} as AxiosRequestHeaders);
 
@@ -131,9 +131,11 @@ export const loop = (name: string): Loop => {
       running = true;
       while (queue.length) {
         if (status === "stopping") break;
-        const { id, action, callback } = queue.shift();
-        const result = await action();
-        callback && callback(id, result);
+        const action = queue.shift();
+        if (action) {
+          const result = await action.action();
+          action.callback && action.callback(action.id, result);
+        }
       }
       status = "stopped";
       running = false;

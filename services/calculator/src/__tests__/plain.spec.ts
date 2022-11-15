@@ -15,7 +15,7 @@ const TestSchema = joi.object<TestMsg>({
 
 const chance = new Chance();
 
-app().withCommandHandlers(Calculator).build();
+app().withAggregate(Calculator).build();
 
 describe("trace in prod mode", () => {
   beforeAll(async () => {

@@ -18,7 +18,8 @@ import {
   SubscriptionViewModel,
   WorkerMessage,
   ServiceWithWorker,
-  StateOptions
+  StateOptions,
+  EventStats
 } from "./types";
 
 export const toViewModel = (
@@ -39,10 +40,13 @@ export const toViewModel = (
       consumer.eventHandlers &&
       consumer.eventHandlers["/".concat(path)]?.refs) ||
     [];
-  const eventsMap = events.reduce((map, name) => {
-    map[name] = emptyEventModel(name, true);
-    return map;
-  }, {} as Record<string, EventsViewModel>);
+  const eventsMap = events.reduce(
+    (map: Record<string, EventsViewModel>, name: string) => {
+      map[name] = emptyEventModel(name, true);
+      return map;
+    },
+    {} as Record<string, EventsViewModel>
+  );
   stats &&
     Object.entries(stats.events).map(([name, value]) => {
       const event = (eventsMap[name] =
@@ -51,7 +55,7 @@ export const toViewModel = (
       event.ignored = value[204];
       Object.entries(value).map(([status, stats]) => {
         if (CommittableHttpStatus.includes(+status)) return;
-        const stat = RetryableHttpStatus.includes(+status)
+        const stat: EventStats = RetryableHttpStatus.includes(+status)
           ? event.retryable
           : event.critical;
         stat.count += stats.count;
@@ -143,10 +147,9 @@ export const state = singleton(function state(): State {
         clearTimeout(_timers[id]);
         delete _timers[id];
       }
-      if (_services[id] && _services[id].config)
-        throw Error(
-          `Service ${id} has active worker ${_services[id].config.workerId}`
-        );
+      const activeWorker = _services[id] && _services[id].config;
+      if (activeWorker)
+        throw Error(`Service ${id} has active worker ${activeWorker.workerId}`);
 
       const service = (_services[id] = (
         await subscriptions().loadServices(id)
@@ -220,7 +223,7 @@ export const state = singleton(function state(): State {
     const found = Object.values(_sse).filter(
       ({ id }) => subid === (id || subid)
     );
-    if (found.length) {
+    if (found.length && state) {
       !view &&
         (view = _views[state.id] =
           toViewModel(
@@ -229,7 +232,7 @@ export const state = singleton(function state(): State {
             _services[state.consumer]
           ));
       found.forEach(({ stream }) => {
-        stream.write(`id: ${view.id}\n`);
+        stream.write(`id: ${subid}\n`);
         stream.write(`event: state\n`);
         stream.write(`data: ${JSON.stringify(view)}\n\n`);
       });
@@ -265,13 +268,14 @@ export const state = singleton(function state(): State {
       const producer = Object.values(_services).find(
         (service) => service && service.config?.workerId === workerId
       );
-      if (!producer) return;
-      error && _error(producer.config, error);
-      trigger &&
-        (producer.position = Math.max(
-          producer.position,
-          trigger.position || -1
-        ));
+      if (producer) {
+        error && producer.config && _error(producer.config, error);
+        trigger &&
+          (producer.position = Math.max(
+            producer.position,
+            trigger.position || -1
+          ));
+      }
     }
   };
 
@@ -288,9 +292,9 @@ export const state = singleton(function state(): State {
     );
     if (!producer) return;
 
-    _error(producer.config, { message });
+    producer.config && _error(producer.config, { message });
     producer.status = message;
-    const runs = producer.config.runs + 1;
+    const runs = (producer.config?.runs || 0) + 1;
     delete producer.config;
 
     // retry worker MAX_RUNS times after exits
@@ -344,7 +348,8 @@ export const state = singleton(function state(): State {
     log().trace("bgWhite", JSON.stringify({ operation, id }));
     try {
       const config = _services[id]?.config;
-      const worker = config && cluster.workers[config.workerId];
+      const worker =
+        config && cluster.workers && cluster.workers[config.workerId];
       if (operation === "DELETE") delete _services[id];
       if (worker) {
         // kill running worker, onExit will restart it at run=0
@@ -370,13 +375,15 @@ export const state = singleton(function state(): State {
         const existingWorker =
           existingService &&
           existingService.config &&
+          cluster.workers &&
           cluster.workers[existingService.config.workerId];
         if (existingWorker && existingService.id !== sub.producer) {
           // delete from existing worker when changing producer
           existingWorker.send({ operation: "DELETE", sub });
         }
         const config = _services[sub.producer]?.config;
-        const worker = config && cluster.workers[config.workerId];
+        const worker =
+          config && cluster.workers && cluster.workers[config.workerId];
         if (worker) {
           config.runs = 0;
           if (sub.active) config.subscriptions[id] = sub;
@@ -440,14 +447,18 @@ export const state = singleton(function state(): State {
         )) ||
       "",
     serviceLogLink: (id: string): string =>
-      _options.serviceLogLinkTemplate &&
-      encodeURI(_options.serviceLogLinkTemplate.replaceAll("<<SERVICE>>", id)),
+      (_options.serviceLogLinkTemplate &&
+        encodeURI(
+          _options.serviceLogLinkTemplate.replaceAll("<<SERVICE>>", id)
+        )) ||
+      "",
     subscribeSSE,
     unsubscribeSSE,
     viewModel: (sub: Subscription): SubscriptionViewModel => {
       const service = _services[sub.producer];
       const config = service?.config;
-      const worker = config && cluster.workers[config.workerId];
+      const worker =
+        config && cluster.workers && cluster.workers[config.workerId];
       worker && worker.send({ operation: "REFRESH", sub });
       return _view(
         sub.id,
@@ -469,7 +480,7 @@ export const state = singleton(function state(): State {
     },
     state: () =>
       Object.values(_services)
-        .filter((service) => service && service.config)
-        .map((service) => service.config)
+        .map((service) => service && service.config)
+        .filter((config): config is WorkerConfig => !!config)
   };
 });

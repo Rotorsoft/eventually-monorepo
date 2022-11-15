@@ -4,8 +4,8 @@ import { Counter } from "../counter.policy";
 
 describe("builder errors", () => {
   it("should throw duplicate command handler", () => {
-    app().withCommandHandlers(Calculator);
-    expect(() => app().withCommandHandlers(Calculator)).toThrowError(
+    app().withAggregate(Calculator);
+    expect(() => app().withAggregate(Calculator)).toThrowError(
       "Duplicate command handler Calculator"
     );
   });

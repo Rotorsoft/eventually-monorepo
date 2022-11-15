@@ -30,7 +30,9 @@ export const IntegrateAccount3 = (): Policy<
 > => ({
   onAccount2Created: (event) => {
     // we don't have much to do here, just return the command to external system 3
-    return Promise.resolve(bind("CreateAccount3", { id: event.data.id }));
+    return Promise.resolve(
+      bind("CreateAccount3", { id: event?.data?.id || "" })
+    );
   }
 });
 
@@ -64,17 +66,17 @@ export const WaitForAllAndComplete: ProcessManagerFactory<
     // make sure all accounts are created
     if (data.account1)
       return Promise.resolve(
-        bind("CompleteIntegration", { id: event.data.id })
+        bind("CompleteIntegration", { id: event?.data?.id || "" })
       );
   },
 
   applyAccount1Created: (state, event) => ({
     ...state,
-    account1: event.data.externalId
+    account1: event?.data?.externalId
   }),
 
   applyAccount3Created: (state, event) => ({
     ...state,
-    account3: event.data.externalId
+    account3: event?.data?.externalId
   })
 });

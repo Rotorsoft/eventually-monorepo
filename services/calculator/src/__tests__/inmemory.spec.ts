@@ -26,7 +26,7 @@ const t = tester();
 const ss = InMemorySnapshotStore();
 
 app()
-  .withCommandHandlers(Forget)
+  .withExternalSystem(Forget)
   .withAggregate(Calculator, "testing calculator", {
     store: ss,
     threshold: 2
@@ -43,7 +43,7 @@ const pressKey = (
   app().command(bind("PressKey", { key }, id));
 
 const reset = (id: string): Promise<Snapshot<CalculatorModel, Events>[]> =>
-  app().command(bind("Reset", undefined, id));
+  app().command(bind("Reset", {}, id));
 
 describe("in memory", () => {
   beforeAll(async () => {
@@ -214,7 +214,7 @@ describe("in memory", () => {
 
     it("should throw validation error", async () => {
       await expect(
-        app().command(bind("PressKey", undefined, chance.guid()))
+        app().command(bind("PressKey", {}, chance.guid()))
       ).rejects.toThrowError(Errors.ValidationError);
     });
 
@@ -246,7 +246,7 @@ describe("in memory", () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const stream = await app().stream(
         Counter,
-        "Counter-".concat(event.stream)
+        "Counter-".concat(event?.stream || "")
       );
       expect(stream.length).toBe(5);
     });
@@ -352,7 +352,7 @@ describe("in memory", () => {
     const event = <E extends Messages>(
       name: keyof E & string,
       stream: string,
-      data?: E[keyof E] & Payload
+      data: E[keyof E] & Payload
     ): CommittedEvent<E> => ({
       id: 0,
       stream,
@@ -380,11 +380,11 @@ describe("in memory", () => {
     it("should cover ignored handler", async () => {
       const r1 = await app().event(
         IgnoredHandler,
-        event("Ignored1", "ignored")
+        event("Ignored1", "ignored", {})
       );
       const r2 = await app().event(
         IgnoredHandler,
-        event("Ignored2", "ignored")
+        event("Ignored2", "ignored", {})
       );
       expect(r1.command).toBeUndefined();
       expect(r2.state).toBeUndefined();
@@ -396,17 +396,17 @@ describe("in memory", () => {
     });
 
     it("should throw invalid command error", async () => {
-      await expect(app().command(bind("Forget2"))).rejects.toThrow(
+      await expect(app().command(bind("Forget2", {}))).rejects.toThrow(
         Errors.RegistrationError
       );
     });
 
     it("should throw message metadata not found error", async () => {
       const id = chance.guid();
-      await app().command(bind("Whatever", undefined, id));
-      await expect(
-        app().command(bind("Forget", undefined, id))
-      ).rejects.toThrow(Errors.RegistrationError);
+      await app().command(bind("Whatever", {}, id));
+      await expect(app().command(bind("Forget", {}, id))).rejects.toThrow(
+        Errors.RegistrationError
+      );
     });
   });
 });

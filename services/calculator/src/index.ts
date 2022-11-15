@@ -23,7 +23,7 @@ void bootstrap(async (): Promise<void> => {
       `Counts keys and *resets* calculator when the
   number of consecutire key presses without resoulution exceeds some **limit**`
     )
-    .withEventHandlers(StatelessCounter)
+    .withPolicy(StatelessCounter)
     .withCommandAdapter(PressKeyAdapter);
 
   _app.build();

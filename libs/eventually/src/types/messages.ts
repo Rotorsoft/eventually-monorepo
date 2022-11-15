@@ -2,16 +2,16 @@
  * Messages are defined as types
  */
 export type Payload = Record<string, unknown>;
-export type Messages = Record<string, Payload | undefined>;
+export type Messages = Record<string, Payload>;
 
 /**
  * Messages have
- * - `name` Bound message name
- * - `data?` Optional payload
+ * - `name` a name
+ * - `data` a payload
  */
 export type Message<T extends Messages = any> = {
   readonly name: keyof T & string;
-  readonly data?: Readonly<T[keyof T]>;
+  readonly data: Readonly<T[keyof T]>;
 };
 
 /**
