@@ -342,12 +342,17 @@ describe("express app", () => {
     });
 
     it("should get redoc spec", async () => {
-      const swagger = await t.get("/redoc");
+      const swagger = await t.get("/_redoc");
       expect(swagger.status).toBe(200);
     });
 
     it("should get _health", async () => {
       const swagger = await t.get("/_health");
+      expect(swagger.status).toBe(200);
+    });
+
+    it("should get _config", async () => {
+      const swagger = await t.get("/_config");
       expect(swagger.status).toBe(200);
     });
 
