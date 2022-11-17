@@ -9,7 +9,12 @@ import {
   Reducible,
   reduciblePath
 } from "@rotorsoft/eventually";
-import { OpenAPIObject, PathItemObject, ResponseObject } from "openapi3-ts";
+import {
+  OpenAPIObject,
+  PathsObject,
+  ResponseObject,
+  TagObject
+} from "openapi3-ts";
 import {
   CommittedEventSchema,
   getComponents,
@@ -207,12 +212,16 @@ export const swagger = (app: Builder): OpenAPIObject => {
 
   const sec = getSecurity();
   const components = getComponents(sec);
-  const tags: { name: string; description: string }[] = [];
-  const paths: Record<string, PathItemObject> = {};
+  const tags: TagObject[] = [];
+  const paths: PathsObject = {};
+
+  getSchemas();
+  getPaths();
 
   if (app.hasStreams) {
     paths["/stats"] = {
       get: {
+        tags: ["All Stream"],
         operationId: "getStats",
         summary: "Get Store Stats",
         responses: {
@@ -234,6 +243,7 @@ export const swagger = (app: Builder): OpenAPIObject => {
         { $ref: "#/components/parameters/created_before" }
       ],
       get: {
+        tags: ["All Stream"],
         operationId: "getAll",
         summary: "Query All Stream",
         responses: {
@@ -244,8 +254,6 @@ export const swagger = (app: Builder): OpenAPIObject => {
       }
     };
   }
-  getSchemas();
-  getPaths();
 
   const { service, version, description, author, license } = config();
   return {

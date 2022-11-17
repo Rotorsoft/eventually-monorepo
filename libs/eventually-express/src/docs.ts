@@ -40,6 +40,7 @@ export const home = (): string => {
     <meta charset="utf-8">
     <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
     <style>
+      body { font-size: 12px; }
       .header { display:flex; font-size:12px; color:black; margin: 0; background-color:silver; }
       .header>div { display:flex; }
       .header>div>div { display:flex; padding:12px; }
@@ -55,9 +56,10 @@ export const home = (): string => {
         </div>
         <div style="flex:1;justify-content:end">
           <div><a href="/swagger">swagger</a></div>
-          <div><a href="/redoc">redoc</a></div>
+          <div><a href="/_redoc">redoc</a></div>
           <div><a href="/_health">health</a></div>
-          <div><a href="/_endpoints">endpoints<a></div>
+          <div><a href="/_endpoints">endpoints</a></div>
+          <div><a href="/_config">config</a></div>
         </div>
       </div>
     </rapi-doc>

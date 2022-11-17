@@ -121,7 +121,7 @@ export class ExpressApp extends AppBase {
   }
 
   build(middleware?: RequestHandler[]): express.Express {
-    const { service } = config();
+    const { service, version, dependencies } = config();
 
     super.build();
     this._buildCommandHandlers();
@@ -141,12 +141,15 @@ export class ExpressApp extends AppBase {
     // openapi
     this._swagger = swagger(this);
     this._app.get("/swagger", (_, res) => res.json(this._swagger));
-    this._app.get("/redoc", (_, res) => res.type("html").send(redoc(service)));
+    this._app.get("/_redoc", (_, res) => res.type("html").send(redoc(service)));
 
     // health related
     this._app.get("/_endpoints", (_, res) => res.json(this.endpoints));
     this._app.get("/_health", (_, res) =>
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
+    );
+    this._app.get("/_config", (_, res) =>
+      res.json({ service, version, dependencies })
     );
     this._app.get("/__killme", () => {
       this.log.info("red", "KILLME");

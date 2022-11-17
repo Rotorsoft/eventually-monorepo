@@ -35,7 +35,7 @@ const Schema = z.object({
   description: z.string().min(1),
   author: z.object({ name: z.string().min(1), email: z.string() }),
   license: z.string().min(1),
-  dependencies: z.object({})
+  dependencies: z.record(z.string())
 });
 export type Config = z.infer<typeof Schema>;
 
