@@ -3,10 +3,21 @@ import * as fs from "fs";
 import z from "zod";
 import { extend } from "./schema";
 import { singleton } from "./singleton";
-import { Package } from "./types/app";
 import { Environments, LogLevels } from "./types/enums";
 
 dotenv.config();
+
+type Package = {
+  name: string;
+  version: string;
+  description: string;
+  author: {
+    name: string;
+    email: string;
+  };
+  license: string;
+  dependencies: Record<string, string>;
+};
 
 const getPackage = (): Package => {
   const pkg = fs.readFileSync("package.json");
@@ -22,7 +33,7 @@ const Schema = z.object({
   service: z.string().min(1),
   version: z.string().min(1),
   description: z.string().min(1),
-  author: z.string().min(1),
+  author: z.object({ name: z.string().min(1), email: z.string() }),
   license: z.string().min(1),
   dependencies: z.object({})
 });
@@ -45,7 +56,7 @@ export const config = singleton(function config() {
         service,
         version: pkg.version,
         description: pkg.description,
-        author: `${pkg.author?.name} (${pkg.author?.email})`,
+        author: { name: pkg.author?.name, email: pkg.author?.email },
         license: pkg.license,
         dependencies: pkg.dependencies
       },

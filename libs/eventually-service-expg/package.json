@@ -1,27 +1,26 @@
 {
-  "name": "@rotorsoft/calculator",
+  "name": "@rotorsoft/eventually-service-expg",
   "version": "0.1.0",
-  "description": "Calculator Service",
-  "author": {
-    "name": "rotorsoft",
-    "email": "rotorsoft@outlook.com"
-  },
+  "description": "Generic Service with Express and Postgres Adapters",
+  "author": "rotorsoft",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
-    "directory": "services/calculator"
+    "directory": "libs/eventually-service-expg"
   },
-  "main": "index.js",
+  "main": "dist/index",
+  "types": "dist/index",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "start": "node index.js"
+    "build": "npx tsc --build"
   },
   "dependencies": {
-    "@rotorsoft/calculator-artifacts": "workspace:^0",
     "@rotorsoft/eventually": "workspace:^4",
     "@rotorsoft/eventually-express": "workspace:^4",
     "@rotorsoft/eventually-pg": "workspace:^4",
-    "joi": "^17.6.0",
     "zod": "^3.19.1"
   }
 }

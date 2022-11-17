@@ -12,10 +12,16 @@ import {
   tester
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { Calculator, CalculatorEvents } from "../calculator.aggregate";
-import { CalculatorModel, Keys } from "../calculator.models";
-import { CounterEvents, StatelessCounter } from "../counter.policy";
-import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
+import {
+  Calculator,
+  CalculatorEvents,
+  CalculatorModel,
+  Keys,
+  CounterEvents,
+  StatelessCounter,
+  ExternalPayload,
+  PressKeyAdapter
+} from "@rotorsoft/calculator-artifacts";
 
 const chance = new Chance();
 const port = 4000;

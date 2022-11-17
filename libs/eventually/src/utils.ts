@@ -25,7 +25,7 @@ export const store = singleton(function store(store?: Store) {
 /**
  * Binds message arguments
  * @param name Message name
- * @param data Optional message payload
+ * @param data Message payload
  * @param id Optional aggregate id when binding commands
  * @param expectedVersion Optional aggregate expected version when binding commands
  * @param actor Optional actor when binding external commands

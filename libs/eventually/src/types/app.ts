@@ -6,18 +6,6 @@ import {
 } from "./command-side";
 import { Payload } from "./messages";
 
-export type Package = {
-  name: string;
-  version: string;
-  description: string;
-  author: {
-    name: string;
-    email: string;
-  };
-  license: string;
-  dependencies: Record<string, string>;
-};
-
 export type Factories = {
   commandHandlers: {
     [name: string]: CommandHandlerFactory<Payload, any, any>;

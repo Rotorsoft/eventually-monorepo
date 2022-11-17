@@ -1,9 +1,12 @@
+import {
+  Calculator,
+  Counter,
+  PressKeyAdapter,
+  StatelessCounter
+} from "@rotorsoft/calculator-artifacts";
 import { app, bootstrap, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
-import { Calculator } from "./calculator.aggregate";
-import { Counter, StatelessCounter } from "./counter.policy";
-import { PostgresSnapshotStore, PostgresStore } from "libs/eventually-pg/dist";
-import { PressKeyAdapter } from "./presskey.adapter";
+import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
 
 void bootstrap(async (): Promise<void> => {
   const snapshotStore = PostgresSnapshotStore("calculators");

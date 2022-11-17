@@ -1,9 +1,13 @@
 import { app, bind, dispose, Snapshot } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { Calculator, CalculatorEvents } from "../calculator.aggregate";
-import { Counter } from "../counter.policy";
-import { CalculatorModel, Keys } from "../calculator.models";
+import {
+  Calculator,
+  CalculatorEvents,
+  Counter,
+  CalculatorModel,
+  Keys
+} from "@rotorsoft/calculator-artifacts";
 
 const chance = new Chance();
 const port = 4001;

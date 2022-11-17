@@ -1,7 +1,7 @@
 import { app, dispose, store, ValidationError } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import * as joi from "joi";
-import { Calculator } from "../calculator.aggregate";
+import { Calculator } from "@rotorsoft/calculator-artifacts";
 
 const port = 4002;
 const t = tester(port);

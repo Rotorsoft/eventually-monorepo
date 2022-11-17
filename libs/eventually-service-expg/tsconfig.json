@@ -7,9 +7,8 @@
     "composite": true
   },
   "references": [
-    { "path": "../../libs/eventually" },
-    { "path": "../../libs/eventually-express" },
-    { "path": "../../libs/eventually-pg" },
-    { "path": "../../libs/calculator-artifacts" }
+    { "path": "../eventually" },
+    { "path": "../eventually-express" },
+    { "path": "../eventually-pg" }
   ]
 }

@@ -61,8 +61,33 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
+    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually-express": "workspace:^4",
+    "@rotorsoft/eventually-pg": "workspace:^4",
     "handlebars": "^4.7.7",
-    "minimist": "^1.2.6"
+    "minimist": "^1.2.6",
+    "zod": "^3.19.1"
   },
-  "packageManager": "yarn@3.2.0"
+  "packageManager": "yarn@3.2.0",
+  "eventually": {
+    "store": "calculator",
+    "aggregates": {
+      "Calculator": {
+        "package": "@rotorsoft/calculator-artifacts",
+        "description": "Generic Calculator Aggregate"
+      }
+    },
+    "process-managers": {
+      "Counter": {
+        "package": "@rotorsoft/calculator-artifacts",
+        "description": "Generic Counter Policy"
+      }
+    },
+    "adapters": {
+      "PressKeyAdapter": {
+        "package": "@rotorsoft/calculator-artifacts",
+        "description": "Generic PressKey Adapter"
+      }
+    }
+  }
 }

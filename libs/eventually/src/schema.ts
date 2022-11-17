@@ -35,12 +35,9 @@ export const validate = <T extends Payload>(
     } catch (error) {
       if (error instanceof ZodError)
         throw new ValidationError(
-          Object.entries(error.flatten().fieldErrors)
-            .map(
-              ([field, details]) =>
-                (details && `${field}: ${details.join(",")}`) || ""
-            )
-            .filter(Boolean)
+          error.errors.map(
+            ({ path, message }) => `${path.join(".")}: ${message}`
+          )
         );
       throw new ValidationError(["zod validation error"]);
     }

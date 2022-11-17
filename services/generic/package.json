@@ -1,0 +1,44 @@
+{
+  "name": "@rotorsoft/generic",
+  "version": "0.1.0",
+  "description": "Generic Service",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "services/generic"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@rotorsoft/calculator-artifacts": "workspace:^0",
+    "@rotorsoft/eventually-service-expg": "workspace:^0"
+  },
+  "eventually": {
+    "store": "calculator",
+    "aggregates": {
+      "Calculator": {
+        "package": "@rotorsoft/calculator-artifacts",
+        "description": "Generic Calculator Aggregate"
+      }
+    },
+    "process-managers": {
+      "Counter": {
+        "package": "@rotorsoft/calculator-artifacts",
+        "description": "Generic Counter Policy"
+      }
+    },
+    "adapters": {
+      "PressKeyAdapter": {
+        "package": "@rotorsoft/calculator-artifacts",
+        "description": "Generic PressKey Adapter"
+      }
+    }
+  }
+}

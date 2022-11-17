@@ -39,19 +39,21 @@ export const home = (): string => {
     <title>${service}</title>
     <meta charset="utf-8">
     <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+    <style>
+      .header { display:flex; font-size:12px; color:black; margin: 0; background-color:silver; }
+      .header>div { display:flex; }
+      .header>div>div { display:flex; padding:12px; }
+    </style>
   </head>
   <body>
-    <rapi-doc spec-url="/swagger" theme="dark" show-header="false">
-      <div style="display:flex; font-size:12px; color:black; padding:12px 12px; margin: 0; background-color: #f76b39;">
-        <div style="display:flex">
+    <rapi-doc spec-url="/swagger" theme="light" show-header="false" regular-font="monospace" render-style="view">
+      <div class="header">
+        <div>
         ${Object.entries(status)
-          .map(
-            ([k, v]) =>
-              `<div style="display:flex;padding:12px;"><b>${k}</b>: ${v}</div>`
-          )
+          .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
           .join("")}
         </div>
-        <div style="display:flex; flex-direction:column;">
+        <div style="flex:1;justify-content:end">
           <div><a href="/swagger">swagger</a></div>
           <div><a href="/redoc">redoc</a></div>
           <div><a href="/_health">health</a></div>

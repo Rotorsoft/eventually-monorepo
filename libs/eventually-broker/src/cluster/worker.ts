@@ -9,7 +9,8 @@ import {
   TriggerCallback,
   TriggerPayload
 } from "..";
-import { formatDate, Loop, loop } from "../utils";
+import { formatDate } from "../utils";
+import { loop, Loop } from "./loop";
 import {
   WorkerConfig,
   CommittableHttpStatus,

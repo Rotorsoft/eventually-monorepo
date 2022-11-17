@@ -254,7 +254,7 @@ export const swagger = (app: Builder): OpenAPIObject => {
       title: service,
       version: version,
       description: description,
-      contact: { name: author },
+      contact: author,
       license: { name: license }
     },
     servers: [{ url: "/" }],

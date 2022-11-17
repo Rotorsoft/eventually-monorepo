@@ -10,8 +10,9 @@ import {
 } from ".";
 import { Operation, Service, Subscription, subscriptions } from "..";
 import { refreshServiceSpec } from "../specs";
-import { loop, toQueryString } from "../utils";
+import { toQueryString } from "../utils";
 import { State } from "./interfaces";
+import { loop } from "./loop";
 import {
   WorkerConfig,
   SubscriptionState,
