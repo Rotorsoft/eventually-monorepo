@@ -1,3 +1,5 @@
+#### 2022-11-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.3.1...@rotorsoft/eventually-express-v4.3.2) @rotorsoft/eventually-express-v4.3.2
+  - PATCH [6d3510ed](https://github.com/Rotorsoft/eventually-monorepo/commit/6d3510edf4c22153e71642a4b01cf4f44463c3a2) fix: expose _config endpoint with dependencies, improve swagger view
 #### 2022-11-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.4.1...@rotorsoft/eventually-v4.4.2) @rotorsoft/eventually-v4.4.2
   - PATCH [6d3510ed](https://github.com/Rotorsoft/eventually-monorepo/commit/6d3510edf4c22153e71642a4b01cf4f44463c3a2) fix: expose _config endpoint with dependencies, improve swagger view
 #### 2022-11-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.8.0...@rotorsoft/eventually-broker-v1.8.1) @rotorsoft/eventually-broker-v1.8.1
