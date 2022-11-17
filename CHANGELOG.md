@@ -1,3 +1,5 @@
+#### 2022-11-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.3.0...@rotorsoft/eventually-express-v4.3.1) @rotorsoft/eventually-express-v4.3.1
+  - PATCH [55c04878](https://github.com/Rotorsoft/eventually-monorepo/commit/55c04878db5f296507c506a16601b1a26bac6029) fix: create generic service implementation bound to express-pg adapters and using a declarative building strategy
 #### 2022-11-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.4.0...@rotorsoft/eventually-v4.4.1) @rotorsoft/eventually-v4.4.1
   - PATCH [55c04878](https://github.com/Rotorsoft/eventually-monorepo/commit/55c04878db5f296507c506a16601b1a26bac6029) fix: create generic service implementation bound to express-pg adapters and using a declarative building strategy
 #### 2022-11-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.7.1...@rotorsoft/eventually-broker-v1.8.0) @rotorsoft/eventually-broker-v1.8.0
