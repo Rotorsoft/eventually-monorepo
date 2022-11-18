@@ -935,7 +935,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-service-expg@workspace:^0, @rotorsoft/eventually-service-expg@workspace:libs/eventually-service-expg":
+"@rotorsoft/eventually-service-expg@workspace:libs/eventually-service-expg":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-service-expg@workspace:libs/eventually-service-expg"
   dependencies:
@@ -954,15 +954,6 @@ __metadata:
     dotenv: ^16.0.0
     joi: ^17.6.0
     zod: ^3.19.1
-  languageName: unknown
-  linkType: soft
-
-"@rotorsoft/generic@workspace:services/generic":
-  version: 0.0.0-use.local
-  resolution: "@rotorsoft/generic@workspace:services/generic"
-  dependencies:
-    "@rotorsoft/calculator-artifacts": "workspace:^0"
-    "@rotorsoft/eventually-service-expg": "workspace:^0"
   languageName: unknown
   linkType: soft
 
