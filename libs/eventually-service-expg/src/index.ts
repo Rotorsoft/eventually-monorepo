@@ -97,3 +97,5 @@ export const boot = (): Promise<void> =>
     _app.build();
     await _app.listen();
   });
+
+require.main === module && void boot();
