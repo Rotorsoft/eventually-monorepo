@@ -1,3 +1,5 @@
+#### 2022-11-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v0.1.0...@rotorsoft/calculator-artifacts-v0.1.1) @rotorsoft/calculator-artifacts-v0.1.1
+  - PATCH [97a3b992](https://github.com/Rotorsoft/eventually-monorepo/commit/97a3b9920bf9f7c54a3e342c7f2f7ed58e5fcebe) fix: to deploy calculator and generic service
 #### 2022-11-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v0.1.0...@rotorsoft/eventually-service-expg-v0.1.1) @rotorsoft/eventually-service-expg-v0.1.1
   - PATCH [97a3b992](https://github.com/Rotorsoft/eventually-monorepo/commit/97a3b9920bf9f7c54a3e342c7f2f7ed58e5fcebe) fix: to deploy calculator and generic service
 #### 2022-11-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v4.3.1...@rotorsoft/eventually-express-v4.3.2) @rotorsoft/eventually-express-v4.3.2
