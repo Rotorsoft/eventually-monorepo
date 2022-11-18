@@ -61,6 +61,8 @@ jobs:
           - eventually-pg
           - eventually-express
           - eventually-broker
+          - eventually-service-expg
+          - calculator-artifacts
 
     steps:
       - uses: actions/checkout@v3
