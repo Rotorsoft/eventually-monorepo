@@ -14,6 +14,9 @@ import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
 import { config } from "./config";
 
+/**
+ * Generic service boot
+ */
 export const boot = (): Promise<void> =>
   bootstrap(async (): Promise<void> => {
     const _app = app(new ExpressApp());
