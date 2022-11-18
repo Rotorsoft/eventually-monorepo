@@ -11,39 +11,64 @@ npm init -y
 npm i @rotorsoft/eventually-service-expg @rotorsoft/calculator-artifacts
 ```
 
-- Declare artifacts in `package.json`
+- Declare the artifacts you want to deploy in `package.json` under the `eventually` section
+- Add a `start` script pointing to the generic service index
 
 ```json
-...
-  "dependencies": {
-    ...
-  },
-  "eventually": {
-    "store": "calculator",
-    "aggregates": {
-      "Calculator": {
-        "package": "@rotorsoft/calculator-artifacts",
-        "description": "Generic Calculator Aggregate"
-      }
+{
+    "name": "generic-service",
+    "description": "Generic Service",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "start": "node ./node_modules/@rotorsoft/eventually-service-expg/dist"
     },
-    "process-managers": {
-      "Counter": {
-        "package": "@rotorsoft/calculator-artifacts",
-        "description": "Generic Counter Policy"
-      }
+    "author": {
+        "name": "name",
+        "email": "email@email.com"
     },
-    "adapters": {
-      "PressKeyAdapter": {
-        "package": "@rotorsoft/calculator-artifacts",
-        "description": "Generic PressKey Adapter"
-      }
+    "license": "ISC",
+    "keywords": [],
+    "dependencies": {
+        "@rotorsoft/calculator-artifacts": "^0.1.1",
+        "@rotorsoft/eventually-service-expg": "^0.1.1"
+    },
+    "eventually": {
+        "store": "calculator",
+        "aggregates": {
+            "Calculator": {
+            "package": "@rotorsoft/calculator-artifacts",
+            "description": "Generic Calculator Aggregate"
+            }
+        },
+        "process-managers": {
+            "Counter": {
+            "package": "@rotorsoft/calculator-artifacts",
+            "description": "Generic Counter Policy"
+            }
+        },
+        "adapters": {
+            "PressKeyAdapter": {
+            "package": "@rotorsoft/calculator-artifacts",
+            "description": "Generic PressKey Adapter"
+            }
+        }
     }
-  }
-...  
+}
+```
+
+- Configure PG in `.env` file
+
+```bash
+LOG_LEVEL="info"
+PG_HOST="localhost"
+PG_USER="postgres"
+PG_DATABASE="postgres"
+PG_PASSWORD="postgres"
 ```
 
 - Run Service
 
 ```bash
-node ./node_modules/@rotorsoft/eventually-service-expg/dist/index.js
+npm run start
 ```

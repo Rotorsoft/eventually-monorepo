@@ -20,18 +20,14 @@ app(new ExpressApp())
     Account3Created: schemas.Account3Created,
     IntegrationCompleted: schemas.IntegrationCompleted
   })
-  .withEventHandlers(
-    policies.IntegrateAccount1,
-    policies.IntegrateAccount2,
-    policies.IntegrateAccount3,
-    policies.WaitForAllAndComplete
-  )
-  .withCommandHandlers(
-    systems.ExternalSystem1,
-    systems.ExternalSystem2,
-    systems.ExternalSystem3,
-    systems.ExternalSystem4
-  )
+  .withPolicy(policies.IntegrateAccount1)
+  .withPolicy(policies.IntegrateAccount2)
+  .withPolicy(policies.IntegrateAccount3)
+  .withProcessManager(policies.WaitForAllAndComplete)
+  .withExternalSystem(systems.ExternalSystem1)
+  .withExternalSystem(systems.ExternalSystem2)
+  .withExternalSystem(systems.ExternalSystem3)
+  .withExternalSystem(systems.ExternalSystem4)
   .build();
 
 void app().listen();
