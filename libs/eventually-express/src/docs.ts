@@ -58,7 +58,7 @@ export const home = (): string => {
           <div><a href="/swagger">swagger</a></div>
           <div><a href="/_redoc">redoc</a></div>
           <div><a href="/_health">health</a></div>
-          <div><a href="/_endpoints">endpoints</a></div>
+          <div><a href="/_metadata">metadata</a></div>
           <div><a href="/_config">config</a></div>
         </div>
       </div>

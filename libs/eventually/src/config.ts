@@ -1,9 +1,9 @@
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import z from "zod";
-import { extend } from "./schema";
 import { singleton } from "./singleton";
 import { Environments, LogLevels } from "./types/enums";
+import { extend } from "./utils";
 
 dotenv.config();
 

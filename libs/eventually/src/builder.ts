@@ -1,92 +1,90 @@
+import { ZodType } from "zod";
 import { config } from "./config";
-import {
-  CommandHandlerType,
-  Endpoints,
-  EventHandlerType,
-  Factories,
-  SnapshotOptions
-} from "./types/app";
+import { SnapshotStore } from "./interfaces";
+import { MessageHandlingArtifact, Reducible } from "./types/artifacts";
+import { ArtifactType } from "./types/enums";
 import {
   AggregateFactory,
-  CommandAdapterFactory,
-  CommandHandlerFactory,
-  EventHandlerFactory,
-  ExternalSystemFactory,
-  PolicyFactory,
-  ProcessManagerFactory,
-  Reducible,
-  Snapshot
-} from "./types/command-side";
-import { Messages, Payload } from "./types/messages";
-import { MessageMetadata, Schemas, WithSchemas } from "./types/schemas";
-import {
-  commandHandlerPath,
-  eventHandlerPath,
-  eventsOf,
-  getReducible,
-  messagesOf
-} from "./utils";
+  ArtifactMetadata,
+  MessageHandlerFactory
+} from "./types/factories";
+import { Messages, Snapshot, State } from "./types/messages";
+import { commandHandlerPath, eventHandlerPath } from "./utils";
+
+type MessageMetadata<M extends Messages = Messages> = {
+  name: keyof M & string;
+  schema: ZodType<M[keyof M]>;
+  type: "command" | "event";
+  artifacts: string[];
+};
+
+type SnapshotOptions = {
+  store: SnapshotStore;
+  threshold: number;
+  expose?: boolean;
+};
 
 export class Builder {
-  protected readonly _snapshotOptions: Record<string, SnapshotOptions> = {};
-  protected readonly _factories: Factories = {
-    commandHandlers: {},
-    eventHandlers: {},
-    commandAdapters: {}
-  };
-  readonly endpoints: Endpoints = {
-    version: "",
-    commandHandlers: {},
-    eventHandlers: {}
-  };
-  readonly messages: Record<string, MessageMetadata> = {};
-  readonly documentation: Record<string, { description: string }> = {};
   private _hasStreams = false;
-  get hasStreams(): boolean {
-    return this._hasStreams;
-  }
+  protected _snapshotOptions: Record<string, SnapshotOptions> = {};
 
-  private _msg<T extends Messages>(name: keyof T & string): MessageMetadata<T> {
-    return (this.messages[name] = this.messages[name] || {
-      name,
-      eventHandlerFactories: {}
-    });
-  }
+  readonly version = config().version;
+  readonly messages: Record<string, MessageMetadata> = {};
+  readonly artifacts: Record<string, ArtifactMetadata> = {};
 
-  private _registerSchemas<C extends Messages, E extends Messages>(
-    handler: WithSchemas<C, E>
-  ): void {
-    handler.schemas &&
-      Object.entries(handler.schemas).map(([key, value]): void => {
-        this._msg(key).schema = value;
+  private _reflect = (
+    factory: MessageHandlerFactory
+  ): [ArtifactType, Record<string, string>[], string[]] => {
+    const artifact = factory("") as MessageHandlingArtifact;
+    "stream" in artifact && this.withStreams();
+    if ("on" in artifact) {
+      const reducible = "reduce" in artifact;
+
+      // all event messages
+      Object.entries(artifact.schemas.events).forEach(([name, schema]) => {
+        this.messages[name] = this.messages[name] || {
+          name,
+          schema,
+          type: "event",
+          artifacts: []
+        };
       });
-  }
 
-  private _registerEventHandlerFactory<
-    M extends Payload,
-    C extends Messages,
-    E extends Messages
-  >(factory: EventHandlerFactory<M, C, E>, description = ""): void {
-    if (this._factories.eventHandlers[factory.name])
-      throw Error(`Duplicate event handler ${factory.name}`);
-    this._factories.eventHandlers[factory.name] =
-      factory as EventHandlerFactory<Payload, any, any>;
-    this.documentation[factory.name] = { description };
-    this._registerSchemas(factory(""));
-  }
+      // command handling artifacts with their command messages
+      const command = Object.keys(artifact.schemas.commands).at(0);
+      if (command && artifact.on[command]) {
+        const input = Object.keys(artifact.on).map((name) => {
+          this.messages[name] = this.messages[name] || {
+            name,
+            schema: artifact.schemas.commands[name],
+            type: "command",
+            artifacts: [factory.name] // one command handler
+          };
+          return { [name]: commandHandlerPath(factory.name, reducible, name) };
+        });
+        const output = reducible ? Object.keys(artifact.reduce) : []; // output is reduced
+        return [reducible ? "aggregate" : "system", input, output];
+      }
 
-  private _registerCommandHandlerFactory<
-    M extends Payload,
-    C extends Messages,
-    E extends Messages
-  >(factory: CommandHandlerFactory<M, C, E>, description = ""): void {
-    if (this._factories.commandHandlers[factory.name])
-      throw Error(`Duplicate command handler ${factory.name}`);
-    this._factories.commandHandlers[factory.name] =
-      factory as CommandHandlerFactory<Payload, any, any>;
-    this.documentation[factory.name] = { description };
-    this._registerSchemas(factory(""));
-  }
+      // event handling artifacts
+      const event = Object.keys(artifact.schemas.events).at(0);
+      if (event && artifact.on[event]) {
+        const input = Object.keys(artifact.on).map((name) => {
+          this.messages[name].artifacts.push(factory.name); // many event handlers
+          return {
+            [name]: eventHandlerPath(factory.name)
+          };
+        });
+        const output = Object.keys(artifact.schemas.commands); // output commands
+        return [reducible ? "process-manager" : "policy", input, output];
+      }
+    } else if ("adapt" in artifact) return ["command-adapter", [], []];
+
+    // oops
+    throw Error(
+      `Invalid artifact "${factory.name}". This should never happen!`
+    );
+  };
 
   /**
    * Flags app with streams
@@ -96,82 +94,42 @@ export class Builder {
     return this;
   }
 
-  /**
-   * Registers message schemas
-   * @param schemas Message validation schemas
-   */
-  withSchemas<M extends Messages>(schemas: Schemas<M>): this {
-    Object.entries(schemas).map(([key, value]): void => {
-      this._msg(key).schema = value as any;
-    });
-    return this;
+  get hasStreams(): boolean {
+    return this._hasStreams;
   }
 
   /**
-   * Registers policy factory
+   * Registers factory
    * @param factory the factory
-   * @param description describes the factory
    */
-  withPolicy<C extends Messages, E extends Messages>(
-    factory: PolicyFactory<C, E>,
-    description?: string
+  with<S extends State, C extends Messages, E extends Messages>(
+    factory: MessageHandlerFactory<S, C, E>
   ): this {
-    this._registerEventHandlerFactory(factory, description);
+    if (this.artifacts[factory.name])
+      throw Error(`Duplicate artifact "${factory.name}"`);
+
+    const [type, input, output] = this._reflect(
+      factory as MessageHandlerFactory
+    );
+    this.artifacts[factory.name] = {
+      type,
+      factory: factory as MessageHandlerFactory,
+      input: input.reduce((p, c) => Object.assign(p, c), {}),
+      output
+    };
     return this;
   }
 
   /**
-   * Registers process manager factory
+   * Registers aggregate snapshot options
    * @param factory the factory
-   * @param description describes the factory
+   * @param snapshotOptions snapshot options
    */
-  withProcessManager<M extends Payload, C extends Messages, E extends Messages>(
-    factory: ProcessManagerFactory<M, C, E>,
-    description?: string
+  withSnapshot<S extends State, C extends Messages, E extends Messages>(
+    factory: AggregateFactory<S, C, E>,
+    snapshotOptions: SnapshotOptions
   ): this {
-    this._registerEventHandlerFactory(factory, description);
-    return this;
-  }
-
-  /**
-   * Registers command adapters
-   * @param factory command adapter factory
-   */
-  withCommandAdapter<P extends Payload, C extends Messages>(
-    factory: CommandAdapterFactory<P, C>
-  ): this {
-    this._factories.commandAdapters[factory.name] =
-      factory as CommandAdapterFactory<Payload, any>;
-    this._msg(factory.name).schema = factory().schema;
-    return this;
-  }
-
-  /**
-   * Registers aggregate factory
-   * @param factory the factory
-   * @param description describes the factory
-   * @param snapshotOptions optional snapshotting options
-   */
-  withAggregate<M extends Payload, C extends Messages, E extends Messages>(
-    factory: AggregateFactory<M, C, E>,
-    description?: string,
-    snapshotOptions?: SnapshotOptions
-  ): this {
-    snapshotOptions && (this._snapshotOptions[factory.name] = snapshotOptions);
-    this._registerCommandHandlerFactory(factory, description);
-    return this;
-  }
-
-  /**
-   * Registers system factory
-   * @param factory the factory
-   * @param description describes the factory
-   */
-  withExternalSystem<C extends Messages, E extends Messages>(
-    factory: ExternalSystemFactory<C, E>,
-    description?: string
-  ): this {
-    this._registerCommandHandlerFactory(factory, description);
+    this._snapshotOptions[factory.name] = snapshotOptions;
     return this;
   }
 
@@ -180,9 +138,9 @@ export class Builder {
    * @param reducible The reducible artifact
    * @returns The snapshot
    */
-  async readSnapshot<M extends Payload, E extends Messages>(
-    reducible: Reducible<M, E>
-  ): Promise<Snapshot<M, E> | undefined> {
+  async readSnapshot<S extends State, C extends Messages, E extends Messages>(
+    reducible: Reducible<S, C, E>
+  ): Promise<Snapshot<S, E> | undefined> {
     const { name } = Object.getPrototypeOf(reducible);
     const snap = this._snapshotOptions[name];
     return snap && (await snap.store.read(reducible.stream()));
@@ -194,9 +152,9 @@ export class Builder {
    * @param snapshot The snapshot
    * @param applyCount The number of events applied after last snapshot
    */
-  async writeSnapshot<M extends Payload, E extends Messages>(
-    reducible: Reducible<M, E>,
-    snapshot: Snapshot<M, E>,
+  async writeSnapshot<S extends State, C extends Messages, E extends Messages>(
+    reducible: Reducible<S, C, E>,
+    snapshot: Snapshot<S, E>,
     applyCount: number
   ): Promise<void> {
     try {
@@ -212,60 +170,11 @@ export class Builder {
   }
 
   /**
-   * Builds message handlers and private subscriptions
-   * Concrete app implementations should deal with their own building steps
+   * Builds message handlers
+   * Concrete app adapters should provide their own building steps
    * @returns optional internal application object (e.g. express)
    */
   build(): unknown | undefined {
-    this.endpoints.version = config().version;
-    // command handlers
-    Object.values(this._factories.commandHandlers).forEach((factory) => {
-      const handler = factory("");
-      const reducible = getReducible(handler);
-      const type: CommandHandlerType = reducible
-        ? "aggregate"
-        : "external-system";
-      const events =
-        (reducible &&
-          eventsOf(reducible).map((name) => {
-            this._msg(name);
-            return name;
-          })) ||
-        [];
-      const endpoint = (this.endpoints.commandHandlers[factory.name] = {
-        type,
-        factory,
-        commands: {} as Record<string, string>,
-        events
-      });
-      messagesOf(handler).map((name) => {
-        const msg = this._msg(name);
-        msg.commandHandlerFactory = factory;
-        endpoint.commands[name] = commandHandlerPath(factory, name);
-      });
-      this.withStreams();
-    });
-
-    // event handlers
-    Object.values(this._factories.eventHandlers).forEach((factory) => {
-      const handler = factory("");
-      const reducible = getReducible(handler);
-      const type: EventHandlerType = reducible ? "process-manager" : "policy";
-      const path = eventHandlerPath(factory);
-      const events = messagesOf(handler).map((name) => {
-        const msg = this._msg(name);
-        msg.eventHandlerFactories[path] = factory;
-        return name;
-      });
-      this.endpoints.eventHandlers[factory.name] = {
-        type,
-        factory,
-        path,
-        events
-      };
-      reducible && this.withStreams();
-    });
-
     return;
   }
 }

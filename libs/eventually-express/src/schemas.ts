@@ -1,13 +1,12 @@
 import { generateSchema } from "@anatine/zod-openapi";
-import { Errors, Payload, Schema } from "@rotorsoft/eventually";
+import { Errors } from "@rotorsoft/eventually";
 import * as fs from "fs";
-import j2s from "joi-to-swagger";
 import {
   ComponentsObject,
   SchemaObject,
   SecuritySchemeObject
 } from "openapi3-ts";
-import z from "zod";
+import z, { ZodType } from "zod";
 
 type Security = {
   schemes: Record<string, SecuritySchemeObject>;
@@ -149,9 +148,9 @@ export const getComponents = (sec: Security): ComponentsObject => ({
   }
 });
 
-export const CommittedEventSchema = <T extends Payload>(
+export const CommittedEventSchema = (
   name: string,
-  schema?: Schema<T>
+  schema?: ZodType
 ): SchemaObject => {
   const committedEventSchema = generateSchema(
     z.object({
@@ -175,19 +174,8 @@ export const CommittedEventSchema = <T extends Payload>(
  * @param existingComponets optional existing swagger components
  * @returns OpenAPI Schema Object
  */
-export const toOpenAPISchema = <T extends Payload>(
-  schema: Schema<T>,
-  existingComponets?: ComponentsObject
-): SchemaObject => {
-  if ("validate" in schema) {
-    const description = schema?._flags?.description;
-    description && (schema._flags.description = undefined);
-    const { swagger } = j2s(schema, existingComponets);
-    swagger.description = description;
-    return swagger;
-  } else {
-    const result = generateSchema(schema);
-    result.description = schema.description;
-    return result;
-  }
+export const toOpenAPISchema = (schema: ZodType): SchemaObject => {
+  const result = generateSchema(schema);
+  result.description = schema.description;
+  return result;
 };

@@ -1,11 +1,8 @@
 import {
-  Builder,
+  app,
+  Artifact,
+  ArtifactMetadata,
   config,
-  eventsOf,
-  getReducible,
-  MessageHandlerFactory,
-  messagesOf,
-  Payload,
   Reducible,
   reduciblePath
 } from "@rotorsoft/eventually";
@@ -15,6 +12,7 @@ import {
   ResponseObject,
   TagObject
 } from "openapi3-ts";
+import { ZodType } from "zod";
 import {
   CommittedEventSchema,
   getComponents,
@@ -48,165 +46,173 @@ const response = (
   }
 });
 
-export const swagger = (app: Builder): OpenAPIObject => {
+export const swagger = (): OpenAPIObject => {
   const getSchemas = (): void => {
-    Object.entries(app.messages)
-      .filter(([name]) => name != "state")
-      .map(([name, { schema, commandHandlerFactory }]) => {
-        if (commandHandlerFactory) {
-          components.schemas &&
-            (components.schemas[name] = schema
-              ? toOpenAPISchema(schema)
-              : { type: "object" });
-        } else {
-          components.schemas &&
-            (components.schemas[name] = CommittedEventSchema(name, schema));
-        }
-      });
+    Object.entries(app().messages).map(([name, { schema, type }]) => {
+      if (type === "command") {
+        components.schemas &&
+          (components.schemas[name] = schema
+            ? toOpenAPISchema(schema as ZodType)
+            : { type: "object" });
+      } else {
+        components.schemas &&
+          (components.schemas[name] = CommittedEventSchema(
+            name,
+            schema as ZodType
+          ));
+      }
+    });
   };
 
-  const getReducibleGetters = (
-    paths: Record<string, any>,
-    handler: MessageHandlerFactory<Payload, any, any>
+  const getReducibleComponent = (
+    name: string,
+    schema: ZodType,
+    events: string[]
   ): void => {
-    if (!getReducible(handler(""))) return;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const path = reduciblePath(handler as any).replace("/:id", "/{id}");
-    if (paths[path]) return;
+    if (!components.schemas || components.schemas[name]) return;
+    components.schemas[name] = toOpenAPISchema(schema);
+    components.schemas[name.concat("Snapshot")] = {
+      type: "object",
+      properties: {
+        event: {
+          anyOf: events.map((name) => ({
+            $ref: `#/components/schemas/${name}`
+          }))
+        },
+        state: { $ref: `#/components/schemas/${name}` }
+      }
+    };
+
     // GET reducible
+    const path = reduciblePath(name).replace("/:id", "/{id}");
+    if (paths[path]) return;
     paths[path] = {
       parameters: [{ $ref: "#/components/parameters/id" }],
       get: {
-        operationId: `get${handler.name}ById`,
-        tags: [handler.name],
-        summary: `Get ${handler.name} by Id`,
+        operationId: `get${name}ById`,
+        tags: [name],
+        summary: `Get ${name} by Id`,
         responses: {
-          "200": response(handler.name.concat("Snapshot"), "OK"),
+          "200": response(name.concat("Snapshot"), "OK"),
           default: { description: "Internal Server Error" }
         }
       }
     };
+
     // GET reducible stream
     paths[path.concat("/stream")] = {
       parameters: [{ $ref: "#/components/parameters/id" }],
       get: {
-        operationId: `get${handler.name}StreamById`,
-        tags: [handler.name],
-        summary: `Get ${handler.name} Stream by Id`,
+        operationId: `get${name}StreamById`,
+        tags: [name],
+        summary: `Get ${name} Stream by Id`,
         responses: {
-          "200": response(handler.name.concat("Snapshot"), "OK", true),
+          "200": response(name.concat("Snapshot"), "OK", true),
           default: { description: "Internal Server Error" }
         }
       }
     };
   };
 
-  const getReducibleComponent = (
-    handler: MessageHandlerFactory<Payload, any, any>
-  ): Reducible<Payload, any> | undefined => {
-    const reducible = getReducible(handler(""));
-    if (!reducible || !components.schemas) return;
-    if (components.schemas[handler.name]) return reducible;
-    const schema =
-      reducible.schemas?.state || (reducible.schema && reducible.schema());
-    if (schema) {
-      components.schemas[handler.name] = toOpenAPISchema(schema, components);
-      components.schemas[handler.name.concat("Snapshot")] = {
-        type: "object",
-        properties: {
-          event: {
-            anyOf: eventsOf(reducible).map((name) => ({
-              $ref: `#/components/schemas/${name}`
-            }))
-          },
-          state: { $ref: `#/components/schemas/${handler.name}` }
-        }
-      };
-    }
-    return reducible;
+  const getCommandHandlerPath = (
+    amd: ArtifactMetadata,
+    command: string,
+    path: string
+  ): void => {
+    const schema = components.schemas && components.schemas[command];
+    const description =
+      (schema && "description" in schema && schema.description) ||
+      `Handle **${command}** command`;
+    paths[path.replace("/:id/", "/{id}/")] = {
+      parameters:
+        amd.type === "aggregate"
+          ? [{ $ref: "#/components/parameters/id" }]
+          : [],
+      post: {
+        operationId: command,
+        tags: [amd.factory.name],
+        summary: command,
+        description,
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: `#/components/schemas/${command}` }
+            }
+          }
+        },
+        responses: {
+          "200": response(
+            amd.type === "aggregate" ? amd.factory.name.concat("Snapshot") : "",
+            "OK",
+            true
+          ),
+          "400": response("ValidationError", "Validation Error"),
+          "409": response("ConcurrencyError", "Concurrency Error"),
+          default: { description: "Internal Server Error" }
+        },
+        security: sec.operations[command] || [{}]
+      }
+    };
+  };
+
+  const getEventHandlerPath = (
+    amd: ArtifactMetadata,
+    path: string,
+    events: string[]
+  ): void => {
+    if (paths[path]) return;
+    paths[path] = {
+      post: {
+        operationId: amd.factory.name,
+        tags: [amd.factory.name],
+        summary: `Handle ${amd.factory.name} events`,
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                oneOf: events.map((name) => ({
+                  $ref: `#/components/schemas/${name}`
+                }))
+              }
+            }
+          }
+        },
+        responses: {
+          "200": response("PolicyResponse", "OK"),
+          "400": response("ValidationError", "Validation Error"),
+          "404": response("RegistrationError", "Registration Error"),
+          default: { description: "Internal Server Error" }
+        },
+        security: sec.operations[amd.factory.name] || [{}]
+      }
+    };
   };
 
   const getPaths = (): void => {
-    Object.values(app.endpoints.commandHandlers).map(
-      ({ factory, commands }) => {
-        const reducible = getReducibleComponent(factory);
-        getReducibleGetters(paths, factory);
-        tags.push({
-          name: factory.name,
-          description: app.documentation[factory.name].description
-        });
-        Object.entries(commands).map(([name, path]) => {
-          const schema = components.schemas && components.schemas[name];
-          const description =
-            (schema && "description" in schema && schema.description) ||
-            `Handles **${name}** Command`;
-          paths[path.replace("/:id/", "/{id}/")] = {
-            parameters: reducible
-              ? [{ $ref: "#/components/parameters/id" }]
-              : [],
-            post: {
-              operationId: name,
-              tags: [factory.name],
-              summary: name,
-              description,
-              requestBody: {
-                required: true,
-                content: {
-                  "application/json": {
-                    schema: { $ref: `#/components/schemas/${name}` }
-                  }
-                }
-              },
-              responses: {
-                "200": response(
-                  reducible ? factory.name.concat("Snapshot") : "",
-                  "OK",
-                  true
-                ),
-                "400": response("ValidationError", "Validation Error"),
-                "409": response("ConcurrencyError", "Concurrency Error"),
-                default: { description: "Internal Server Error" }
-              },
-              security: sec.operations[name] || [{}]
-            }
-          };
-        });
-      }
-    );
+    Object.values(app().artifacts).map((amd) => {
+      const artifact = amd.factory("") as Artifact;
+      "reduce" in artifact &&
+        getReducibleComponent(
+          amd.factory.name,
+          (artifact as Reducible).schemas.state,
+          amd.output
+        );
 
-    Object.values(app.endpoints.eventHandlers).map(({ factory, path }) => {
-      getReducibleComponent(factory);
-      getReducibleGetters(paths, factory);
       tags.push({
-        name: factory.name,
-        description: app.documentation[factory.name].description
+        name: amd.factory.name,
+        description: artifact.description
       });
-      paths[path] = {
-        post: {
-          operationId: factory.name,
-          tags: [factory.name],
-          summary: `Handle ${factory.name} Events`,
-          requestBody: {
-            required: true,
-            content: {
-              "application/json": {
-                schema: {
-                  oneOf: messagesOf(factory("")).map((name) => ({
-                    $ref: `#/components/schemas/${name}`
-                  }))
-                }
-              }
-            }
-          },
-          responses: {
-            "200": response("PolicyResponse", "OK"),
-            "400": response("ValidationError", "Validation Error"),
-            "404": response("RegistrationError", "Registration Error"),
-            default: { description: "Internal Server Error" }
-          },
-          security: sec.operations[factory.name] || [{}]
-        }
-      };
+
+      if (amd.type === "aggregate" || amd.type === "system")
+        Object.entries(amd.input).forEach(([name, path]) =>
+          getCommandHandlerPath(amd, name, path)
+        );
+      else if (amd.type === "policy" || amd.type === "process-manager") {
+        const path = Object.values(amd.input).at(0);
+        path && getEventHandlerPath(amd, path, Object.keys(amd.input));
+      }
     });
   };
 
@@ -218,7 +224,7 @@ export const swagger = (app: Builder): OpenAPIObject => {
   getSchemas();
   getPaths();
 
-  if (app.hasStreams) {
+  if (app().hasStreams) {
     paths["/stats"] = {
       get: {
         tags: ["All Stream"],

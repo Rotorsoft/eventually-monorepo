@@ -1,4 +1,4 @@
-import { CommittedEvent, dispose, Errors } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";
@@ -123,7 +123,7 @@ describe("pg", () => {
         { correlation: "", causation: {} },
         1
       )
-    ).rejects.toThrowError(Errors.ConcurrencyError as string);
+    ).rejects.toThrow();
   });
 
   it("should get store stats", async () => {

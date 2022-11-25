@@ -1,22 +1,19 @@
-import { bind, CommandAdapter } from "@rotorsoft/eventually";
-import joi from "joi";
-import { Commands } from "./calculator.commands";
-import { DIGITS, Keys, OPERATORS, SYMBOLS } from "./calculator.models";
+import { bind, CommandAdapterFactory } from "@rotorsoft/eventually";
+import z from "zod";
+import * as schemas from "./calculator.schemas";
 
-export type ExternalPayload = { id: string; key: Keys };
+export const ExternalPayloadSchema = z.object({
+  id: z.string().min(1),
+  key: z.enum([...schemas.DIGITS, ...schemas.OPERATORS, ...schemas.SYMBOLS])
+});
 
-export const PressKeyAdapter = (): CommandAdapter<
+export type ExternalPayload = z.infer<typeof ExternalPayloadSchema>;
+
+export const PressKeyAdapter: CommandAdapterFactory<
   ExternalPayload,
-  Pick<Commands, "PressKey">
-> => ({
+  schemas.CalculatorCommands
+> = () => ({
+  description: "PressKey adapter",
   adapt: ({ id, key }) => bind("PressKey", { key }, id),
-  schema: joi.object<ExternalPayload>({
-    id: joi.string().required(),
-    key: joi
-      .string()
-      .required()
-      .min(1)
-      .max(1)
-      .valid(...DIGITS, ...OPERATORS, ...SYMBOLS)
-  })
+  schema: ExternalPayloadSchema
 });

@@ -1,4 +1,4 @@
-import { Actor, log, Payload } from "@rotorsoft/eventually";
+import { Actor, log } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Subscription, subscriptions } from "..";
 import { state } from "../cluster";
@@ -38,7 +38,12 @@ const toSubscription = (
 router.get(
   "/",
   async (
-    req: Request<never, Payload, never, { add?: boolean; search?: string }>,
+    req: Request<
+      never,
+      Record<string, unknown>,
+      never,
+      { add?: boolean; search?: string }
+    >,
     res
   ) => {
     req.query.add

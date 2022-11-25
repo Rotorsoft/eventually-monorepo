@@ -1,22 +1,22 @@
 import {
   Actor,
-  AllQuery,
   app,
   bind,
   CommandAdapterFactory,
-  CommandHandlerType,
   CommittedEvent,
-  Errors,
   EventHandlerFactory,
+  Errors,
   log,
   Messages,
-  Payload,
+  State,
   Reducer,
   ReducibleFactory,
-  Snapshot,
-  SnapshotsQuery,
   SnapshotStore,
-  store
+  store,
+  AllQuery,
+  SnapshotsQuery,
+  Snapshot,
+  ArtifactType
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
@@ -68,9 +68,9 @@ export const allStreamHandler = async (
 };
 
 export const getHandler =
-  <M extends Payload, C extends Messages, E extends Messages>(
-    factory: ReducibleFactory<M, C, E>,
-    callback: Reducer<M, C, E>
+  <S extends State, C extends Messages, E extends Messages>(
+    factory: ReducibleFactory<S, C, E>,
+    callback: Reducer<S, C, E>
   ) =>
   async (
     req: Request<{ id: string }>,
@@ -100,7 +100,7 @@ export const getHandler =
 export const snapshotQueryHandler =
   (store: SnapshotStore) =>
   async (
-    req: Request<any, Snapshot<Payload, any>, any, SnapshotsQuery>,
+    req: Request<any, Snapshot<State, any>, any, SnapshotsQuery>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
@@ -116,9 +116,9 @@ export const snapshotQueryHandler =
   };
 
 export const commandHandler =
-  (name: string, type: CommandHandlerType) =>
+  (name: string, type: ArtifactType) =>
   async (
-    req: Request<{ id: string }, any, Payload, never> & {
+    req: Request<{ id: string }, any, State, never> & {
       actor?: Actor;
     },
     res: Response,
@@ -144,9 +144,9 @@ export const commandHandler =
   };
 
 export const invokeHandler =
-  (factory: CommandAdapterFactory<Payload, any>) =>
+  (factory: CommandAdapterFactory<State, any>) =>
   async (
-    req: Request<never, any, Payload, never> & {
+    req: Request<never, any, State, never> & {
       actor?: Actor;
     },
     res: Response,
@@ -163,7 +163,7 @@ export const invokeHandler =
   };
 
 export const eventHandler =
-  (factory: EventHandlerFactory<Payload, any, any>) =>
+  (factory: EventHandlerFactory<State, any, any>) =>
   async (
     req: Request<never, any, CommittedEvent>,
     res: Response,
@@ -187,15 +187,15 @@ export const errorHandler = (
 ): Response => {
   log().error(error);
   // eslint-disable-next-line
-  const { message, stack, ...other } = error;
-  switch (message) {
+  const { name, message, stack, ...other } = error;
+  switch (name) {
     case Errors.ValidationError:
-      return res.status(400).send({ message, ...other });
+      return res.status(400).send({ name, message, ...other });
     case Errors.RegistrationError:
-      return res.status(404).send({ message, ...other });
+      return res.status(404).send({ name, message, ...other });
     case Errors.ConcurrencyError:
-      return res.status(409).send({ message, ...other });
+      return res.status(409).send({ name, message, ...other });
     default:
-      return res.status(500).send({ message });
+      return res.status(500).send({ name, message });
   }
 };

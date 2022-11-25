@@ -1,23 +1,21 @@
 import {
   app,
   bind,
+  Command,
   CommittedEvent,
-  Message,
-  Payload,
-  Policy,
-  ProcessManagerFactory
+  PolicyFactory,
+  ProcessManagerFactory,
+  ZodEmpty
 } from "@rotorsoft/eventually";
+import { z } from "zod";
 import { Calculator } from "./calculator.aggregate";
-import { Commands } from "./calculator.commands";
-import { Events } from "./calculator.events";
-import { CounterState } from "./calculator.models";
 import * as schemas from "./calculator.schemas";
 
 const policy = async (
   counter: CounterState | undefined,
   event: CommittedEvent,
   threshold: number
-): Promise<Message<Commands> | undefined> => {
+): Promise<Command<schemas.CounterCommands> | undefined> => {
   if (counter) {
     if (counter.count >= threshold - 1)
       return bind("Reset", {}, event.stream.substring("Calculator-".length));
@@ -32,50 +30,93 @@ const policy = async (
   }
 };
 
-export type CounterEvents = Omit<
-  Events,
-  "Cleared" | "Ignored1" | "Ignored2" | "Ignored3" | "Forgotten" | "Complex"
->;
+type CounterState = z.infer<typeof schemas.CounterState>;
 
 export const Counter: ProcessManagerFactory<
   CounterState,
-  Commands,
-  CounterEvents
-> = (eventOrId: CommittedEvent<CounterEvents> | string) => ({
+  schemas.CounterCommands,
+  schemas.CounterEvents
+> = (eventOrId: CommittedEvent<schemas.CounterEvents> | string) => ({
+  description: "A counter saga",
   stream: () =>
     typeof eventOrId === "string" ? eventOrId : `Counter-${eventOrId.stream}`,
-  schema: () => schemas.CounterState,
+  schemas: {
+    state: schemas.CounterState,
+    commands: {
+      Reset: ZodEmpty
+    },
+    events: {
+      DigitPressed: schemas.DigitPressed,
+      DotPressed: ZodEmpty,
+      OperatorPressed: schemas.OperatorPressed,
+      EqualsPressed: ZodEmpty
+    }
+  },
   init: (): CounterState => ({ count: 0 }),
-  snapshot: {
-    threshold: 2
+
+  on: {
+    DigitPressed: (event, state) => policy(state, event, 5),
+    DotPressed: (event, state) => policy(state, event, 5),
+    EqualsPressed: () => undefined,
+    OperatorPressed: () => undefined
   },
 
-  onDigitPressed: (event, state) => policy(state, event as CommittedEvent, 5),
-  onDotPressed: (event, state) => policy(state, event as CommittedEvent, 5),
-  onEqualsPressed: () => undefined,
-  onOperatorPressed: () => undefined,
-
-  applyDigitPressed: (model) => ({
-    count: model.count >= 4 ? 0 : model.count + 1
-  }),
-  applyDotPressed: (model) => ({
-    count: model.count >= 4 ? 0 : model.count + 1
-  }),
-  applyEqualsPressed: () => ({ count: 0 }),
-  applyOperatorPressed: () => ({ count: 0 })
+  reduce: {
+    DigitPressed: (model) => ({
+      count: model.count >= 4 ? 0 : model.count + 1
+    }),
+    DotPressed: (model) => ({
+      count: model.count >= 4 ? 0 : model.count + 1
+    }),
+    EqualsPressed: () => ({ count: 0 }),
+    OperatorPressed: () => ({ count: 0 })
+  }
 });
 
-export const StatelessCounter = (): Policy<Commands, CounterEvents> => ({
-  onDigitPressed: (event) => policy(undefined, event as CommittedEvent, 5),
-  onDotPressed: (event) => policy(undefined, event as CommittedEvent, 5),
-  onEqualsPressed: () => undefined,
-  onOperatorPressed: () => undefined
+export const StatelessCounter: PolicyFactory<
+  schemas.CalculatorCommands,
+  Pick<
+    schemas.CalculatorEvents,
+    "DigitPressed" | "DotPressed" | "EqualsPressed" | "OperatorPressed"
+  >
+> = () => ({
+  description: "A stateless counter policy",
+  schemas: {
+    commands: {
+      PressKey: schemas.PressKey,
+      Reset: ZodEmpty
+    },
+    events: {
+      DigitPressed: schemas.DigitPressed,
+      DotPressed: ZodEmpty,
+      EqualsPressed: ZodEmpty,
+      OperatorPressed: schemas.OperatorPressed
+    }
+  },
+  on: {
+    DigitPressed: (event) => policy(undefined, event, 5),
+    DotPressed: (event) => policy(undefined, event, 5),
+    EqualsPressed: () => undefined,
+    OperatorPressed: () => undefined
+  }
 });
 
-export const IgnoredHandler = (): Policy<
-  Record<string, Payload>,
-  Pick<Events, "Ignored1" | "Ignored2">
-> => ({
-  onIgnored1: () => undefined,
-  onIgnored2: () => undefined
+export const IgnoredHandler: PolicyFactory<
+  Pick<schemas.AllCommands, "Whatever">,
+  Pick<schemas.AllEvents, "Ignored1" | "Ignored2">
+> = () => ({
+  description: "Ignoring everything",
+  schemas: {
+    commands: {
+      Whatever: ZodEmpty
+    },
+    events: {
+      Ignored1: ZodEmpty,
+      Ignored2: ZodEmpty
+    }
+  },
+  on: {
+    Ignored1: () => undefined,
+    Ignored2: () => undefined
+  }
 });

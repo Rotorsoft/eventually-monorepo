@@ -1,26 +1,12 @@
 import * as crypto from "crypto";
-import { Store } from "./interfaces";
-import { singleton } from "./singleton";
-import {
-  Actor,
-  Command,
-  CommandHandler,
-  CommandHandlerFactory,
-  EventHandler,
-  EventHandlerFactory,
-  Message,
-  MessageHandler,
-  Messages,
-  Payload,
-  Reducible,
-  ReducibleFactory,
-  Streamable
-} from "./types";
-import { InMemoryStore } from "./__dev__";
+import { z, ZodType } from "zod";
+import { validate } from "./schema";
+import { Actor, Command, Message, Messages } from "./types/messages";
 
-export const store = singleton(function store(store?: Store) {
-  return store || InMemoryStore();
-});
+/** Empty messsage payload */
+export type Empty = Record<string, never>;
+/** Empty message payload schema */
+export const ZodEmpty = z.record(z.never());
 
 /**
  * Binds message arguments
@@ -31,19 +17,39 @@ export const store = singleton(function store(store?: Store) {
  * @param actor Optional actor when binding external commands
  * @returns The bound message
  */
-export const bind = <T extends Messages>(
-  name: keyof T & string,
-  data: Readonly<T[keyof T]>,
+export const bind = <M extends Messages>(
+  name: keyof M & string,
+  data: Readonly<M[keyof M & string]>,
   id?: string,
   expectedVersion?: number,
   actor?: Actor
-): Message<T> | Command<T> => ({
+): Message<M> | Command<M> => ({
   name,
   data,
   id,
   expectedVersion,
   actor
 });
+
+/**
+ * Extends target payload with source payload after validating source
+ *
+ * @param source the source payload
+ * @param schema the source schema
+ * @param target the target payload
+ * @returns the extended payload
+ */
+export const extend = <
+  S extends Record<string, unknown>,
+  T extends Record<string, unknown>
+>(
+  source: S,
+  schema: ZodType<S>,
+  target?: T
+): S & T => {
+  const value = validate(source, schema);
+  return Object.assign(target || {}, value) as S & T;
+};
 
 /**
  * Camelizes string
@@ -96,106 +102,32 @@ export const formatTime = (seconds: number): string => {
   return `${Math.round(seconds / DAY_SECS)} days ${iso.substring(11, 19)}`;
 };
 
-const funcsOf = (prefix: string, object: Record<string, unknown>): string[] => {
-  return Object.entries(object)
-    .filter(([key, value]) => {
-      return typeof value === "function" && key.startsWith(prefix);
-    })
-    .map(([key]) => key.substring(prefix.length));
-};
-
-/**
- * Extracts events from reducible
- * @param reducible the reducible
- * @returns array of event names
- */
-export const eventsOf = <M extends Payload, E extends Messages>(
-  reducible: Reducible<M, E>
-): string[] => funcsOf("apply", reducible);
-
-/**
- * Extracts messages from handler
- * @param handler The message handler
- * @returns array of message names
- */
-export const messagesOf = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: CommandHandler<M, C, E> | EventHandler<M, C, E>
-): string[] => funcsOf("on", handler);
-
-/**
- * Reducible type guard
- * @param handler a message handler
- * @returns a reducible type or undefined
- */
-export const getReducible = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: MessageHandler<M, C, E>
-): Reducible<M, E> | undefined =>
-  "init" in handler ? (handler as Reducible<M, E>) : undefined;
-
-/**
- * Streamable type guard
- * @param handler a message handler
- * @returns a streamable type or undefined
- */
-export const getStreamable = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: MessageHandler<M, C, E>
-): Streamable | undefined =>
-  "stream" in handler ? (handler as Streamable) : undefined;
-
 /**
  * Normalizes reducible paths
- * @param reducible reducible factory
+ * @param name reducible artifact name
  * @returns the reducible path
  */
-export const reduciblePath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  reducible: ReducibleFactory<M, C, E>
-): string => "/".concat(decamelize(reducible.name), "/:id");
+export const reduciblePath = (name: string): string =>
+  "/".concat(decamelize(name), "/:id");
 
 /**
  * Normalizes command handler paths
- * @param handler command handler factory
- * @param name command name
+ * @param name handler name
+ * @param reducible flag reducible
+ * @param command command name
  * @returns normalized path
  */
-export const commandHandlerPath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: CommandHandlerFactory<M, C, E>,
-  name: string
+export const commandHandlerPath = (
+  name: string,
+  reducible: boolean,
+  command: string
 ): string =>
-  "/".concat(
-    decamelize(handler.name),
-    getReducible(handler("")) ? "/:id/" : "/",
-    decamelize(name)
-  );
+  "/".concat(decamelize(name), reducible ? "/:id/" : "/", decamelize(command));
 
 /**
  * Normalizes event handler paths
- * @param handler event handler factory
+ * @param name handler name
  * @returns normalized path
  */
-export const eventHandlerPath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: EventHandlerFactory<M, C, E>
-): string => "/".concat(decamelize(handler.name));
+export const eventHandlerPath = (name: string): string =>
+  "/".concat(decamelize(name));

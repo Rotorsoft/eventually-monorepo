@@ -1,81 +1,43 @@
-import { ZodError } from "zod";
+import { ZodError, ZodType } from "zod";
 import { app } from ".";
-import {
-  Message,
-  Messages,
-  Payload,
-  RegistrationError,
-  ValidationError
-} from "./types";
-import { Schema } from "./types/schemas";
+import { RegistrationError, ValidationError } from "./types/errors";
+import { Message, Messages } from "./types/messages";
 
 /**
- * Validates payloads using either `joi` or `zod` schemas
+ * Validates payloads using `zod` schemas
  *
  * @param payload the payload
  * @returns validated payload when schema is provided
  */
-export const validate = <T extends Payload>(
-  payload: T,
-  schema: Schema<T>
-): T => {
-  if ("validate" in schema) {
-    const { value, error } = schema.validate(payload, {
-      abortEarly: false,
-      allowUnknown: true
-    });
-    if (error)
+export const validate = <T>(payload: T, schema: ZodType<T>): T => {
+  try {
+    return schema.parse(payload);
+  } catch (error) {
+    if (error instanceof ZodError)
       throw new ValidationError(
-        error.details.flatMap((detail) => detail.message)
+        error.errors.map(({ path, message }) => `${path.join(".")}: ${message}`)
       );
-    return value;
-  } else {
-    try {
-      return schema.parse(payload);
-    } catch (error) {
-      if (error instanceof ZodError)
-        throw new ValidationError(
-          error.errors.map(
-            ({ path, message }) => `${path.join(".")}: ${message}`
-          )
-        );
-      throw new ValidationError(["zod validation error"]);
-    }
+    throw new ValidationError(["zod validation error"]);
   }
 };
 
 /**
- * Extends target payload with source payload after validating source
- *
- * @param source the source payload
- * @param schema the source schema
- * @param target the target payload
- * @returns the extended payload
- */
-export const extend = <S extends Payload, T extends Payload>(
-  source: S,
-  schema: Schema<S>,
-  target?: T
-): S & T => {
-  const value = validate(source, schema);
-  return Object.assign(target || {}, value) as S & T;
-};
-
-/**
- * Validates messages
+ * Validates message payloads
  *
  * @param message the message
- * @returns validated message when schema is provided
+ * @returns validated message
  */
-export const validateMessage = <T extends Messages>(
-  message: Message<T>
-): Message<T> => {
+export const validateMessage = <M extends Messages>(
+  message: Message<M>
+): Message<M> => {
   const metadata = app().messages[message.name];
   if (!metadata) throw new RegistrationError(message);
   if (metadata.schema) {
     try {
-      const data = validate(message.data, metadata.schema);
-      return { name: message.name, data };
+      const validated = validate(message.data, metadata.schema) as Readonly<
+        M[keyof M & string]
+      >;
+      return { name: message.name, data: validated };
     } catch (error) {
       throw new ValidationError(
         (error as ValidationError).details.errors,

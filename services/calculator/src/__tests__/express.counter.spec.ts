@@ -13,9 +13,7 @@ const chance = new Chance();
 const port = 4001;
 const t = tester(port);
 
-const _app = app(new ExpressApp())
-  .withAggregate(Calculator)
-  .withProcessManager(Counter);
+const _app = app(new ExpressApp()).with(Calculator).with(Counter);
 
 const pressKey = (
   id: string,

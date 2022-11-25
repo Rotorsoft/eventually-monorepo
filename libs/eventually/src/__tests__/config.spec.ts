@@ -6,9 +6,7 @@ describe("config", () => {
     const { config, Environments } = await import("@rotorsoft/eventually");
     expect(config().env).toEqual(Environments.development);
 
-    await expect(import("@rotorsoft/eventually-pg")).rejects.toThrowError(
-      "ERR_VALIDATION"
-    );
+    await expect(import("@rotorsoft/eventually-pg")).rejects.toThrow();
   });
 
   it("should cover log error", async () => {

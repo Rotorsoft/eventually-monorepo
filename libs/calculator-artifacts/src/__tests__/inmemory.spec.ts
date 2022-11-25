@@ -4,52 +4,49 @@ import {
   bind,
   CommittedEvent,
   dispose,
-  Errors,
-  InMemorySnapshotStore,
   log,
   Messages,
-  Payload,
   Snapshot,
   store
 } from "@rotorsoft/eventually";
 import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { Calculator } from "../calculator.aggregate";
-import { Events } from "../calculator.events";
-import { CalculatorModel, Keys } from "../calculator.models";
+import * as schemas from "../calculator.schemas";
+import { Calculator, CalculatorModel } from "../calculator.aggregate";
 import { Counter, IgnoredHandler } from "../counter.policy";
-import { Forget } from "../../../../services/calculator/src/forget.system";
+import { Forget } from "../forget.system";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
+import { InMemorySnapshotStore } from "../../../eventually/src/__dev__";
 
 const chance = new Chance();
 const t = tester();
-const ss = InMemorySnapshotStore();
+const inMemorySnapshots = InMemorySnapshotStore();
 
 app()
-  .withExternalSystem(Forget)
-  .withAggregate(Calculator, "testing calculator", {
-    store: ss,
-    threshold: 2
-  })
-  .withPolicy(IgnoredHandler, "ignored")
-  .withProcessManager(Counter, "counter")
-  .withCommandAdapter(PressKeyAdapter)
+  .with(Forget)
+  .with(Calculator)
+  .with(IgnoredHandler)
+  .with(Counter)
+  .with(PressKeyAdapter)
+  .withSnapshot(Calculator, { store: inMemorySnapshots, threshold: 2 })
   .build();
 
 const pressKey = (
   id: string,
-  key: Keys
-): Promise<Snapshot<CalculatorModel, Events>[]> =>
+  key: schemas.Keys
+): Promise<Snapshot<CalculatorModel, schemas.AllEvents>[]> =>
   app().command(bind("PressKey", { key }, id));
 
-const reset = (id: string): Promise<Snapshot<CalculatorModel, Events>[]> =>
+const reset = (
+  id: string
+): Promise<Snapshot<CalculatorModel, schemas.AllEvents>[]> =>
   app().command(bind("Reset", {}, id));
 
 describe("in memory", () => {
   beforeAll(async () => {
     // just to cover seeds
     await store().seed();
-    await ss.seed();
+    await inMemorySnapshots.seed();
 
     jest.clearAllMocks();
     await app().listen();
@@ -93,10 +90,6 @@ describe("in memory", () => {
       // With Snapshot loading
       const snapshots2 = await app().stream(Calculator, id, true);
       expect(snapshots2.length).toEqual(2);
-
-      // Query snapshot
-      const snapresult = await ss.query({ limit: 1 });
-      expect(snapresult.length).toBe(1);
     });
 
     it("should compute correctly 2", async () => {
@@ -209,13 +202,13 @@ describe("in memory", () => {
       // WHEN
       await expect(app().command(bind("PressKey", { key: "1" }, id, -1)))
         // THEN
-        .rejects.toThrowError(Errors.ConcurrencyError);
+        .rejects.toThrow();
     });
 
     it("should throw validation error", async () => {
       await expect(
         app().command(bind("PressKey", {}, chance.guid()))
-      ).rejects.toThrowError(Errors.ValidationError);
+      ).rejects.toThrow();
     });
 
     it("should throw model invariant violation", async () => {
@@ -352,14 +345,15 @@ describe("in memory", () => {
     const event = <E extends Messages>(
       name: keyof E & string,
       stream: string,
-      data: E[keyof E] & Payload
+      data: E[keyof E & string]
     ): CommittedEvent<E> => ({
       id: 0,
       stream,
       version: 0,
       created: new Date(),
       name,
-      data
+      data,
+      metadata: { correlation: "", causation: {} }
     });
 
     it("should cover empty calculator", async () => {
@@ -396,17 +390,13 @@ describe("in memory", () => {
     });
 
     it("should throw invalid command error", async () => {
-      await expect(app().command(bind("Forget2", {}))).rejects.toThrow(
-        Errors.RegistrationError
-      );
+      await expect(app().command(bind("Forget2", {}))).rejects.toThrow();
     });
 
     it("should throw message metadata not found error", async () => {
       const id = chance.guid();
       await app().command(bind("Whatever", {}, id));
-      await expect(app().command(bind("Forget", {}, id))).rejects.toThrow(
-        Errors.RegistrationError
-      );
+      await expect(app().command(bind("Forgetx", {}, id))).rejects.toThrow();
     });
   });
 });

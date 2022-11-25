@@ -1,32 +1,38 @@
 import { Builder } from "./builder";
 import { handleMessage, load } from "./handler";
-import { Disposable } from "./interfaces";
+import { Disposable, Store } from "./interfaces";
 import { log } from "./log";
 import { validate, validateMessage } from "./schema";
+import { singleton } from "./singleton";
+import { RegistrationError } from "./types/errors";
 import {
-  AllQuery,
   CommandAdapterFactory,
   CommandHandlerFactory,
   EventHandlerFactory,
   Reducer,
-  ReducibleFactory,
-  Snapshot
-} from "./types/command-side";
-import { RegistrationError } from "./types/errors";
+  ReducibleFactory
+} from "./types/factories";
 import {
+  AllQuery,
   Command,
   CommittedEvent,
   CommittedEventMetadata,
   Message,
   Messages,
-  Payload
+  Snapshot,
+  State
 } from "./types/messages";
-import { bind, randomId, store } from "./utils";
+import { bind, randomId } from "./utils";
+import { InMemoryStore } from "./__dev__";
 
 interface Reader {
-  load: Reducer<Payload, any, any>;
-  stream: Reducer<Payload, any, any>;
+  load: Reducer<State, any, any>;
+  stream: Reducer<State, any, any>;
 }
+
+export const store = singleton(function store(store?: Store) {
+  return store || InMemoryStore();
+});
 
 /**
  * App abstraction implementing generic handlers
@@ -47,14 +53,14 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param payload message payload
    */
   async invoke<
-    P extends Payload,
-    M extends Payload,
+    P extends State,
+    S extends State,
     C extends Messages,
     E extends Messages
   >(
     factory: CommandAdapterFactory<P, C>,
     payload: P
-  ): Promise<Snapshot<M, E>[]> {
+  ): Promise<Snapshot<S, E>[]> {
     const adapter = factory();
     const data = validate(payload, adapter.schema);
     return this.command(adapter.adapt(data));
@@ -66,29 +72,30 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param metadata optional metadata to track causation
    * @returns array of snapshots produced by this command
    */
-  async command<M extends Payload, C extends Messages, E extends Messages>(
+  async command<S extends State, C extends Messages, E extends Messages>(
     command: Command<C>,
     metadata?: CommittedEventMetadata
-  ): Promise<Snapshot<M, E>[]> {
+  ): Promise<Snapshot<S, E>[]> {
     const { actor, name, id, expectedVersion } = command;
     const msg = this.messages[name];
-    if (!msg || !msg.commandHandlerFactory)
+    if (!msg || !msg.artifacts.length)
       throw new RegistrationError(command as Message);
+    const factory = this.artifacts[msg.artifacts[0]]
+      .factory as unknown as CommandHandlerFactory<S, C, E>;
+    if (!factory) throw new RegistrationError(command as Message);
 
-    const factory = msg.commandHandlerFactory as CommandHandlerFactory<M, C, E>;
     this.log.trace("blue", `\n>>> ${factory.name}`, command, metadata);
-    const { data } = validateMessage<C>(command);
-    const handler = factory(id || "");
-    Object.setPrototypeOf(handler, factory as object);
+    const { data } = validateMessage(command);
+    const artifact = factory(id || "");
+    Object.setPrototypeOf(artifact, factory as object);
     return await handleMessage(
-      handler,
-      (state: M) =>
-        (handler as any)["on".concat(name as string)](data, state, actor),
+      artifact,
+      (state) => artifact.on[name](data, state, actor),
       {
         correlation: metadata?.correlation || randomId(),
         causation: {
           ...metadata?.causation,
-          command: { actor, name, id, expectedVersion } as Command
+          command: { actor, name, id, expectedVersion }
           // TODO: flag to include command.data in metadata
         }
       }
@@ -101,21 +108,18 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param event the committed event payload
    * @returns optional command response and reducible state
    */
-  async event<M extends Payload, C extends Messages, E extends Messages>(
-    factory: EventHandlerFactory<M, C, E>,
+  async event<S extends State, C extends Messages, E extends Messages>(
+    factory: EventHandlerFactory<S, C, E>,
     event: CommittedEvent<E>
   ): Promise<{
     command: Command<C> | undefined;
-    state?: M;
+    state?: S;
   }> {
     const { name, stream, id } = event;
     this.log.trace("magenta", `\n>>> ${factory.name}`, event);
-    const handler = factory(event);
-    Object.setPrototypeOf(handler, factory as object);
-    const on = (handler as any)["on".concat(name as string)];
-    if (typeof on !== "function")
-      throw new RegistrationError(event as unknown as Message);
-    const { data } = validateMessage<E>(event);
+    const artifact = factory(event);
+    Object.setPrototypeOf(artifact, factory as object);
+    const { data } = validateMessage(event);
 
     const metadata: CommittedEventMetadata = {
       correlation: event.metadata?.correlation || randomId(),
@@ -123,12 +127,12 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     };
     let command: Command<C> | undefined;
     const snapshots = await handleMessage(
-      handler,
-      async (state: M) => {
-        command = await on(event, state);
+      artifact,
+      async (state) => {
+        command = await artifact.on[name](event, state);
         // handle commands synchronously
-        command && (await this.command<M, C, E>(command, metadata));
-        return [bind<E>(name, data)];
+        command && (await this.command<S, C, E>(command, metadata));
+        return [bind(name, data)];
       },
       metadata,
       false // dont notify events committed by process managers to avoid loops
@@ -147,15 +151,15 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param callback optional reduction predicate
    * @returns current model state
    */
-  async load<M extends Payload, C extends Messages, E extends Messages>(
-    factory: ReducibleFactory<M, C, E>,
+  async load<S extends State, C extends Messages, E extends Messages>(
+    factory: ReducibleFactory<S, C, E>,
     id: string,
     useSnapshots = true,
-    callback?: (snapshot: Snapshot<M, E>) => void
-  ): Promise<Snapshot<M, E> & { applyCount: number }> {
+    callback?: (snapshot: Snapshot<S, E>) => void
+  ): Promise<Snapshot<S, E> & { applyCount: number }> {
     const reducible = factory(id);
     Object.setPrototypeOf(reducible, factory as object);
-    return load(reducible, useSnapshots, callback);
+    return load<S, C, E>(reducible, useSnapshots, callback);
   }
 
   /**
@@ -165,12 +169,12 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
    * @param useSnapshots flag to use snapshot store
    * @returns stream log with events and state transitions
    */
-  async stream<M extends Payload, C extends Messages, E extends Messages>(
-    factory: ReducibleFactory<M, C, E>,
+  async stream<S extends State, C extends Messages, E extends Messages>(
+    factory: ReducibleFactory<S, C, E>,
     id: string,
     useSnapshots = false
-  ): Promise<Snapshot<M, E>[]> {
-    const log: Snapshot<M, E>[] = [];
+  ): Promise<Snapshot<S, E>[]> {
+    const log: Snapshot<S, E>[] = [];
     await this.load(factory, id, useSnapshots, (snapshot) =>
       log.push(snapshot)
     );

@@ -6,7 +6,7 @@ import { Calculator } from "@rotorsoft/calculator-artifacts";
 const port = 4002;
 const t = tester(port);
 
-const exapp = app(new ExpressApp()).withAggregate(Calculator);
+const exapp = app(new ExpressApp()).with(Calculator);
 
 jest.spyOn(store(), "query").mockRejectedValue("Error");
 jest.spyOn(store(), "stats").mockRejectedValue("Error");

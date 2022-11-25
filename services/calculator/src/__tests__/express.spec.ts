@@ -3,7 +3,6 @@ import {
   bind,
   CommittedEvent,
   dispose,
-  InMemorySnapshotStore,
   Snapshot
 } from "@rotorsoft/eventually";
 import {
@@ -22,6 +21,7 @@ import {
   ExternalPayload,
   PressKeyAdapter
 } from "@rotorsoft/calculator-artifacts";
+import { InMemorySnapshotStore } from "../../../../libs/eventually/src/__dev__";
 
 const chance = new Chance();
 const port = 4000;
@@ -29,13 +29,14 @@ const t = tester(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .withAggregate(Calculator, "calculator", {
+  .with(Calculator)
+  .with(StatelessCounter)
+  .with(PressKeyAdapter)
+  .withSnapshot(Calculator, {
     store: InMemorySnapshotStore(),
     threshold: 2,
     expose: true
   })
-  .withPolicy(StatelessCounter)
-  .withCommandAdapter(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);
 
 const pressKey = (
@@ -211,7 +212,8 @@ describe("express app", () => {
           version: 1,
           created: new Date(),
           name: "DigitPressed",
-          data: {}
+          data: {},
+          metadata: { correlation: "", causation: {} }
         })
       ).rejects.toThrowError("Request failed with status code 400");
     });

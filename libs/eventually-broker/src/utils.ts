@@ -1,4 +1,3 @@
-import { Payload } from "@rotorsoft/eventually";
 import { AxiosRequestHeaders } from "axios";
 
 const usnf = new Intl.NumberFormat("en-US");
@@ -51,7 +50,7 @@ export const ensureArray = (anyOrArray: any | any[]): any[] =>
  * Builds query string from payload
  */
 const toQS = (key: string, val: any): string => `&${key}=${val.toString()}`;
-export const toQueryString = (payload: Payload): string =>
+export const toQueryString = (payload: Record<string, unknown>): string =>
   Object.entries(payload)
     .filter(([, val]) => val)
     .reduce(
@@ -65,7 +64,9 @@ export const toQueryString = (payload: Payload): string =>
 /**
  * Builds headers from payload
  */
-export const toAxiosRequestHeaders = (payload: Payload): AxiosRequestHeaders =>
+export const toAxiosRequestHeaders = (
+  payload: Record<string, unknown>
+): AxiosRequestHeaders =>
   Object.entries(payload).reduce((h, [key, val]) => {
     h[key] =
       typeof val === "boolean" || typeof val === "number"

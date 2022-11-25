@@ -813,8 +813,8 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-express": "workspace:^4"
-    joi: ^17.6.0
     uuid: ^8.3.2
+    zod: ^3.19.1
   languageName: unknown
   linkType: soft
 
@@ -834,7 +834,6 @@ __metadata:
   resolution: "@rotorsoft/calculator-artifacts@workspace:libs/calculator-artifacts"
   dependencies:
     "@rotorsoft/eventually": "workspace:^4"
-    joi: ^17.6.0
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
@@ -847,7 +846,6 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^4"
     "@rotorsoft/eventually-express": "workspace:^4"
     "@rotorsoft/eventually-pg": "workspace:^4"
-    joi: ^17.6.0
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
@@ -882,7 +880,6 @@ __metadata:
     axios: ^0.26.0
     cors: ^2.8.5
     express: ^4.17.1
-    joi-to-swagger: ^6.0.1
     openapi3-ts: ^3.1.1
     zod: ^3.19.1
   languageName: unknown
@@ -952,7 +949,6 @@ __metadata:
   dependencies:
     chalk: ~4
     dotenv: ^16.0.0
-    joi: ^17.6.0
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
@@ -4156,17 +4152,6 @@ __metadata:
   bin:
     jest: bin/jest.js
   checksum: 96f1d69042b3c6dfc695f2a4e4b0db38af6fb78582ad1a02beaa57cfcd77cbd31567d7d865c1c85709b7c3e176eefa3b2035ffecd646005f15d8ef528eccf205
-  languageName: node
-  linkType: hard
-
-"joi-to-swagger@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "joi-to-swagger@npm:6.0.1"
-  dependencies:
-    lodash: ^4.17.21
-  peerDependencies:
-    joi: ">=17.1.1"
-  checksum: 26e34ca25d67c358d139b744ce69783fef94f4903c7c69f5b9fb98818203a12848e979fe1032ecd4ee54f8f6ceafc1ba9bad79732f25e4e9db56088e5653ee6d
   languageName: node
   linkType: hard
 

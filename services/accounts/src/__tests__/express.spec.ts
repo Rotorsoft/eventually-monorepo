@@ -1,36 +1,20 @@
 import { app, bind, dispose } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import * as schemas from "../accounts.schemas";
-import * as commands from "../accounts.commands";
-import * as events from "../accounts.events";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
 
 const chance = new Chance();
 
 const expressApp = app(new ExpressApp())
-  .withSchemas<commands.Commands>({
-    CreateAccount1: schemas.CreateAccount1,
-    CreateAccount2: schemas.CreateAccount2,
-    CreateAccount3: schemas.CreateAccount3,
-    CompleteIntegration: schemas.CompleteIntegration
-  })
-  .withSchemas<events.Events>({
-    AccountCreated: schemas.AccountCreated,
-    Account1Created: schemas.Account1Created,
-    Account2Created: schemas.Account2Created,
-    Account3Created: schemas.Account3Created,
-    IntegrationCompleted: schemas.IntegrationCompleted
-  })
-  .withPolicy(policies.IntegrateAccount1)
-  .withPolicy(policies.IntegrateAccount2)
-  .withPolicy(policies.IntegrateAccount3)
-  .withProcessManager(policies.WaitForAllAndComplete)
-  .withExternalSystem(systems.ExternalSystem2)
-  .withExternalSystem(systems.ExternalSystem3)
-  .withExternalSystem(systems.ExternalSystem4)
-  .withExternalSystem(systems.ExternalSystem1, "ext1");
+  .with(policies.IntegrateAccount1)
+  .with(policies.IntegrateAccount2)
+  .with(policies.IntegrateAccount3)
+  .with(policies.WaitForAllAndComplete)
+  .with(systems.ExternalSystem2)
+  .with(systems.ExternalSystem3)
+  .with(systems.ExternalSystem4)
+  .with(systems.ExternalSystem1);
 
 const port = 3005;
 const t = tester(port);

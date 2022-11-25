@@ -1,4 +1,4 @@
-import { CommittedEvent, Disposable, Payload } from "@rotorsoft/eventually";
+import { CommittedEvent, Disposable } from "@rotorsoft/eventually";
 import {
   PullOptions,
   PushEvent,
@@ -41,7 +41,12 @@ export interface ChannelResolvers {
   pull: Record<string, (url: URL, id: string) => PullChannel>;
   push: Record<
     string,
-    (url: URL, id: string, source: string, headers?: Payload) => PushChannel
+    (
+      url: URL,
+      id: string,
+      source: string,
+      headers?: Record<string, unknown>
+    ) => PushChannel
   >;
 }
 

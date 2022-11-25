@@ -1,16 +1,14 @@
 import { app, log, store } from ".";
 import { validateMessage } from "./schema";
+import { MessageHandlingArtifact, Reducible } from "./types/artifacts";
 import {
   CommittedEvent,
   CommittedEventMetadata,
   Message,
-  MessageHandler,
   Messages,
-  Payload,
-  Reducible,
-  Snapshot
-} from "./types";
-import { getReducible, getStreamable } from "./utils";
+  Snapshot,
+  State
+} from "./types/messages";
 
 /**
  * Loads current model state
@@ -19,11 +17,15 @@ import { getReducible, getStreamable } from "./utils";
  * @param callback optional reduction predicate
  * @returns current model state
  */
-export const load = async <M extends Payload, E extends Messages>(
-  reducible: Reducible<M, E>,
+export const load = async <
+  S extends State,
+  C extends Messages,
+  E extends Messages
+>(
+  reducible: Reducible<S, C, E>,
   useSnapshots = true,
-  callback?: (snapshot: Snapshot<M, E>) => void
-): Promise<Snapshot<M, E> & { applyCount: number }> => {
+  callback?: (snapshot: Snapshot<S, E>) => void
+): Promise<Snapshot<S, E> & { applyCount: number }> => {
   const snapshot =
     (useSnapshots && (await app().readSnapshot(reducible))) || undefined;
   let state = snapshot?.state || reducible.init();
@@ -33,8 +35,7 @@ export const load = async <M extends Payload, E extends Messages>(
   await store().query(
     (e) => {
       event = e as CommittedEvent<E>;
-      const apply = (reducible as any)["apply".concat(event.name)];
-      state = apply && apply(state, event);
+      state = reducible.reduce[event.name](state, event);
       applyCount++;
       callback && callback({ event, state });
     },
@@ -51,38 +52,38 @@ export const load = async <M extends Payload, E extends Messages>(
 
 /**
  * Generic message handler
- * @param handler Message handler
+ * @param artifact Message handler
  * @param callback Concrete message handling callback
  * @param metadata Message metadata
  * @param notify Notify commits
  * @returns Reduced snapshots
  */
 export const handleMessage = async <
-  M extends Payload,
+  S extends State,
   C extends Messages,
   E extends Messages
 >(
-  handler: MessageHandler<M, C, E>,
-  callback: (state: M) => Promise<Message<E>[]>,
+  artifact: MessageHandlingArtifact<S, C, E>,
+  callback: (state: S) => Promise<Message<E>[]>,
   metadata: CommittedEventMetadata,
   notify = true
-): Promise<Snapshot<M, E>[]> => {
-  const streamable = getStreamable(handler);
-  const reducible = getReducible(handler);
+): Promise<Snapshot<S, E>[]> => {
+  const streamable = "stream" in artifact ? artifact : undefined;
+  const reducible = "reduce" in artifact ? artifact : undefined;
 
   const snapshot = reducible
-    ? await load(reducible)
-    : { state: {} as M, applyCount: 0 };
+    ? await load<S, C, E>(reducible)
+    : { state: {} as S, applyCount: 0 };
 
   const events = await callback(snapshot.state);
   if (streamable && events.length) {
-    const committed = (await store().commit(
+    const committed = await store().commit(
       streamable.stream(),
       events.map(validateMessage),
       metadata,
       metadata.causation.command?.expectedVersion,
       notify
-    )) as CommittedEvent<E>[];
+    );
 
     if (reducible) {
       let state = snapshot.state;
@@ -94,18 +95,22 @@ export const handleMessage = async <
           }`,
           event.data
         );
-        state = (reducible as any)["apply".concat(event.name)](state, event);
+        state = reducible.reduce[event.name](state, event as CommittedEvent<E>);
         log().trace(
           "gray",
           `   === ${JSON.stringify(state)}`,
           ` @ ${event.version}`
         );
-        return { event, state };
+        return { event, state } as Snapshot<S, E>;
       });
       // TODO: implement reliable async snapshotting - persist queue? start on app load?
-      const snap = snapshots.at(-1);
-      snap && void app().writeSnapshot(reducible, snap, snapshot.applyCount);
+      const snap = snapshots.at(-1) as Snapshot<S, E>;
+      snap &&
+        void app().writeSnapshot<S, C, E>(reducible, snap, snapshot.applyCount);
       return snapshots;
-    } else return committed.map((event) => ({ state: snapshot.state, event }));
+    } else
+      return committed.map(
+        (event) => ({ state: snapshot.state, event } as Snapshot<S, E>)
+      );
   } else return [];
 };

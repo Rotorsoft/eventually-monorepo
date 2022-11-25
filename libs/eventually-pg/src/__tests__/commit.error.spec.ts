@@ -1,11 +1,4 @@
-import {
-  Errors,
-  CommittedEvent,
-  bind,
-  dispose,
-  Message,
-  Payload
-} from "@rotorsoft/eventually";
+import { CommittedEvent, bind, dispose, Message } from "@rotorsoft/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 
@@ -50,10 +43,10 @@ describe("Mocked", () => {
       }
     }));
     await expect(
-      db.commit("stream", [bind<{ test: Payload }>("test", {}) as Message], {
+      db.commit("stream", [bind("test", {}) as Message], {
         correlation: "",
         causation: {}
       })
-    ).rejects.toThrowError(Errors.ConcurrencyError);
+    ).rejects.toThrow();
   });
 });

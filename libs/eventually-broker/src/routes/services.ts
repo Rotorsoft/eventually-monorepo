@@ -1,10 +1,4 @@
-import {
-  Actor,
-  AllQuery,
-  CommittedEvent,
-  log,
-  Payload
-} from "@rotorsoft/eventually";
+import { Actor, AllQuery, CommittedEvent, log } from "@rotorsoft/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import { state } from "../cluster";
@@ -35,7 +29,10 @@ const toService = (body: Service): Pick<Service, "id" | "channel" | "url"> => ({
 
 router.get(
   "/",
-  (req: Request<never, Payload, never, { add?: boolean }>, res) => {
+  (
+    req: Request<never, Record<string, unknown>, never, { add?: boolean }>,
+    res
+  ) => {
     req.query.add
       ? res.render(
           "add-service",

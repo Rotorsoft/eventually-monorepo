@@ -62,7 +62,7 @@ const devLog = (): Log => ({
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error: (error: unknown): void => {
     if (error instanceof ValidationError || error instanceof RegistrationError)
-      console.error(chalk.red(error.name), error.message, error.details);
+      console.error(chalk.red(error.name), error.message);
     else if (error instanceof Error)
       console.error(chalk.red(error.name), error.message, error.stack);
     else console.error(chalk.red(error));
@@ -80,8 +80,7 @@ const plainLog = (): Log => ({
         JSON.stringify({
           severity: "ERROR",
           name: error.name,
-          message: error.message,
-          details: error.details
+          message: error.message
         })
       );
     else if (error instanceof Error)
