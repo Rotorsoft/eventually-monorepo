@@ -8,16 +8,18 @@ export type Empty = Record<string, never>;
 export const ZodEmpty = z.record(z.never());
 
 /**
- * All artifacts transferred from models have a description to help with documentation
+ * All artifacts transferred from models have
+ * - `description` to help with documentation
  */
 export type Artifact = {
   description: string;
 };
 
 /**
- * For artifacts with command handlers
- * - command schemas for input validation
- * - event schemas for output validation
+ * Command handling artifacts have
+ * - `commands` schemas for input validation
+ * - `events` schemas for output validation
+ * - `on` command handlers
  */
 type WithCommandHandlers<
   S extends State,
@@ -32,8 +34,9 @@ type WithCommandHandlers<
 };
 
 /**
- * For artifacts with event handlers
- * - event schemas for input validation
+ * Event handling artifacts have
+ * - `events` schemas for input validation
+ * - `on` event handlers
  */
 type WithEventHandlers<
   S extends State,
@@ -49,8 +52,8 @@ type WithEventHandlers<
 };
 
 /**
- * For command producing artifacts
- * - list all command names to help with documentation
+ * Command producing artifacts have
+ * - `commands` produced command names to help with documentation
  */
 type WithCommandOutputs<C extends Messages> = {
   schemas: {
@@ -67,7 +70,10 @@ export type Streamable = Artifact & {
 
 /**
  * Reducible artifacts reduce state from event streams
- * - state schema is provided to help with documentation
+ * - `state` schema to help with documentation
+ * - `events` schemas for commit validation
+ * - `init` state initializer
+ * - `reduce` event reducers
  */
 export type Reducible<
   S extends State = State,
@@ -82,8 +88,8 @@ export type Reducible<
 };
 
 /**
- * Aggregates handle commands and produce committed events while holding internal state
- * - These are the artifacts that define state consistency boundaries in a business model
+ * Aggregates handle commands and produce committed events while holding internal reducible state
+ * - Provide consistency boundaries in a business model
  */
 export type Aggregate<
   S extends State = State,
@@ -100,7 +106,7 @@ export type System<
 > = Streamable & WithCommandHandlers<State, C, E>;
 
 /**
- * Policies handle events and can produce commands
+ * Policies handle events and can produce commands that trigger local command handlers synchronously
  */
 export type Policy<
   C extends Messages = Messages,
@@ -109,7 +115,7 @@ export type Policy<
 
 /**
  * Process managers are policies with reducible state
- * - Allowing to expand consistency boundaries from multiple events into local state machines
+ * - Expand consistency boundaries by reducing events from different sources into local state machines
  */
 export type ProcessManager<
   S extends State = State,
@@ -118,8 +124,10 @@ export type ProcessManager<
 > = Reducible<S, E> & WithEventHandlers<S, C, E> & WithCommandOutputs<C>;
 
 /**
- * Command adapters convert messages to commands
- * - This is a "Policy" with a generic input not following the committed event schema
+ * Command adapters map any message payload to commands
+ * - These are policies with generic inputs (not committed events)
+ * - `message` schema for input validation
+ * - `on` command adapter
  */
 export type CommandAdapter<
   S extends State = State,
