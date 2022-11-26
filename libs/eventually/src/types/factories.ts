@@ -109,6 +109,6 @@ export type ArtifactMetadata<
 > = {
   type: ArtifactType;
   factory: MessageHandlerFactory<S, C, E>;
-  input: Record<string, string>; // input messages name:path
-  output: string[]; // output messages
+  inputs: Record<string, string>; // endpoints name:path
+  outputs: string[]; // side effects
 };

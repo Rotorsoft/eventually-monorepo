@@ -55,11 +55,10 @@ export const home = (): string => {
           .join("")}
         </div>
         <div style="flex:1;justify-content:end">
+          <div><a href="/_config">config</a></div>
           <div><a href="/swagger">swagger</a></div>
           <div><a href="/_redoc">redoc</a></div>
           <div><a href="/_health">health</a></div>
-          <div><a href="/_metadata">metadata</a></div>
-          <div><a href="/_config">config</a></div>
         </div>
       </div>
     </rapi-doc>

@@ -82,7 +82,7 @@ export class ExpressApp extends AppBase {
         (artifact) =>
           artifact.type === "aggregate" || artifact.type === "system"
       )
-      .forEach(({ type, factory, input }) => {
+      .forEach(({ type, factory, inputs: input }) => {
         type === "aggregate" &&
           (aggregates[factory.name] = factory as AggregateFactory);
         Object.entries(input).forEach(([name, path]) => {
@@ -93,8 +93,8 @@ export class ExpressApp extends AppBase {
 
     Object.values(this.artifacts)
       .filter((artifact) => artifact.type === "command-adapter")
-      .forEach(({ factory }) => {
-        const path = decamelize("/".concat(factory.name));
+      .forEach(({ factory, inputs: input }) => {
+        const path = input[factory.name];
         this._router.post(
           path,
           invokeHandler(factory as CommandAdapterFactory)
@@ -122,7 +122,7 @@ export class ExpressApp extends AppBase {
         (artifact) =>
           artifact.type === "policy" || artifact.type === "process-manager"
       )
-      .forEach(({ type, factory, input }) => {
+      .forEach(({ type, factory, inputs: input }) => {
         type === "process-manager" &&
           (managers[factory.name] = factory as ProcessManagerFactory);
         const path = Object.values(input).at(0);
@@ -156,24 +156,24 @@ export class ExpressApp extends AppBase {
     this._app.get("/swagger", (_, res) => res.json(this._swagger));
     this._app.get("/_redoc", (_, res) => res.type("html").send(redoc(service)));
 
-    this._app.get("/_metadata", (_, res) =>
+    this._app.get("/_config", (_, res) =>
       res.json({
+        service,
+        version,
+        dependencies,
         artifacts: this.artifacts,
         messages: Object.values(this.messages).map(
-          ({ name, type, schema, artifacts }) => ({
+          ({ name, type, schema, handlers }) => ({
             name,
             type,
             description: schema.description || "",
-            artifacts
+            handlers
           })
         )
       })
     );
     this._app.get("/_health", (_, res) =>
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
-    );
-    this._app.get("/_config", (_, res) =>
-      res.json({ service, version, dependencies })
     );
     this._app.get("/__killme", () => {
       this.log.info("red", "KILLME");

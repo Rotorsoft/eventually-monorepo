@@ -17,6 +17,8 @@ import {
   CommittedEventSchema,
   getComponents,
   getSecurity,
+  PolicyResponseSchema,
+  SnapshotSchema,
   toOpenAPISchema
 } from "./schemas";
 
@@ -49,17 +51,12 @@ const response = (
 export const swagger = (): OpenAPIObject => {
   const getSchemas = (): void => {
     Object.entries(app().messages).map(([name, { schema, type }]) => {
-      if (type === "command") {
+      if (type === "command" || type === "message") {
         components.schemas &&
-          (components.schemas[name] = schema
-            ? toOpenAPISchema(schema as ZodType)
-            : { type: "object" });
-      } else {
+          (components.schemas[name] = toOpenAPISchema(schema));
+      } else if (type === "event") {
         components.schemas &&
-          (components.schemas[name] = CommittedEventSchema(
-            name,
-            schema as ZodType
-          ));
+          (components.schemas[name] = CommittedEventSchema(name, schema));
       }
     });
   };
@@ -71,17 +68,7 @@ export const swagger = (): OpenAPIObject => {
   ): void => {
     if (!components.schemas || components.schemas[name]) return;
     components.schemas[name] = toOpenAPISchema(schema);
-    components.schemas[name.concat("Snapshot")] = {
-      type: "object",
-      properties: {
-        event: {
-          anyOf: events.map((name) => ({
-            $ref: `#/components/schemas/${name}`
-          }))
-        },
-        state: { $ref: `#/components/schemas/${name}` }
-      }
-    };
+    components.schemas[name.concat("Snapshot")] = SnapshotSchema(name, events);
 
     // GET reducible
     const path = reduciblePath(name).replace("/:id", "/{id}");
@@ -180,7 +167,7 @@ export const swagger = (): OpenAPIObject => {
           }
         },
         responses: {
-          "200": response("PolicyResponse", "OK"),
+          "200": PolicyResponseSchema(amd.outputs),
           "400": response("ValidationError", "Validation Error"),
           "404": response("RegistrationError", "Registration Error"),
           default: { description: "Internal Server Error" }
@@ -197,7 +184,7 @@ export const swagger = (): OpenAPIObject => {
         getReducibleComponent(
           amd.factory.name,
           (artifact as Reducible).schemas.state,
-          amd.output
+          amd.outputs
         );
 
       tags.push({
@@ -206,12 +193,12 @@ export const swagger = (): OpenAPIObject => {
       });
 
       if (amd.type === "aggregate" || amd.type === "system")
-        Object.entries(amd.input).forEach(([name, path]) =>
+        Object.entries(amd.inputs).forEach(([name, path]) =>
           getCommandHandlerPath(amd, name, path)
         );
-      else if (amd.type === "policy" || amd.type === "process-manager") {
-        const path = Object.values(amd.input).at(0);
-        path && getEventHandlerPath(amd, path, Object.keys(amd.input));
+      else {
+        const path = Object.values(amd.inputs).at(0);
+        path && getEventHandlerPath(amd, path, Object.keys(amd.inputs));
       }
     });
   };

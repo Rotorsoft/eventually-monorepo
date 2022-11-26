@@ -1,8 +1,9 @@
 import { generateSchema } from "@anatine/zod-openapi";
-import { Errors } from "@rotorsoft/eventually";
+import { app, ArtifactMetadata, Errors, ZodEmpty } from "@rotorsoft/eventually";
 import * as fs from "fs";
 import {
   ComponentsObject,
+  ResponseObject,
   SchemaObject,
   SecuritySchemeObject
 } from "openapi3-ts";
@@ -81,19 +82,21 @@ export const getComponents = (sec: Security): ComponentsObject => ({
   schemas: {
     ValidationError: generateSchema(
       z.object({
-        message: z.enum([Errors.ValidationError]),
+        name: z.enum([Errors.ValidationError]),
+        message: z.string().min(1),
         details: z.array(z.string())
       })
     ),
     RegistrationError: generateSchema(
       z.object({
-        message: z.enum([Errors.RegistrationError]),
-        details: z.string()
+        name: z.enum([Errors.RegistrationError]),
+        message: z.string().min(1)
       })
     ),
     ConcurrencyError: generateSchema(
       z.object({
-        message: z.enum([Errors.ConcurrencyError]),
+        name: z.enum([Errors.ConcurrencyError]),
+        message: z.string().min(1),
         lastVersion: z.number().int(),
         events: z.array(
           z.object({
@@ -125,32 +128,54 @@ export const getComponents = (sec: Security): ComponentsObject => ({
         created: z.date(),
         data: z.object({}).optional()
       })
-    ),
-    PolicyResponse: generateSchema(
-      z.object({
-        command: z
-          .object({
-            name: z.string(),
-            data: z.object({}).optional(),
-            id: z.string().optional(),
-            expectedVersion: z.number().int().optional(),
-            actor: z
-              .object({
-                name: z.string(),
-                roles: z.array(z.string())
-              })
-              .optional()
-          })
-          .optional(),
-        state: z.object({}).optional()
-      })
     )
   }
 });
 
+export const SnapshotSchema = (
+  name: string,
+  events: string[]
+): SchemaObject => {
+  return {
+    type: "object",
+    properties: {
+      event: {
+        anyOf: events.map((event) => ({
+          $ref: `#/components/schemas/${event}`
+        }))
+      },
+      state: { $ref: `#/components/schemas/${name}` }
+    }
+  };
+};
+
+export const PolicyResponseSchema = (commands: string[]): ResponseObject => {
+  const reducibles = commands.reduce((p, c) => {
+    const cmd = app().messages[c];
+    if (cmd && cmd.type === "command")
+      cmd.handlers.forEach((h) => {
+        const artifact = app().artifacts[h];
+        artifact.type === "aggregate" && (p[h] = artifact);
+      });
+    return p;
+  }, {} as Record<string, ArtifactMetadata>);
+  return {
+    description: `Optional response from ${commands.join(",")}`,
+    content: {
+      "application/json": {
+        schema: {
+          anyOf: Object.keys(reducibles).map((name) => ({
+            $ref: `#/components/schemas/${name}Snapshot`
+          }))
+        }
+      }
+    }
+  };
+};
+
 export const CommittedEventSchema = (
   name: string,
-  schema?: ZodType
+  schema: ZodType
 ): SchemaObject => {
   const committedEventSchema = generateSchema(
     z.object({
@@ -161,16 +186,16 @@ export const CommittedEventSchema = (
       created: z.date()
     })
   );
-  schema &&
+  schema !== ZodEmpty &&
     committedEventSchema.properties &&
     (committedEventSchema.properties["data"] = toOpenAPISchema(schema));
   return committedEventSchema;
 };
 
 /**
- * Converts generic schemas (`joi`, `zod`) into OpenAPI Spec 3.1 SchemaObject
+ * Converts zod schemas into OpenAPI Spec 3.1 SchemaObject
  *
- * @param schema the generic schema
+ * @param schema the zod type
  * @param existingComponets optional existing swagger components
  * @returns OpenAPI Schema Object
  */

@@ -1,12 +1,7 @@
 import * as crypto from "crypto";
-import { z, ZodType } from "zod";
+import { ZodType } from "zod";
 import { validate } from "./schema";
 import { Actor, Command, Message, Messages } from "./types/messages";
-
-/** Empty messsage payload */
-export type Empty = Record<string, never>;
-/** Empty message payload schema */
-export const ZodEmpty = z.record(z.never());
 
 /**
  * Binds message arguments

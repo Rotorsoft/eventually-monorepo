@@ -62,8 +62,8 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     payload: P
   ): Promise<Snapshot<S, E>[]> {
     const adapter = factory();
-    const data = validate(payload, adapter.schema);
-    return this.command(adapter.adapt(data));
+    const data = validate(payload, adapter.schemas.message);
+    return this.command(adapter.on(data));
   }
 
   /**
@@ -78,9 +78,9 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
   ): Promise<Snapshot<S, E>[]> {
     const { actor, name, id, expectedVersion } = command;
     const msg = this.messages[name];
-    if (!msg || !msg.artifacts.length)
+    if (!msg || !msg.handlers.length)
       throw new RegistrationError(command as Message);
-    const factory = this.artifacts[msg.artifacts[0]]
+    const factory = this.artifacts[msg.handlers[0]]
       .factory as unknown as CommandHandlerFactory<S, C, E>;
     if (!factory) throw new RegistrationError(command as Message);
 
@@ -88,7 +88,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
     const { data } = validateMessage(command);
     const artifact = factory(id || "");
     Object.setPrototypeOf(artifact, factory as object);
-    return await handleMessage(
+    return await handleMessage<S, C, E>(
       artifact,
       (state) => artifact.on[name](data, state, actor),
       {
@@ -159,7 +159,7 @@ export abstract class AppBase extends Builder implements Disposable, Reader {
   ): Promise<Snapshot<S, E> & { applyCount: number }> {
     const reducible = factory(id);
     Object.setPrototypeOf(reducible, factory as object);
-    return load<S, C, E>(reducible, useSnapshots, callback);
+    return load<S, E>(reducible, useSnapshots, callback);
   }
 
   /**

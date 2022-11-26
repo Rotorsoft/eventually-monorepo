@@ -14,6 +14,9 @@ export const PressKeyAdapter: CommandAdapterFactory<
   schemas.CalculatorCommands
 > = () => ({
   description: "PressKey adapter",
-  adapt: ({ id, key }) => bind("PressKey", { key }, id),
-  schema: ExternalPayloadSchema
+  schemas: {
+    message: ExternalPayloadSchema,
+    commands: ["PressKey", "Reset"]
+  },
+  on: ({ id, key }) => bind("PressKey", { key }, id)
 });

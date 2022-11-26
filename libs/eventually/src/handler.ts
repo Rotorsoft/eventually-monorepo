@@ -17,12 +17,8 @@ import {
  * @param callback optional reduction predicate
  * @returns current model state
  */
-export const load = async <
-  S extends State,
-  C extends Messages,
-  E extends Messages
->(
-  reducible: Reducible<S, C, E>,
+export const load = async <S extends State, E extends Messages>(
+  reducible: Reducible<S, E>,
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E> & { applyCount: number }> => {
@@ -72,7 +68,7 @@ export const handleMessage = async <
   const reducible = "reduce" in artifact ? artifact : undefined;
 
   const snapshot = reducible
-    ? await load<S, C, E>(reducible)
+    ? await load<S, E>(reducible)
     : { state: {} as S, applyCount: 0 };
 
   const events = await callback(snapshot.state);
@@ -106,7 +102,7 @@ export const handleMessage = async <
       // TODO: implement reliable async snapshotting - persist queue? start on app load?
       const snap = snapshots.at(-1) as Snapshot<S, E>;
       snap &&
-        void app().writeSnapshot<S, C, E>(reducible, snap, snapshot.applyCount);
+        void app().writeSnapshot<S, E>(reducible, snap, snapshot.applyCount);
       return snapshots;
     } else
       return committed.map(

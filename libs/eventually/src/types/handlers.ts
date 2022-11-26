@@ -43,12 +43,3 @@ export type EventHandler<
   event: CommittedEvent<Pick<E, K>>,
   state: Readonly<S>
 ) => Promise<Command<C> | undefined> | undefined;
-
-/**
- * Command adapter handlers handle messages and produce mapped commands
- */
-export type CommandAdapterHandler<
-  C extends Messages,
-  E extends Messages,
-  K extends keyof E & string
-> = (message: Message<Pick<E, K>>) => Promise<Command<C>>;

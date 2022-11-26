@@ -42,9 +42,7 @@ export const Counter: ProcessManagerFactory<
     typeof eventOrId === "string" ? eventOrId : `Counter-${eventOrId.stream}`,
   schemas: {
     state: schemas.CounterState,
-    commands: {
-      Reset: ZodEmpty
-    },
+    commands: ["Reset"],
     events: {
       DigitPressed: schemas.DigitPressed,
       DotPressed: ZodEmpty,
@@ -82,10 +80,7 @@ export const StatelessCounter: PolicyFactory<
 > = () => ({
   description: "A stateless counter policy",
   schemas: {
-    commands: {
-      PressKey: schemas.PressKey,
-      Reset: ZodEmpty
-    },
+    commands: ["PressKey", "Reset"],
     events: {
       DigitPressed: schemas.DigitPressed,
       DotPressed: ZodEmpty,
@@ -107,9 +102,7 @@ export const IgnoredHandler: PolicyFactory<
 > = () => ({
   description: "Ignoring everything",
   schemas: {
-    commands: {
-      Whatever: ZodEmpty
-    },
+    commands: ["Whatever"],
     events: {
       Ignored1: ZodEmpty,
       Ignored2: ZodEmpty

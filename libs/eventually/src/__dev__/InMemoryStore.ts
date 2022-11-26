@@ -24,7 +24,7 @@ export const InMemoryStore = (): Store => {
     for (const event of events) {
       const msg = app().messages[event.name];
       await Promise.all(
-        Object.values(msg.artifacts).map((name) => {
+        Object.values(msg.handlers).map((name) => {
           const artifact = app().artifacts[name];
           return app().event(artifact.factory as EventHandlerFactory, event);
         })

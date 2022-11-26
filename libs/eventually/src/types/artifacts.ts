@@ -1,41 +1,81 @@
-import { ZodType } from "zod";
+import { z, ZodType } from "zod";
 import { Messages, State, Command } from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
 
+/** Empty message payload */
+export type Empty = Record<string, never>;
+/** Empty message payload schema */
+export const ZodEmpty = z.record(z.never());
+
 /**
- * Artifacts handle messages
+ * All artifacts transferred from models have a description to help with documentation
  */
-export type Artifact<
-  C extends Messages = Messages,
-  E extends Messages = Messages
-> = {
+export type Artifact = {
   description: string;
+};
+
+/**
+ * For artifacts with command handlers
+ * - command schemas for input validation
+ * - event schemas for output validation
+ */
+type WithCommandHandlers<
+  S extends State,
+  C extends Messages,
+  E extends Messages
+> = {
   schemas: {
     commands: { [K in keyof C]: ZodType<C[K]> };
     events: { [K in keyof E]: ZodType<E[K]> };
   };
+  on: { [K in keyof C & string]: CommandHandler<S, C, E, K> };
 };
 
 /**
- * Streamable artifacts commit events to streams
+ * For artifacts with event handlers
+ * - event schemas for input validation
  */
-export type Streamable<
-  C extends Messages = Messages,
-  E extends Messages = Messages
-> = Artifact<C, E> & {
+type WithEventHandlers<
+  S extends State,
+  C extends Messages,
+  E extends Messages
+> = {
+  schemas: {
+    events: { [K in keyof E]: ZodType<E[K]> };
+  };
+  on: {
+    [K in keyof E & string]: EventHandler<S, C, E, K>;
+  };
+};
+
+/**
+ * For command producing artifacts
+ * - list all command names to help with documentation
+ */
+type WithCommandOutputs<C extends Messages> = {
+  schemas: {
+    commands: Array<keyof C>; // TODO: find way to force all keys in C
+  };
+};
+
+/**
+ * Streamable artifacts commit events to named streams
+ */
+export type Streamable = Artifact & {
   stream: () => string;
 };
 
 /**
  * Reducible artifacts reduce state from event streams
+ * - state schema is provided to help with documentation
  */
 export type Reducible<
   S extends State = State,
-  C extends Messages = Messages,
   E extends Messages = Messages
-> = Streamable<C, E> & {
+> = Streamable & {
   schemas: {
     state: ZodType<S>;
+    events: { [K in keyof E]: ZodType<E[K]> };
   };
   init: () => Readonly<S>;
   reduce: { [K in keyof E & string]: EventReducer<S, E, K> };
@@ -49,45 +89,33 @@ export type Aggregate<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Reducible<S, C, E> & {
-  on: { [K in keyof C & string]: CommandHandler<S, C, E, K> };
-};
+> = Reducible<S, E> & WithCommandHandlers<S, C, E>;
 
 /**
- * Systems handle commands and produce events without internal state
+ * Systems handle commands and produce committed events without internal state
  */
 export type System<
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Streamable<C, E> & {
-  on: { [K in keyof C & string]: CommandHandler<State, C, E, K> };
-};
+> = Streamable & WithCommandHandlers<State, C, E>;
 
 /**
- * Policies handle committed events and optionally produce commands
+ * Policies handle events and can produce commands
  */
 export type Policy<
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Artifact<C, E> & {
-  on: {
-    [K in keyof E & string]: EventHandler<State, C, E, K>;
-  };
-};
+> = Artifact & WithEventHandlers<State, C, E> & WithCommandOutputs<C>;
 
 /**
- * Process managers handle events and optionally produce commands
- * - Have reducible state, allowing to expand the consistency boundaries of multiple events into a local state machine
+ * Process managers are policies with reducible state
+ * - Allowing to expand consistency boundaries from multiple events into local state machines
  */
 export type ProcessManager<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Reducible<S, C, E> & {
-  on: {
-    [K in keyof E & string]: EventHandler<S, C, E, K>;
-  };
-};
+> = Reducible<S, E> & WithEventHandlers<S, C, E> & WithCommandOutputs<C>;
 
 /**
  * Command adapters convert messages to commands
@@ -96,11 +124,13 @@ export type ProcessManager<
 export type CommandAdapter<
   S extends State = State,
   C extends Messages = Messages
-> = {
-  description: string;
-  adapt: (payload: Readonly<S>) => Command<C>;
-  schema: ZodType<S>;
-};
+> = Artifact &
+  WithCommandOutputs<C> & {
+    schemas: {
+      message: ZodType<S>;
+    };
+    on: (message: Readonly<S>) => Command<C>;
+  };
 
 /**
  * All command handling artifacts

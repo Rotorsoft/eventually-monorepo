@@ -9,13 +9,13 @@ import {
   MessageHandlerFactory
 } from "./types/factories";
 import { Messages, Snapshot, State } from "./types/messages";
-import { commandHandlerPath, eventHandlerPath } from "./utils";
+import { commandHandlerPath, decamelize, eventHandlerPath } from "./utils";
 
 type MessageMetadata<M extends Messages = Messages> = {
   name: keyof M & string;
   schema: ZodType<M[keyof M]>;
-  type: "command" | "event";
-  artifacts: string[];
+  type: "command" | "event" | "message";
+  handlers: string[];
 };
 
 type SnapshotOptions = {
@@ -36,50 +36,67 @@ export class Builder {
     factory: MessageHandlerFactory
   ): [ArtifactType, Record<string, string>[], string[]] => {
     const artifact = factory("") as MessageHandlingArtifact;
-    "stream" in artifact && this.withStreams();
     if ("on" in artifact) {
+      if (typeof artifact.on === "function") {
+        "message" in artifact.schemas &&
+          (this.messages[factory.name] = {
+            name: factory.name,
+            schema: artifact.schemas.message,
+            type: "message",
+            handlers: [factory.name]
+          });
+        const input = [
+          { [factory.name]: decamelize("/".concat(factory.name)) }
+        ];
+        const output = artifact.schemas.commands as string[];
+        return ["command-adapter", input, output];
+      }
+
+      "stream" in artifact && this.withStreams();
       const reducible = "reduce" in artifact;
 
-      // all event messages
-      Object.entries(artifact.schemas.events).forEach(([name, schema]) => {
-        this.messages[name] = this.messages[name] || {
-          name,
-          schema,
-          type: "event",
-          artifacts: []
-        };
-      });
+      "events" in artifact.schemas &&
+        Object.entries(artifact.schemas.events).forEach(([name, schema]) => {
+          this.messages[name] = this.messages[name] || {
+            name,
+            schema,
+            type: "event",
+            handlers: []
+          };
+        });
 
-      // command handling artifacts with their command messages
-      const command = Object.keys(artifact.schemas.commands).at(0);
-      if (command && artifact.on[command]) {
+      if (
+        "commands" in artifact.schemas &&
+        typeof artifact.schemas.commands === "object" &&
+        !Array.isArray(artifact.schemas.commands)
+      ) {
+        const schemas = artifact.schemas.commands as Record<string, ZodType>;
         const input = Object.keys(artifact.on).map((name) => {
           this.messages[name] = this.messages[name] || {
             name,
-            schema: artifact.schemas.commands[name],
+            schema: schemas[name],
             type: "command",
-            artifacts: [factory.name] // one command handler
+            handlers: [factory.name] // one command handler
           };
-          return { [name]: commandHandlerPath(factory.name, reducible, name) };
+          return {
+            [name]: commandHandlerPath(factory.name, reducible, name)
+          };
         });
         const output = reducible ? Object.keys(artifact.reduce) : []; // output is reduced
         return [reducible ? "aggregate" : "system", input, output];
       }
 
-      // event handling artifacts
-      const event = Object.keys(artifact.schemas.events).at(0);
-      if (event && artifact.on[event]) {
+      if ("events" in artifact.schemas) {
         const input = Object.keys(artifact.on).map((name) => {
-          this.messages[name].artifacts.push(factory.name); // many event handlers
+          this.messages[name].handlers.push(factory.name); // many event handlers
           return {
             [name]: eventHandlerPath(factory.name)
           };
         });
-        const output = Object.keys(artifact.schemas.commands); // output commands
+        const output = artifact.schemas.commands as string[];
         return [reducible ? "process-manager" : "policy", input, output];
       }
-    } else if ("adapt" in artifact) return ["command-adapter", [], []];
-
+    }
     // oops
     throw Error(
       `Invalid artifact "${factory.name}". This should never happen!`
@@ -114,8 +131,8 @@ export class Builder {
     this.artifacts[factory.name] = {
       type,
       factory: factory as MessageHandlerFactory,
-      input: input.reduce((p, c) => Object.assign(p, c), {}),
-      output
+      inputs: input.reduce((p, c) => Object.assign(p, c), {}),
+      outputs: output
     };
     return this;
   }
@@ -138,8 +155,8 @@ export class Builder {
    * @param reducible The reducible artifact
    * @returns The snapshot
    */
-  async readSnapshot<S extends State, C extends Messages, E extends Messages>(
-    reducible: Reducible<S, C, E>
+  async readSnapshot<S extends State, E extends Messages>(
+    reducible: Reducible<S, E>
   ): Promise<Snapshot<S, E> | undefined> {
     const { name } = Object.getPrototypeOf(reducible);
     const snap = this._snapshotOptions[name];
@@ -152,8 +169,8 @@ export class Builder {
    * @param snapshot The snapshot
    * @param applyCount The number of events applied after last snapshot
    */
-  async writeSnapshot<S extends State, C extends Messages, E extends Messages>(
-    reducible: Reducible<S, C, E>,
+  async writeSnapshot<S extends State, E extends Messages>(
+    reducible: Reducible<S, E>,
     snapshot: Snapshot<S, E>,
     applyCount: number
   ): Promise<void> {
