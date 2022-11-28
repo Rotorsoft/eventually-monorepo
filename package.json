@@ -73,7 +73,11 @@
   "eventually": {
     "store": "calculator",
     "artifacts": {
-      "@rotorsoft/calculator-artifacts": ["Calculator", "Counter", "PressKeyAdapter"]
+      "@rotorsoft/calculator-artifacts": [
+        "Calculator",
+        "Counter",
+        "PressKeyAdapter"
+      ]
     }
   }
 }

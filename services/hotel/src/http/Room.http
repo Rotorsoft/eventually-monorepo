@@ -1,0 +1,75 @@
+@host = http://localhost:3000
+
+### Try to open room 101 with invalid command
+POST {{host}}/room/101/open-room
+Content-Type: application/json
+
+{
+  "number": "101"
+}
+
+### Open room 101
+POST {{host}}/room/101/open-room
+Content-Type: application/json
+
+{
+  "number": 101,
+  "price": 100,
+  "type": "single"
+}
+
+### Try to open room 102 with invalid type
+POST {{host}}/room/102/open-room
+Content-Type: application/json
+
+{
+  "number": "102",
+  "price": 200,
+  "type": "invalid"
+}
+
+### Open room 102
+POST {{host}}/room/102/open-room
+Content-Type: application/json
+
+{
+  "number": 102,
+  "price": 200,
+  "type": "double"
+}
+
+### Book room 101
+POST {{host}}/room/101/book-room
+Content-Type: application/json
+
+{
+  "id": "booking-1",
+  "number": 101,
+  "checkin": "2022-12-01",
+  "checkout": "2022-12-03",
+  "totalPrice": 0
+}
+
+### Try to book room 101 again
+POST {{host}}/room/101/book-room
+Content-Type: application/json
+
+{
+  "id": "booking-1",
+  "number": 101,
+  "checkin": "2022-12-01",
+  "checkout": "2022-12-03",
+  "totalPrice": 0
+}
+
+### Get Room 101
+GET {{host}}/room/101
+
+### Get Room 101 stream
+GET {{host}}/room/101/stream
+
+### Get Rooms
+GET {{host}}/room
+
+### Get API stats
+GET {{host}}/stats

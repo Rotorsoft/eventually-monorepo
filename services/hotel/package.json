@@ -1,0 +1,25 @@
+{
+    "name": "hotel",
+    "version": "1.0.0",
+    "description": "Hotel Reservation System",
+    "main": "index.js",
+    "scripts": {
+        "start:dev": "npx ts-node-dev --respawn ./src/index.ts",
+        "test": "npx tsc && jest ./dist/**/*.spec.js"
+    },
+    "author": {
+        "name": "your name",
+        "email": "your@email.com"
+    },
+    "license": "ISC",
+    "dependencies": {
+        "@rotorsoft/eventually": "workspace:*",
+        "@rotorsoft/eventually-express": "workspace:*",
+        "zod": "^3.19.1"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.1.2",
+        "jest": "^29.2.0",
+        "ts-node-dev": "^2.0.0"
+    }
+}

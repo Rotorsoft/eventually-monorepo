@@ -24,6 +24,17 @@ import { openAPI } from "./openapi";
 import { home, redoc } from "./openapi/docs";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
 
+const regexIso8601 =
+  /^(\d{4}|\+\d{6})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})\.(\d{1,})(Z|([-+])(\d{2}):(\d{2}))?)?)?)?$/;
+const dateReviver = (_: any, value: string): string | Date => {
+  let match;
+  if (typeof value === "string" && (match = value.match(regexIso8601))) {
+    const milliseconds = Date.parse(match[0]);
+    if (!isNaN(milliseconds)) return new Date(milliseconds);
+  }
+  return value;
+};
+
 export class ExpressApp extends AppBase {
   private _app = express();
   private _router = Router();
@@ -95,7 +106,7 @@ export class ExpressApp extends AppBase {
     this._app.set("trust proxy", true);
     this._app.use(cors());
     this._app.use(urlencoded({ extended: false }));
-    this._app.use(express.json());
+    this._app.use(express.json({ reviver: dateReviver }));
     middleware && this._app.use(middleware);
     this._app.use(this._router);
 
