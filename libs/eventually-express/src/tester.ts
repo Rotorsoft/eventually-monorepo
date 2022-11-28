@@ -13,7 +13,7 @@ import {
   Snapshot
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
-import { httpGetPath, httpPostPath } from "./utils";
+import { httpGetPath, httpPostPath } from "./openapi/utils";
 
 type Tester = {
   get: (path: string) => Promise<AxiosResponse<any>>;

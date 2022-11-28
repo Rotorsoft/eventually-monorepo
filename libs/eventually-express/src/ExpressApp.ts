@@ -10,7 +10,6 @@ import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
 import { OpenAPIObject } from "openapi3-ts";
-import { home, redoc } from "./openapi/docs";
 import {
   allStreamHandler,
   commandHandler,
@@ -22,7 +21,8 @@ import {
   statsHandler
 } from "./handlers";
 import { openAPI } from "./openapi";
-import { httpGetPath, httpPostPath } from "./utils";
+import { home, redoc } from "./openapi/docs";
+import { httpGetPath, httpPostPath } from "./openapi/utils";
 
 export class ExpressApp extends AppBase {
   private _app = express();

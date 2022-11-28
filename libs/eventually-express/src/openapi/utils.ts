@@ -2,6 +2,8 @@ import { generateSchema } from "@anatine/zod-openapi";
 import {
   app,
   ArtifactMetadata,
+  ArtifactType,
+  decamelize,
   ReducibleFactory,
   ZodEmpty
 } from "@rotorsoft/eventually";
@@ -13,7 +15,6 @@ import {
   TagObject
 } from "openapi3-ts";
 import z, { ZodType } from "zod";
-import { httpGetPath, httpPostPath } from "../utils";
 
 const toSnapshotSchema = (name: string, events: string[]): SchemaObject => {
   return {
@@ -75,6 +76,24 @@ const toCommittedEventSchema = (
 export type Security = {
   schemes: Record<string, SecuritySchemeObject>;
   operations: Record<string, Array<any>>;
+};
+
+export const httpGetPath = (name: string): string =>
+  "/".concat(decamelize(name), "/:id");
+
+export const httpPostPath = (
+  name: string,
+  type: ArtifactType,
+  message = ""
+): string => {
+  switch (type) {
+    case "aggregate":
+      return "/".concat(decamelize(name), "/:id/", decamelize(message));
+    case "system":
+      return "/".concat(decamelize(name), "/", decamelize(message));
+    default:
+      return "/".concat(decamelize(name));
+  }
 };
 
 export const toResponse = (
