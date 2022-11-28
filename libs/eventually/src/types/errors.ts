@@ -5,7 +5,9 @@ export class ValidationError extends Error {
   public readonly details;
   constructor(errors: string[], message?: Message) {
     super(
-      `Schema validation failed ${message?.name || ""}: ${errors.join(", ")}`
+      `${message ? `"${message.name}" ` : ""} failed validation: ${errors.join(
+        ", "
+      )}`
     );
     this.name = Errors.ValidationError;
     this.details = { errors, message };
@@ -29,7 +31,7 @@ export class ConcurrencyError extends Error {
 
 export class RegistrationError extends Error {
   constructor(message: Message) {
-    super(`Message [${message.name}] not registered with app builder!`);
+    super(`Message "${message.name}" not registered with app builder!`);
     this.name = Errors.RegistrationError;
   }
 }

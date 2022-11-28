@@ -8,7 +8,7 @@ export const IntegrateAccount1 = (): Policy<
 > => ({
   description: "Integration Account 1",
   schemas: {
-    commands: ["CreateAccount1"],
+    commands: { CreateAccount1: "when first account is created" },
     events: { AccountCreated: schemas.Account }
   },
   on: {
@@ -25,7 +25,7 @@ export const IntegrateAccount2 = (): Policy<
 > => ({
   description: "Integration Account 2",
   schemas: {
-    commands: ["CreateAccount2"],
+    commands: { CreateAccount2: "when first account is created" },
     events: { AccountCreated: schemas.Account }
   },
   on: {
@@ -42,7 +42,7 @@ export const IntegrateAccount3 = (): Policy<
 > => ({
   description: "Integration Account 3",
   schemas: {
-    commands: ["CreateAccount3"],
+    commands: { CreateAccount3: "when account2 is created" },
     events: { Account2Created: schemas.ExternalAccount }
   },
   on: {
@@ -63,7 +63,7 @@ export const WaitForAllAndComplete: ProcessManagerFactory<
   description: "Wait for all and complete saga",
   schemas: {
     state: schemas.WaitForAllState,
-    commands: ["CompleteIntegration"],
+    commands: { CompleteIntegration: "when account 3 is ready" },
     events: {
       Account1Created: schemas.ExternalAccount,
       Account3Created: schemas.ExternalAccount

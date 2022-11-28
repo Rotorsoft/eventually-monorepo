@@ -4,24 +4,22 @@ import { Disposable, Store } from "./interfaces";
 import { log } from "./log";
 import { validate, validateMessage } from "./schema";
 import { singleton } from "./singleton";
-import { RegistrationError } from "./types/errors";
-import {
-  CommandAdapterFactory,
-  CommandHandlerFactory,
-  EventHandlerFactory,
-  Reducer,
-  ReducibleFactory
-} from "./types/factories";
 import {
   AllQuery,
   Command,
+  CommandAdapterFactory,
+  CommandHandlerFactory,
   CommittedEvent,
   CommittedEventMetadata,
+  EventHandlerFactory,
   Message,
   Messages,
+  Reducer,
+  ReducibleFactory,
   Snapshot,
   State
-} from "./types/messages";
+} from "./types";
+import { RegistrationError } from "./types/errors";
 import { bind, randomId } from "./utils";
 import { InMemoryStore } from "./__dev__";
 
@@ -35,13 +33,13 @@ export const store = singleton(function store(store?: Store) {
 });
 
 /**
- * App abstraction implementing generic handlers
+ * Abstraction implementing application ports
  */
 export abstract class AppBase extends Builder implements Disposable, Reader {
   public readonly log = log();
 
   /**
-   * Concrete implementations should provide disposers and the listening framework
+   * Concrete adapters should provide disposers and the listening framework
    */
   abstract readonly name: string;
   abstract dispose(): Promise<void>;

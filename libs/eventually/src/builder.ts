@@ -1,15 +1,16 @@
 import { ZodType } from "zod";
 import { config } from "./config";
 import { SnapshotStore } from "./interfaces";
-import { MessageHandlingArtifact, Reducible } from "./types/artifacts";
-import { ArtifactType } from "./types/enums";
 import {
   AggregateFactory,
   ArtifactMetadata,
-  MessageHandlerFactory
-} from "./types/factories";
-import { Messages, Snapshot, State } from "./types/messages";
-import { commandHandlerPath, decamelize, eventHandlerPath } from "./utils";
+  MessageHandlerFactory,
+  MessageHandlingArtifact,
+  Messages,
+  Reducible,
+  Snapshot,
+  State
+} from "./types";
 
 type MessageMetadata<M extends Messages = Messages> = {
   name: keyof M & string;
@@ -32,9 +33,7 @@ export class Builder {
   readonly messages: Record<string, MessageMetadata> = {};
   readonly artifacts: Record<string, ArtifactMetadata> = {};
 
-  private _reflect = (
-    factory: MessageHandlerFactory
-  ): [ArtifactType, Record<string, string>[], string[]] => {
+  private _reflect = (factory: MessageHandlerFactory): ArtifactMetadata => {
     const artifact = factory("") as MessageHandlingArtifact;
     if ("on" in artifact) {
       if (typeof artifact.on === "function") {
@@ -45,11 +44,12 @@ export class Builder {
             type: "message",
             handlers: [factory.name]
           });
-        const input = [
-          { [factory.name]: decamelize("/".concat(factory.name)) }
-        ];
-        const output = artifact.schemas.commands as string[];
-        return ["command-adapter", input, output];
+        return {
+          type: "command-adapter",
+          factory,
+          inputs: [factory.name],
+          outputs: Object.keys(artifact.schemas.commands)
+        };
       }
 
       "stream" in artifact && this.withStreams();
@@ -67,34 +67,40 @@ export class Builder {
 
       if (
         "commands" in artifact.schemas &&
-        typeof artifact.schemas.commands === "object" &&
-        !Array.isArray(artifact.schemas.commands)
+        artifact.on[Object.keys(artifact.schemas.commands).at(0) || ""]
       ) {
         const schemas = artifact.schemas.commands as Record<string, ZodType>;
-        const input = Object.keys(artifact.on).map((name) => {
-          this.messages[name] = this.messages[name] || {
+        Object.keys(artifact.on).forEach((name) => {
+          // enforce one command handler per command
+          if (this.messages[name])
+            throw Error(
+              `Duplicate command "${name}" found in "${this.messages[name].handlers[0]}" and "${factory.name}"`
+            );
+          this.messages[name] = {
             name,
             schema: schemas[name],
             type: "command",
-            handlers: [factory.name] // one command handler
-          };
-          return {
-            [name]: commandHandlerPath(factory.name, reducible, name)
+            handlers: [factory.name]
           };
         });
-        const output = reducible ? Object.keys(artifact.reduce) : []; // output is reduced
-        return [reducible ? "aggregate" : "system", input, output];
+        return {
+          type: reducible ? "aggregate" : "system",
+          factory,
+          inputs: Object.keys(artifact.on),
+          outputs: reducible ? Object.keys(artifact.reduce) : []
+        };
       }
 
       if ("events" in artifact.schemas) {
-        const input = Object.keys(artifact.on).map((name) => {
-          this.messages[name].handlers.push(factory.name); // many event handlers
-          return {
-            [name]: eventHandlerPath(factory.name)
-          };
+        Object.keys(artifact.on).forEach((name) => {
+          this.messages[name].handlers.push(factory.name); // compile event handlers
         });
-        const output = artifact.schemas.commands as string[];
-        return [reducible ? "process-manager" : "policy", input, output];
+        return {
+          type: reducible ? "process-manager" : "policy",
+          factory,
+          inputs: Object.keys(artifact.on),
+          outputs: Object.keys(artifact.schemas.commands)
+        };
       }
     }
     // oops
@@ -124,16 +130,9 @@ export class Builder {
   ): this {
     if (this.artifacts[factory.name])
       throw Error(`Duplicate artifact "${factory.name}"`);
-
-    const [type, input, output] = this._reflect(
+    this.artifacts[factory.name] = this._reflect(
       factory as MessageHandlerFactory
     );
-    this.artifacts[factory.name] = {
-      type,
-      factory: factory as MessageHandlerFactory,
-      inputs: input.reduce((p, c) => Object.assign(p, c), {}),
-      outputs: output
-    };
     return this;
   }
 

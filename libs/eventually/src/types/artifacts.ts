@@ -2,6 +2,13 @@ import { z, ZodType } from "zod";
 import { Messages, State, Command } from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
 
+export type ArtifactType =
+  | "aggregate"
+  | "system"
+  | "policy"
+  | "process-manager"
+  | "command-adapter";
+
 /** Empty message payload */
 export type Empty = Record<string, never>;
 /** Empty message payload schema */
@@ -57,7 +64,7 @@ type WithEventHandlers<
  */
 type WithCommandOutputs<C extends Messages> = {
   schemas: {
-    commands: Array<keyof C>; // TODO: find way to force all keys in C
+    commands: { [K in keyof C]: string };
   };
 };
 

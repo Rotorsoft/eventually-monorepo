@@ -7,11 +7,7 @@ export * from "./config";
 export * from "./interfaces";
 export * from "./log";
 export * from "./singleton";
-export * from "./types/artifacts";
-export * from "./types/enums";
-export * from "./types/errors";
-export * from "./types/factories";
-export * from "./types/messages";
+export * from "./types";
 export * from "./utils";
 
 export const app = singleton(function app<T extends AppBase = InMemoryApp>(

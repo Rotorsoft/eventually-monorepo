@@ -3,19 +3,17 @@ import {
   Command,
   CommandAdapterFactory,
   CommandHandlerFactory,
-  commandHandlerPath,
   CommittedEvent,
   decamelize,
   EventHandlerFactory,
-  eventHandlerPath,
   Message,
   Messages,
   State,
   ReducibleFactory,
-  reduciblePath,
   Snapshot
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
+import { httpGetPath, httpPostPath } from "./utils";
 
 type Tester = {
   get: (path: string) => Promise<AxiosResponse<any>>;
@@ -85,14 +83,13 @@ export const tester = (port = 3000): Tester => {
     ): Promise<Snapshot<S, E>[]> => {
       command.expectedVersion &&
         (headers["If-Match"] = command.expectedVersion.toString());
+      const path = httpPostPath(
+        factory.name,
+        "reduce" in factory("") ? "aggregate" : "system",
+        command.name
+      );
       const { data } = await axios.post<State, AxiosResponse<Snapshot<S, E>[]>>(
-        url(
-          commandHandlerPath(
-            factory.name,
-            "reduce" in factory(""),
-            command.name
-          ).replace(":id", command?.id || "")
-        ),
+        url(path.replace(":id", command?.id || "")),
         command.data || {},
         { headers }
       );
@@ -109,7 +106,7 @@ export const tester = (port = 3000): Tester => {
       const { status, data } = await axios.post<
         State,
         AxiosResponse<Message<C> | undefined>
-      >(url(eventHandlerPath(factory.name)), event);
+      >(url(httpPostPath(factory.name, "policy")), event);
       return { status, data };
     },
 
@@ -118,7 +115,7 @@ export const tester = (port = 3000): Tester => {
       id: string
     ): Promise<Snapshot<S, E>> => {
       const { data } = await axios.get<any, AxiosResponse<Snapshot<S, E>>>(
-        url(reduciblePath(reducible.name).replace(":id", id))
+        url(httpGetPath(reducible.name).replace(":id", id))
       );
       return data;
     },
@@ -132,7 +129,7 @@ export const tester = (port = 3000): Tester => {
     ): Promise<Snapshot<S, E>[]> => {
       const { data } = await axios.get<any, AxiosResponse<Snapshot<S, E>[]>>(
         url(
-          reduciblePath(reducible.name)
+          httpGetPath(reducible.name)
             .replace(":id", id)
             .concat(
               `/stream${options.useSnapshots ? "?useSnapshots=true" : ""}`

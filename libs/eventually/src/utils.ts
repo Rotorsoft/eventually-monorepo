@@ -96,33 +96,3 @@ export const formatTime = (seconds: number): string => {
   if (seconds < DAY_SECS) return iso.substring(11, 19);
   return `${Math.round(seconds / DAY_SECS)} days ${iso.substring(11, 19)}`;
 };
-
-/**
- * Normalizes reducible paths
- * @param name reducible artifact name
- * @returns the reducible path
- */
-export const reduciblePath = (name: string): string =>
-  "/".concat(decamelize(name), "/:id");
-
-/**
- * Normalizes command handler paths
- * @param name handler name
- * @param reducible flag reducible
- * @param command command name
- * @returns normalized path
- */
-export const commandHandlerPath = (
-  name: string,
-  reducible: boolean,
-  command: string
-): string =>
-  "/".concat(decamelize(name), reducible ? "/:id/" : "/", decamelize(command));
-
-/**
- * Normalizes event handler paths
- * @param name handler name
- * @returns normalized path
- */
-export const eventHandlerPath = (name: string): string =>
-  "/".concat(decamelize(name));

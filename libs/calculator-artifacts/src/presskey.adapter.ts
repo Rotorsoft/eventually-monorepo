@@ -16,7 +16,7 @@ export const PressKeyAdapter: CommandAdapterFactory<
   description: "PressKey adapter",
   schemas: {
     message: ExternalPayloadSchema,
-    commands: ["PressKey", "Reset"]
+    commands: { PressKey: "when a key received", Reset: "never invoked" }
   },
   on: ({ id, key }) => bind("PressKey", { key }, id)
 });

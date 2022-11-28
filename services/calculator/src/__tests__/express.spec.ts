@@ -338,11 +338,6 @@ describe("express app", () => {
       expect(stats.status).toBe(200);
     });
 
-    it("should get swagger prop", () => {
-      const swagger = expressApp.getSwagger();
-      expect(swagger).toBeDefined();
-    });
-
     it("should get redoc spec", async () => {
       const swagger = await t.get("/_redoc");
       expect(swagger.status).toBe(200);

@@ -7,7 +7,6 @@ import {
   EventHandlerFactory,
   Errors,
   log,
-  Messages,
   State,
   Reducer,
   ReducibleFactory,
@@ -15,8 +14,7 @@ import {
   store,
   AllQuery,
   SnapshotsQuery,
-  Snapshot,
-  ArtifactType
+  Snapshot
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
@@ -68,10 +66,7 @@ export const allStreamHandler = async (
 };
 
 export const getHandler =
-  <S extends State, C extends Messages, E extends Messages>(
-    factory: ReducibleFactory<S, C, E>,
-    callback: Reducer<S, C, E>
-  ) =>
+  (factory: ReducibleFactory, callback: Reducer) =>
   async (
     req: Request<{ id: string }>,
     res: Response,
@@ -100,7 +95,7 @@ export const getHandler =
 export const snapshotQueryHandler =
   (store: SnapshotStore) =>
   async (
-    req: Request<any, Snapshot<State, any>, any, SnapshotsQuery>,
+    req: Request<any, Snapshot, any, SnapshotsQuery>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
@@ -116,7 +111,7 @@ export const snapshotQueryHandler =
   };
 
 export const commandHandler =
-  (name: string, type: ArtifactType) =>
+  (name: string, withEtag: boolean) =>
   async (
     req: Request<{ id: string }, any, State, never> & {
       actor?: Actor;
@@ -131,7 +126,7 @@ export const commandHandler =
           name,
           req.body,
           req.params.id,
-          type === "aggregate" && ifMatch ? +ifMatch : undefined,
+          withEtag && ifMatch ? +ifMatch : undefined,
           req.actor
         )
       );
@@ -144,7 +139,7 @@ export const commandHandler =
   };
 
 export const invokeHandler =
-  (factory: CommandAdapterFactory<State, any>) =>
+  (factory: CommandAdapterFactory) =>
   async (
     req: Request<never, any, State, never> & {
       actor?: Actor;
@@ -163,15 +158,14 @@ export const invokeHandler =
   };
 
 export const eventHandler =
-  (factory: EventHandlerFactory<State, any, any>) =>
+  (factory: EventHandlerFactory) =>
   async (
     req: Request<never, any, CommittedEvent>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const response = await app().event(factory, req.body as any);
+      const response = await app().event(factory, req.body);
       return res.status(200).send(response);
     } catch (error) {
       next(error);

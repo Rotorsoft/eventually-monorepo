@@ -12,9 +12,9 @@ export type Message<M extends Messages = Messages> = {
 };
 
 /**
- * Actors invoke commands
- * - `name` Actor name
- * - `roles` Actor roles
+ * Actors invoke commands and have
+ * - `name` a name
+ * - `roles` some roles
  */
 export type Actor = {
   name: string;
@@ -22,10 +22,10 @@ export type Actor = {
 };
 
 /**
- * Commands are messages with optional arguments
- * - `id?` Target aggregate id
- * - `expectedVersion?` Target aggregate expected version
- * - `actor?` Actor invoking command
+ * Commands are messages with these optional arguments
+ * - `id?` the target aggregate id
+ * - `expectedVersion?` the expected version of the aggregate or a concurrency error is thrown
+ * - `actor?` the actor invoking the command
  */
 export type Command<M extends Messages = Messages> = Message<M> & {
   readonly id?: string;
@@ -35,7 +35,7 @@ export type Command<M extends Messages = Messages> = Message<M> & {
 
 /**
  * Committed events have metadata describing correlation and causation
- * - `correlation` Id that correlates message flows across time and systems
+ * - `correlation` unique id that correlates message flows across time and systems
  * - `causation` The direct cause of the event
  */
 export type CommittedEventMetadata = {
@@ -57,11 +57,11 @@ export type CommittedEventMetadata = {
 
 /**
  * Committed events are messages with commit details
- * - `id` Event index in the "all" stream
- * - `stream` Reducible stream name
- * - `version` Unique sequence number within the stream
- * - `created` Date-Time of creation
- * - `metadata` Event metadata
+ * - `id` the unique index of the event in the "all" stream
+ * - `stream` the reducible stream name of the artifact that produced the event
+ * - `version` the unique and continuous sequence number within the stream
+ * - `created` the date-time of creation
+ * - `metadata` the event metadata
  */
 export type CommittedEvent<M extends Messages = Messages> = Message<M> & {
   readonly id: number;
@@ -73,6 +73,8 @@ export type CommittedEvent<M extends Messages = Messages> = Message<M> & {
 
 /**
  * Snapshots hold reduced state and last applied event
+ * - `state` the current state of the artifact
+ * - `event?` the last event applied to the state
  */
 export type Snapshot<S extends State = State, E extends Messages = Messages> = {
   readonly state: S;

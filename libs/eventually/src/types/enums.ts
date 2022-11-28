@@ -21,10 +21,3 @@ export enum Errors {
   ConcurrencyError = "ERR_CONCURRENCY",
   RegistrationError = "ERR_REGISTRATION"
 }
-
-export type ArtifactType =
-  | "aggregate"
-  | "system"
-  | "policy"
-  | "process-manager"
-  | "command-adapter";

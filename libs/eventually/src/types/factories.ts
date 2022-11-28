@@ -5,8 +5,7 @@ import {
   ProcessManager,
   System
 } from "./artifacts";
-import { ArtifactType } from "./enums";
-import { CommittedEvent, Messages, Snapshot, State } from "./messages";
+import { CommittedEvent, Messages, State } from "./messages";
 
 /**
  * Aggregate factories build aggregates
@@ -88,27 +87,3 @@ export type MessageHandlerFactory<
   | CommandHandlerFactory<S, C, E>
   | EventHandlerFactory<S, C, E>
   | CommandAdapterFactory<S, C>;
-
-/**
- * Reducers handle reducibles and produce snapshots
- */
-export type Reducer<S extends State, C extends Messages, E extends Messages> = (
-  factory: ReducibleFactory<S, C, E>,
-  id: string,
-  useSnapshot?: boolean,
-  callback?: (snapshot: Snapshot<S, E>) => void
-) => Promise<Snapshot<S, E> | Snapshot<S, E>[]>;
-
-/**
- * Artifact reflected metadata
- */
-export type ArtifactMetadata<
-  S extends State = State,
-  C extends Messages = Messages,
-  E extends Messages = Messages
-> = {
-  type: ArtifactType;
-  factory: MessageHandlerFactory<S, C, E>;
-  inputs: Record<string, string>; // endpoints name:path
-  outputs: string[]; // side effects
-};
