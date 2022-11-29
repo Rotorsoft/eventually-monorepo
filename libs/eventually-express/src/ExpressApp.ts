@@ -57,7 +57,7 @@ export class ExpressApp extends AppBase {
     this._router.get(streamPath, getHandler(factory, this.stream.bind(this)));
     this.log.info("bgGreen", " GET ", streamPath);
 
-    const snapOpts = this._snapshotOptions[factory.name];
+    const snapOpts = this.snapOpts[factory.name];
     if (snapOpts && snapOpts.expose) {
       const path = `/${decamelize(factory.name)}`;
       this._router.get(path, snapshotQueryHandler(snapOpts.store));

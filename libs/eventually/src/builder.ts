@@ -7,8 +7,6 @@ import {
   MessageHandlerFactory,
   MessageHandlingArtifact,
   Messages,
-  Reducible,
-  Snapshot,
   State
 } from "./types";
 
@@ -27,9 +25,8 @@ type SnapshotOptions = {
 
 export class Builder {
   private _hasStreams = false;
-  protected _snapshotOptions: Record<string, SnapshotOptions> = {};
-
   readonly version = config().version;
+  readonly snapOpts: Record<string, SnapshotOptions> = {};
   readonly messages: Record<string, MessageMetadata> = {};
   readonly artifacts: Record<string, ArtifactMetadata> = {};
 
@@ -145,44 +142,8 @@ export class Builder {
     factory: AggregateFactory<S, C, E>,
     snapshotOptions: SnapshotOptions
   ): this {
-    this._snapshotOptions[factory.name] = snapshotOptions;
+    this.snapOpts[factory.name] = snapshotOptions;
     return this;
-  }
-
-  /**
-   * Reads snapshot from store when configured with options
-   * @param reducible The reducible artifact
-   * @returns The snapshot
-   */
-  async readSnapshot<S extends State, E extends Messages>(
-    reducible: Reducible<S, E>
-  ): Promise<Snapshot<S, E> | undefined> {
-    const { name } = Object.getPrototypeOf(reducible);
-    const snap = this._snapshotOptions[name];
-    return snap && (await snap.store.read(reducible.stream()));
-  }
-
-  /**
-   * Writes snapshot to store when configured with options
-   * @param reducible The reducible artifact
-   * @param snapshot The snapshot
-   * @param applyCount The number of events applied after last snapshot
-   */
-  async writeSnapshot<S extends State, E extends Messages>(
-    reducible: Reducible<S, E>,
-    snapshot: Snapshot<S, E>,
-    applyCount: number
-  ): Promise<void> {
-    try {
-      const { name } = Object.getPrototypeOf(reducible);
-      const snap = this._snapshotOptions[name];
-      snap &&
-        applyCount > snap.threshold &&
-        (await snap.store.upsert(reducible.stream(), snapshot));
-    } catch {
-      // fail quietly for now
-      // TODO: monitor failures to recover
-    }
   }
 
   /**

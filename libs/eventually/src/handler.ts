@@ -22,8 +22,12 @@ export const load = async <S extends State, E extends Messages>(
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E> & { applyCount: number }> => {
+  const snapOps =
+    (useSnapshots && app().snapOpts[Object.getPrototypeOf(reducible).name]) ||
+    undefined;
   const snapshot =
-    (useSnapshots && (await app().readSnapshot(reducible))) || undefined;
+    (snapOps && (await snapOps.store.read<S, E>(reducible.stream()))) ||
+    undefined;
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
   let applyCount = 0;
@@ -99,10 +103,23 @@ export const handleMessage = async <
         );
         return { event, state } as Snapshot<S, E>;
       });
-      // TODO: implement reliable async snapshotting - persist queue? start on app load?
-      const snap = snapshots.at(-1) as Snapshot<S, E>;
-      snap &&
-        void app().writeSnapshot<S, E>(reducible, snap, snapshot.applyCount);
+      const snapOps = app().snapOpts[Object.getPrototypeOf(reducible).name];
+      if (
+        snapOps &&
+        snapshot.applyCount > snapOps.threshold &&
+        snapshots.length
+      ) {
+        try {
+          // TODO: implement reliable async snapshotting from persisted queue started by app
+          await snapOps.store.upsert(
+            reducible.stream(),
+            snapshots.at(-1) as Snapshot
+          );
+        } catch {
+          // fail quietly for now
+          // TODO: monitor failures to recover
+        }
+      }
       return snapshots;
     } else
       return committed.map(
