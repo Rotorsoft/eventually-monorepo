@@ -5,9 +5,9 @@ export class ValidationError extends Error {
   public readonly details;
   constructor(errors: string[], message?: Message) {
     super(
-      `${message ? `"${message.name}" ` : ""} failed validation: ${errors.join(
-        ", "
-      )}`
+      `${message?.name || ""} failed validation ${errors
+        .map((e) => `[${e}]`)
+        .join(" ")}`
     );
     this.name = Errors.ValidationError;
     this.details = { errors, message };
@@ -21,9 +21,9 @@ export class ConcurrencyError extends Error {
     public readonly expectedVersion: number
   ) {
     super(
-      `Concurrency error committing event ${
+      `Concurrency error committing event "${
         events.at(0)?.name
-      }. Expected version ${expectedVersion} but found version ${lastVersion}.`
+      }". Expected version ${expectedVersion} but found version ${lastVersion}.`
     );
     this.name = Errors.ConcurrencyError;
   }
