@@ -1,4 +1,4 @@
-import { CommittedEvent, dispose } from "@rotorsoft/eventually";
+import { CommittedEvent } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";
@@ -19,8 +19,7 @@ describe("pg", () => {
   });
 
   afterAll(async () => {
-    await db.dispose();
-    await dispose()();
+    db.dispose && (await db.dispose());
   });
 
   it("should commit and query", async () => {

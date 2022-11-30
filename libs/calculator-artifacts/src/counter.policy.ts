@@ -1,8 +1,8 @@
 import {
-  app,
   bind,
   Command,
   CommittedEvent,
+  load,
   PolicyFactory,
   ProcessManagerFactory,
   ZodEmpty
@@ -21,7 +21,7 @@ const policy = async (
       return bind("Reset", {}, event.stream.substring("Calculator-".length));
   } else {
     const id = event.stream.substring("Calculator-".length);
-    const { state } = await app().load(Calculator, id);
+    const { state } = await load(Calculator, id);
     if (
       (state?.left || "").length >= threshold ||
       (state?.right || "").length >= threshold

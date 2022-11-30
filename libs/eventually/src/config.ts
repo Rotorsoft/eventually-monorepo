@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import z from "zod";
-import { singleton } from "./singleton";
 import { Environments, LogLevels } from "./types/enums";
 import { extend } from "./utils";
 
@@ -41,7 +40,7 @@ export type Config = z.infer<typeof Schema>;
 
 const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
-export const config = singleton(function config() {
+export function config(): Config {
   const pkg = getPackage();
   const parts = pkg.name.split("/");
   const service = parts.at(-1) || "";
@@ -61,7 +60,6 @@ export const config = singleton(function config() {
         dependencies: pkg.dependencies
       },
       Schema
-    ),
-    dispose: (): Promise<void> => Promise.resolve()
+    )
   };
-});
+}

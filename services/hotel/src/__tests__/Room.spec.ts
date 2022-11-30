@@ -1,6 +1,7 @@
 import {
   app,
   bind,
+  command,
   dispose,
   InMemorySnapshotStore,
   Snapshot
@@ -10,15 +11,13 @@ import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
 
 const openRoom = (room: models.Room): Promise<Snapshot<models.Room>[]> =>
-  app().command(bind("OpenRoom", room, room.number.toString()));
+  command(bind("OpenRoom", room, room.number.toString()));
 
 const bookRoom = (
   number: number,
   reservation: models.Reservation
 ): Promise<Snapshot<models.Room>[]> =>
-  app().command(
-    bind("BookRoom", { number, ...reservation }, number.toString())
-  );
+  command(bind("BookRoom", { number, ...reservation }, number.toString()));
 
 describe("Room", () => {
   const snapshotStore = InMemorySnapshotStore();

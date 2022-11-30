@@ -51,8 +51,11 @@ export const PostgresSnapshotStore = (table: string): SnapshotStore => {
 
   log().info("bgGreen", `✨ ${store.name}`);
   dispose(() => {
-    log().info("bgGreen", `♻️ ${store.name}`);
-    return store.dispose();
+    if (store.dispose) {
+      log().info("bgGreen", `♻️ ${store.name}`);
+      return store.dispose();
+    }
+    return Promise.resolve();
   });
 
   return store;

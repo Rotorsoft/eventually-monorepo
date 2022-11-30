@@ -25,7 +25,8 @@ const toSnapshotSchema = (name: string, events: string[]): SchemaObject => {
           $ref: `#/components/schemas/${event}`
         }))
       },
-      state: { $ref: `#/components/schemas/${name}` }
+      state: { $ref: `#/components/schemas/${name}` },
+      applyCount: { type: "number" }
     }
   };
 };

@@ -1,13 +1,14 @@
+import { event } from "../handlers";
 import { app } from "../index";
 import { Store, StoreStat } from "../interfaces";
-import { ConcurrencyError } from "../types/errors";
-import { EventHandlerFactory } from "../types/factories";
 import {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
+  ConcurrencyError,
+  EventHandlerFactory,
   Message
-} from "../types/messages";
+} from "../types";
 
 export const InMemoryStore = (): Store => {
   const _events: CommittedEvent[] = [];
@@ -21,12 +22,12 @@ export const InMemoryStore = (): Store => {
    * @param events the committed events
    */
   const _notify = async (events: CommittedEvent[]): Promise<void> => {
-    for (const event of events) {
-      const msg = app().messages[event.name];
+    for (const e of events) {
+      const msg = app().messages[e.name];
       await Promise.all(
         Object.values(msg.handlers).map((name) => {
           const artifact = app().artifacts[name];
-          return app().event(artifact.factory as EventHandlerFactory, event);
+          return event(artifact.factory as EventHandlerFactory, e);
         })
       );
     }

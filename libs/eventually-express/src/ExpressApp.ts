@@ -1,9 +1,10 @@
 import {
-  AppBase,
+  Builder,
   CommandAdapterFactory,
   config,
   decamelize,
   EventHandlerFactory,
+  log,
   ReducibleFactory
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -16,6 +17,7 @@ import {
   errorHandler,
   eventHandler,
   getHandler,
+  getStreamHandler,
   invokeHandler,
   snapshotQueryHandler,
   statsHandler
@@ -31,37 +33,41 @@ const dateReviver = (key: string, value: string): string | Date =>
     ? new Date(value)
     : value;
 
-export class ExpressApp extends AppBase {
+export class ExpressApp extends Builder {
   private _app = express();
   private _router = Router();
   private _server: Server | undefined;
   private _oas: OpenAPIObject | undefined;
 
+  constructor() {
+    super(config().version);
+  }
+
   private _withStreams(): void {
     this._router.get("/all", allStreamHandler);
-    this.log.info(
+    log().info(
       "bgGreen",
       " GET ",
       "/all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]"
     );
     this._router.get("/stats", statsHandler);
-    this.log.info("bgGreen", " GET ", "/stats");
+    log().info("bgGreen", " GET ", "/stats");
   }
 
   private _withGets(factory: ReducibleFactory): void {
     const path = httpGetPath(factory.name);
-    this._router.get(path, getHandler(factory, this.load.bind(this)));
-    this.log.info("bgGreen", " GET ", path);
+    this._router.get(path, getHandler(factory));
+    log().info("bgGreen", " GET ", path);
 
     const streamPath = path.concat("/stream");
-    this._router.get(streamPath, getHandler(factory, this.stream.bind(this)));
-    this.log.info("bgGreen", " GET ", streamPath);
+    this._router.get(streamPath, getStreamHandler(factory));
+    log().info("bgGreen", " GET ", streamPath);
 
     const snapOpts = this.snapOpts[factory.name];
     if (snapOpts && snapOpts.expose) {
       const path = `/${decamelize(factory.name)}`;
       this._router.get(path, snapshotQueryHandler(snapOpts.store));
-      this.log.info("bgGreen", " GET ", path);
+      log().info("bgGreen", " GET ", path);
     }
   }
 
@@ -72,7 +78,7 @@ export class ExpressApp extends AppBase {
       if (type === "policy" || type === "process-manager") {
         const path = httpPostPath(factory.name, type);
         this._router.post(path, eventHandler(factory as EventHandlerFactory));
-        this.log.info("bgMagenta", " POST ", path, inputs);
+        log().info("bgMagenta", " POST ", path, inputs);
       } else
         Object.values(inputs).forEach((message) => {
           const path = httpPostPath(factory.name, type, message);
@@ -86,7 +92,7 @@ export class ExpressApp extends AppBase {
               path,
               commandHandler(message, type === "aggregate")
             );
-          this.log.info("bgBlue", " POST ", path);
+          log().info("bgBlue", " POST ", path);
         });
     });
   }
@@ -130,7 +136,7 @@ export class ExpressApp extends AppBase {
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
     );
     this._app.get("/__killme", () => {
-      this.log.info("red", "KILLME");
+      log().info("red", "KILLME");
       process.exit(0);
     });
 
@@ -150,16 +156,11 @@ export class ExpressApp extends AppBase {
     this._app.use(errorHandler); // ensure catch-all is last handler
 
     const _config = { env, port, logLevel, service, version };
-    if (silent) this.log.info("white", "Config", undefined, _config);
+    if (silent) log().info("white", "Config", undefined, _config);
     else
       this._server = await new Promise((resolve) => {
         const server = this._app.listen(port, () => {
-          this.log.info(
-            "white",
-            "Express app is listening",
-            undefined,
-            _config
-          );
+          log().info("white", "Express app is listening", undefined, _config);
           resolve(server);
         });
       });

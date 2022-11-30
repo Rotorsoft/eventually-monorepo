@@ -1,8 +1,7 @@
 import chalk from "chalk";
 import { config } from "./config";
-import { Color, Log } from "./interfaces";
-import { Environments, LogLevels } from "./types/enums";
-import { singleton } from "./singleton";
+import { Color, Logger } from "./interfaces";
+import { LogLevels } from "./types/enums";
 import { RegistrationError, ValidationError } from "./types/errors";
 
 /** Uncolored and stringified for deployed non-dev envs */
@@ -47,16 +46,16 @@ const nolog = (): void => {
   return;
 };
 
-const testLog = (): Log => ({
-  name: "testLog",
+export const testLogger = (): Logger => ({
+  name: "test-logger",
   dispose: () => Promise.resolve(),
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
   error: nolog
 });
 
-const devLog = (): Log => ({
-  name: "devLog",
+export const devLogger = (): Logger => ({
+  name: "dev-logger",
   dispose: () => Promise.resolve(),
   trace: config().logLevel === LogLevels.trace ? trace : nolog,
   info: config().logLevel !== LogLevels.error ? info : nolog,
@@ -69,8 +68,8 @@ const devLog = (): Log => ({
   }
 });
 
-const plainLog = (): Log => ({
-  name: "plainLog",
+export const plainLogger = (): Logger => ({
+  name: "plain-logger",
   dispose: () => Promise.resolve(),
   trace: config().logLevel === LogLevels.trace ? plain : nolog,
   info: config().logLevel !== LogLevels.error ? plain : nolog,
@@ -86,16 +85,5 @@ const plainLog = (): Log => ({
     else if (error instanceof Error)
       console.error(JSON.stringify({ severity: "ERROR", ...error }));
     else console.error(error);
-  }
-});
-
-export const log = singleton(function log() {
-  switch (config().env) {
-    case Environments.test:
-      return testLog();
-    case Environments.development:
-      return devLog();
-    default:
-      return plainLog();
   }
 });

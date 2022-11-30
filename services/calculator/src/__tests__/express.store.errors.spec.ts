@@ -1,6 +1,5 @@
 import { app, dispose, store, ValidationError } from "@rotorsoft/eventually";
 import { ExpressApp, tester } from "@rotorsoft/eventually-express";
-import * as joi from "joi";
 import { Calculator } from "@rotorsoft/calculator-artifacts";
 
 const port = 4002;
@@ -8,20 +7,14 @@ const t = tester(port);
 
 const exapp = app(new ExpressApp()).with(Calculator);
 
-jest.spyOn(store(), "query").mockRejectedValue("Error");
-jest.spyOn(store(), "stats").mockRejectedValue("Error");
+jest.spyOn(store(), "query").mockRejectedValue(new Error("store query error"));
+jest.spyOn(store(), "stats").mockRejectedValue(new Error("store stats error"));
 
 describe("express app", () => {
   beforeAll(async () => {
     const express = exapp.build();
-    express.get("/query", (req, res) => {
-      const { error } = joi
-        .object({ test: joi.string().required() })
-        .required()
-        .validate({});
-      if (error)
-        throw new ValidationError(error.details.flatMap((d) => d.message));
-      res.send("Query results");
+    express.get("/query", () => {
+      throw new ValidationError(["express query error"]);
     });
     await exapp.listen(false, port);
   });
@@ -32,7 +25,7 @@ describe("express app", () => {
 
   describe("errors", () => {
     it("should throw internal error on stream", async () => {
-      await expect(t.get("/all")).rejects.toThrowError("500");
+      await expect(t.get("/all")).rejects.toThrowError();
     });
 
     it("should throw internal error on aggregate", async () => {

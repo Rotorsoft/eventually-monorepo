@@ -1,7 +1,11 @@
-import { AppBase } from "../app";
-import { config } from "../config";
+import { Builder } from "../builder";
+import { config, log } from "../ports";
 
-export class InMemoryApp extends AppBase {
+export class InMemoryApp extends Builder {
+  constructor() {
+    super(config().version);
+  }
+
   get name(): string {
     return "InMemoryApp";
   }
@@ -11,7 +15,7 @@ export class InMemoryApp extends AppBase {
   }
 
   listen(): Promise<void> {
-    this.log.info("white", "InMemory app is listening...", undefined, config);
+    log().info("white", "InMemory app is listening...", undefined, config());
     return Promise.resolve();
   }
 }

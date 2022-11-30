@@ -1,4 +1,4 @@
-import { app } from "..";
+import { log } from "../ports";
 import { SnapshotStore } from "../interfaces";
 
 export const InMemorySnapshotStore = (): SnapshotStore => {
@@ -15,13 +15,13 @@ export const InMemorySnapshotStore = (): SnapshotStore => {
 
     read: (stream) => {
       _store[stream] &&
-        app().log.trace("white", `Snapshot loaded for stream ${stream}`);
+        log().trace("white", `Snapshot loaded for stream ${stream}`);
       return Promise.resolve(_store[stream]);
     },
 
     upsert: (stream, data) => {
       _store[stream] = data;
-      app().log.trace("white", `Snapshot created for stream ${stream}`);
+      log().trace("white", `Snapshot created for stream ${stream}`);
       return Promise.resolve();
     },
 

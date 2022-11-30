@@ -1,6 +1,5 @@
 import { ZodType } from "zod";
-import { config } from "./config";
-import { SnapshotStore } from "./interfaces";
+import { Disposable, SnapshotStore } from "./interfaces";
 import {
   AggregateFactory,
   ArtifactMetadata,
@@ -23,12 +22,23 @@ type SnapshotOptions = {
   expose?: boolean;
 };
 
-export class Builder {
+export abstract class Builder implements Disposable {
+  /**
+   * Concrete adapters should provide disposers and the listening framework
+   */
+  abstract readonly name: string;
+  abstract dispose(): Promise<void>;
+  abstract listen(): Promise<void>;
+
   private _hasStreams = false;
-  readonly version = config().version;
+  readonly version;
   readonly snapOpts: Record<string, SnapshotOptions> = {};
   readonly messages: Record<string, MessageMetadata> = {};
   readonly artifacts: Record<string, ArtifactMetadata> = {};
+
+  constructor(version: string) {
+    this.version = version;
+  }
 
   private _reflect = (factory: MessageHandlerFactory): ArtifactMetadata => {
     const artifact = factory("") as MessageHandlingArtifact;

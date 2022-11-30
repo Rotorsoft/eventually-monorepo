@@ -28,7 +28,7 @@ const disposeAndExit = async (
   await Promise.all(
     Object.entries(instances).map(async ([key, instance]) => {
       console.log(`[${process.pid}]`, `♻️ ${instance.name || key}`);
-      await instance.dispose();
+      instance.dispose && (await instance.dispose());
       delete instances[key];
     })
   );

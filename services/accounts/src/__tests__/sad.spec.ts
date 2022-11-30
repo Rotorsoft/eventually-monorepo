@@ -1,6 +1,13 @@
 //process.env.LOG_LEVEL = "trace";
 
-import { app, CommittedEvent, dispose, store } from "@rotorsoft/eventually";
+import {
+  app,
+  event,
+  CommittedEvent,
+  dispose,
+  query,
+  store
+} from "@rotorsoft/eventually";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
 import * as schemas from "../accounts.schemas";
@@ -40,31 +47,41 @@ describe("sad path", () => {
   it("should throw and not commit anything", async () => {
     const t = trigger("crash-it");
 
-    await app().event(policies.IntegrateAccount1, t);
+    await event(policies.IntegrateAccount1, t);
 
     const spyCommit = jest.spyOn(store(), "commit");
-    await expect(app().event(policies.IntegrateAccount2, t)).rejects.toThrow(
+    await expect(event(policies.IntegrateAccount2, t)).rejects.toThrow(
       "error completing integration"
     );
-
     expect(spyCommit).toHaveBeenCalledTimes(2);
-    const sys2 = (
-      (await app().query({
+
+    const sys2 = await query(
+      {
         stream: systems.ExternalSystem2().stream()
-      })) as CommittedEvent<schemas.Events>[]
-    ).filter((e) => e.data?.id === t.data?.id);
-    const sys3 = (
-      (await app().query({
+      },
+      () => {
+        return;
+      }
+    );
+    const sys3 = await query(
+      {
         stream: systems.ExternalSystem3().stream()
-      })) as CommittedEvent<schemas.Events>[]
-    ).filter((e) => e.data?.id === t.data?.id);
-    const sys4 = (
-      (await app().query({
+      },
+      () => {
+        return;
+      }
+    );
+    const sys4 = await query(
+      {
         stream: systems.ExternalSystem4().stream()
-      })) as CommittedEvent<schemas.Events>[]
-    ).filter((e) => e.data?.id === t.data?.id);
-    expect(sys2.length).toBe(1);
-    expect(sys3.length).toBe(1);
-    expect(sys4.length).toBe(0);
+      },
+      () => {
+        return;
+      }
+    );
+
+    expect(sys2).toBe(0);
+    expect(sys3).toBe(0);
+    expect(sys4).toBe(0);
   });
 });

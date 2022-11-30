@@ -76,7 +76,7 @@ describe("channels", () => {
       });
     });
     await new Promise((resolve) => setTimeout(resolve, 2500));
-    await channel.dispose();
+    channel.dispose && (await channel.dispose());
     expect(events.length).toBeGreaterThanOrEqual(2);
     expect(events[0].name).toBe("TestCron");
   });
@@ -101,7 +101,7 @@ describe("channels", () => {
       limit: 1
     });
     await new Promise((resolve) => setTimeout(resolve, 2500));
-    await channel.dispose();
+    channel.dispose && (await channel.dispose());
     expect(events.length).toBe(0);
   });
 
@@ -114,7 +114,7 @@ describe("channels", () => {
       position: 0,
       limit: 1
     });
-    await channel.dispose();
+    channel.dispose && (await channel.dispose());
     expect(events.length).toBe(1);
   });
 });

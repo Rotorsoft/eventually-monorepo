@@ -1,20 +1,23 @@
 import {
   Actor,
-  app,
+  AllQuery,
   bind,
+  command,
   CommandAdapterFactory,
   CommittedEvent,
-  EventHandlerFactory,
   Errors,
+  event,
+  EventHandlerFactory,
+  invoke,
+  load,
   log,
-  State,
-  Reducer,
+  query,
   ReducibleFactory,
-  SnapshotStore,
-  store,
-  AllQuery,
+  Snapshot,
   SnapshotsQuery,
-  Snapshot
+  SnapshotStore,
+  State,
+  store
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
@@ -48,45 +51,73 @@ export const allStreamHandler = async (
       correlation,
       backward
     } = req.query;
-    const result = await app().query({
-      stream,
-      names: names && (Array.isArray(names) ? names : [names]),
-      after: after && +after,
-      before: before && +before,
-      limit: limit && +limit,
-      created_after: created_after && new Date(created_after),
-      created_before: created_before && new Date(created_before),
-      correlation,
-      backward
-    });
-    return res.status(200).send(result);
+    res.header("content-type", "application/json");
+    res.write("[");
+    let i = 0;
+    await query(
+      {
+        stream,
+        names: names && (Array.isArray(names) ? names : [names]),
+        after: after && +after,
+        before: before && +before,
+        limit: limit && +limit,
+        created_after: created_after && new Date(created_after),
+        created_before: created_before && new Date(created_before),
+        correlation,
+        backward
+      },
+      (e) => {
+        i && res.write(",");
+        res.write(JSON.stringify(e));
+        i++;
+      }
+    );
+    res.write("]");
+    return res.status(200).end();
   } catch (error) {
     next(error);
   }
 };
 
 export const getHandler =
-  (factory: ReducibleFactory, callback: Reducer) =>
+  (factory: ReducibleFactory) =>
   async (
-    req: Request<{ id: string }>,
+    req: Request<{ id: string }, Snapshot, never, { useSnapshots?: string }>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
       const { id } = req.params;
-      const result = await callback(
-        factory,
-        id,
-        ["true", "1"].includes(req.query.useSnapshots as string)
-      );
-      let etag: string | undefined;
-      if (Array.isArray(result)) {
-        etag = result.at(-1)?.event?.version?.toString();
-      } else if (result.event) {
-        etag = result.event.version.toString();
-      }
+      const snap = ["true", "1"].includes(req.query.useSnapshots || "");
+      const result = await load(factory, id, snap);
+      const etag = result.event?.version.toString() || "";
       etag && res.setHeader("ETag", etag);
       return res.status(200).send(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const getStreamHandler =
+  (factory: ReducibleFactory) =>
+  async (
+    req: Request<{ id: string }, Snapshot[], never, { useSnapshots?: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const { id } = req.params;
+      const snap = ["true", "1"].includes(req.query.useSnapshots || "");
+      res.header("content-type", "application/json");
+      res.write("[");
+      let i = 0;
+      await load(factory, id, snap, (s) => {
+        i && res.write(",");
+        res.write(JSON.stringify(s));
+        i++;
+      });
+      res.write("]");
+      return res.status(200).end();
     } catch (error) {
       next(error);
     }
@@ -121,7 +152,7 @@ export const commandHandler =
   ): Promise<Response | undefined> => {
     try {
       const ifMatch = req.headers["if-match"] || undefined;
-      const snapshots = await app().command(
+      const snapshots = await command(
         bind(
           name,
           req.body,
@@ -148,7 +179,7 @@ export const invokeHandler =
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const snapshots = await app().invoke(factory, req.body);
+      const snapshots = await invoke(factory, req.body);
       const etag = snapshots.at(-1)?.event?.version;
       etag && res.setHeader("ETag", etag);
       return res.status(200).send(snapshots);
@@ -165,7 +196,7 @@ export const eventHandler =
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const response = await app().event(factory, req.body);
+      const response = await event(factory, req.body);
       return res.status(200).send(response);
     } catch (error) {
       next(error);

@@ -1,6 +1,14 @@
 // process.env.LOG_LEVEL = "trace";
 
-import { app, CommittedEvent, dispose } from "@rotorsoft/eventually";
+import {
+  app,
+  CommittedEvent,
+  event,
+  dispose,
+  query,
+  load,
+  Snapshot
+} from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
@@ -43,12 +51,15 @@ describe("happy path", () => {
   it("should complete integration 1-2", async () => {
     const t = trigger(chance.guid());
 
-    await app().event(policies.IntegrateAccount1, t);
-    await app().event(policies.IntegrateAccount2, t);
+    await event(policies.IntegrateAccount1, t);
+    await event(policies.IntegrateAccount2, t);
 
-    const snapshots = await app().stream(
+    const snapshots = [] as Snapshot[];
+    await load(
       policies.WaitForAllAndComplete,
-      `WaitForAllAndComplete:${t?.data?.id}`
+      `WaitForAllAndComplete:${t?.data?.id}`,
+      false,
+      (s) => snapshots.push(s)
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0]?.state?.id).toBe(t?.data?.id);
@@ -62,12 +73,15 @@ describe("happy path", () => {
   it("should complete integration 2-1", async () => {
     const t = trigger(chance.guid());
 
-    await app().event(policies.IntegrateAccount2, t);
-    await app().event(policies.IntegrateAccount1, t);
+    await event(policies.IntegrateAccount2, t);
+    await event(policies.IntegrateAccount1, t);
 
-    const snapshots = await app().stream(
+    const snapshots = [] as Snapshot[];
+    await load(
       policies.WaitForAllAndComplete,
-      `WaitForAllAndComplete:${t?.data?.id}`
+      `WaitForAllAndComplete:${t?.data?.id}`,
+      false,
+      (s) => snapshots.push(s)
     );
     expect(snapshots.length).toBe(2);
     expect(snapshots[0]?.state?.id).toBe(t?.data?.id);
@@ -78,22 +92,35 @@ describe("happy path", () => {
     expect(snapshots[1]?.state?.account3).toBeDefined();
 
     // expect flow events
-    const [sys2] = (
-      (await app().query({
+    let sys2 = -1,
+      sys3 = -1,
+      sys4 = -1;
+    await query(
+      {
         stream: systems.ExternalSystem2().stream()
-      })) as CommittedEvent<schemas.Events>[]
-    ).filter((e) => e?.data?.id === t?.data?.id);
-    const [sys3] = (
-      (await app().query({
+      },
+      (e) => {
+        if (e?.data?.id === t?.data?.id) sys2 = e.id;
+      }
+    );
+    await query(
+      {
         stream: systems.ExternalSystem3().stream()
-      })) as CommittedEvent<schemas.Events>[]
-    ).filter((e) => e?.data?.id === t?.data?.id);
-    const [sys4] = (
-      (await app().query({
+      },
+      (e) => {
+        if (e?.data?.id === t?.data?.id) sys3 = e.id;
+      }
+    );
+    await query(
+      {
         stream: systems.ExternalSystem4().stream()
-      })) as CommittedEvent<schemas.Events>[]
-    ).filter((e) => e?.data?.id === t?.data?.id);
-    expect(sys2.id).toBeLessThan(sys3.id);
-    expect(sys3.id).toBeLessThan(sys4.id);
+      },
+      (e) => {
+        if (e?.data?.id === t?.data?.id) sys4 = e.id;
+      }
+    );
+
+    expect(sys2).toBeLessThan(sys3);
+    expect(sys3).toBeLessThan(sys4);
   });
 });
