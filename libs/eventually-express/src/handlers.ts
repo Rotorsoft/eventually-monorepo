@@ -1,17 +1,13 @@
 import {
   Actor,
   AllQuery,
-  bind,
-  command,
+  client,
   CommandAdapterFactory,
+  CommandHandlerFactory,
   CommittedEvent,
   Errors,
-  event,
   EventHandlerFactory,
-  invoke,
-  load,
   log,
-  query,
   ReducibleFactory,
   Snapshot,
   SnapshotsQuery,
@@ -54,7 +50,7 @@ export const allStreamHandler = async (
     res.header("content-type", "application/json");
     res.write("[");
     let i = 0;
-    await query(
+    await client().query(
       {
         stream,
         names: names && (Array.isArray(names) ? names : [names]),
@@ -89,7 +85,7 @@ export const getHandler =
     try {
       const { id } = req.params;
       const snap = ["true", "1"].includes(req.query.useSnapshots || "");
-      const result = await load(factory, id, snap);
+      const result = await client().load(factory, id, snap);
       const etag = result.event?.version.toString() || "";
       etag && res.setHeader("ETag", etag);
       return res.status(200).send(result);
@@ -111,7 +107,7 @@ export const getStreamHandler =
       res.header("content-type", "application/json");
       res.write("[");
       let i = 0;
-      await load(factory, id, snap, (s) => {
+      await client().load(factory, id, snap, (s) => {
         i && res.write(",");
         res.write(JSON.stringify(s));
         i++;
@@ -142,7 +138,7 @@ export const snapshotQueryHandler =
   };
 
 export const commandHandler =
-  (name: string, withEtag: boolean) =>
+  (factory: CommandHandlerFactory, name: string, withEtag: boolean) =>
   async (
     req: Request<{ id: string }, any, State, never> & {
       actor?: Actor;
@@ -151,16 +147,15 @@ export const commandHandler =
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
+      const { id } = req.params;
       const ifMatch = req.headers["if-match"] || undefined;
-      const snapshots = await command(
-        bind(
-          name,
-          req.body,
-          req.params.id,
-          withEtag && ifMatch ? +ifMatch : undefined,
-          req.actor
-        )
-      );
+      const expectedVersion = withEtag && ifMatch ? +ifMatch : undefined;
+      const { actor } = req;
+      const snapshots = await client().command(factory, name, req.body, {
+        id,
+        expectedVersion,
+        actor
+      });
       const etag = snapshots.at(-1)?.event?.version;
       etag && res.setHeader("ETag", etag);
       return res.status(200).send(snapshots);
@@ -179,7 +174,7 @@ export const invokeHandler =
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const snapshots = await invoke(factory, req.body);
+      const snapshots = await client().invoke(factory, req.body);
       const etag = snapshots.at(-1)?.event?.version;
       etag && res.setHeader("ETag", etag);
       return res.status(200).send(snapshots);
@@ -196,7 +191,7 @@ export const eventHandler =
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const response = await event(factory, req.body);
+      const response = await client().event(factory, req.body);
       return res.status(200).send(response);
     } catch (error) {
       next(error);

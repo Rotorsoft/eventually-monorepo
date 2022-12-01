@@ -2,8 +2,8 @@ import * as crypto from "crypto";
 import { ZodError, ZodType } from "zod";
 import { app } from "./ports";
 import {
-  Actor,
   Command,
+  CommandTarget,
   Message,
   Messages,
   RegistrationError,
@@ -55,26 +55,16 @@ export const validateMessage = <M extends Messages>(
 
 /**
  * Binds message arguments
- * @param name Message name
- * @param data Message payload
- * @param id Optional aggregate id when binding commands
- * @param expectedVersion Optional aggregate expected version when binding commands
- * @param actor Optional actor when binding external commands
+ * @param name the message name
+ * @param data the message payload
+ * @param target optional command target args
  * @returns The bound message
  */
 export const bind = <M extends Messages>(
   name: keyof M & string,
   data: Readonly<M[keyof M & string]>,
-  id?: string,
-  expectedVersion?: number,
-  actor?: Actor
-): Message<M> | Command<M> => ({
-  name,
-  data,
-  id,
-  expectedVersion,
-  actor
-});
+  target?: CommandTarget
+): Message<M> | Command<M> => ({ name, data, ...target });
 
 /**
  * Extends target payload with source payload after validating source
@@ -146,3 +136,10 @@ export const formatTime = (seconds: number): string => {
   if (seconds < DAY_SECS) return iso.substring(11, 19);
   return `${Math.round(seconds / DAY_SECS)} days ${iso.substring(11, 19)}`;
 };
+
+/**
+ * Promisify setTimeout
+ * @param millis the millis to sleep
+ */
+export const sleep = (millis: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, millis));

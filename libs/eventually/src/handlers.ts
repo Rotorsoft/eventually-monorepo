@@ -1,4 +1,4 @@
-import { app, log, store } from ".";
+import { app, log, store } from "./ports";
 import {
   AllQuery,
   Command,
@@ -7,6 +7,7 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   EventHandlerFactory,
+  EventResponse,
   Message,
   MessageHandlingArtifact,
   Messages,
@@ -127,11 +128,6 @@ const _handleMsg = async <
   } else return [];
 };
 
-/**
- * Invokes command through adapter
- * @param factory adapter factory
- * @param payload message payload
- */
 export const invoke = async <
   P extends State,
   S extends State,
@@ -142,16 +138,10 @@ export const invoke = async <
   payload: P
 ): Promise<Snapshot<S, E>[]> => {
   const adapter = factory();
-  const data = validate(payload, adapter.schemas.message);
-  return command(adapter.on(data));
+  const validated = validate(payload, adapter.schemas.message);
+  return command(adapter.on(validated));
 };
 
-/**
- * Handles command
- * @param command command message
- * @param metadata optional metadata to track causation
- * @returns array of snapshots produced by this command
- */
 export const command = async <
   S extends State,
   C extends Messages,
@@ -160,38 +150,31 @@ export const command = async <
   command: Command<C>,
   metadata?: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
-  const { actor, name, id, expectedVersion } = command;
+  const { name, data, id, expectedVersion, actor } = command;
   const msg = app().messages[name];
-  if (!msg || !msg.handlers.length)
-    throw new RegistrationError(command as Message);
+  if (!msg || !msg.handlers.length) throw new RegistrationError(command);
   const factory = app().artifacts[msg.handlers[0]]
     .factory as unknown as CommandHandlerFactory<S, C, E>;
-  if (!factory) throw new RegistrationError(command as Message);
+  if (!factory) throw new RegistrationError(command);
   log().trace("blue", `\n>>> ${factory.name}`, command, metadata);
 
-  const { data } = validateMessage(command);
+  const validated = validate(data, msg.schema) as C[keyof C & string];
   const artifact = factory(id || "");
   Object.setPrototypeOf(artifact, factory as object);
   return await _handleMsg<S, C, E>(
     artifact,
-    (state) => artifact.on[name](data, state, actor),
+    (state) => artifact.on[name](validated, state, actor),
     {
       correlation: metadata?.correlation || randomId(),
       causation: {
         ...metadata?.causation,
-        command: { actor, name, id, expectedVersion }
+        command: { name, id, expectedVersion, actor }
         // TODO: flag to include command.data in metadata, not included by default to avoid duplicated payloads
       }
     }
   );
 };
 
-/**
- * Handles event and optionally invokes command on target - side effect
- * @param factory the event handler factory
- * @param event the committed event payload
- * @returns optional command response and reducible state
- */
 export const event = async <
   S extends State,
   C extends Messages,
@@ -199,10 +182,7 @@ export const event = async <
 >(
   factory: EventHandlerFactory<S, C, E>,
   event: CommittedEvent<E>
-): Promise<{
-  command: Command<C> | undefined;
-  state?: S;
-}> => {
+): Promise<EventResponse<S, C>> => {
   const { name, stream, id } = event;
   log().trace("magenta", `\n>>> ${factory.name}`, event);
 
@@ -230,14 +210,6 @@ export const event = async <
   };
 };
 
-/**
- * Loads current snapshot of a reducible artifact
- * @param factory the reducible factory
- * @param id the reducible id
- * @param useSnapshots flag to use stored snapshots
- * @param callback optional reduction predicate to act on each snapshot
- * @returns current model state
- */
 export const load = async <
   S extends State,
   C extends Messages,
@@ -253,12 +225,6 @@ export const load = async <
   return _load<S, E>(reducible, useSnapshots, callback);
 };
 
-/**
- * Queries the store - all streams
- * @param query query parameters
- * @param callback event predicate
- * @returns number of events returned
- */
 export const query = async (
   query: AllQuery,
   callback: (event: CommittedEvent) => void

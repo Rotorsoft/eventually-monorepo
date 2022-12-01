@@ -1,6 +1,7 @@
 import {
   Builder,
   CommandAdapterFactory,
+  CommandHandlerFactory,
   config,
   decamelize,
   EventHandlerFactory,
@@ -90,7 +91,11 @@ export class ExpressApp extends Builder {
           else
             this._router.post(
               path,
-              commandHandler(message, type === "aggregate")
+              commandHandler(
+                factory as CommandHandlerFactory,
+                message,
+                type === "aggregate"
+              )
             );
           log().info("bgBlue", " POST ", path);
         });

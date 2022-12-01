@@ -1,14 +1,15 @@
 import {
   app,
-  bind,
   CommittedEvent,
   dispose,
+  sleep,
   Snapshot
 } from "@rotorsoft/eventually";
 import {
   ExpressApp,
+  EventResponseEx,
   GcpGatewayMiddleware,
-  tester
+  HttpClient
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import {
@@ -25,7 +26,10 @@ import { InMemorySnapshotStore } from "../../../../libs/eventually/src/__dev__";
 
 const chance = new Chance();
 const port = 4000;
-const t = tester(port);
+const http = HttpClient(port, {
+  "X-Apigateway-Api-Userinfo":
+    "eyJzdWIiOiJhY3Rvci1uYW1lIiwicm9sZXMiOlsiYWRtaW4iXSwiZW1haWwiOiJhY3RvckBlbWFpbC5jb20ifQ=="
+});
 
 const expressApp = new ExpressApp();
 app(expressApp)
@@ -43,15 +47,12 @@ const pressKey = (
   id: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  t.command(Calculator, bind("PressKey", { key }, id), {
-    "X-Apigateway-Api-Userinfo":
-      "eyJzdWIiOiJhY3Rvci1uYW1lIiwicm9sZXMiOlsiYWRtaW4iXSwiZW1haWwiOiJhY3RvckBlbWFpbC5jb20ifQ=="
-  });
+  http.command(Calculator, "PressKey", { key }, { id });
 
 const reset = (
   id: string
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  t.command(Calculator, bind("Reset", {}, id));
+  http.command(Calculator, "Reset", {}, { id });
 
 describe("express app", () => {
   beforeAll(async () => {
@@ -72,16 +73,16 @@ describe("express app", () => {
       await pressKey(id, ".");
       await pressKey(id, "3");
 
-      await t.invoke(PressKeyAdapter, { id, key: "=" } as ExternalPayload);
+      await http.invoke(PressKeyAdapter, { id, key: "=" } as ExternalPayload);
 
-      const { state } = await t.load(Calculator, id);
+      const { state } = await http.load(Calculator, id);
       expect(state).toEqual({
         left: "3.3",
         operator: "+",
         result: 3.3
       });
 
-      const calc_snapshots = await t.stream(Calculator, id);
+      const calc_snapshots = await http.stream(Calculator, id);
       expect(calc_snapshots.length).toEqual(6);
     });
 
@@ -98,7 +99,7 @@ describe("express app", () => {
       await pressKey(id, "3");
       await pressKey(id, "=");
 
-      const { state, event } = await t.load(Calculator, id);
+      const { state, event } = await http.load(Calculator, id);
       expect(state).toEqual({
         left: "-1",
         operator: "/",
@@ -109,7 +110,7 @@ describe("express app", () => {
         roles: ["admin"]
       });
 
-      const snapshots = await t.stream(Calculator, id);
+      const snapshots = await http.stream(Calculator, id);
       expect(snapshots.length).toBe(9);
     });
 
@@ -126,17 +127,19 @@ describe("express app", () => {
       await pressKey(id, "3");
       await pressKey(id, "=");
 
-      const snapshots = await t.stream(Calculator, id, { useSnapshots: true });
+      const snapshots = await http.stream(Calculator, id, {
+        useSnapshots: true
+      });
       expect(snapshots.length).toBe(1);
     });
 
     it("should not load events", async () => {
-      const { event } = await t.load(Calculator, chance.guid());
+      const { event } = await http.load(Calculator, chance.guid());
       expect(event).toBeUndefined();
     });
 
     it("should not load stream", async () => {
-      const snapshots = await t.stream(Calculator, chance.guid());
+      const snapshots = await http.stream(Calculator, chance.guid());
       expect(snapshots.length).toBe(0);
     });
 
@@ -145,18 +148,23 @@ describe("express app", () => {
 
       await pressKey(id, "1");
       await expect(
-        t.command(Calculator, bind("PressKey", { key: "1" }, id, -1))
+        http.command(
+          Calculator,
+          "PressKey",
+          { key: "1" },
+          { id, expectedVersion: -1 }
+        )
       ).rejects.toThrowError("Request failed with status code 409");
     });
 
     it("should throw validation error", async () => {
       await expect(
-        t.command(Calculator, bind("PressKey", {}, chance.guid()))
+        http.command(Calculator, "PressKey", {}, { id: chance.guid() })
       ).rejects.toThrowError("Request failed with status code 400");
     });
 
     it("should throw 404 error", async () => {
-      await expect(t.get("/calculato")).rejects.toThrowError(
+      await expect(http.get("/calculato")).rejects.toThrowError(
         "Request failed with status code 404"
       );
     });
@@ -180,33 +188,32 @@ describe("express app", () => {
       await pressKey(id, ".");
       await pressKey(id, "3");
 
-      const { state } = await t.load(Calculator, id);
+      const { state } = await http.load(Calculator, id);
       expect(state).toEqual({ result: 0 });
     });
 
     it("should return no command", async () => {
       const snapshots = await pressKey(chance.guid(), "1");
-      const { status, data } = await t.event(
+      const { status, command } = (await http.event(
         StatelessCounter,
         snapshots[0].event as CommittedEvent<CounterEvents>
-      );
+      )) as EventResponseEx;
       expect(status).toBe(200);
-      expect(data).toStrictEqual({});
+      expect(command).toBeUndefined();
     });
 
     it("should return no command 2", async () => {
       const snapshots = await pressKey(chance.guid(), ".");
-      const { status, data } = await t.event(
+      const response = await http.event(
         StatelessCounter,
         snapshots[0].event as CommittedEvent<CounterEvents>
       );
-      expect(status).toBe(200);
-      expect(data).toStrictEqual({});
+      expect(response.command).toBeUndefined();
     });
 
     it("should throw validation error", async () => {
       await expect(
-        t.event(StatelessCounter, {
+        http.event(StatelessCounter, {
           id: 1,
           stream: chance.guid(),
           version: 1,
@@ -221,7 +228,7 @@ describe("express app", () => {
     it("should throw registration error", async () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        t.event(StatelessCounter, {
+        http.event(StatelessCounter, {
           name: "IgnoreThis"
         } as any)
       ).rejects.toThrowError("Request failed with status code 404");
@@ -237,124 +244,136 @@ describe("express app", () => {
     beforeAll(async () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
-      await t.sleep(200);
+      await sleep(200);
       created_after = new Date();
-      await t.sleep(200);
+      await sleep(200);
       await pressKey(id, "2");
       const [snap] = await pressKey(id, ".");
       dot_correlation = snap?.event?.metadata?.correlation || "";
-      await t.sleep(200);
+      await sleep(200);
       created_before = new Date();
-      await t.sleep(200);
+      await sleep(200);
       await pressKey(id, "3");
       await pressKey(id, "=");
     });
 
     it("should read stream", async () => {
-      const events = await t.read();
-      expect(events.length).toBe(1);
+      const { count } = await http.query({ limit: 1 });
+      expect(count).toBe(1);
     });
 
     it("should read stream by name", async () => {
-      const stream = await t.read({ names: ["DigitPressed"], limit: 3 });
-      expect(stream[0].name).toBe("DigitPressed");
-      expect(stream.length).toBeGreaterThanOrEqual(3);
-      stream.map((evt) => expect(evt.name).toBe("DigitPressed"));
+      const { first, count } = await http.query(
+        { names: ["DigitPressed"], limit: 3 },
+        (e) => {
+          expect(e.name).toBe("DigitPressed");
+        }
+      );
+      expect(first?.name).toBe("DigitPressed");
+      expect(count).toBeGreaterThanOrEqual(3);
     });
 
     it("should read stream by names", async () => {
-      const stream = await t.read({
-        stream: `Calculator-${id}`,
-        names: ["DigitPressed", "DotPressed"],
-        limit: 8
-      });
-      expect(stream.length).toBe(4);
-      stream.map((evt) =>
-        expect(["DigitPressed", "DotPressed"]).toContain(evt.name)
+      const { count } = await http.query(
+        {
+          stream: `Calculator-${id}`,
+          names: ["DigitPressed", "DotPressed"],
+          limit: 8
+        },
+        (e) => {
+          expect(["DigitPressed", "DotPressed"]).toContain(e.name);
+        }
       );
+      expect(count).toBe(4);
     });
 
     it("should read stream with after", async () => {
-      const stream = await t.read({ after: 3 });
-      expect(stream[0].id).toBe(4);
+      const { first } = await http.query({ after: 3 });
+      expect(first?.id).toBe(4);
     });
 
     it("should read stream with limit", async () => {
-      const stream = await t.read({ limit: 5 });
-      expect(stream.length).toBe(5);
+      const { count } = await http.query({ limit: 5 });
+      expect(count).toBe(5);
     });
 
     it("should read stream with after and limit", async () => {
-      const stream = await t.read({ after: 2, limit: 2 });
-      expect(stream[0].id).toBe(3);
-      expect(stream.length).toBe(2);
+      const { first, count } = await http.query({ after: 2, limit: 2 });
+      expect(first?.id).toBe(3);
+      expect(count).toBe(2);
     });
 
     it("should return an empty stream", async () => {
-      const stream = await t.read({ names: [chance.guid()] });
-      expect(stream.length).toBe(0);
+      const { count } = await http.query({ names: [chance.guid()] });
+      expect(count).toBe(0);
     });
 
     it("should read stream with before and after", async () => {
-      const stream = await t.read({ after: 2, before: 4, limit: 5 });
-      expect(stream[0].id).toBe(3);
-      expect(stream.length).toBe(1);
+      const { first, count } = await http.query({
+        after: 2,
+        before: 4,
+        limit: 5
+      });
+      expect(first?.id).toBe(3);
+      expect(count).toBe(1);
     });
 
     it("should read stream with before and after created", async () => {
-      const stream = await t.read({
+      const { first, count } = await http.query({
         stream: Calculator(id).stream(),
         created_after,
         created_before,
         limit: 5
       });
-      expect(stream[0].version).toBe(2);
-      expect(stream.length).toBe(2);
+      expect(first?.version).toBe(2);
+      expect(count).toBe(2);
     });
 
     it("should read stream by correlation", async () => {
-      const stream = await t.read({
-        correlation: dot_correlation,
-        limit: 5
-      });
-      expect(stream.length).toBe(1);
-      expect(stream[0].name).toBe("DotPressed");
+      const { count } = await http.query(
+        {
+          correlation: dot_correlation,
+          limit: 5
+        },
+        (e) => expect(e.name).toBe("DotPressed")
+      );
+      expect(count).toBe(1);
     });
 
     it("should read snapshot", async () => {
-      const snaps = await t.get("/calculator");
+      const snaps = await http.get("/calculator");
       expect(snaps).toBeDefined();
     });
   });
 
   describe("swagger", () => {
     it("should get swagger spec", async () => {
-      const swagger = await t.get("/swagger");
+      const swagger = await http.get("/swagger");
       expect(swagger.status).toBe(200);
     });
 
     it("should get store stats", async () => {
-      const stats = await t.get("/stats");
+      const stats = await http.get("/stats");
       expect(stats.status).toBe(200);
     });
 
     it("should get redoc spec", async () => {
-      const swagger = await t.get("/_redoc");
+      const swagger = await http.get("/_redoc");
       expect(swagger.status).toBe(200);
     });
 
     it("should get _health", async () => {
-      const swagger = await t.get("/_health");
+      const swagger = await http.get("/_health");
       expect(swagger.status).toBe(200);
     });
 
     it("should get _config", async () => {
-      const swagger = await t.get("/_config");
+      const swagger = await http.get("/_config");
       expect(swagger.status).toBe(200);
     });
 
     it("should get home", async () => {
-      const swagger = await t.get("/");
+      const swagger = await http.get("/");
       expect(swagger.status).toBe(200);
     });
   });

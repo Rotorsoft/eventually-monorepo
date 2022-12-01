@@ -1,15 +1,7 @@
 process.env.LOG_LEVEL = "trace";
 process.env.NODE_ENV = "production";
 
-import {
-  app,
-  bind,
-  command,
-  dispose,
-  formatTime,
-  load,
-  log
-} from "@rotorsoft/eventually";
+import { app, client, dispose, formatTime, log } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Chance } from "chance";
 
@@ -29,10 +21,8 @@ describe("trace in production", () => {
   describe("calculator", () => {
     it("should compute correctly", async () => {
       const id = chance.guid();
-
-      await command(bind("PressKey", { key: "1" }, id));
-
-      const { state } = await load(Calculator, id);
+      await client().command(Calculator, "PressKey", { key: "1" }, { id });
+      const { state } = await client().load(Calculator, id);
       expect(state).toEqual({
         left: "1",
         result: 0
@@ -50,10 +40,8 @@ describe("trace in production", () => {
 
     it("should trace in plain mode", async () => {
       const id = chance.guid();
-
-      await command(bind("PressKey", { key: "1" }, id));
-
-      const { state } = await load(Calculator, id);
+      await client().command(Calculator, "PressKey", { key: "1" }, { id });
+      const { state } = await client().load(Calculator, id);
       expect(state).toEqual({
         left: "1",
         result: 0

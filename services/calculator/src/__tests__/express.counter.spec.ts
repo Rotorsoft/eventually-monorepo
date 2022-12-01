@@ -1,5 +1,5 @@
-import { app, bind, dispose, Snapshot } from "@rotorsoft/eventually";
-import { ExpressApp, tester } from "@rotorsoft/eventually-express";
+import { app, dispose, Snapshot } from "@rotorsoft/eventually";
+import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import {
   Calculator,
@@ -11,7 +11,7 @@ import {
 
 const chance = new Chance();
 const port = 4001;
-const t = tester(port);
+const http = HttpClient(port);
 
 const _app = app(new ExpressApp()).with(Calculator).with(Counter);
 
@@ -19,7 +19,7 @@ const pressKey = (
   id: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  t.command(Calculator, bind("PressKey", { key }, id));
+  http.command(Calculator, "PressKey", { key }, { id });
 
 describe("express app", () => {
   beforeAll(async () => {
@@ -42,17 +42,17 @@ describe("express app", () => {
       await pressKey(id, "3");
       await pressKey(id, "=");
 
-      const { state } = await t.load(Calculator, id);
+      const { state } = await http.load(Calculator, id);
       expect(state).toEqual({
         left: "3.3",
         operator: "+",
         result: 3.3
       });
 
-      const calc_snapshots = await t.stream(Calculator, id);
+      const calc_snapshots = await http.stream(Calculator, id);
       expect(calc_snapshots.length).toEqual(6);
 
-      const count_snapshots = await t.stream(
+      const count_snapshots = await http.stream(
         Counter,
         `Counter-Calculator-${id}`
       );

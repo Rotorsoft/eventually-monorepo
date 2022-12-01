@@ -1,9 +1,9 @@
 import { app, dispose, store, ValidationError } from "@rotorsoft/eventually";
-import { ExpressApp, tester } from "@rotorsoft/eventually-express";
+import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Calculator } from "@rotorsoft/calculator-artifacts";
 
 const port = 4002;
-const t = tester(port);
+const http = HttpClient(port);
 
 const exapp = app(new ExpressApp()).with(Calculator);
 
@@ -25,19 +25,19 @@ describe("express app", () => {
 
   describe("errors", () => {
     it("should throw internal error on stream", async () => {
-      await expect(t.get("/all")).rejects.toThrowError();
+      await expect(http.get("/all")).rejects.toThrowError();
     });
 
     it("should throw internal error on aggregate", async () => {
-      await expect(t.get("/calculator/test")).rejects.toThrowError("500");
+      await expect(http.get("/calculator/test")).rejects.toThrowError("500");
     });
 
     it("should throw internal error on stats", async () => {
-      await expect(t.get("/stats")).rejects.toThrowError("500");
+      await expect(http.get("/stats")).rejects.toThrowError("500");
     });
 
     it("should throw validation error", async () => {
-      await expect(t.get("/query")).rejects.toThrowError("400");
+      await expect(http.get("/query")).rejects.toThrowError("400");
     });
   });
 });

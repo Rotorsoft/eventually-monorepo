@@ -1,31 +1,30 @@
 import {
   Actor,
   app,
-  bind,
-  command,
+  client,
   CommittedEvent,
   dispose,
-  event,
-  invoke,
-  load,
   log,
   Messages,
-  query,
   Snapshot,
+  sleep,
   store
 } from "@rotorsoft/eventually";
-import { tester } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import * as schemas from "../calculator.schemas";
-import { Calculator, CalculatorModel } from "../calculator.aggregate";
+import { Calculator } from "../calculator.aggregate";
 import { Counter, IgnoredHandler } from "../counter.policy";
 import { Forget } from "../forget.system";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 import { InMemorySnapshotStore } from "../../../eventually/src/__dev__";
+import { CalculatorCommands, Keys } from "../calculator.schemas";
 
 const chance = new Chance();
-const t = tester();
 const inMemorySnapshots = InMemorySnapshotStore();
+
+const pressKey = (id: string, key: Keys): Promise<Snapshot[]> =>
+  client().command(Calculator, "PressKey", { key }, { id });
+const reset = (id: string): Promise<Snapshot[]> =>
+  client().command(Calculator, "Reset", {}, { id });
 
 app()
   .with(Forget)
@@ -35,17 +34,6 @@ app()
   .with(PressKeyAdapter)
   .withSnapshot(Calculator, { store: inMemorySnapshots, threshold: 2 })
   .build();
-
-const pressKey = (
-  id: string,
-  key: schemas.Keys
-): Promise<Snapshot<CalculatorModel, schemas.AllEvents>[]> =>
-  command(bind("PressKey", { key }, id));
-
-const reset = (
-  id: string
-): Promise<Snapshot<CalculatorModel, schemas.AllEvents>[]> =>
-  command(bind("Reset", {}, id));
 
 describe("in memory", () => {
   beforeAll(async () => {
@@ -79,10 +67,13 @@ describe("in memory", () => {
       await pressKey(id, "3");
 
       // WHEN
-      await invoke(PressKeyAdapter, { id, key: "=" } as ExternalPayload);
+      await client().invoke(PressKeyAdapter, {
+        id,
+        key: "="
+      } as ExternalPayload);
 
       // THEN
-      const { state } = await load(Calculator, id);
+      const { state } = await client().load(Calculator, id);
       expect(state).toEqual({
         left: "3.3",
         operator: "+",
@@ -91,14 +82,14 @@ describe("in memory", () => {
 
       // With no Snapshot loading
       let cnt1 = 0;
-      await load(Calculator, id, false, () => {
+      await client().load(Calculator, id, false, () => {
         cnt1++;
       });
       expect(cnt1).toBe(6);
 
       // With Snapshot loading
       let cnt2 = 0;
-      await load(Calculator, id, true, () => {
+      await client().load(Calculator, id, true, () => {
         cnt2++;
       });
       expect(cnt2).toBe(2);
@@ -120,7 +111,7 @@ describe("in memory", () => {
       await pressKey(id, "=");
 
       // THEN
-      const { state } = await load(Calculator, id);
+      const { state } = await client().load(Calculator, id);
       expect(state).toEqual({
         left: "-1",
         operator: "/",
@@ -128,7 +119,7 @@ describe("in memory", () => {
       });
 
       let cnt = 0;
-      await load(Calculator, id, false, () => {
+      await client().load(Calculator, id, false, () => {
         cnt++;
       });
       expect(cnt).toBe(9);
@@ -149,7 +140,7 @@ describe("in memory", () => {
       // WHEN
       await pressKey(id, "=");
       let cnt = 0;
-      await load(Calculator, id, false, () => {
+      await client().load(Calculator, id, false, () => {
         cnt++;
       });
       expect(cnt).toBe(9);
@@ -170,7 +161,7 @@ describe("in memory", () => {
       // WHEN
       await pressKey(id, "=");
       let cnt = 0;
-      await load(Calculator, id, true, () => {
+      await client().load(Calculator, id, true, () => {
         cnt++;
       });
       expect(cnt).toBe(1);
@@ -190,7 +181,7 @@ describe("in memory", () => {
       await pressKey(id, "=");
 
       // THEN
-      const { state } = await load(Calculator, id);
+      const { state } = await client().load(Calculator, id);
       expect(state).toEqual({
         left: "0.3",
         operator: "+",
@@ -201,34 +192,35 @@ describe("in memory", () => {
     it("should record metadata with actor", async () => {
       const id = chance.guid();
       const actor: Actor = { name: "the-actor", roles: [] };
-      const cmd = bind("PressKey", { key: "1" }, id, -1, actor);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { data, ...cmdmeta } = cmd;
-
-      // WHEN
-      await command(cmd);
-
-      // THEN
-      const snap = await load(Calculator, id);
+      await client().command(
+        Calculator,
+        "PressKey",
+        { key: "1" },
+        { id, expectedVersion: -1, actor }
+      );
+      const snap = await client().load(Calculator, id);
       expect(snap?.event?.metadata?.correlation.length).toEqual(24);
-      expect(snap?.event?.metadata?.causation.command).toEqual(cmdmeta);
+      expect(snap?.event?.metadata?.causation.command?.name).toEqual(
+        "PressKey"
+      );
     });
 
     it("should throw concurrency error", async () => {
       const id = chance.guid();
-
-      // GIVEN
       await pressKey(id, "1");
-
-      // WHEN
-      await expect(command(bind("PressKey", { key: "1" }, id, -1)))
-        // THEN
-        .rejects.toThrow();
+      await expect(
+        client().command(
+          Calculator,
+          "PressKey",
+          { key: "1" },
+          { id, expectedVersion: -1 }
+        )
+      ).rejects.toThrow();
     });
 
     it("should throw validation error", async () => {
       await expect(
-        command(bind("PressKey", {}, chance.guid()))
+        client().command(Calculator, "PressKey", {}, { id: chance.guid() })
       ).rejects.toThrow();
     });
 
@@ -254,14 +246,19 @@ describe("in memory", () => {
       await pressKey(id, "3");
 
       // THEN
-      const { event, state } = await load(Calculator, id);
+      const { event, state } = await client().load(Calculator, id);
       expect(state).toEqual(expect.objectContaining({ result: 0 }));
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       let cnt = 0;
-      await load(Counter, "Counter-".concat(event?.stream || ""), false, () => {
-        cnt++;
-      });
+      await client().load(
+        Counter,
+        "Counter-".concat(event?.stream || ""),
+        false,
+        () => {
+          cnt++;
+        }
+      );
       expect(cnt).toBe(5);
     });
 
@@ -279,7 +276,7 @@ describe("in memory", () => {
       await pressKey(id, ".");
 
       // THEN
-      const { state } = await load(Calculator, id);
+      const { state } = await client().load(Calculator, id);
       expect(state).toEqual(expect.objectContaining({ result: 0 }));
     });
   });
@@ -292,101 +289,84 @@ describe("in memory", () => {
       await pressKey(id, "1");
       await pressKey(id, "+");
 
-      await t.sleep(100);
+      await sleep(100);
       created_after = new Date();
-      await t.sleep(100);
+      await sleep(100);
 
       await pressKey(id, "2");
       await pressKey(id, ".");
 
-      await t.sleep(100);
+      await sleep(100);
       created_before = new Date();
-      await t.sleep(100);
+      await sleep(100);
 
       await pressKey(id, "3");
       await pressKey(id, "=");
     });
 
     it("should read stream", async () => {
-      const len = await query({ limit: 1 }, () => {
-        return;
-      });
-      expect(len).toBe(1);
+      const { count } = await client().query({ limit: 1 });
+      expect(count).toBe(1);
     });
 
     it("should read stream by name", async () => {
-      const len = await query({ names: ["DigitPressed"], limit: 3 }, (e) => {
-        expect(e.name).toBe("DigitPressed");
-      });
-      expect(len).toBeGreaterThanOrEqual(3);
+      const { count } = await client().query(
+        { names: ["DigitPressed"], limit: 3 },
+        (e) => {
+          expect(e.name).toBe("DigitPressed");
+        }
+      );
+      expect(count).toBeGreaterThanOrEqual(3);
     });
 
     it("should read stream with after", async () => {
-      let first = 0;
-      await query({ after: 3 }, (e) => {
-        !first && (first = e.id);
-      });
-      expect(first).toBe(4);
+      const { first } = await client().query({ after: 3 });
+      expect(first?.id).toBe(4);
     });
 
     it("should read stream with limit", async () => {
-      const len = await query({ limit: 5 }, () => {
-        return;
-      });
-      expect(len).toBe(5);
+      const { count } = await client().query({ limit: 5 });
+      expect(count).toBe(5);
     });
 
     it("should read stream with after and limit", async () => {
-      let first = 0;
-      const len = await query(
-        { after: 2, limit: 2 },
-        (e) => !first && (first = e.id)
-      );
-      expect(first).toBe(3);
-      expect(len).toBe(2);
+      const { first, count } = await client().query({ after: 2, limit: 2 });
+      expect(first?.id).toBe(3);
+      expect(count).toBe(2);
     });
 
     it("should read stream with stream name", async () => {
-      const len = await query(
-        { stream: Calculator(id).stream(), limit: 10 },
-        () => {
-          return;
-        }
-      );
-      expect(len).toBe(6);
+      const { count } = await client().query({
+        stream: Calculator(id).stream(),
+        limit: 10
+      });
+      expect(count).toBe(6);
     });
 
     it("should return an empty stream", async () => {
-      const len = await query({ names: [chance.guid()] }, () => {
-        return;
-      });
-      expect(len).toBe(0);
+      const { count } = await client().query({ names: [chance.guid()] });
+      expect(count).toBe(0);
     });
 
     it("should read stream with before and after", async () => {
-      let last = 0;
-      const len = await query({ after: 2, before: 4, limit: 5 }, (e) => {
-        last = e.id;
+      const { last, count } = await client().query({
+        after: 2,
+        before: 4,
+        limit: 5
       });
-      expect(last).toBe(3);
-      expect(len).toBe(1);
+      expect(last?.id).toBe(3);
+      expect(count).toBe(1);
     });
 
     it("should read stream with before and after created", async () => {
-      let first = -1;
-      const len = await query(
-        {
-          stream: Calculator(id).stream(),
-          created_after,
-          created_before,
-          limit: 10
-        },
-        (e) => {
-          first < 0 && (first = e.version);
-        }
-      );
-      expect(first).toBe(2);
-      expect(len).toBe(2);
+      const { first, count } = await client().query({
+        stream: Calculator(id).stream(),
+        created_after,
+        created_before,
+        limit: 10
+      });
+      expect(first?.version).toBe(2);
+      expect(count).toBe(2);
     });
   });
 
@@ -408,11 +388,11 @@ describe("in memory", () => {
     it("should cover empty calculator", async () => {
       const id = chance.guid();
       const test8 = Calculator(id);
-      await event(
+      await client().event(
         Counter,
         createEvent("DigitPressed", test8.stream(), { digit: "0" })
       );
-      const { state } = await load(Calculator, id);
+      const { state } = await client().load(Calculator, id);
       expect(state).toEqual({ result: 0 });
     });
 
@@ -421,11 +401,11 @@ describe("in memory", () => {
     });
 
     it("should cover ignored handler", async () => {
-      const r1 = await event(
+      const r1 = await client().event(
         IgnoredHandler,
         createEvent("Ignored1", "ignored", {})
       );
-      const r2 = await event(
+      const r2 = await client().event(
         IgnoredHandler,
         createEvent("Ignored2", "ignored", {})
       );
@@ -439,13 +419,9 @@ describe("in memory", () => {
     });
 
     it("should throw invalid command error", async () => {
-      await expect(command(bind("Forget2", {}))).rejects.toThrow();
-    });
-
-    it("should throw message metadata not found error", async () => {
-      const id = chance.guid();
-      await command(bind("Whatever", {}, id));
-      await expect(command(bind("Forgetx", {}, id))).rejects.toThrow();
+      await expect(
+        client().command(Calculator, "ForgetX" as keyof CalculatorCommands, {})
+      ).rejects.toThrow();
     });
   });
 });

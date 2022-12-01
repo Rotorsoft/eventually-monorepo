@@ -2,11 +2,9 @@
 
 import {
   app,
+  client,
   CommittedEvent,
-  event,
   dispose,
-  query,
-  load,
   Snapshot
 } from "@rotorsoft/eventually";
 import { Chance } from "chance";
@@ -51,11 +49,11 @@ describe("happy path", () => {
   it("should complete integration 1-2", async () => {
     const t = trigger(chance.guid());
 
-    await event(policies.IntegrateAccount1, t);
-    await event(policies.IntegrateAccount2, t);
+    await client().event(policies.IntegrateAccount1, t);
+    await client().event(policies.IntegrateAccount2, t);
 
     const snapshots = [] as Snapshot[];
-    await load(
+    await client().load(
       policies.WaitForAllAndComplete,
       `WaitForAllAndComplete:${t?.data?.id}`,
       false,
@@ -73,11 +71,11 @@ describe("happy path", () => {
   it("should complete integration 2-1", async () => {
     const t = trigger(chance.guid());
 
-    await event(policies.IntegrateAccount2, t);
-    await event(policies.IntegrateAccount1, t);
+    await client().event(policies.IntegrateAccount2, t);
+    await client().event(policies.IntegrateAccount1, t);
 
     const snapshots = [] as Snapshot[];
-    await load(
+    await client().load(
       policies.WaitForAllAndComplete,
       `WaitForAllAndComplete:${t?.data?.id}`,
       false,
@@ -95,7 +93,7 @@ describe("happy path", () => {
     let sys2 = -1,
       sys3 = -1,
       sys4 = -1;
-    await query(
+    await client().query(
       {
         stream: systems.ExternalSystem2().stream()
       },
@@ -103,7 +101,7 @@ describe("happy path", () => {
         if (e?.data?.id === t?.data?.id) sys2 = e.id;
       }
     );
-    await query(
+    await client().query(
       {
         stream: systems.ExternalSystem3().stream()
       },
@@ -111,7 +109,7 @@ describe("happy path", () => {
         if (e?.data?.id === t?.data?.id) sys3 = e.id;
       }
     );
-    await query(
+    await client().query(
       {
         stream: systems.ExternalSystem4().stream()
       },

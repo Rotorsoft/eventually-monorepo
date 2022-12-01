@@ -1,7 +1,6 @@
 import {
   app,
-  bind,
-  command,
+  client,
   dispose,
   InMemorySnapshotStore,
   Snapshot
@@ -10,14 +9,21 @@ import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
 
-const openRoom = (room: models.Room): Promise<Snapshot<models.Room>[]> =>
-  command(bind("OpenRoom", room, room.number.toString()));
+const openRoom = (
+  room: models.Room
+): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+  client().command(Room, "OpenRoom", room, { id: room.number.toString() });
 
 const bookRoom = (
   number: number,
   reservation: models.Reservation
-): Promise<Snapshot<models.Room>[]> =>
-  command(bind("BookRoom", { number, ...reservation }, number.toString()));
+): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+  client().command(
+    Room,
+    "BookRoom",
+    { number, ...reservation },
+    { id: number.toString() }
+  );
 
 describe("Room", () => {
   const snapshotStore = InMemorySnapshotStore();

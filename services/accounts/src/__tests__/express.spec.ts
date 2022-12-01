@@ -1,5 +1,5 @@
-import { app, bind, dispose } from "@rotorsoft/eventually";
-import { ExpressApp, tester } from "@rotorsoft/eventually-express";
+import { app, dispose } from "@rotorsoft/eventually";
+import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
@@ -17,7 +17,7 @@ const expressApp = app(new ExpressApp())
   .with(systems.ExternalSystem1);
 
 const port = 3005;
-const t = tester(port);
+const http = HttpClient(port);
 
 describe("express", () => {
   beforeAll(async () => {
@@ -30,10 +30,10 @@ describe("express", () => {
   });
 
   it("should complete command", async () => {
-    // when
-    const [result] = await t.command(
+    const [result] = await http.command(
       systems.ExternalSystem1,
-      bind("CreateAccount1", { id: chance.guid() })
+      "CreateAccount1",
+      { id: chance.guid() }
     );
 
     // then
@@ -43,7 +43,7 @@ describe("express", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      t.command(systems.ExternalSystem1, bind("CreateAccount1", { id: "" }))
+      http.command(systems.ExternalSystem1, "CreateAccount1", { id: "" })
     ).rejects.toThrowError("Request failed with status code 400");
   });
 });

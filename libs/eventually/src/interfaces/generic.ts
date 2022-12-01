@@ -13,7 +13,7 @@ export type Seeder = () => Promise<void>;
  */
 export interface Disposable {
   readonly name: string;
-  dispose?: Disposer;
+  dispose: Disposer;
 }
 
 /**

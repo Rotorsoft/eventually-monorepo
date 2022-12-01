@@ -2,10 +2,9 @@
 
 import {
   app,
-  event,
+  client,
   CommittedEvent,
   dispose,
-  query,
   store
 } from "@rotorsoft/eventually";
 import * as policies from "../accounts.policies";
@@ -47,38 +46,23 @@ describe("sad path", () => {
   it("should throw and not commit anything", async () => {
     const t = trigger("crash-it");
 
-    await event(policies.IntegrateAccount1, t);
+    await client().event(policies.IntegrateAccount1, t);
 
     const spyCommit = jest.spyOn(store(), "commit");
-    await expect(event(policies.IntegrateAccount2, t)).rejects.toThrow(
+    await expect(client().event(policies.IntegrateAccount2, t)).rejects.toThrow(
       "error completing integration"
     );
     expect(spyCommit).toHaveBeenCalledTimes(2);
 
-    const sys2 = await query(
-      {
-        stream: systems.ExternalSystem2().stream()
-      },
-      () => {
-        return;
-      }
-    );
-    const sys3 = await query(
-      {
-        stream: systems.ExternalSystem3().stream()
-      },
-      () => {
-        return;
-      }
-    );
-    const sys4 = await query(
-      {
-        stream: systems.ExternalSystem4().stream()
-      },
-      () => {
-        return;
-      }
-    );
+    const { count: sys2 } = await client().query({
+      stream: systems.ExternalSystem2().stream()
+    });
+    const { count: sys3 } = await client().query({
+      stream: systems.ExternalSystem3().stream()
+    });
+    const { count: sys4 } = await client().query({
+      stream: systems.ExternalSystem4().stream()
+    });
 
     expect(sys2).toBe(0);
     expect(sys3).toBe(0);

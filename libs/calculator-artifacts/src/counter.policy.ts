@@ -1,8 +1,8 @@
 import {
   bind,
+  client,
   Command,
   CommittedEvent,
-  load,
   PolicyFactory,
   ProcessManagerFactory,
   ZodEmpty
@@ -18,15 +18,19 @@ const policy = async (
 ): Promise<Command<schemas.CounterCommands> | undefined> => {
   if (counter) {
     if (counter.count >= threshold - 1)
-      return bind("Reset", {}, event.stream.substring("Calculator-".length));
+      return bind(
+        "Reset",
+        {},
+        { id: event.stream.substring("Calculator-".length) }
+      );
   } else {
     const id = event.stream.substring("Calculator-".length);
-    const { state } = await load(Calculator, id);
+    const { state } = await client().load(Calculator, id);
     if (
       (state?.left || "").length >= threshold ||
       (state?.right || "").length >= threshold
     )
-      return bind("Reset", {}, id);
+      return bind("Reset", {}, { id });
   }
 };
 

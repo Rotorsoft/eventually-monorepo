@@ -22,16 +22,17 @@ export type Actor = {
 };
 
 /**
- * Commands are messages with these optional arguments
+ * Commands are messages with optional target arguments
  * - `id?` the target aggregate id
  * - `expectedVersion?` the expected version of the aggregate or a concurrency error is thrown
  * - `actor?` the actor invoking the command
  */
-export type Command<M extends Messages = Messages> = Message<M> & {
+export type CommandTarget = {
   readonly id?: string;
   readonly expectedVersion?: number;
   readonly actor?: Actor;
 };
+export type Command<M extends Messages = Messages> = Message<M> & CommandTarget;
 
 /**
  * Committed events have metadata describing correlation and causation
@@ -39,18 +40,15 @@ export type Command<M extends Messages = Messages> = Message<M> & {
  * - `causation` The direct cause of the event
  */
 export type CommittedEventMetadata = {
-  correlation: string;
-  causation: {
-    command?: {
-      name: string;
-      id?: string;
-      expectedVersion?: number;
-      actor?: Actor;
-    };
-    event?: {
-      name: string;
-      stream: string;
-      id: number;
+  readonly correlation: string;
+  readonly causation: {
+    readonly command?: {
+      readonly name: string;
+    } & CommandTarget;
+    readonly event?: {
+      readonly name: string;
+      readonly stream: string;
+      readonly id: number;
     };
   };
 };
@@ -113,4 +111,12 @@ export type AllQuery = {
  */
 export type SnapshotsQuery = {
   readonly limit?: number;
+};
+
+/**
+ * Response from event handlers
+ */
+export type EventResponse<S extends State, C extends Messages> = {
+  command?: Command<C>;
+  state?: S;
 };

@@ -40,26 +40,24 @@ export type Config = z.infer<typeof Schema>;
 
 const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
 
-export function config(): Config {
+export const config = (): Config => {
   const pkg = getPackage();
   const parts = pkg.name.split("/");
   const service = parts.at(-1) || "";
-  return {
-    ...extend(
-      {
-        name: "config",
-        env: (NODE_ENV as Environments) || Environments.development,
-        host: HOST || "http://localhost",
-        port: Number.parseInt(PORT || "3000"),
-        logLevel: (LOG_LEVEL as LogLevels) || LogLevels.error,
-        service,
-        version: pkg.version,
-        description: pkg.description,
-        author: { name: pkg.author?.name, email: pkg.author?.email },
-        license: pkg.license,
-        dependencies: pkg.dependencies
-      },
-      Schema
-    )
-  };
-}
+  return extend(
+    {
+      name: "config",
+      env: (NODE_ENV as Environments) || Environments.development,
+      host: HOST || "http://localhost",
+      port: Number.parseInt(PORT || "3000"),
+      logLevel: (LOG_LEVEL as LogLevels) || LogLevels.error,
+      service,
+      version: pkg.version,
+      description: pkg.description,
+      author: { name: pkg.author?.name, email: pkg.author?.email },
+      license: pkg.license,
+      dependencies: pkg.dependencies
+    },
+    Schema
+  );
+};

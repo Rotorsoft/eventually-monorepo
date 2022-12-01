@@ -1,5 +1,4 @@
 export * from "./builder";
-export * from "./handlers";
 export * from "./interfaces";
 export * from "./ports";
 export * from "./singleton";

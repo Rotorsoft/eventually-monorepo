@@ -293,7 +293,7 @@ In this case we will just implement a couple of basic tests following the origin
 ```typescript
 import {
   app,
-  bind,
+  client,
   dispose,
   InMemorySnapshotStore,
   Snapshot
@@ -302,15 +302,20 @@ import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
 
-const openRoom = (room: models.Room): Promise<Snapshot<models.Room>[]> =>
-  app().command(bind("OpenRoom", room, room.number.toString()));
+const openRoom = (
+  room: models.Room
+): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+  client().command(Room, "OpenRoom", room, { id: room.number.toString() });
 
 const bookRoom = (
   number: number,
   reservation: models.Reservation
-): Promise<Snapshot<models.Room>[]> =>
-  app().command(
-    bind("BookRoom", { number, ...reservation }, number.toString())
+): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+  client().command(
+    Room,
+    "BookRoom",
+    { number, ...reservation },
+    { id: number.toString() }
   );
 
 describe("Room", () => {

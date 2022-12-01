@@ -19,7 +19,7 @@ describe("pg", () => {
   });
 
   afterAll(async () => {
-    db.dispose && (await db.dispose());
+    await db.dispose();
   });
 
   it("should commit and query", async () => {
