@@ -1,3 +1,6 @@
+#### 2022-12-02 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.4.2...@rotorsoft/eventually-v5.0.0) @rotorsoft/eventually-v5.0.0
+  - MAJOR [a57d2532](https://github.com/Rotorsoft/eventually-monorepo/commit/a57d253273ee984acb1cf03a0e3fb32921c9983d) feat: BREAKING CHANGE v5 second commit
+  - PATCH [98968589](https://github.com/Rotorsoft/eventually-monorepo/commit/989685893c0f81bea6696eb360536dcf8cae5e23) fix: v5 first commit
 #### 2022-11-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v0.1.0...@rotorsoft/calculator-artifacts-v0.1.1) @rotorsoft/calculator-artifacts-v0.1.1
   - PATCH [97a3b992](https://github.com/Rotorsoft/eventually-monorepo/commit/97a3b9920bf9f7c54a3e342c7f2f7ed58e5fcebe) fix: to deploy calculator and generic service
 #### 2022-11-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v0.1.0...@rotorsoft/eventually-service-expg-v0.1.1) @rotorsoft/eventually-service-expg-v0.1.1
