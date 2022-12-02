@@ -1088,7 +1088,7 @@ __metadata:
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
     "@okta/oidc-middleware": ^5.0.0
-    "@rotorsoft/eventually-broker": "workspace:^1"
+    "@rotorsoft/eventually-broker": "workspace:^2"
     "@types/express-session": ^1
     express-session: ^1.17.3
   languageName: unknown
@@ -1115,7 +1115,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-broker@workspace:^1, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
+"@rotorsoft/eventually-broker@workspace:^2, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-broker@workspace:libs/eventually-broker"
   dependencies:

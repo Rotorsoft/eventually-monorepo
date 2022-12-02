@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@okta/oidc-middleware": "^5.0.0",
-    "@rotorsoft/eventually-broker": "workspace:^1",
+    "@rotorsoft/eventually-broker": "workspace:^2",
     "express-session": "^1.17.3"
   },
   "devDependencies": {
