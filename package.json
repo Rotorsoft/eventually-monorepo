@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^5",
-    "@rotorsoft/eventually-express": "workspace:^4",
+    "@rotorsoft/eventually-express": "workspace:^5",
     "@rotorsoft/eventually-pg": "workspace:^5",
     "handlebars": "^4.7.7",
     "minimist": "^1.2.6",
