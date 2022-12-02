@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-express",
-  "version": "4.3.2",
+  "version": "5.0.0",
   "description": "Eventually Framework Express Services",
   "author": {
     "name": "rotorsoft",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@anatine/zod-openapi": "^1.10.0",
-    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually": "workspace:^5",
     "axios": "^0.26.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",

@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-pg",
-  "version": "4.2.0",
+  "version": "5.0.0",
   "description": "Eventually Framework Postgres Services",
   "author": {
     "name": "rotorsoft",
@@ -21,7 +21,7 @@
     "build": "npx tsc --build"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually": "workspace:^5",
     "pg": "^8.7.1",
     "zod": "^3.19.1"
   }

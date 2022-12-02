@@ -13,8 +13,8 @@
     },
     "license": "ISC",
     "dependencies": {
-        "@rotorsoft/eventually": "workspace:*",
-        "@rotorsoft/eventually-express": "workspace:*",
+        "@rotorsoft/eventually": "workspace:^5",
+        "@rotorsoft/eventually-express": "workspace:^5",
         "zod": "^3.19.1"
     },
     "devDependencies": {
