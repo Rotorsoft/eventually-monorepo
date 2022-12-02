@@ -17,7 +17,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually": "workspace:^5",
     "@rotorsoft/eventually-express": "workspace:^4",
     "uuid": "^8.3.2",
     "zod": "^3.19.1"

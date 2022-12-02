@@ -21,7 +21,7 @@
     "build": "npx tsc --build"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
+    "@rotorsoft/eventually": "workspace:^5",
     "pg": "^8.7.1",
     "zod": "^3.19.1"
   }
