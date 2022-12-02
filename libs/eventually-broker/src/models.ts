@@ -1,8 +1,11 @@
-import { Actor, Payload } from "@rotorsoft/eventually";
+import { Actor } from "@rotorsoft/eventually";
 import { state, SubscriptionViewModel } from "./cluster";
 import { Subscription } from "./types";
 
-export const toViewState = (req: { user?: Actor }, state: Payload): Payload => {
+export const toViewState = (
+  req: { user?: Actor },
+  state: Record<string, unknown>
+): Record<string, unknown> => {
   const isAdmin = req.user && req.user?.roles?.includes("admin");
   return Object.assign({}, state, { user: req.user, isAdmin });
 };

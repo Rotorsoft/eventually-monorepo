@@ -1,10 +1,15 @@
-import { Message } from "../types";
 import { Errors } from "../types/enums";
+import { Message } from "../types/messages";
 
 export class ValidationError extends Error {
   public readonly details;
   constructor(errors: string[], message?: Message) {
-    super(Errors.ValidationError);
+    super(
+      `${message?.name || ""} failed validation ${errors
+        .map((e) => `[${e}]`)
+        .join(" ")}`
+    );
+    this.name = Errors.ValidationError;
     this.details = { errors, message };
   }
 }
@@ -15,14 +20,18 @@ export class ConcurrencyError extends Error {
     public readonly events: Message[],
     public readonly expectedVersion: number
   ) {
-    super(Errors.ConcurrencyError);
+    super(
+      `Concurrency error committing event "${
+        events.at(0)?.name
+      }". Expected version ${expectedVersion} but found version ${lastVersion}.`
+    );
+    this.name = Errors.ConcurrencyError;
   }
 }
 
 export class RegistrationError extends Error {
-  public readonly details;
   constructor(message: Message) {
-    super(Errors.RegistrationError);
-    this.details = `Message [${message.name}] not registered with app builder!`;
+    super(`Message "${message.name}" not registered with app builder!`);
+    this.name = Errors.RegistrationError;
   }
 }

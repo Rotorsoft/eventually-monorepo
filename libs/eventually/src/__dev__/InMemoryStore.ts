@@ -1,10 +1,12 @@
-import { app } from "..";
+import { event } from "../handlers";
+import { app } from "../index";
 import { Store, StoreStat } from "../interfaces";
 import {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
   ConcurrencyError,
+  EventHandlerFactory,
   Message
 } from "../types";
 
@@ -17,16 +19,16 @@ export const InMemoryStore = (): Store => {
    * The entire system is configured in memory and all event handlers are automatically subscribed to a single channel
    * Committed events are automatically published to all policies that are able to handle the events
    * A broker service should manage subscriptions when using a database as the store or in a distributed deployment
-   * @param committed the committed events
+   * @param events the committed events
    */
-  const _notify = async (committed: CommittedEvent[]): Promise<void> => {
-    for (const event of committed) {
-      const msg = app().messages[event.name];
+  const _notify = async (events: CommittedEvent[]): Promise<void> => {
+    for (const e of events) {
+      const msg = app().messages[e.name];
       await Promise.all(
-        Object.values(msg.eventHandlerFactories).map((factory) =>
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          app().event(factory, event as any)
-        )
+        Object.values(msg.handlers).map((name) => {
+          const artifact = app().artifacts[name];
+          return event(artifact.factory as EventHandlerFactory, e);
+        })
       );
     }
   };

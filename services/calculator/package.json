@@ -21,7 +21,6 @@
     "@rotorsoft/eventually": "workspace:^4",
     "@rotorsoft/eventually-express": "workspace:^4",
     "@rotorsoft/eventually-pg": "workspace:^4",
-    "joi": "^17.6.0",
     "zod": "^3.19.1"
   }
 }

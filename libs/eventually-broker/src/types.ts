@@ -1,4 +1,4 @@
-import { CommittedEvent, Payload } from "@rotorsoft/eventually";
+import { CommittedEvent } from "@rotorsoft/eventually";
 import { RequestHandler } from "express";
 import { PathItemObject, SchemaObject } from "openapi3-ts";
 import { Breaker } from "./breaker";
@@ -134,8 +134,8 @@ export type PushEvent = CommittedEvent & {
  * App options
  */
 export type SecretOptions = {
-  byService?: Record<string, Payload>;
-  bySubscription?: Record<string, Payload>;
+  byService?: Record<string, Record<string, unknown>>;
+  bySubscription?: Record<string, Record<string, unknown>>;
 };
 export type AppOptions = {
   subscriptionStoreFactory: () => SubscriptionStore;

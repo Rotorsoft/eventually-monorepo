@@ -16,18 +16,15 @@ void bootstrap(async (): Promise<void> => {
   await store().seed();
 
   const _app = app(new ExpressApp())
-    .withAggregate(Calculator, `Aggregates **calculator** instances`, {
+    .withSnapshot(Calculator, {
       store: snapshotStore,
       threshold: 0,
       expose: true
     })
-    .withProcessManager(
-      Counter,
-      `Counts keys and *resets* calculator when the
-  number of consecutire key presses without resoulution exceeds some **limit**`
-    )
-    .withPolicy(StatelessCounter)
-    .withCommandAdapter(PressKeyAdapter);
+    .with(Calculator)
+    .with(Counter)
+    .with(StatelessCounter)
+    .with(PressKeyAdapter);
 
   _app.build();
   await _app.listen();

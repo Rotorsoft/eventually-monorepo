@@ -1,158 +1,147 @@
 import {
-  AggregateFactory,
-  AppBase,
+  Builder,
+  CommandAdapterFactory,
+  CommandHandlerFactory,
   config,
   decamelize,
-  Payload,
-  ProcessManagerFactory,
-  Reducer,
-  ReducibleFactory,
-  reduciblePath,
-  SnapshotStore
+  EventHandlerFactory,
+  log,
+  ReducibleFactory
 } from "@rotorsoft/eventually";
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
 import { OpenAPIObject } from "openapi3-ts";
-import { home, redoc } from "./docs";
 import {
   allStreamHandler,
   commandHandler,
   errorHandler,
   eventHandler,
   getHandler,
+  getStreamHandler,
   invokeHandler,
   snapshotQueryHandler,
   statsHandler
 } from "./handlers";
-import { swagger } from "./swagger";
+import { openAPI } from "./openapi";
+import { home, redoc } from "./openapi/docs";
+import { httpGetPath, httpPostPath } from "./openapi/utils";
 
-export class ExpressApp extends AppBase {
+const regexIso8601 =
+  /^(\d{4}|\+\d{6})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})\.(\d{1,})(Z|([-+])(\d{2}):(\d{2}))?)?)?)?$/;
+const dateReviver = (key: string, value: string): string | Date =>
+  typeof value === "string" && regexIso8601.test(value)
+    ? new Date(value)
+    : value;
+
+export class ExpressApp extends Builder {
   private _app = express();
   private _router = Router();
   private _server: Server | undefined;
-  private _swagger: OpenAPIObject | undefined;
+  private _oas: OpenAPIObject | undefined;
 
-  public getSwagger(): OpenAPIObject | undefined {
-    return this._swagger;
+  constructor() {
+    super(config().version);
   }
 
-  private _buildStatsRoute(): void {
-    this._router.get("/stats", statsHandler);
-    this.log.info("bgGreen", " GET ", "/stats");
-  }
-
-  private _buildAllStreamRoute(): void {
+  private _withStreams(): void {
     this._router.get("/all", allStreamHandler);
-    this.log.info(
+    log().info(
       "bgGreen",
       " GET ",
       "/all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]"
     );
+    this._router.get("/stats", statsHandler);
+    log().info("bgGreen", " GET ", "/stats");
   }
 
-  private _buildGetters(factory: ReducibleFactory<Payload, any, any>): void {
-    const path = reduciblePath(factory);
-    this._router.get(
-      path,
-      getHandler(factory, this.load.bind(this) as Reducer<Payload, any, any>)
-    );
-    this.log.info("bgGreen", " GET ", path);
+  private _withGets(factory: ReducibleFactory): void {
+    const path = httpGetPath(factory.name);
+    this._router.get(path, getHandler(factory));
+    log().info("bgGreen", " GET ", path);
 
     const streamPath = path.concat("/stream");
-    this._router.get(
-      streamPath,
-      getHandler(factory, this.stream.bind(this) as Reducer<Payload, any, any>)
-    );
-    this.log.info("bgGreen", " GET ", streamPath);
+    this._router.get(streamPath, getStreamHandler(factory));
+    log().info("bgGreen", " GET ", streamPath);
+
+    const snapOpts = this.snapOpts[factory.name];
+    if (snapOpts && snapOpts.expose) {
+      const path = `/${decamelize(factory.name)}`;
+      this._router.get(path, snapshotQueryHandler(snapOpts.store));
+      log().info("bgGreen", " GET ", path);
+    }
   }
 
-  // TODO: add snapshot query endpoints to swagger spec
-  private _buildSnapshotQuery(store: SnapshotStore, path: string): void {
-    this._router.get(path, snapshotQueryHandler(store));
-    this.log.info("bgGreen", " GET ", path);
-  }
-
-  private _buildCommandHandlers(): void {
-    const aggregates: Record<string, AggregateFactory<Payload, any, any>> = {};
-    Object.values(this.endpoints.commandHandlers).forEach(
-      ({ type, factory, commands }) => {
-        type === "aggregate" && (aggregates[factory.name] = factory as any);
-        Object.entries(commands).forEach(([name, path]) => {
-          this._router.post(path, commandHandler(name, type));
-          this.log.info("bgBlue", " POST ", path);
+  private _withPosts(): void {
+    Object.values(this.artifacts).forEach(({ type, factory, inputs }) => {
+      (type === "aggregate" || type === "process-manager") &&
+        this._withGets(factory as ReducibleFactory);
+      if (type === "policy" || type === "process-manager") {
+        const path = httpPostPath(factory.name, type);
+        this._router.post(path, eventHandler(factory as EventHandlerFactory));
+        log().info("bgMagenta", " POST ", path, inputs);
+      } else
+        Object.values(inputs).forEach((message) => {
+          const path = httpPostPath(factory.name, type, message);
+          if (type === "command-adapter")
+            this._router.post(
+              path,
+              invokeHandler(factory as CommandAdapterFactory)
+            );
+          else
+            this._router.post(
+              path,
+              commandHandler(
+                factory as CommandHandlerFactory,
+                message,
+                type === "aggregate"
+              )
+            );
+          log().info("bgBlue", " POST ", path);
         });
-      }
-    );
-
-    Object.values(this._factories.commandAdapters).forEach((factory) => {
-      const path = decamelize("/".concat(factory.name));
-      this._router.post(path, invokeHandler(factory));
-      this.log.info("bgBlue", " POST ", path);
     });
-
-    Object.values(aggregates).forEach((aggregate) => {
-      this._buildGetters(aggregate);
-
-      const snapOpts = this._snapshotOptions[aggregate.name];
-      if (snapOpts && snapOpts.expose) {
-        this._buildSnapshotQuery(
-          snapOpts.store,
-          `/${decamelize(aggregate.name)}`
-        );
-      }
-    });
-  }
-
-  private _buildEventHandlers(): void {
-    const managers: Record<
-      string,
-      ProcessManagerFactory<Payload, any, any>
-    > = {};
-    Object.values(this.endpoints.eventHandlers).forEach(
-      ({ type, factory, path, events }) => {
-        type === "process-manager" && (managers[factory.name] = factory as any);
-        this._router.post(path, eventHandler(factory));
-        this.log.info("bgMagenta", " POST ", path, events);
-      }
-    );
-
-    Object.values(managers).forEach((manager) => this._buildGetters(manager));
   }
 
   build(middleware?: RequestHandler[]): express.Express {
     const { service, version, dependencies } = config();
 
     super.build();
-    this._buildCommandHandlers();
-    this._buildEventHandlers();
-    if (this.hasStreams) {
-      this._buildAllStreamRoute();
-      this._buildStatsRoute();
-    }
+    this._oas = openAPI();
+    this._withPosts();
+    this.hasStreams && this._withStreams();
 
     this._app.set("trust proxy", true);
     this._app.use(cors());
     this._app.use(urlencoded({ extended: false }));
-    this._app.use(express.json());
+    this._app.use(express.json({ reviver: dateReviver }));
     middleware && this._app.use(middleware);
     this._app.use(this._router);
 
     // openapi
-    this._swagger = swagger(this);
-    this._app.get("/swagger", (_, res) => res.json(this._swagger));
+    this._app.get("/swagger", (_, res) => res.json(this._oas));
     this._app.get("/_redoc", (_, res) => res.type("html").send(redoc(service)));
 
-    // health related
-    this._app.get("/_endpoints", (_, res) => res.json(this.endpoints));
+    this._app.get("/_config", (_, res) =>
+      res.json({
+        service,
+        version,
+        dependencies,
+        artifacts: this.artifacts,
+        messages: Object.values(this.messages).map(
+          ({ name, type, schema, handlers }) => ({
+            name,
+            type,
+            description: schema.description || "",
+            handlers
+          })
+        )
+      })
+    );
     this._app.get("/_health", (_, res) =>
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
     );
-    this._app.get("/_config", (_, res) =>
-      res.json({ service, version, dependencies })
-    );
     this._app.get("/__killme", () => {
-      this.log.info("red", "KILLME");
+      log().info("red", "KILLME");
       process.exit(0);
     });
 
@@ -172,16 +161,11 @@ export class ExpressApp extends AppBase {
     this._app.use(errorHandler); // ensure catch-all is last handler
 
     const _config = { env, port, logLevel, service, version };
-    if (silent) this.log.info("white", "Config", undefined, _config);
+    if (silent) log().info("white", "Config", undefined, _config);
     else
       this._server = await new Promise((resolve) => {
         const server = this._app.listen(port, () => {
-          this.log.info(
-            "white",
-            "Express app is listening",
-            undefined,
-            _config
-          );
+          log().info("white", "Express app is listening", undefined, _config);
           resolve(server);
         });
       });

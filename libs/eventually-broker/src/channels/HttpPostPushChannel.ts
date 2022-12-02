@@ -1,4 +1,4 @@
-import { log, Payload } from "@rotorsoft/eventually";
+import { log } from "@rotorsoft/eventually";
 import axios, { AxiosRequestHeaders } from "axios";
 import { CommittableHttpStatus } from "../cluster";
 import { PushChannel } from "../interfaces";
@@ -48,7 +48,7 @@ const push = async (
 
 export const HttpPostPushChannel = (
   endpoint: URL,
-  headers?: Payload
+  headers?: Record<string, unknown>
 ): PushChannel => {
   const axiosRequestHeaders = headers && toAxiosRequestHeaders(headers);
   return {

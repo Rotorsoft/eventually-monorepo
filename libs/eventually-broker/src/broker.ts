@@ -1,4 +1,3 @@
-import { Payload } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { Express } from "express";
 import {
@@ -23,10 +22,18 @@ export const defaultResolvers: ChannelResolvers = {
   },
   push: {
     "void:": () => VoidPushChannel(),
-    "http:": (url: URL, id: string, source: string, headers?: Payload) =>
-      HttpPostPushChannel(url, headers),
-    "https:": (url: URL, id: string, source: string, headers?: Payload) =>
-      HttpPostPushChannel(url, headers)
+    "http:": (
+      url: URL,
+      id: string,
+      source: string,
+      headers?: Record<string, unknown>
+    ) => HttpPostPushChannel(url, headers),
+    "https:": (
+      url: URL,
+      id: string,
+      source: string,
+      headers?: Record<string, unknown>
+    ) => HttpPostPushChannel(url, headers)
   }
 };
 

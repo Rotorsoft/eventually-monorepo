@@ -1,5 +1,5 @@
 import { hbsHelpers } from "../hbs-helpers";
-import { config, Payload } from "@rotorsoft/eventually";
+import { config } from "@rotorsoft/eventually";
 import { formatDate, formatDateLocal, formatInt } from "../utils";
 
 describe("hbs-helpers", () => {
@@ -19,7 +19,7 @@ describe("hbs-helpers", () => {
       or: (a: boolean, b: boolean) => boolean;
       eq: (a: any, b: any) => boolean;
       includes: (a: string[], b: string) => boolean;
-      in: (a: Payload, b: string) => boolean;
+      in: (a: Record<string, unknown>, b: string) => boolean;
     };
 
     expect(h.json(obj)).toEqual(JSON.stringify(obj));

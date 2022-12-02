@@ -35,23 +35,8 @@ npm i @rotorsoft/eventually-service-expg @rotorsoft/calculator-artifacts
     },
     "eventually": {
         "store": "calculator",
-        "aggregates": {
-            "Calculator": {
-            "package": "@rotorsoft/calculator-artifacts",
-            "description": "Generic Calculator Aggregate"
-            }
-        },
-        "process-managers": {
-            "Counter": {
-            "package": "@rotorsoft/calculator-artifacts",
-            "description": "Generic Counter Policy"
-            }
-        },
-        "adapters": {
-            "PressKeyAdapter": {
-            "package": "@rotorsoft/calculator-artifacts",
-            "description": "Generic PressKey Adapter"
-            }
+        "artifacts": {
+            "@rotorsoft/calculator-artifacts": ["Calculator", "Counter", "PressKeyAdapter"]
         }
     }
 }

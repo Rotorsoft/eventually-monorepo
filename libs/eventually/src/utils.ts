@@ -1,49 +1,90 @@
 import * as crypto from "crypto";
-import { Store } from "./interfaces";
-import { singleton } from "./singleton";
+import { ZodError, ZodType } from "zod";
+import { app } from "./ports";
 import {
-  Actor,
   Command,
-  CommandHandler,
-  CommandHandlerFactory,
-  EventHandler,
-  EventHandlerFactory,
+  CommandTarget,
   Message,
-  MessageHandler,
   Messages,
-  Payload,
-  Reducible,
-  ReducibleFactory,
-  Streamable
+  RegistrationError,
+  ValidationError
 } from "./types";
-import { InMemoryStore } from "./__dev__";
 
-export const store = singleton(function store(store?: Store) {
-  return store || InMemoryStore();
-});
+/**
+ * Validates payloads using `zod` schemas
+ *
+ * @param payload the raw payload
+ * @param schema the zod schema
+ * @returns the validated payload
+ */
+export const validate = <T>(payload: T, schema: ZodType<T>): T => {
+  try {
+    return schema.parse(payload);
+  } catch (error) {
+    if (error instanceof ZodError)
+      throw new ValidationError(
+        error.errors.map(({ path, message }) => `${path.join(".")}: ${message}`)
+      );
+    throw new ValidationError(["zod validation error"]);
+  }
+};
+
+/**
+ * Validates message payloads from registered schemas
+ *
+ * @param message the message
+ * @returns validated message
+ */
+export const validateMessage = <M extends Messages>(
+  message: Message<M>
+): Message<M> => {
+  const metadata = app().messages[message.name];
+  if (!metadata) throw new RegistrationError(message);
+  try {
+    const validated = validate(message.data, metadata.schema) as Readonly<
+      M[keyof M & string]
+    >;
+    return { name: message.name, data: validated };
+  } catch (error) {
+    throw new ValidationError(
+      (error as ValidationError).details.errors,
+      message
+    );
+  }
+};
 
 /**
  * Binds message arguments
- * @param name Message name
- * @param data Message payload
- * @param id Optional aggregate id when binding commands
- * @param expectedVersion Optional aggregate expected version when binding commands
- * @param actor Optional actor when binding external commands
+ * @param name the message name
+ * @param data the message payload
+ * @param target optional command target args
  * @returns The bound message
  */
-export const bind = <T extends Messages>(
-  name: keyof T & string,
-  data: Readonly<T[keyof T]>,
-  id?: string,
-  expectedVersion?: number,
-  actor?: Actor
-): Message<T> | Command<T> => ({
-  name,
-  data,
-  id,
-  expectedVersion,
-  actor
-});
+export const bind = <M extends Messages>(
+  name: keyof M & string,
+  data: Readonly<M[keyof M & string]>,
+  target?: CommandTarget
+): Message<M> | Command<M> => ({ name, data, ...target });
+
+/**
+ * Extends target payload with source payload after validating source
+ *
+ * @param source the source payload
+ * @param schema the source schema
+ * @param target the target payload
+ * @returns the extended payload
+ */
+export const extend = <
+  S extends Record<string, unknown>,
+  T extends Record<string, unknown>
+>(
+  source: S,
+  schema: ZodType<S>,
+  target?: T
+): S & T => {
+  const value = validate(source, schema);
+  return Object.assign(target || {}, value) as S & T;
+};
 
 /**
  * Camelizes string
@@ -96,106 +137,9 @@ export const formatTime = (seconds: number): string => {
   return `${Math.round(seconds / DAY_SECS)} days ${iso.substring(11, 19)}`;
 };
 
-const funcsOf = (prefix: string, object: Record<string, unknown>): string[] => {
-  return Object.entries(object)
-    .filter(([key, value]) => {
-      return typeof value === "function" && key.startsWith(prefix);
-    })
-    .map(([key]) => key.substring(prefix.length));
-};
-
 /**
- * Extracts events from reducible
- * @param reducible the reducible
- * @returns array of event names
+ * Promisify setTimeout
+ * @param millis the millis to sleep
  */
-export const eventsOf = <M extends Payload, E extends Messages>(
-  reducible: Reducible<M, E>
-): string[] => funcsOf("apply", reducible);
-
-/**
- * Extracts messages from handler
- * @param handler The message handler
- * @returns array of message names
- */
-export const messagesOf = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: CommandHandler<M, C, E> | EventHandler<M, C, E>
-): string[] => funcsOf("on", handler);
-
-/**
- * Reducible type guard
- * @param handler a message handler
- * @returns a reducible type or undefined
- */
-export const getReducible = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: MessageHandler<M, C, E>
-): Reducible<M, E> | undefined =>
-  "init" in handler ? (handler as Reducible<M, E>) : undefined;
-
-/**
- * Streamable type guard
- * @param handler a message handler
- * @returns a streamable type or undefined
- */
-export const getStreamable = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: MessageHandler<M, C, E>
-): Streamable | undefined =>
-  "stream" in handler ? (handler as Streamable) : undefined;
-
-/**
- * Normalizes reducible paths
- * @param reducible reducible factory
- * @returns the reducible path
- */
-export const reduciblePath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  reducible: ReducibleFactory<M, C, E>
-): string => "/".concat(decamelize(reducible.name), "/:id");
-
-/**
- * Normalizes command handler paths
- * @param handler command handler factory
- * @param name command name
- * @returns normalized path
- */
-export const commandHandlerPath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: CommandHandlerFactory<M, C, E>,
-  name: string
-): string =>
-  "/".concat(
-    decamelize(handler.name),
-    getReducible(handler("")) ? "/:id/" : "/",
-    decamelize(name)
-  );
-
-/**
- * Normalizes event handler paths
- * @param handler event handler factory
- * @returns normalized path
- */
-export const eventHandlerPath = <
-  M extends Payload,
-  C extends Messages,
-  E extends Messages
->(
-  handler: EventHandlerFactory<M, C, E>
-): string => "/".concat(decamelize(handler.name));
+export const sleep = (millis: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, millis));

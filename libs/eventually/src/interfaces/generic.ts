@@ -1,16 +1,3 @@
-export type Color =
-  | "red"
-  | "green"
-  | "magenta"
-  | "blue"
-  | "white"
-  | "gray"
-  | "bgRed"
-  | "bgGreen"
-  | "bgMagenta"
-  | "bgBlue"
-  | "bgWhite";
-
 /**
  * Resource disposer function
  */
@@ -34,13 +21,4 @@ export interface Disposable {
  */
 export interface Seedable {
   seed: Seeder;
-}
-
-/**
- * Logger
- */
-export interface Log extends Disposable {
-  trace(color: Color, message: string, ...params: any[]): void;
-  info(color: Color, message: string, ...params: any[]): void;
-  error(error: unknown): void;
 }

@@ -1,78 +1,130 @@
-import * as joi from "joi";
+import { Empty } from "@rotorsoft/eventually";
 import z from "zod";
-import * as models from "./calculator.models";
 
-export const CalculatorModel = joi.object<models.CalculatorModel>({
-  left: joi.string(),
-  right: joi.string(),
-  operator: joi.string().valid(...models.OPERATORS),
-  result: joi.number().required()
-});
+export const DIGITS = [
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9"
+] as const;
+export const OPERATORS = ["+", "-", "*", "/"] as const;
+export const SYMBOLS = [".", "="] as const;
+export type Digits = typeof DIGITS[number];
+export type Operators = typeof OPERATORS[number];
+export type Symbols = typeof SYMBOLS[number];
+export type Keys = Digits | Operators | Symbols;
 
-export const CounterState = joi.object<models.CounterState>({
-  count: joi.number().required()
-});
+export const CalculatorSchema = z
+  .object({
+    left: z.string().optional(),
+    right: z.string().optional(),
+    operator: z.enum(OPERATORS).optional(),
+    result: z.number()
+  })
+  .describe("Holds the running calculation");
+
+export const CounterState = z
+  .object({
+    count: z.number()
+  })
+  .describe("Counts digits and operators");
 
 export const DigitPressed = z
   .object({
-    digit: z.enum([...models.DIGITS])
+    digit: z.enum(DIGITS)
   })
   .describe(
     "Generated when a **digit** is pressed\n\nThis is and example to use\n* markup language\n* inside descriptions"
   );
 
-export const OperatorPressed = joi
+export const OperatorPressed = z
   .object({
-    operator: joi
-      .string()
-      .required()
-      .valid(...models.OPERATORS)
+    operator: z.enum(OPERATORS)
   })
-  .description("Generated when operator is pressed")
-  .required();
-
-// export const PressKey = joi
-//   .object({
-//     key: joi
-//       .string()
-//       .required()
-//       .min(1)
-//       .max(1)
-//       .valid(...models.DIGITS, ...models.OPERATORS, ...models.SYMBOLS)
-//   })
-//   .description(
-//     "Invoked when user presses a key - either digit, operator, or symbol"
-//   )
-//   .required();
+  .describe("Generated when operator is pressed");
 
 export const PressKey = z
   .object({
-    key: z.enum([...models.DIGITS, ...models.OPERATORS, ...models.SYMBOLS])
+    key: z.enum([...DIGITS, ...OPERATORS, ...SYMBOLS])
   })
   .describe(
     "Invoked when user presses a key - either digit, operator, or symbol"
   );
 
-export const SubSubComplex = joi.object<models.SubSubComplex>({
-  arrayFld: joi.array().items(joi.string()).required(),
-  enumFld: joi
-    .string()
-    .valid(...Object.keys(models.ComplexEnum))
-    .required()
-});
+export enum ComplexEnum {
+  one = "one",
+  two = "two"
+}
 
-export const SubComplex = joi.object<models.SubComplex>({
-  stringFld: joi.string().required(),
-  anotherObj: joi.array().items(SubSubComplex)
-});
+export const SubSubComplex = z
+  .object({
+    arrayFld: z.array(z.string().min(1)),
+    enumFld: z.nativeEnum(ComplexEnum)
+  })
+  .describe("Sample enum");
 
-export const Complex = joi
-  .object<models.Complex>({
-    dateFld: joi.date(),
-    numberFld: joi.number(),
-    boolFld: joi.bool().optional(),
-    guidFld: joi.string().guid().optional(),
+export const SubComplex = z
+  .object({
+    stringFld: z.string().min(1),
+    anotherObj: z.array(SubSubComplex)
+  })
+  .describe("Schema composition");
+
+export const Complex = z
+  .object({
+    dateFld: z.date(),
+    numberFld: z.number().optional(),
+    boolFld: z.boolean().optional(),
+    guidFld: z.string().uuid().optional(),
     objFld: SubComplex
   })
-  .presence("required")
-  .description("This is a complex object");
+  .describe("This is a complex object");
+
+export type AllCommands = {
+  PressKey: z.infer<typeof PressKey>;
+  Reset: Empty;
+  Whatever: Empty;
+  Forget: Empty;
+};
+
+export type CalculatorCommands = {
+  PressKey: z.infer<typeof PressKey>;
+  Reset: Empty;
+};
+
+export type CounterCommands = { Reset: Empty };
+
+export type AllEvents = {
+  DigitPressed: z.infer<typeof DigitPressed>;
+  OperatorPressed: z.infer<typeof OperatorPressed>;
+  DotPressed: Empty;
+  EqualsPressed: Empty;
+  Cleared: Empty;
+  Ignored1: Empty;
+  Ignored2: Empty;
+  Ignored3: Empty;
+  Forgotten: Empty;
+  Complex: z.infer<typeof Complex>;
+};
+
+export type CalculatorEvents = {
+  DigitPressed: z.infer<typeof DigitPressed>;
+  OperatorPressed: z.infer<typeof OperatorPressed>;
+  DotPressed: Empty;
+  EqualsPressed: Empty;
+  Cleared: Empty;
+  Ignored3: Empty;
+};
+
+export type CounterEvents = {
+  DigitPressed: z.infer<typeof DigitPressed>;
+  OperatorPressed: z.infer<typeof OperatorPressed>;
+  DotPressed: Empty;
+  EqualsPressed: Empty;
+};

@@ -54,16 +54,6 @@ export type Room = {
 export type Hotel = Record<number, Room>;
 ```
 
-Message payloads also have schemas...
-
-```typescript
-export type OpenRoom = Room;
-export type RoomOpened = Room;
-export type BookRoom = Reservation & { number: number };
-export type RoomBooked = Reservation & { number: number };
-export type SearchRoom = Pick<Reservation, "checkin" | "checkout">;
-```
-
 ### **3.** Transfer Model to Code
 
 With a model and clear schemas we are ready to code...
@@ -73,7 +63,7 @@ mkdir hotel
 cd hotel
 npm init # follow prompt
 npx tsc --init
-npm i --save joi @rotorsoft/eventually @rotorsoft/eventually-express
+npm i --save zod @rotorsoft/eventually @rotorsoft/eventually-express
 npm i --save-dev ts-node-dev jest @types/jest
 ```
 
@@ -89,12 +79,15 @@ npm i --save-dev ts-node-dev jest @types/jest
     "start:dev": "npx ts-node-dev --respawn ./src/index.ts",
     "test": "npx tsc && jest ./dist/**/*.spec.js"
   },
-  "author": "",
+  "author": {
+      "name": "your name",
+      "email": "your@email.com"
+  },
   "license": "ISC",
   "dependencies": {
     "@rotorsoft/eventually": "^4.2.1",
     "@rotorsoft/eventually-express": "^4.1.1",
-    "joi": "^17.6.3"
+    "zod": "^3.19.1"
   },
   "devDependencies": {
     "@types/jest": "^29.1.2",
@@ -140,93 +133,67 @@ and make sure it runs...
 LOG_LEVEL="trace" npm run start:dev
 ```
 
-#### Transfer model files
+#### Transfer schemas
 
-#### *./src/Room.models.ts*
-
-```typescript
-export enum RoomType {
-  SINGLE = "single",
-  DOUBLE = "double",
-  DELUXE = "deluxe",
-}
-
-export type Reservation = {
-  id: string;
-  checkin: Date;
-  checkout: Date;
-  totalPrice: number;
-};
-
-export type Room = {
-  number: number;
-  type: RoomType;
-  price: number;
-  reservations?: Reservation[];
-};
-
-export type SearchRoom = Pick<Reservation, "checkin" | "checkout">;
-```
+Message payloads also have schemas. We use [zod](https://zod.dev/) with type inference to define our schemas and types...
 
 #### *./src/Room.schemas.ts*
 
 ```typescript
-import joi from "joi";
-import * as models from "./Room.models";
+import z from "zod";
 
-export const Reservation = joi
-  .object<models.Reservation>({
-    id: joi.string(),
-    checkin: joi.date(),
-    checkout: joi.date(),
-    totalPrice: joi.number(),
-  })
-  .options({ presence: "required" });
+export enum RoomType {
+  SINGLE = 'single', 
+  DOUBLE = 'double', 
+  DELUXE = 'deluxe'
+}
 
-export const Room = joi
-  .object<models.Room>({
-    number: joi.number(),
-    type: joi.valid(...Object.values(models.RoomType)),
-    price: joi.number(),
-    reservations: joi.array().optional().items(Reservation),
-  })
-  .options({ presence: "required" });
+export const Reservation = z.object({
+  id: z.string(),
+  checkin: z.date(),
+  checkout: z.date(),
+  totalPrice: z.number(),
+});
 
-export const BookRoom = joi
-  .object({
-    number: joi.number().required(),
-  })
-  .concat(Reservation);
+export const Room = z.object({
+  number: z.number(),
+  type: z.nativeEnum(RoomType),
+  price: z.number(),
+  reservations: z.array(Reservation).optional()
+});
 
-export const RoomBooked = BookRoom;
+export const BookRoom = z.intersection(
+  z.object({
+    number: z.number()
+  }), 
+  Reservation
+);
 
-export const SearchRoom = joi
-  .object<models.SearchRoom>({
-    checkin: joi.date(),
-    checkout: joi.date(),
-  })
-  .options({ presence: "required" });
+export const SearchRoom = z.object({
+  checkin: z.date(),
+  checkout: z.date()
+});
 ```
 
-#### *./src/Room.commands.ts*
+#### *./src/Room.models.ts*
 
 ```typescript
-import { Reservation, Room } from "./Room.models";
+import z from "zod";
+import * as schemas from "./Room.schemas";
+
+export type Reservation = z.infer<typeof schemas.Reservation>;
+export type Room = z.infer<typeof schemas.Room>;
+export type BookRoom = z.infer<typeof schemas.BookRoom>;
+export type SearchRoom = z.infer<typeof schemas.SearchRoom>;
 
 export type RoomCommands = {
   OpenRoom: Room;
-  BookRoom: Reservation & { number: number };
+  BookRoom: BookRoom;
 };
-```
-
-#### *./src/Room.events.ts*
-
-```typescript
-import { Reservation, Room } from "./Room.models";
 
 export type RoomEvents = {
   RoomOpened: Room;
-  RoomBooked: Reservation & { number: number };
+  RoomBooked: BookRoom;
 };
 ```
 
@@ -234,34 +201,39 @@ export type RoomEvents = {
 
 ```typescript
 import { Aggregate } from "@rotorsoft/eventually";
-import { RoomCommands } from "./Room.commands";
-import { RoomEvents } from "./Room.events";
 import * as schemas from "./Room.schemas";
 import * as models from "./Room.models";
 
 export const Room = (
   id: string
-): Aggregate<models.Room, RoomCommands, RoomEvents> => ({
+): Aggregate<models.Room, models.RoomCommands, models.RoomEvents> => ({
   schemas: {
     state: schemas.Room,
-    OpenRoom: schemas.Room,
-    BookRoom: schemas.BookRoom,
-    RoomOpened: schemas.Room,
-    RoomBooked: schemas.RoomBooked,
+    commands: {
+      OpenRoom: schemas.Room,
+      BookRoom: schemas.BookRoom
+    },
+    events: {
+      RoomOpened: schemas.Room,
+      RoomBooked: schemas.BookRoom
+    }
   },
 
+  description: "A bookable hotel room",
   stream: () => `Room-${id}`,
   init: (): models.Room => ({
     number: +id,
-    type: models.RoomType.SINGLE,
-    price: 0,
+    type: schemas.RoomType.SINGLE,
+    price: 0
   }),
-
-  onOpenRoom: () => Promise.resolve([]),
-  onBookRoom: () => Promise.resolve([]),
-
-  applyRoomOpened: () => undefined,
-  applyRoomBooked: () => undefined,
+  reduce: {
+    RoomOpened: () => undefined,
+    RoomBooked: () => undefined
+  },
+  on: {
+    OpenRoom: () => Promise.resolve([]),
+    BookRoom: () => Promise.resolve([])
+  }
 });
 ```
 
@@ -274,10 +246,11 @@ import { Room } from "./Room.aggregate";
 
 void bootstrap(async (): Promise<void> => {
   app(new ExpressApp())
-    .withAggregate(Room, "Hotel Room", {
+    .with(Room)
+    .withSnapshot(Room, {
       store: InMemorySnapshotStore(),
       threshold: -1,
-      expose: true,
+      expose: true
     })
     .build();
   await app().listen();
@@ -289,11 +262,24 @@ Since we are using **ExpressApp**, the aggregate should be now exposed by HTTP e
 ```bash
 LOG_LEVEL="trace" npm run start:dev
 ...
-POST /room/:id/book-room
-GET  /room/:id
-GET  /room/:id/stream
-GET  /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]
-GET  /stats
+[INFO] 15:40:54 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.1, typescript ver. 4.7.2)
+[12417] ✨ config
+[12417] ✨ devLog
+[12417] ✨ ExpressApp
+ GET  /room/:id
+ GET  /room/:id/stream
+ GET  /room
+ POST  /room/:id/open-room
+ POST  /room/:id/book-room
+ GET  /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]
+ GET  /stats
+Express app is listening  {
+  env: 'development',
+  port: 3000,
+  logLevel: 'trace',
+  service: 'hotel',
+  version: '1.0.0'
+}
 ```
 
 ### **4.** Write Tests First
@@ -307,23 +293,29 @@ In this case we will just implement a couple of basic tests following the origin
 ```typescript
 import {
   app,
-  bind,
+  client,
   dispose,
   InMemorySnapshotStore,
-  Snapshot,
+  Snapshot
 } from "@rotorsoft/eventually";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
+import * as schemas from "../Room.schemas";
 
-const openRoom = (room: models.Room): Promise<Snapshot<models.Room>[]> =>
-  app().command(bind("OpenRoom", room, room.number.toString()));
+const openRoom = (
+  room: models.Room
+): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+  client().command(Room, "OpenRoom", room, { id: room.number.toString() });
 
 const bookRoom = (
   number: number,
   reservation: models.Reservation
-): Promise<Snapshot<models.Room>[]> =>
-  app().command(
-    bind("BookRoom", { number, ...reservation }, number.toString())
+): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+  client().command(
+    Room,
+    "BookRoom",
+    { number, ...reservation },
+    { id: number.toString() }
   );
 
 describe("Room", () => {
@@ -331,20 +323,21 @@ describe("Room", () => {
 
   beforeAll(async () => {
     app()
-      .withAggregate(Room, "Hotel Room", {
+      .with(Room)
+      .withSnapshot(Room, {
         store: snapshotStore,
-        threshold: -1,
+        threshold: -1
       })
       .build();
     await app().listen();
 
-    await openRoom({ number: 101, price: 100, type: models.RoomType.SINGLE });
-    await openRoom({ number: 102, price: 200, type: models.RoomType.DOUBLE });
-    await openRoom({ number: 103, price: 300, type: models.RoomType.DELUXE });
+    await openRoom({ number: 101, price: 100, type: schemas.RoomType.SINGLE });
+    await openRoom({ number: 102, price: 200, type: schemas.RoomType.DOUBLE });
+    await openRoom({ number: 103, price: 300, type: schemas.RoomType.DELUXE });
   });
 
   afterAll(async () => {
-    await dispose();
+    await dispose()();
   });
 
   it("should search rooms", async () => {
@@ -359,7 +352,7 @@ describe("Room", () => {
       id: "r1",
       checkin,
       checkout,
-      totalPrice: 0,
+      totalPrice: 0
     });
     expect(room[0].state?.reservations?.length).toBe(1);
     expect(room[0].state?.reservations[0].totalPrice).toBe(
@@ -374,14 +367,14 @@ describe("Room", () => {
       id: "r2",
       checkin,
       checkout,
-      totalPrice: 0,
+      totalPrice: 0
     });
-    expect(
+    await expect(
       bookRoom(103, {
         id: "r3",
         checkin,
         checkout,
-        totalPrice: 0,
+        totalPrice: 0
       })
     ).rejects.toThrowError();
   });
@@ -394,12 +387,14 @@ Your project should look like this...
 
 ### **5.** Finish the API
 
-At this point all tests are failing. We can now focus on closing the implementation gaps...
+At this point all tests are failing...
+
+![Unit Test Coverage](./assets/coverage-failed.png)
+
+We can now focus on closing the implementation gaps...
 
 ```typescript
 import { Aggregate, bind } from "@rotorsoft/eventually";
-import { RoomCommands } from "./Room.commands";
-import { RoomEvents } from "./Room.events";
 import * as schemas from "./Room.schemas";
 import * as models from "./Room.models";
 
@@ -420,43 +415,56 @@ const isBooked = (room: models.Room, from: Date, to: Date): boolean =>
 
 export const Room = (
   id: string
-): Aggregate<models.Room, RoomCommands, RoomEvents> => ({
+): Aggregate<models.Room, models.RoomCommands, models.RoomEvents> => ({
   schemas: {
     state: schemas.Room,
-    OpenRoom: schemas.Room,
-    BookRoom: schemas.BookRoom,
-    RoomOpened: schemas.Room,
-    RoomBooked: schemas.RoomBooked,
+    commands: {
+      OpenRoom: schemas.Room,
+      BookRoom: schemas.BookRoom
+    },
+    events: {
+      RoomOpened: schemas.Room,
+      RoomBooked: schemas.BookRoom
+    }
   },
 
+  description: "A bookable hotel room",
   stream: () => `Room-${id}`,
   init: (): models.Room => ({
     number: +id,
-    type: models.RoomType.SINGLE,
-    price: 0,
+    type: schemas.RoomType.SINGLE,
+    price: 0
   }),
-
-  onOpenRoom: async (data, state) => [bind("RoomOpened", data)],
-  onBookRoom: async (data, state) => {
-    if (isBooked(state, data.checkin, data.checkout))
-      throw Error(`Room ${state.number} is booked.`);
-    return [bind("RoomBooked", data)];
+  reduce: {
+    RoomOpened: (state, event) => event.data,
+    RoomBooked: (state, event) => ({
+      ...state,
+      reservations: (state?.reservations || []).concat({
+        ...event.data,
+        totalPrice: nights(event.data) * state.price
+      })
+    })
   },
-
-  applyRoomOpened: (state, event) => event.data,
-  applyRoomBooked: (state, event) => ({
-    ...state,
-    reservations: (state?.reservations || []).concat({
-      ...event.data,
-      totalPrice: nights(event.data) * state.price,
-    }),
-  }),
+  on: {
+    OpenRoom: (data) => Promise.resolve([bind("RoomOpened", data)]),
+    BookRoom: (data, state) => {
+      if (isBooked(state, data.checkin, data.checkout))
+        throw Error(`Room ${state.number} is booked.`);
+      return Promise.resolve([bind("RoomBooked", data)]);
+    }
+  }
 });
 ```
 
 At this point all unit tests should pass with excellent coverage...
 
 ![Unit Test Coverage](./assets/coverage.png)
+
+The service also provides a default homepage with the OpenAPI spec of the service and a few links to stats and metadata...
+
+> Local development defaults to <http://localhost:3000>
+
+![Home](./assets/openapi.png)
 
 ### Finish Hotel Projection - TODO
 
@@ -490,7 +498,7 @@ POST {{host}}/room/101/open-room
 Content-Type: application/json
 
 {
-  "number": "101",
+  "number": 101,
   "price": 100,
   "type": "single"
 }
@@ -510,7 +518,7 @@ POST {{host}}/room/102/open-room
 Content-Type: application/json
 
 {
-  "number": "102",
+  "number": 102,
   "price": 200,
   "type": "double"
 }
@@ -521,7 +529,7 @@ Content-Type: application/json
 
 {
   "id": "booking-1",
-  "number": "101",
+  "number": 101,
   "checkin": "2022-12-01",
   "checkout": "2022-12-03",
   "totalPrice": 0
@@ -533,7 +541,7 @@ Content-Type: application/json
 
 {
   "id": "booking-1",
-  "number": "101",
+  "number": 101,
   "checkin": "2022-12-01",
   "checkout": "2022-12-03",
   "totalPrice": 0

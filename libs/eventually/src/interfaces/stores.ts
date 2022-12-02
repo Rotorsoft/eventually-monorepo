@@ -1,10 +1,12 @@
-import { AllQuery, Snapshot, SnapshotsQuery } from "../types/command-side";
 import {
+  AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
   Message,
   Messages,
-  Payload
+  Snapshot,
+  SnapshotsQuery,
+  State
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
 
@@ -59,17 +61,17 @@ export interface SnapshotStore extends Disposable, Seedable {
   /**
    * Reads snapshot from store for stream
    */
-  read: <M extends Payload, E extends Messages>(
+  read: <S extends State, E extends Messages>(
     stream: string
-  ) => Promise<Snapshot<M, E>>;
+  ) => Promise<Snapshot<S, E>>;
 
   /**
    * Commits a snapshot into stream for stream
    * @param data the current state to be sotred
    */
-  upsert: <M extends Payload, E extends Messages>(
+  upsert: <S extends State, E extends Messages>(
     stream: string,
-    data: Snapshot<M, E>
+    state: Snapshot<S, E>
   ) => Promise<void>;
 
   /**
@@ -77,7 +79,7 @@ export interface SnapshotStore extends Disposable, Seedable {
    * @param query query parameters
    * @returns array of snapshots
    */
-  query: <M extends Payload, E extends Messages>(
+  query: <S extends State, E extends Messages>(
     query: SnapshotsQuery
-  ) => Promise<Snapshot<M, E>[]>;
+  ) => Promise<Snapshot<S, E>[]>;
 }
