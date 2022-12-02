@@ -1110,7 +1110,7 @@ __metadata:
     "@rotorsoft/calculator-artifacts": "workspace:^0"
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-express": "workspace:^4"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@rotorsoft/eventually-pg": "workspace:^5"
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
@@ -1120,7 +1120,7 @@ __metadata:
   resolution: "@rotorsoft/eventually-broker@workspace:libs/eventually-broker"
   dependencies:
     "@rotorsoft/eventually": "workspace:^5"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@rotorsoft/eventually-pg": "workspace:^5"
     axios: ^0.26.1
     cron: ^2.1.0
     cron-parser: ^4.6.0
@@ -1156,7 +1156,7 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-express": "workspace:^4"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@rotorsoft/eventually-pg": "workspace:^5"
     "@types/chance": ^1
     "@types/cors": ^2.8.12
     "@types/cron": ^2.0.0
@@ -1187,7 +1187,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-pg@workspace:^4, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+"@rotorsoft/eventually-pg@workspace:^5, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
@@ -1203,7 +1203,7 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-express": "workspace:^4"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@rotorsoft/eventually-pg": "workspace:^5"
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
