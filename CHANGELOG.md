@@ -1,3 +1,9 @@
+#### 2022-12-02 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v0.1.1...@rotorsoft/eventually-service-expg-v1.0.0) @rotorsoft/eventually-service-expg-v1.0.0
+  - MAJOR [a57d2532](https://github.com/Rotorsoft/eventually-monorepo/commit/a57d253273ee984acb1cf03a0e3fb32921c9983d) feat: BREAKING CHANGE v5 second commit
+  - PATCH [8c93829b](https://github.com/Rotorsoft/eventually-monorepo/commit/8c93829b1a3f98548f0f1cdca62570870204b63c) fix: use eventually-express workspace 5
+  - PATCH [c52d0cb1](https://github.com/Rotorsoft/eventually-monorepo/commit/c52d0cb1ac407bba1068c32cc1987e9d0625f5b9) fix: use eventually-pg workspace 5
+  - PATCH [40f8a8bb](https://github.com/Rotorsoft/eventually-monorepo/commit/40f8a8bb274e915864e8e91b0a1895107892e6f4) fix: use eventually workspace 5
+  - PATCH [98968589](https://github.com/Rotorsoft/eventually-monorepo/commit/989685893c0f81bea6696eb360536dcf8cae5e23) fix: v5 first commit
 #### 2022-12-02 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v1.8.1...@rotorsoft/eventually-broker-v2.0.0) @rotorsoft/eventually-broker-v2.0.0
   - MAJOR [a57d2532](https://github.com/Rotorsoft/eventually-monorepo/commit/a57d253273ee984acb1cf03a0e3fb32921c9983d) feat: BREAKING CHANGE v5 second commit
   - PATCH [c52d0cb1](https://github.com/Rotorsoft/eventually-monorepo/commit/c52d0cb1ac407bba1068c32cc1987e9d0625f5b9) fix: use eventually-pg workspace 5
