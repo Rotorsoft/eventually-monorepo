@@ -21,9 +21,11 @@ This project aims at exploring practical ideas around reactive micro-services. O
 
 > Tackle complexity early by understanding the domain
 
-Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear business models” as the drivers of implementations - [source code should be seen as a side effect](https://www.lambdabytes.io/posts/selearning/). **The deeper we can track these models within the implementation the better**.
+Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear business models” as the drivers of implementations - [source code should be seen as a side effect](https://www.lambdabytes.io/posts/selearning/).
 
-We recommend using the [Event Storming](https://www.eventstorming.com/) methodology as the neccesary first step to understand and model what we are trying to build. This methodology is extremely easy to learn by both the technical and business communities, and plays very nicely with the other tools we recommend here (DDD, ES, CQRS). The resulting models can usually get **tranferred** to source code by straightforward one-to-one mappings to DDD artifacts and the working patterns of reactive systems.
+> We believe in writing software that looks like the business. The deeper we can track business models within software projects and deployed infrastructure the easier to understand and adjust to future changes in business requirements.
+
+We recommend using [Event Storming](https://www.eventstorming.com/) as the neccesary first step to understand and model what we are trying to build. This methodology is extremely easy to learn by both the technical and business communities, and plays very nicely with the other tools we recommend here (DDD, ES, CQRS). The resulting models can usually get **tranferred** to source code by straightforward one-to-one mappings to DDD artifacts and the working patterns of reactive systems.
 
 ![Logical Model](./assets/flow.png)
 
@@ -35,11 +37,11 @@ This project is also trying to address the following issues:
 
 - **Transparent Model-To-Implementation Process** - Focus on transferring business models to code with minimal technical load. A “convention over configuration” philosophy removes tedious decision making from the process.
 
-- **Ability to Swap Platform Services** - Abstractions before frameworks, protocols, or any other platform services.
+- **Ability to Swap Platform Services** - Following the hexagonal architecture based on ports and adapters.
 
 ## Building your first Reactive Micro-Service
 
-> The anatomy of a micro-service should reflect the business model
+> The anatomy of a micro-service as a reflection of the business model
 
 From a technical perspective, reactive microservices encapsulate a small number of protocol-agnostic message handlers in charge of solving specific business problems. These handlers are grouped together logically according to a domain model, and can be optionally streamable and reducible to some kind of pesistent state. The table below presents all available options and their proper mapping to DDD:
 
@@ -84,9 +86,9 @@ But those pieces live inside domain contexts and physical services. In DDD you b
 
 ![Service Patterns](./assets/broker.png)
 
-## Routing conventions (using REST protocol by default)
+## Routing conventions
 
-Message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling:
+Message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling. We provide an [in-memory app adapter](./src/__dev__/InMemoryApp.ts) to facilitate integration testing, while the [express app adapter](../eventually-express/src/ExpressApp.ts) is our default REST-based service adapter in real production systems:
 
 Artifact | Handler | Getters
 | --- | --- | --- |
@@ -105,7 +107,13 @@ We group unit tests inside `__tests__` folders. Tests should mainly focus on tes
 
 ### Framework Ports
 
-The framework provides a number of input/output ports (abstract interfaces) to help with this:
+The framework provides a number of ports (abstract interfaces) that can be used to interact with a service from the outside:
+
+- `app()` is the main service builder
+- `client()` can be used mainly to implement BDD style testing or to send messages directly to the service behind `app()`
+- `config()` provides .env loading and schema validation utilities
+- `log()` provides logging utilities
+- `store()` encapsulates event stream storage and retrieval
 
 ![Framework Ports](./assets/ports.png)
 
@@ -116,3 +124,10 @@ The framework provides a number of input/output ports (abstract interfaces) to h
 - Independent **seed** function in stores, to be called by service bootstrap logic or CI/CD pipelines accordining to hosting options
 - Stores (and singletons in general) are initialized by factories when invoked for the first time, and those resources are disposed by new **dispose** utility - Removed init/close pattern
 - Use dispose()() in unit tests teardown
+
+## Version 5 Breaking Changes
+
+- Simpler app builder port based on simpler artifact metadata
+- Renamed and moved message handlers and reducers to conform a new general "artifact" pattern
+- Moved message handlers to client port
+- Fully replaced joi with zod - zod is much smaller and allows type inference
