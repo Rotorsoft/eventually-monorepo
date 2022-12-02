@@ -1,3 +1,7 @@
+#### 2022-12-02 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v4.2.0...@rotorsoft/eventually-pg-v5.0.0) @rotorsoft/eventually-pg-v5.0.0
+  - MAJOR [a57d2532](https://github.com/Rotorsoft/eventually-monorepo/commit/a57d253273ee984acb1cf03a0e3fb32921c9983d) feat: BREAKING CHANGE v5 second commit
+  - PATCH [40f8a8bb](https://github.com/Rotorsoft/eventually-monorepo/commit/40f8a8bb274e915864e8e91b0a1895107892e6f4) fix: use eventually workspace 5
+  - PATCH [98968589](https://github.com/Rotorsoft/eventually-monorepo/commit/989685893c0f81bea6696eb360536dcf8cae5e23) fix: v5 first commit
 #### 2022-12-02 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v4.4.2...@rotorsoft/eventually-v5.0.0) @rotorsoft/eventually-v5.0.0
   - MAJOR [a57d2532](https://github.com/Rotorsoft/eventually-monorepo/commit/a57d253273ee984acb1cf03a0e3fb32921c9983d) feat: BREAKING CHANGE v5 second commit
   - PATCH [98968589](https://github.com/Rotorsoft/eventually-monorepo/commit/989685893c0f81bea6696eb360536dcf8cae5e23) fix: v5 first commit
