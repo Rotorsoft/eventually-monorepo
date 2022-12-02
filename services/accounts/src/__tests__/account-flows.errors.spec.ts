@@ -1,15 +1,7 @@
-//process.env.LOG_LEVEL = "trace";
-
-import {
-  app,
-  client,
-  CommittedEvent,
-  dispose,
-  store
-} from "@rotorsoft/eventually";
+import { app, client, dispose, store } from "@rotorsoft/eventually";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
-import * as schemas from "../accounts.schemas";
+import { trigger } from "./trigger";
 
 app()
   .with(policies.IntegrateAccount1)
@@ -22,19 +14,7 @@ app()
   .with(systems.ExternalSystem1)
   .build();
 
-const trigger = (
-  id: string
-): CommittedEvent<Pick<schemas.Events, "AccountCreated">> => ({
-  id: 1,
-  version: 1,
-  stream: "main",
-  created: new Date(),
-  name: "AccountCreated",
-  data: { id },
-  metadata: { correlation: "", causation: {} }
-});
-
-describe("sad path", () => {
+describe("account flow failures", () => {
   beforeAll(async () => {
     await app().listen();
   });

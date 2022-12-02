@@ -36,7 +36,6 @@ describe("express", () => {
       { id: chance.guid() }
     );
 
-    // then
     expect(result?.event?.name).toBe("Account1Created");
     expect(result?.event?.stream).toBe("ExternalSystem1");
   });

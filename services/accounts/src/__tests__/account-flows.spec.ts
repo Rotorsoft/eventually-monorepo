@@ -1,16 +1,8 @@
-// process.env.LOG_LEVEL = "trace";
-
-import {
-  app,
-  client,
-  CommittedEvent,
-  dispose,
-  Snapshot
-} from "@rotorsoft/eventually";
+import { app, client, dispose, Snapshot } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
-import * as schemas from "../accounts.schemas";
+import { trigger } from "./trigger";
 
 const chance = new Chance();
 
@@ -25,19 +17,7 @@ app()
   .with(systems.ExternalSystem4)
   .build();
 
-const trigger = (
-  id: string
-): CommittedEvent<Pick<schemas.Events, "AccountCreated">> => ({
-  id: 1,
-  version: 1,
-  stream: "main",
-  created: new Date(),
-  name: "AccountCreated",
-  data: { id },
-  metadata: { correlation: "", causation: {} }
-});
-
-describe("happy path", () => {
+describe("account integration flows", () => {
   beforeAll(async () => {
     await app().listen();
   });

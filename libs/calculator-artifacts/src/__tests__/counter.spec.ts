@@ -29,19 +29,15 @@ describe("Counter", () => {
     expect(event?.name).toBe("Cleared");
     expect(state).toEqual(expect.objectContaining({ result: 0 }));
 
-    let cnt = 0;
-    await client().load(
+    const { applyCount } = await client().load(
       Counter,
       "Counter-".concat(event?.stream || ""),
-      false,
-      () => {
-        cnt++;
-      }
+      false
     );
-    expect(cnt).toBe(5);
+    expect(applyCount).toBe(5);
   });
 
-  it("should return Reset on DotPressed", async () => {
+  it("should Reset on DotPressed", async () => {
     const id = chance.guid();
     await reset(id);
     await pressKey(id, "1");

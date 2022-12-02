@@ -65,7 +65,7 @@ describe("Calculator", () => {
     expect(cnt2).toBe(2);
   });
 
-  it("should compute correctly 2", async () => {
+  it("should compute correctly and read stream with and without snapshots", async () => {
     const id = chance.guid();
     await pressKey(id, "+");
     await pressKey(id, "1");
@@ -84,40 +84,13 @@ describe("Calculator", () => {
       result: -1
     });
 
-    const { applyCount } = await client().load(Calculator, id, false);
-    expect(applyCount).toBe(9);
-  });
+    // stream without snapshots
+    const { applyCount: c1 } = await client().load(Calculator, id, false);
+    expect(c1).toBe(9);
 
-  it("should read aggregate stream", async () => {
-    const id = chance.guid();
-    await pressKey(id, "+");
-    await pressKey(id, "1");
-    await pressKey(id, "-");
-    await pressKey(id, "2");
-    await pressKey(id, "*");
-    await pressKey(id, "3");
-    await pressKey(id, "/");
-    await pressKey(id, "3");
-
-    await pressKey(id, "=");
-    const { applyCount } = await client().load(Calculator, id, false);
-    expect(applyCount).toBe(9);
-  });
-
-  it("should read aggregate stream using snapshots", async () => {
-    const id = chance.guid();
-    await pressKey(id, "+");
-    await pressKey(id, "1");
-    await pressKey(id, "-");
-    await pressKey(id, "2");
-    await pressKey(id, "*");
-    await pressKey(id, "3");
-    await pressKey(id, "/");
-    await pressKey(id, "3");
-    await pressKey(id, "=");
-
-    const { applyCount } = await client().load(Calculator, id, true);
-    expect(applyCount).toBe(1);
+    // stream with snapshots
+    const { applyCount: c2 } = await client().load(Calculator, id, true);
+    expect(c2).toBe(1);
   });
 
   it("should compute correctly 3", async () => {
