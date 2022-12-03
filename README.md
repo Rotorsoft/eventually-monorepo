@@ -85,8 +85,8 @@ npm i --save-dev ts-node-dev jest @types/jest
   },
   "license": "ISC",
   "dependencies": {
-    "@rotorsoft/eventually": "^4.2.1",
-    "@rotorsoft/eventually-express": "^4.1.1",
+    "@rotorsoft/eventually": "^5.0.0",
+    "@rotorsoft/eventually-express": "^5.0.0",
     "zod": "^3.19.1"
   },
   "devDependencies": {
