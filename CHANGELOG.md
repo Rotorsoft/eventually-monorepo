@@ -1,3 +1,7 @@
+#### 2022-12-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.0...@rotorsoft/eventually-service-expg-v1.0.1) @rotorsoft/eventually-service-expg-v1.0.1
+  - PATCH [9c0d1e42](https://github.com/Rotorsoft/eventually-monorepo/commit/9c0d1e424b41f928d36331cf6809b1d1840bde7e) fix: add etag to openapi spec
+#### 2022-12-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.0...@rotorsoft/eventually-express-v5.0.1) @rotorsoft/eventually-express-v5.0.1
+  - PATCH [9c0d1e42](https://github.com/Rotorsoft/eventually-monorepo/commit/9c0d1e424b41f928d36331cf6809b1d1840bde7e) fix: add etag to openapi spec
 #### 2022-12-02 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v0.1.1...@rotorsoft/calculator-artifacts-v1.0.0) @rotorsoft/calculator-artifacts-v1.0.0
   - MAJOR [a57d2532](https://github.com/Rotorsoft/eventually-monorepo/commit/a57d253273ee984acb1cf03a0e3fb32921c9983d) feat: BREAKING CHANGE v5 second commit
   - PATCH [40f8a8bb](https://github.com/Rotorsoft/eventually-monorepo/commit/40f8a8bb274e915864e8e91b0a1895107892e6f4) fix: use eventually workspace 5

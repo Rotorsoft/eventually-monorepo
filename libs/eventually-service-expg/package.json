@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-service-expg",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generic Service with Express and Postgres Adapters",
   "author": "rotorsoft",
   "license": "MIT",
