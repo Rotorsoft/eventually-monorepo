@@ -138,6 +138,13 @@ const allStreamParameters: Record<string, ParameterObject> = {
     name: "created_before",
     description: "Get all stream created before this date/time",
     schema: { type: "string", format: "date-time" }
+  },
+  expected_version: {
+    in: "header",
+    name: "if-match",
+    description: "Reducible expected version",
+    schema: { type: "number" },
+    required: false
   }
 };
 

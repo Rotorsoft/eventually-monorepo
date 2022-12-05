@@ -17,6 +17,11 @@ import {
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
+const eTag = (res: Response, snapshot?: Snapshot): void => {
+  const etag = snapshot?.event?.version;
+  typeof etag === "number" && res.setHeader("ETag", etag.toString());
+};
+
 export const statsHandler = async (
   _: Request,
   res: Response,
@@ -86,8 +91,7 @@ export const getHandler =
       const { id } = req.params;
       const snap = ["true", "1"].includes(req.query.useSnapshots || "");
       const snapshot = await client().load(factory, id, snap);
-      const etag = snapshot.event?.version;
-      etag && res.setHeader("ETag", etag);
+      eTag(res, snapshot);
       return res.status(200).send(snapshot);
     } catch (error) {
       next(error);
@@ -156,8 +160,7 @@ export const commandHandler =
         expectedVersion,
         actor
       });
-      const etag = snapshots.at(-1)?.event?.version;
-      etag && res.setHeader("ETag", etag);
+      eTag(res, snapshots.at(-1));
       return res.status(200).send(snapshots);
     } catch (error) {
       next(error);
@@ -175,8 +178,7 @@ export const invokeHandler =
   ): Promise<Response | undefined> => {
     try {
       const snapshots = await client().invoke(factory, req.body);
-      const etag = snapshots.at(-1)?.event?.version;
-      etag && res.setHeader("ETag", etag);
+      eTag(res, snapshots.at(-1));
       return res.status(200).send(snapshots);
     } catch (error) {
       next(error);

@@ -52,7 +52,8 @@ const toPolicyResponseSchema = (commands: string[]): ResponseObject => {
           }))
         }
       }
-    }
+    },
+    headers: eTag()
   };
 };
 
@@ -127,7 +128,7 @@ export const toResponse = (
 });
 
 const eTag = (): HeadersObject => ({
-  ETag: {
+  etag: {
     schema: {
       type: "integer",
       description: "Reducible version number"
@@ -210,7 +211,14 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
           paths[path.replace("/:id/", "/{id}/")] = {
             parameters:
               type === "aggregate"
-                ? [{ $ref: "#/components/parameters/id" }]
+                ? [
+                    {
+                      $ref: "#/components/parameters/id"
+                    },
+                    {
+                      $ref: "#/components/parameters/expected_version"
+                    }
+                  ]
                 : [],
             post: {
               operationId: message,
