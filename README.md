@@ -559,3 +559,7 @@ GET {{host}}/room
 ### Get API stats
 GET {{host}}/stats
 ```
+
+## Generic Services
+
+In this example we created a new `hotel` service containing room artifacts and the service configuration in `index.ts`. In production systems we can streamline this process by separating artifact containers from service configuration via [preconfigured generic services](./libs/eventually-service-expg/README.md).

@@ -86,7 +86,7 @@ export const getHandler =
       const { id } = req.params;
       const snap = ["true", "1"].includes(req.query.useSnapshots || "");
       const snapshot = await client().load(factory, id, snap);
-      const etag = snapshot.event?.version.toString() || "";
+      const etag = snapshot.event?.version;
       etag && res.setHeader("ETag", etag);
       return res.status(200).send(snapshot);
     } catch (error) {

@@ -8,6 +8,7 @@ import {
   ZodEmpty
 } from "@rotorsoft/eventually";
 import {
+  HeadersObject,
   PathsObject,
   ResponseObject,
   SchemaObject,
@@ -100,7 +101,8 @@ export const httpPostPath = (
 export const toResponse = (
   ref: string,
   description: string,
-  array = false
+  array = false,
+  headers?: HeadersObject
 ): ResponseObject => ({
   description,
   content: {
@@ -119,6 +121,16 @@ export const toResponse = (
             $ref: `#/components/schemas/${ref}`
           }
         : {}
+    }
+  },
+  headers
+});
+
+const eTag = (): HeadersObject => ({
+  ETag: {
+    schema: {
+      type: "integer",
+      description: "Reducible version number"
     }
   }
 });
@@ -169,7 +181,12 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
             tags: [factory.name],
             summary: `Gets ${factory.name} by id`,
             responses: {
-              "200": toResponse(factory.name.concat("Snapshot"), "OK"),
+              "200": toResponse(
+                factory.name.concat("Snapshot"),
+                "OK",
+                false,
+                eTag()
+              ),
               default: { description: "Internal Server Error" }
             }
           }
@@ -209,11 +226,15 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
                 }
               },
               responses: {
-                "200": toResponse(
-                  type === "aggregate" ? factory.name.concat("Snapshot") : "",
-                  "OK",
-                  true
-                ),
+                "200":
+                  type === "aggregate"
+                    ? toResponse(
+                        factory.name.concat("Snapshot"),
+                        "OK",
+                        true,
+                        eTag()
+                      )
+                    : toResponse("", "OK", true),
                 "400": toResponse("ValidationError", "Validation Error"),
                 "409": toResponse("ConcurrencyError", "Concurrency Error"),
                 default: { description: "Internal Server Error" }
