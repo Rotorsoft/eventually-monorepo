@@ -1094,7 +1094,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/calculator-artifacts@workspace:^0, @rotorsoft/calculator-artifacts@workspace:libs/calculator-artifacts":
+"@rotorsoft/calculator-artifacts@workspace:^1, @rotorsoft/calculator-artifacts@workspace:libs/calculator-artifacts":
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator-artifacts@workspace:libs/calculator-artifacts"
   dependencies:
@@ -1107,7 +1107,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/calculator@workspace:services/calculator"
   dependencies:
-    "@rotorsoft/calculator-artifacts": "workspace:^0"
+    "@rotorsoft/calculator-artifacts": "workspace:^1"
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-express": "workspace:^5"
     "@rotorsoft/eventually-pg": "workspace:^5"

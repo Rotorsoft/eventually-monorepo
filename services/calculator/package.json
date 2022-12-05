@@ -17,7 +17,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/calculator-artifacts": "workspace:^0",
+    "@rotorsoft/calculator-artifacts": "workspace:^1",
     "@rotorsoft/eventually": "workspace:^5",
     "@rotorsoft/eventually-express": "workspace:^5",
     "@rotorsoft/eventually-pg": "workspace:^5",
