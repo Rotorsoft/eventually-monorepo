@@ -1,3 +1,5 @@
+#### 2022-12-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.0...@rotorsoft/eventually-broker-v2.0.1) @rotorsoft/eventually-broker-v2.0.1
+  - PATCH [92eb5c27](https://github.com/Rotorsoft/eventually-monorepo/commit/92eb5c279848d32575fa3652aac9cf29ee4675ea) fix: broker pg seed names to 750 chars
 #### 2022-12-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.1...@rotorsoft/eventually-express-v5.0.2) @rotorsoft/eventually-express-v5.0.2
   - PATCH [223b2ba4](https://github.com/Rotorsoft/eventually-monorepo/commit/223b2ba40c45d72870b6ebb098f35afdc6b43277) fix: add optional if-match header to pass aggregate expected version in command requests
 #### 2022-12-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.0...@rotorsoft/eventually-service-expg-v1.0.1) @rotorsoft/eventually-service-expg-v1.0.1
