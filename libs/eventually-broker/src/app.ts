@@ -46,11 +46,7 @@ export const app = async ({
         useDefaults: true,
         directives: {
           "style-src": ["'self'", "https://cdn.jsdelivr.net/npm/"],
-          "script-src": [
-            "'self'",
-            "https://cdn.jsdelivr.net/npm/",
-            "https://cdn.skypack.dev/"
-          ]
+          "script-src": ["'self'", "https://cdn.jsdelivr.net/npm/"]
         }
       }
     })
