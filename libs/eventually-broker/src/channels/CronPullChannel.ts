@@ -3,6 +3,10 @@ import { PullChannel } from "../interfaces";
 import { TriggerCallback } from "../types";
 import { camelize, CommittedEvent } from "@rotorsoft/eventually";
 
+// trims epoch time (bigint) by a few years to make it fit in a pg bigint
+const OFFSET = 1_670_000_000_000;
+const trimTick = (epoch: number): number => epoch - OFFSET;
+
 export const CronPullChannel = (channel: URL, id: string): PullChannel => {
   const eventName = camelize(id);
   const cron =
@@ -25,7 +29,7 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
       job = new CronJob({
         cronTime: cron,
         onTick: () => {
-          tick = Date.now();
+          tick = trimTick(Date.now());
           callback({ id, operation: "RESTART", position: tick - 1 }); // tick-1 to ensure pull
         },
         start: false
@@ -41,7 +45,7 @@ export const CronPullChannel = (channel: URL, id: string): PullChannel => {
         position < tick || operation === "MANUAL"
           ? [
               {
-                id: Date.now(), // set position to current time
+                id: trimTick(Date.now()), // set position to current time
                 stream: id,
                 name: eventName,
                 created: new Date(),
