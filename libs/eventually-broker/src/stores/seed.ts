@@ -21,7 +21,7 @@ create table if not exists public.subscriptions (
   consumer varchar(100) not null,
   path varchar(100) not null,
   streams varchar(100) not null,
-  names varchar(500) not null,
+  names varchar(750) not null,
   position integer not null default -1,
   constraint fk_producer_service foreign key(producer) references services(id),
   constraint fk_consumer_service foreign key(consumer) references services(id)
@@ -31,7 +31,6 @@ alter table public.subscriptions add column if not exists updated timestamptz no
 alter table public.subscriptions add column if not exists batch_size int not null default 100;
 alter table public.subscriptions add column if not exists retries int not null default 3;
 alter table public.subscriptions add column if not exists retry_timeout_secs int not null default 10;
-alter table public.subscriptions alter column names type varchar(500);
 alter table public.subscriptions alter column names type varchar(750);
 alter table public.subscriptions alter column position type bigint;
 
