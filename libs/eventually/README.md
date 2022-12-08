@@ -86,6 +86,8 @@ But those pieces live inside domain contexts and physical services. In DDD you b
 
 ![Service Patterns](./assets/broker.png)
 
+> [In eventually we try to separate core domain concerns from system abstractions.](../eventually-service-expg/README.md)
+
 ## Routing conventions
 
 Message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling. We provide an [in-memory app adapter](./src/__dev__/InMemoryApp.ts) to facilitate integration testing, while the [express app adapter](../eventually-express/src/ExpressApp.ts) is our default REST-based service adapter in real production systems:

@@ -1,6 +1,17 @@
 # Generic Services
 
-In eventually we can separate core domain artifacts from implementation and configuration details following hexagonal/onion architectural principles. This approach allows us to compose artifact packages in different service level configurations.
+In eventually we try to separate `core domain` concerns from `system` abstractions. This approach allows us the flexibility to compose artifacts in different service-level configurations as the business requirements evolve.
+
+We can have a group of developers focusing on the domain (business rules), and a second group of system engineers and architects (configurators) focusing on the `higher level system abstraction`: How to compose the system today given these artifacts and the facts we are collecting from them? These include:
+
+- Projections
+- Subscriptions
+- Deployment
+- Scalability requirements
+- Competing consumers
+- Stream splitting
+- Concurrent or serialized flows
+- Integration tests
 
 ![Layers](./assets/layers.png)
 
