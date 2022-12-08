@@ -1,3 +1,5 @@
+#### 2022-12-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.1...@rotorsoft/eventually-express-v5.0.2) @rotorsoft/eventually-express-v5.0.2
+  - PATCH [223b2ba4](https://github.com/Rotorsoft/eventually-monorepo/commit/223b2ba40c45d72870b6ebb098f35afdc6b43277) fix: add optional if-match header to pass aggregate expected version in command requests
 #### 2022-12-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.0...@rotorsoft/eventually-service-expg-v1.0.1) @rotorsoft/eventually-service-expg-v1.0.1
   - PATCH [9c0d1e42](https://github.com/Rotorsoft/eventually-monorepo/commit/9c0d1e424b41f928d36331cf6809b1d1840bde7e) fix: add etag to openapi spec
 #### 2022-12-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.0...@rotorsoft/eventually-express-v5.0.1) @rotorsoft/eventually-express-v5.0.1
