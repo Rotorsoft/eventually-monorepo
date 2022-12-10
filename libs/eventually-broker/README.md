@@ -6,9 +6,9 @@
 
 This library implements a very simple message broker abstraction that centralizes system configuration, service discovery, contract mapping, and basic observability. It uses a pull-push communication pattern that connects event streams from producers to consumers at a higher (system) level. Services don't need to know about this abstraction, they just produce or react to interesting things that happen (events).  
 
-Unlike other message brokers like Kafka or RabbitMQ, this broker doesn't store messages in queues or streams. [Eventually](../eventually/README.md) services own their event stores and the broker just connects the streams.
+Unlike other message brokers, like Kafka or RabbitMQ, this broker doesn't store messages in queues or streams. [Eventually](../eventually/README.md) services own their event stores, and the broker just connects the streams.
 
-The broker uses `Pull Channels` to listen and pull from producing services, and `Push Channels` to push to consumers.
+The broker uses `Pull Channels` to listen to and pull from producing services, and `Push Channels` to push to consumers.
 
 ![Framework Ports](./assets/ports.png)
 
