@@ -23,9 +23,9 @@ This project aims at exploring practical ideas around reactive micro-services. O
 
 Software engineering should be approached as a “group learning process”, a close collaboration among clients, domain experts, and engineers that iteratively produces “clear business models” as the drivers of implementations - [source code should be seen as a side effect](https://www.lambdabytes.io/posts/selearning/).
 
-> We believe in writing software that looks like the business. The deeper we can track business models within software projects and deployed infrastructure the easier to understand and adjust to future changes in business requirements.
+> We believe in writing software that looks like the business. The deeper we can track business models within software projects and deployed infrastructure, the easier to understand and adjust to future changes in business requirements.
 
-We recommend using [Event Storming](https://www.eventstorming.com/) as the neccesary first step to understand and model what we are trying to build. This methodology is extremely easy to learn by both the technical and business communities, and plays very nicely with the other tools we recommend here (DDD, ES, CQRS). The resulting models can usually get **tranferred** to source code by straightforward one-to-one mappings to DDD artifacts and the working patterns of reactive systems.
+We recommend using [Event Storming](https://www.eventstorming.com/) as the necessary first step to understand and model what we are trying to build. This methodology is extremely easy to learn by both the technical and business communities, and it plays very nicely with the other tools we recommend here (DDD, ES, CQRS). The resulting models can usually get **transferred** to source code by straightforward one-to-one mappings to DDD artifacts and the working patterns of reactive systems.
 
 ![Logical Model](./assets/flow.png)
 
@@ -33,9 +33,9 @@ We recommend using [Event Storming](https://www.eventstorming.com/) as the necce
 
 This project is also trying to address the following issues:
 
-- **Future Proof Single Source of Truth** - The “append-only” nature of event sourced systems is an old and battle tested concept. The replayability aspect of it guarantees full auditability, integrability, and testability.
+- **Future Proof Single Source of Truth** - The “append-only” nature of event sourced systems is an old and battle-tested concept. The replayability aspect of it guarantees full auditability, integrability, and testability.
 
-- **Transparent Model-To-Implementation Process** - Focus on transferring business models to code with minimal technical load. A “convention over configuration” philosophy removes tedious decision making from the process.
+- **Transparent Model-To-Implementation Process** - Focus on transferring business models to code with minimal technical load. A “convention over configuration” philosophy removes tedious decision-making from the process.
 
 - **Ability to Swap Platform Services** - Following the hexagonal architecture based on ports and adapters.
 
@@ -58,9 +58,9 @@ Event Handler | ![Event](./assets/event.png) | ![Read Model](./assets/read-model
 
 ## Composing complex systems from small reactive micro-services
 
-The biggest question we usually face when implementing real micro-service based systems is "how to move information around services?". There are several well-known integration patterns available but in general we can divide services into "producers" and "consumers" of information. Producers are "upstream" of consumers. Since services are separated by network boundaries, this information gets transferred via network "messages" either "synchronously" or "asynchronously".
+The biggest question we usually face when implementing real micro-service based systems is "how do we move information around services?". There are several well-known integration patterns available, but in general, we can divide services into "producers" and "consumers" of information. Producers are "upstream" of consumers. Since services are separated by network boundaries, this information gets transferred via network "messages" either "synchronously" or "asynchronously".
 
-As system architects we need to decide how information flows from service to service in order to accomplish a specific business goal. We need to understand the tradeoffs when choosing synchronous vs. asynchronous messaging styles as well as consider message contracts and what happens when these change over time. There are no right or wrong answers here but we will try to provide some basic rules based on simple conventions and practical principles.
+As system architects, we need to decide how information flows from service to service in order to accomplish a specific business goal. We need to understand the tradeoffs when choosing synchronous vs. asynchronous messaging styles, as well as consider message contracts and what happens when these change over time. There are no right or wrong answers here, but we will try to provide some basic rules based on simple conventions and practical principles.
 
 - There are only two types of messages (according to DDD)
   - **Commands**: Imperative actions invoked by human or machine actors. Can be rejected when business invariants are not met
@@ -80,7 +80,7 @@ Event Storming Models are like Lego games where there is only one way to connect
 
 ![Event Storming Lego](./assets/lego.png)
 
-But those pieces live inside domain contexts and physical services. In DDD you build larger systems by connecting domain contexts in [Context Maps](https://github.com/ddd-crew/context-mapping) following well-known integration patterns.
+But those pieces live inside domain contexts and physical services. In DDD, you build larger systems by connecting domain contexts in [Context Maps](https://github.com/ddd-crew/context-mapping) following well-known integration patterns.
 
 ![Service Patterns](./assets/patterns.png)
 
@@ -90,7 +90,7 @@ But those pieces live inside domain contexts and physical services. In DDD you b
 
 ## Routing conventions
 
-Message handlers are routed by convention. Getters provide the current state of reducible artifacts, and can be used to audit their streams or for integrations via polling. We provide an [in-memory app adapter](./src/__dev__/InMemoryApp.ts) to facilitate integration testing, while the [express app adapter](../eventually-express/src/ExpressApp.ts) is our default REST-based service adapter in real production systems:
+Message handlers are routed by convention. Getters provide the current state of reducible artifacts, and they can be used to audit their streams or for integrations via polling. We provide an [in-memory app adapter](./src/__dev__/InMemoryApp.ts) to facilitate integration testing, while the [express app adapter](../eventually-express/src/ExpressApp.ts) is our default REST-based service adapter in real production systems:
 
 Artifact | Handler | Getters
 | --- | --- | --- |
@@ -123,13 +123,13 @@ The framework provides a number of ports (abstract interfaces) that can be used 
 
 - Removed messages scopes (public/private) and `.withPrivate` builder option. TODO - reasons
 - Decoupled `broker` from framework and removed `.withTopic` from builder. **Services should be agnostic of system integrations**. A new `./services/broker` service was added as an implementation template for this higher level responsibility.
-- Independent **seed** function in stores, to be called by service bootstrap logic or CI/CD pipelines accordining to hosting options
+- Independent **seed** function in stores, to be called by service bootstrap logic or CI/CD pipelines according to hosting options
 - Stores (and singletons in general) are initialized by factories when invoked for the first time, and those resources are disposed by new **dispose** utility - Removed init/close pattern
 - Use dispose()() in unit tests teardown
 
 ## Version 5 Breaking Changes
 
 - Simpler app builder port based on simpler artifact metadata
-- Renamed and moved message handlers and reducers to conform a new general "artifact" pattern
+- Renamed and moved message handlers and reducers to conform to a new general "artifact" pattern
 - Moved message handlers to client port
 - Fully replaced joi with zod - zod is much smaller and allows type inference
