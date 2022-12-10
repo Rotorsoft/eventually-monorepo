@@ -1,8 +1,8 @@
 # Generic Services
 
-In eventually we try to separate `core domain` concerns from `system` abstractions. This approach allows us the flexibility to compose artifacts in different service-level configurations as the business requirements evolve.
+In eventually, we try to separate `core domain` concerns from `system` abstractions. This approach allows us the flexibility to compose artifacts in different service-level configurations as the business requirements evolve.
 
-We can have a group of developers focusing on the domain (business rules), and a second group of system engineers and architects (configurators) focusing on the `higher level system abstraction`: How to compose the system today given these artifacts and the facts we are collecting from them? These include:
+We can have a group of developers focusing on the domain (business rules), and a second group of system engineers and architects (configurators) focusing on the `higher level system abstraction`: how to compose the system today given these artifacts and the facts we are collecting from them. These include:
 
 - Projections
 - Subscriptions

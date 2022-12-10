@@ -10,9 +10,9 @@ This tutorial was inspired by [https://medium.com/thedevproject/clean-architectu
 
 ### **1.** Domain Model
 
-In [Eventually](./libs/eventually/README.md) **the model** is king and code is just a side effect. All important decisions are made on the modeling surface before they get transferred to code.
+In [Eventually](./libs/eventually/README.md), **the model** is king, and code is just a side effect. All important decisions are made on the modeling surface before they get transferred to code.
 
-> We recommend using [Event Storming](https://www.eventstormingcom/) or [Event Modeling](https://eventmodeling.org/) to clearly define what we are trying to build in lego-like business friendly terms.
+> We recommend using [Event Storming](https://www.eventstormingcom/) or [Event Modeling](https://eventmodeling.org/) to clearly define what we are trying to build in lego-like business-friendly terms.
 
 In this particular API, we are modeling:
 
@@ -284,7 +284,7 @@ Express app is listening  {
 
 ### **4.** Write Tests First
 
-In this case we will just implement a couple of basic tests following the original post, but these should be enough to cover most of the code we will write later...
+In this case, we will just implement a couple of basic tests following the original post, but these should be enough to cover most of the code we will write later...
 
 > Always decide what you are testing before implementing the core logic (model guards/invariants and projections)
 
@@ -468,7 +468,7 @@ The service also provides a default homepage with the OpenAPI spec of the servic
 
 ### Finish Hotel Projection - TODO
 
-In this first pass we are using a snapshot store to represent the `Hotel` projection with limited querying capabilities. Future versions of the framework will develop these capabilities and probably provide an app builder interface to define read model projections and queries.
+In this first pass, we are using a snapshot store to represent the `Hotel` projection with limited querying capabilities. Future versions of the framework will develop these capabilities and probably provide an app builder interface to define read model projections and queries.
 
 ### Testing the API
 
@@ -562,4 +562,4 @@ GET {{host}}/stats
 
 ## Generic Services
 
-In this example we created a new `hotel` service containing room artifacts and the service configuration in `index.ts`. In production systems we can streamline this process by separating artifact containers from service configuration via [preconfigured generic services](./libs/eventually-service-expg/README.md).
+In this example, we created a new `hotel` service containing room artifacts and the service configuration in `index.ts`. In production systems, we can streamline this process by separating artifact containers from service configuration via [preconfigured generic services](./libs/eventually-service-expg/README.md).
