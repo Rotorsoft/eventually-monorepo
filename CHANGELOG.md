@@ -1,3 +1,5 @@
+#### 2022-12-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.2...@rotorsoft/eventually-express-v5.0.3) @rotorsoft/eventually-express-v5.0.3
+  - PATCH [cdd1ae72](https://github.com/Rotorsoft/eventually-monorepo/commit/cdd1ae72942d7c628eccd0375832ca90c32d6b49) fix: removed chalk dependency, refactor default logger
 #### 2022-12-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.0.0...@rotorsoft/eventually-pg-v5.0.1) @rotorsoft/eventually-pg-v5.0.1
   - PATCH [cdd1ae72](https://github.com/Rotorsoft/eventually-monorepo/commit/cdd1ae72942d7c628eccd0375832ca90c32d6b49) fix: removed chalk dependency, refactor default logger
 #### 2022-12-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.0...@rotorsoft/eventually-v5.0.1) @rotorsoft/eventually-v5.0.1
