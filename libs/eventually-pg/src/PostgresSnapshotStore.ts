@@ -18,8 +18,7 @@ export const PostgresSnapshotStore = (table: string): SnapshotStore => {
     read: async (stream) => {
       const sql = `SELECT * FROM ${table} WHERE stream=$1`;
       const result = await pool.query(sql, [stream]);
-      result.rows[0] &&
-        log().trace("white", `Snapshot loaded for stream ${stream}`);
+      result.rows[0] && log().trace(`Snapshot loaded for stream ${stream}`);
       return result.rows[0]?.data;
     },
 
@@ -31,7 +30,7 @@ export const PostgresSnapshotStore = (table: string): SnapshotStore => {
           UPDATE set data=$2 WHERE ${table}.stream=$1`,
         [stream, data]
       );
-      log().trace("white", `Snapshot Created for stream ${stream}`);
+      log().trace(`Snapshot Created for stream ${stream}`);
     },
 
     query: async (query) => {
@@ -49,10 +48,10 @@ export const PostgresSnapshotStore = (table: string): SnapshotStore => {
     }
   };
 
-  log().info("bgGreen", `✨ ${store.name}`);
+  log().info(`[${process.pid}] ✨ ${store.name}`);
   dispose(() => {
     if (store.dispose) {
-      log().info("bgGreen", `♻️ ${store.name}`);
+      log().info(`[${process.pid}] ♻️ ${store.name}`);
       return store.dispose();
     }
     return Promise.resolve();

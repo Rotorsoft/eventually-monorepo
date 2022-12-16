@@ -14,14 +14,13 @@ export const InMemorySnapshotStore = (): SnapshotStore => {
     seed: () => Promise.resolve(),
 
     read: (stream) => {
-      _store[stream] &&
-        log().trace("white", `Snapshot loaded for stream ${stream}`);
+      _store[stream] && log().trace(`Snapshot loaded for stream ${stream}`);
       return Promise.resolve(_store[stream]);
     },
 
     upsert: (stream, data) => {
       _store[stream] = data;
-      log().trace("white", `Snapshot created for stream ${stream}`);
+      log().trace(`Snapshot created for stream ${stream}`);
       return Promise.resolve();
     },
 

@@ -67,10 +67,10 @@ export const loop = (name: string): Loop => {
       if (queue.length > 0 && status === "running") {
         status = "stopping";
         for (let i = 1; status === "stopping" && i <= 30; i++) {
-          log().trace(
-            "red",
-            `[${process.pid}] Stopping loop [${name}] (${i})...`
-          );
+          log()
+            .color("red")
+            .trace(`[${process.pid}] Stopping loop [${name}] (${i})...`)
+            .color("reset");
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }

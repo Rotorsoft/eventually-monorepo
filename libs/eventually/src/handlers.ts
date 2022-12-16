@@ -51,10 +51,10 @@ const _load = async <S extends State, E extends Messages>(
     { stream: reducible.stream(), after: event?.id }
   );
 
-  log().trace(
-    "gray",
-    `   ... ${reducible.stream()} loaded ${applyCount} event(s)`
-  );
+  log()
+    .color("gray")
+    .trace(`   ... ${reducible.stream()} loaded ${applyCount} event(s)`)
+    .color("reset");
 
   return { event, state, applyCount };
 };
@@ -97,17 +97,16 @@ const _handleMsg = async <
     if (reduce) {
       let state = snapshot.state;
       const snapshots = committed.map((event) => {
-        log().trace(
-          "gray",
-          `   ... ${stream} committed ${event.name} @ ${event.version}`,
-          event.data
-        );
+        log()
+          .color("gray")
+          .trace(
+            `   ... ${stream} committed ${event.name} @ ${event.version}`,
+            event.data
+          );
         state = reduce[event.name](state, event as CommittedEvent<E>);
-        log().trace(
-          "gray",
-          `   === ${JSON.stringify(state)}`,
-          ` @ ${event.version}`
-        );
+        log()
+          .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`)
+          .color("reset");
         return { event, state } as Snapshot<S, E>;
       });
       const snapOps = app().snapOpts[Object.getPrototypeOf(artifact).name];
@@ -156,7 +155,10 @@ export const command = async <
   const factory = app().artifacts[msg.handlers[0]]
     .factory as unknown as CommandHandlerFactory<S, C, E>;
   if (!factory) throw new RegistrationError(command);
-  log().trace("blue", `\n>>> ${factory.name}`, command, metadata);
+  log()
+    .color("blue")
+    .trace(`\n>>> ${factory.name}`, command, metadata)
+    .color("reset");
 
   const validated = validate(data, msg.schema) as C[keyof C & string];
   const artifact = factory(id || "");
@@ -184,7 +186,7 @@ export const event = async <
   event: CommittedEvent<E>
 ): Promise<EventResponse<S, C>> => {
   const { name, stream, id } = event;
-  log().trace("magenta", `\n>>> ${factory.name}`, event);
+  log().color("magenta").trace(`\n>>> ${factory.name}`, event).color("reset");
 
   const artifact = factory(event);
   Object.setPrototypeOf(artifact, factory as object);

@@ -83,7 +83,10 @@ export const app = async ({
 
   const server: Server = await new Promise((resolve) => {
     const server = app.listen(port, () => {
-      log().info("bgGreen", `Broker app is listening on port ${port}`);
+      log()
+        .color("green")
+        .info(`Broker app is listening on port ${port}`)
+        .color("reset");
       resolve(server);
     });
   });
@@ -103,7 +106,10 @@ export const app = async ({
     }
     return new Promise((resolve, reject) => {
       server.once("close", () => {
-        log().info("bgRed", `[${process.pid}]`, "♻️ Broker Express App");
+        log()
+          .color("red")
+          .info(`[${process.pid}]`, "♻️ Broker Express App")
+          .color("reset");
         resolve();
       });
       server.close(reject);

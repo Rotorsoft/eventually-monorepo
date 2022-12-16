@@ -15,7 +15,7 @@ export class InMemoryApp extends Builder {
   }
 
   listen(): Promise<void> {
-    log().info("white", "InMemory app is listening...", undefined, config());
+    log().info("InMemory app is listening...", undefined, config());
     return Promise.resolve();
   }
 }

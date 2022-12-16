@@ -286,7 +286,7 @@ export const state = singleton(function state(): State {
     const message = `Worker ${workerId} exited with ${
       signal ? signal : `code ${code}`
     }`;
-    log().info("bgRed", `[${process.pid}]`, message);
+    log().color("red").info(`[${process.pid}]`, message).color("reset");
 
     const producer = Object.values(_services).find(
       (service) => service && service.config?.workerId === workerId
@@ -304,7 +304,10 @@ export const state = singleton(function state(): State {
       return;
     }
     const wait = runs * RUN_RETRY_TIMEOUT;
-    log().trace("bgRed", `Retrying worker ${producer.id} in ${wait}ms`);
+    log()
+      .color("red")
+      .trace(`Retrying worker ${producer.id} in ${wait}ms`)
+      .color("reset");
     _timers[producer.id] = setTimeout(() => run(producer.id, runs), wait);
   };
 
@@ -346,7 +349,7 @@ export const state = singleton(function state(): State {
     operation: Operation
   ): Promise<boolean | undefined> => {
     if (_disposed) return;
-    log().trace("bgWhite", JSON.stringify({ operation, id }));
+    log().trace(JSON.stringify({ operation, id }));
     try {
       const config = _services[id]?.config;
       const worker =
@@ -368,7 +371,7 @@ export const state = singleton(function state(): State {
     operation: Operation
   ): Promise<boolean | undefined> => {
     if (_disposed) return;
-    log().trace("bgWhite", JSON.stringify({ operation, id }));
+    log().trace(JSON.stringify({ operation, id }));
     try {
       const [sub] = await subscriptions().loadSubscriptions(id);
       if (sub) {
@@ -420,11 +423,10 @@ export const state = singleton(function state(): State {
     init: async (services: Service[], options: StateOptions): Promise<void> => {
       _options = options;
       const cores = cpus().length;
-      log().info(
-        "green",
-        `Cluster started with ${cores} cores`,
-        JSON.stringify(_options)
-      );
+      log()
+        .color("green")
+        .info(`Cluster started with ${cores} cores`, JSON.stringify(_options))
+        .color("reset");
       await Promise.all(
         services.filter(Boolean).map((service) => {
           _services[service.id] = service;

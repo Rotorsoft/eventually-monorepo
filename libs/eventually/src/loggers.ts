@@ -1,89 +1,103 @@
-import chalk from "chalk";
 import { config } from "./config";
-import { Color, Logger } from "./interfaces";
+import { Color, colors, Logger } from "./interfaces";
 import { LogLevels } from "./types/enums";
-import { RegistrationError, ValidationError } from "./types/errors";
 
 /** Uncolored and stringified for deployed non-dev envs */
 const plain = (
-  _: Color,
-  message: string,
-  details?: any,
-  ...params: any[]
-): void => {
-  console.log(
-    JSON.stringify({
-      severity: "INFO",
-      message: `${message}: ${details}`,
-      params
-    })
-  );
-};
-
-const trace = (
-  color: Color,
   message: string,
   details?: unknown,
   ...params: unknown[]
 ): void => {
   console.log(
-    chalk[color](message),
-    chalk.gray(JSON.stringify(details || {})),
-    ...params
+    JSON.stringify({
+      severity: "INFO",
+      message: `${message} ${details}`,
+      params
+    })
   );
 };
 
-const info = (
-  color: Color,
-  message: string,
-  details?: string,
-  ...params: unknown[]
-): void => {
-  console.info(chalk[color](message), chalk.gray(details || ""), ...params);
+export const testLogger = (): Logger => {
+  const logger: Logger = {
+    name: "test-logger",
+    dispose: () => Promise.resolve(),
+    color: () => logger,
+    trace: (message: string, details?: any, ...params: any[]) => {
+      config().logLevel === LogLevels.trace && plain(message, details, params);
+      return logger;
+    },
+    info: (message: string, details?: any, ...params: any[]) => {
+      config().logLevel !== LogLevels.error && plain(message, details, params);
+      return logger;
+    },
+    error: () => logger
+  };
+  return logger;
 };
 
-const nolog = (): void => {
-  return;
+export const devLogger = (): Logger => {
+  let _colors: Color[] = ["reset"];
+  const logger: Logger = {
+    name: "dev-logger",
+    dispose: () => Promise.resolve(),
+    color: (color: Color) => {
+      color === "reset" && (_colors = []);
+      _colors.push(color);
+      process.stdout.write(colors[color]);
+      return logger;
+    },
+    trace: (message: string, details?: unknown, ...params: unknown[]) => {
+      config().logLevel === LogLevels.trace &&
+        console.log(
+          message,
+          colors.reset,
+          colors.gray,
+          JSON.stringify(details || {}),
+          ...params,
+          ..._colors.map((c) => colors[c])
+        );
+      return logger;
+    },
+    info: (message: string, details?: unknown, ...params: unknown[]) => {
+      config().logLevel !== LogLevels.error &&
+        console.info(
+          message,
+          colors.reset,
+          colors.gray,
+          details || "",
+          ...params,
+          ..._colors.map((c) => colors[c])
+        );
+      return logger;
+    },
+    error: (error: unknown) => {
+      console.error(error);
+      return logger;
+    }
+  };
+  return logger;
 };
 
-export const testLogger = (): Logger => ({
-  name: "test-logger",
-  dispose: () => Promise.resolve(),
-  trace: config().logLevel === LogLevels.trace ? trace : nolog,
-  info: config().logLevel !== LogLevels.error ? info : nolog,
-  error: nolog
-});
+export const plainLogger = (): Logger => {
+  const _trace = (config().logLevel === LogLevels.trace && plain) || undefined;
+  const _info = (config().logLevel !== LogLevels.error && plain) || undefined;
 
-export const devLogger = (): Logger => ({
-  name: "dev-logger",
-  dispose: () => Promise.resolve(),
-  trace: config().logLevel === LogLevels.trace ? trace : nolog,
-  info: config().logLevel !== LogLevels.error ? info : nolog,
-  error: (error: unknown): void => {
-    if (error instanceof ValidationError || error instanceof RegistrationError)
-      console.error(chalk.red(error.name), error.message);
-    else if (error instanceof Error)
-      console.error(chalk.red(error.name), error.message, error.stack);
-    else console.error(chalk.red(error));
-  }
-});
-
-export const plainLogger = (): Logger => ({
-  name: "plain-logger",
-  dispose: () => Promise.resolve(),
-  trace: config().logLevel === LogLevels.trace ? plain : nolog,
-  info: config().logLevel !== LogLevels.error ? plain : nolog,
-  error: (error: unknown): void => {
-    if (error instanceof ValidationError || error instanceof RegistrationError)
-      console.error(
-        JSON.stringify({
-          severity: "ERROR",
-          name: error.name,
-          message: error.message
-        })
-      );
-    else if (error instanceof Error)
+  const logger: Logger = {
+    name: "plain-logger",
+    dispose: () => Promise.resolve(),
+    color: () => logger,
+    trace: (message: string, details?: unknown, ...params: any[]) => {
+      _trace && _trace(message, details, params);
+      return logger;
+    },
+    info: (message: string, details?: unknown, ...params: any[]) => {
+      _info && _info(message, details, params);
+      return logger;
+    },
+    error: (error: any) => {
       console.error(JSON.stringify({ severity: "ERROR", ...error }));
-    else console.error(error);
-  }
-});
+      return logger;
+    }
+  };
+  return logger;
+};
