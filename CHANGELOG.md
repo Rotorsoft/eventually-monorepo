@@ -1,3 +1,5 @@
+#### 2022-12-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.0...@rotorsoft/eventually-v5.0.1) @rotorsoft/eventually-v5.0.1
+  - PATCH [cdd1ae72](https://github.com/Rotorsoft/eventually-monorepo/commit/cdd1ae72942d7c628eccd0375832ca90c32d6b49) fix: removed chalk dependency, refactor default logger
 #### 2022-12-08 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.1...@rotorsoft/eventually-broker-v2.0.2) @rotorsoft/eventually-broker-v2.0.2
   - PATCH [49f2742d](https://github.com/Rotorsoft/eventually-monorepo/commit/49f2742d02d906112ea58aadf3bde6464fdb9d43) fix: remove coveralls check, failing too much... trim tick in cron channel to fit pg bigint
   - PATCH [11a0b4eb](https://github.com/Rotorsoft/eventually-monorepo/commit/11a0b4eb8fe1d60d9c0ad229eaffcd077482af1f) fix: move from skypack to jsdelivr to get d3
