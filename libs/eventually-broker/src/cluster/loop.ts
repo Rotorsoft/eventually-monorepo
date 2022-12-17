@@ -68,9 +68,8 @@ export const loop = (name: string): Loop => {
         status = "stopping";
         for (let i = 1; status === "stopping" && i <= 30; i++) {
           log()
-            .color("red")
-            .trace(`[${process.pid}] Stopping loop [${name}] (${i})...`)
-            .color("reset");
+            .red()
+            .trace(`[${process.pid}] Stopping loop [${name}] (${i})...`);
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }

@@ -47,31 +47,30 @@ export class ExpressApp extends Builder {
   private _withStreams(): void {
     this._router.get("/all", allStreamHandler);
     log()
-      .color("green")
+      .green()
       .info(
-        " GET ",
+        "GET ",
         "/all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]"
       );
     this._router.get("/stats", statsHandler);
-    log().info(" GET ", "/stats").color("reset");
+    log().green().info("GET ", "/stats");
   }
 
   private _withGets(factory: ReducibleFactory): void {
     const path = httpGetPath(factory.name);
     this._router.get(path, getHandler(factory));
-    log().color("green").info(" GET ", path);
+    log().green().info("GET ", path);
 
     const streamPath = path.concat("/stream");
     this._router.get(streamPath, getStreamHandler(factory));
-    log().info(" GET ", streamPath);
+    log().green().info("GET ", streamPath);
 
     const snapOpts = this.snapOpts[factory.name];
     if (snapOpts && snapOpts.expose) {
       const path = `/${decamelize(factory.name)}`;
       this._router.get(path, snapshotQueryHandler(snapOpts.store));
-      log().info(" GET ", path);
+      log().green().info("GET ", path);
     }
-    log().color("reset");
   }
 
   private _withPosts(): void {
@@ -81,7 +80,7 @@ export class ExpressApp extends Builder {
       if (type === "policy" || type === "process-manager") {
         const path = httpPostPath(factory.name, type);
         this._router.post(path, eventHandler(factory as EventHandlerFactory));
-        log().color("magenta").info(" POST", path, inputs).color("reset");
+        log().magenta().info("POST", path, inputs);
       } else
         Object.values(inputs).forEach((message) => {
           const path = httpPostPath(factory.name, type, message);
@@ -99,7 +98,7 @@ export class ExpressApp extends Builder {
                 type === "aggregate"
               )
             );
-          log().color("blue").info(" POST", path).color("reset");
+          log().blue().info("POST", path);
         });
     });
   }
@@ -143,7 +142,7 @@ export class ExpressApp extends Builder {
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
     );
     this._app.get("/__killme", () => {
-      log().color("red").info("KILLME").color("reset");
+      log().red().bold().info("KILLME");
       process.exit(0);
     });
 
@@ -168,10 +167,9 @@ export class ExpressApp extends Builder {
       this._server = await new Promise((resolve) => {
         const server = this._app.listen(port, () => {
           log()
-            .color("yellow")
-            .color("underline")
-            .info("Express app is listening", undefined, _config)
-            .color("reset");
+            .yellow()
+            .underlined()
+            .info("Express app is listening", undefined, _config);
           resolve(server);
         });
       });

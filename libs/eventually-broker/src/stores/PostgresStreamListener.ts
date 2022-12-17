@@ -22,10 +22,7 @@ export const PostgresStreamListener = (stream: string): StreamListener => {
 
       await subscriber.connect();
       await subscriber.listenTo(stream);
-      log()
-        .color("green")
-        .info(`[${process.pid}]`, "👂", stream)
-        .color("reset");
+      log().green().info(`[${process.pid}]`, "👂", stream);
     },
 
     close: async () => {

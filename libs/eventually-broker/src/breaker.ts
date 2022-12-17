@@ -44,10 +44,7 @@ export const breaker = (
       if (successCount > opts.successThreshold) {
         successCount = 0;
         state = States.Green;
-        log()
-          .color("green")
-          .trace(`Circuit breaker [${name}] fully restored.`)
-          .color("reset");
+        log().green().trace(`Circuit breaker [${name}] fully restored.`);
       }
     }
     return { data };
@@ -71,10 +68,7 @@ export const breaker = (
         if (nextAttempt > Date.now())
           return { error: `Circuit breaker [${name}] is open!` };
         state = States.Yellow;
-        log()
-          .color("yellow")
-          .trace(`Circuit breaker [${name}] partially restored.`)
-          .color("reset");
+        log().yellow().trace(`Circuit breaker [${name}] partially restored.`);
       }
       try {
         const { error, data } = await promise();
@@ -85,10 +79,7 @@ export const breaker = (
     },
     pause: () => {
       state = States.Paused;
-      log()
-        .color("red")
-        .trace(`Circuit breaker [${name}] paused.`)
-        .color("reset");
+      log().red().trace(`Circuit breaker [${name}] paused.`);
     },
     state: () => state
   };

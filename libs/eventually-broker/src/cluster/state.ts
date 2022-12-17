@@ -286,7 +286,7 @@ export const state = singleton(function state(): State {
     const message = `Worker ${workerId} exited with ${
       signal ? signal : `code ${code}`
     }`;
-    log().color("red").info(`[${process.pid}]`, message).color("reset");
+    log().red().info(`[${process.pid}]`, message);
 
     const producer = Object.values(_services).find(
       (service) => service && service.config?.workerId === workerId
@@ -304,10 +304,7 @@ export const state = singleton(function state(): State {
       return;
     }
     const wait = runs * RUN_RETRY_TIMEOUT;
-    log()
-      .color("red")
-      .trace(`Retrying worker ${producer.id} in ${wait}ms`)
-      .color("reset");
+    log().red().trace(`Retrying worker ${producer.id} in ${wait}ms`);
     _timers[producer.id] = setTimeout(() => run(producer.id, runs), wait);
   };
 
@@ -424,9 +421,8 @@ export const state = singleton(function state(): State {
       _options = options;
       const cores = cpus().length;
       log()
-        .color("green")
-        .info(`Cluster started with ${cores} cores`, JSON.stringify(_options))
-        .color("reset");
+        .green()
+        .info(`Cluster started with ${cores} cores`, JSON.stringify(_options));
       await Promise.all(
         services.filter(Boolean).map((service) => {
           _services[service.id] = service;

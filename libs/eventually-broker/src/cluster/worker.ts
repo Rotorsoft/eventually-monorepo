@@ -32,13 +32,12 @@ const triggerLog = (
 const sendState = (state: SubscriptionState, logit = true): void => {
   logit &&
     log()
-      .color("blue")
+      .blue()
       .info(
         `[${process.pid}] 📊${state.id} at=${state.position} total=${state.stats.total} batches=${state.stats.batches}`,
         JSON.stringify(state.stats.events),
         JSON.stringify(state.endpointStatus)
-      )
-      .color("reset");
+      );
   process.send && process.send({ state });
 };
 
@@ -125,14 +124,13 @@ export const work = async (options: AppOptions): Promise<void> => {
     process.send && process.send({ trigger });
     const { state, loop } = sub;
     log()
-      .color("blue")
+      .blue()
       .info(
         `[${process.pid}] ⚡ pull ${state.id} ${JSON.stringify({
           ...trigger,
           retry: sub.retry_count
         })}`
-      )
-      .color("reset");
+      );
     try {
       channel_position = Math.max(channel_position, state.position);
       const trigger_position = trigger.position || -1;
@@ -156,11 +154,10 @@ export const work = async (options: AppOptions): Promise<void> => {
         })) as PushEvent[];
         count = events.length;
         log()
-          .color("magenta")
+          .magenta()
           .trace(
             `[${process.pid}] pulled ${state.id} ${count} events @ ${state.position} [${state.batchSize}]`
-          )
-          .color("reset");
+          );
         if (!count) break;
 
         // filter ignored

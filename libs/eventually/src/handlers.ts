@@ -52,9 +52,8 @@ const _load = async <S extends State, E extends Messages>(
   );
 
   log()
-    .color("gray")
-    .trace(`   ... ${reducible.stream()} loaded ${applyCount} event(s)`)
-    .color("reset");
+    .gray()
+    .trace(`   ... ${reducible.stream()} loaded ${applyCount} event(s)`);
 
   return { event, state, applyCount };
 };
@@ -98,15 +97,15 @@ const _handleMsg = async <
       let state = snapshot.state;
       const snapshots = committed.map((event) => {
         log()
-          .color("gray")
+          .gray()
           .trace(
             `   ... ${stream} committed ${event.name} @ ${event.version}`,
             event.data
           );
         state = reduce[event.name](state, event as CommittedEvent<E>);
         log()
-          .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`)
-          .color("reset");
+          .gray()
+          .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
         return { event, state } as Snapshot<S, E>;
       });
       const snapOps = app().snapOpts[Object.getPrototypeOf(artifact).name];
@@ -155,10 +154,7 @@ export const command = async <
   const factory = app().artifacts[msg.handlers[0]]
     .factory as unknown as CommandHandlerFactory<S, C, E>;
   if (!factory) throw new RegistrationError(command);
-  log()
-    .color("blue")
-    .trace(`\n>>> ${factory.name}`, command, metadata)
-    .color("reset");
+  log().blue().trace(`\n>>> ${factory.name}`, command, metadata);
 
   const validated = validate(data, msg.schema) as C[keyof C & string];
   const artifact = factory(id || "");
@@ -186,7 +182,7 @@ export const event = async <
   event: CommittedEvent<E>
 ): Promise<EventResponse<S, C>> => {
   const { name, stream, id } = event;
-  log().color("magenta").trace(`\n>>> ${factory.name}`, event).color("reset");
+  log().magenta().trace(`\n>>> ${factory.name}`, event);
 
   const artifact = factory(event);
   Object.setPrototypeOf(artifact, factory as object);

@@ -23,8 +23,6 @@ export const store = singleton(function store(store?: Store) {
 export const log = singleton(function log(logger?: Logger) {
   if (logger) return logger;
   switch (config().env) {
-    case Environments.test:
-      return loggers.testLogger();
     case Environments.development:
       return loggers.devLogger();
     default:
