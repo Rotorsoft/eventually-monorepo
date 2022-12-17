@@ -1,3 +1,5 @@
+#### 2022-12-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.3...@rotorsoft/eventually-broker-v2.0.4) @rotorsoft/eventually-broker-v2.0.4
+  - PATCH [56da09d5](https://github.com/Rotorsoft/eventually-monorepo/commit/56da09d5f54c6497a9c4a1de0e5b7252ab933718) fix: make logger more fluent
 #### 2022-12-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.3...@rotorsoft/eventually-express-v5.0.4) @rotorsoft/eventually-express-v5.0.4
   - PATCH [56da09d5](https://github.com/Rotorsoft/eventually-monorepo/commit/56da09d5f54c6497a9c4a1de0e5b7252ab933718) fix: make logger more fluent
 #### 2022-12-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.1...@rotorsoft/eventually-v5.0.2) @rotorsoft/eventually-v5.0.2
