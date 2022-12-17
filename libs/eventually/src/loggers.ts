@@ -116,8 +116,16 @@ export const plainLogger = (): Logger => {
     dimmed: () => logger,
     italic: () => logger,
     underlined: () => logger,
-    trace: (config().logLevel === LogLevels.trace && plain) || nop,
-    info: (config().logLevel !== LogLevels.error && plain) || nop,
+    trace:
+      (config().env !== Environments.test &&
+        config().logLevel === LogLevels.trace &&
+        plain) ||
+      nop,
+    info:
+      (config().env !== Environments.test &&
+        config().logLevel !== LogLevels.error &&
+        plain) ||
+      nop,
     error: (config().env !== Environments.test && error) || nop
   };
   return logger;

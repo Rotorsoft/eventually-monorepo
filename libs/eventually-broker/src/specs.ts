@@ -297,7 +297,7 @@ export const refreshServiceSpec = async (service: Service): Promise<void> => {
       const data = await getServiceSwagger(service);
       return { data };
     } catch (err: any) {
-      log().error(err);
+      log().info(service.url, err.message);
       err.code === "ENOTFOUND" && service.breaker && service.breaker.pause();
       return { error: err.message };
     }

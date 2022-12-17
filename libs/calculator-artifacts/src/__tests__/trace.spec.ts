@@ -1,5 +1,4 @@
 process.env.LOG_LEVEL = "trace";
-process.env.NODE_ENV = "production";
 
 import { app, client, dispose, log } from "@rotorsoft/eventually";
 import { Calculator } from "../calculator.aggregate";

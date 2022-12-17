@@ -3,6 +3,9 @@ process.env.PG_HOST = "";
 
 import { dispose, log } from "../";
 
+jest.spyOn(console, "log").mockImplementation();
+jest.spyOn(console, "error").mockImplementation();
+
 describe("plain logger", () => {
   afterAll(async () => {
     await dispose()();

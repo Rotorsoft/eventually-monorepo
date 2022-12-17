@@ -61,7 +61,7 @@ export const getCorrelation = async (
           });
           return { data };
         } catch (err: any) {
-          log().error(err);
+          log().info(s.url, err.message);
           return { error: err.message };
         }
       });
@@ -120,7 +120,7 @@ export const getStream = async (
           ? { data: query.backward ? data : data.reverse() }
           : { data: [] };
       } catch (err: any) {
-        log().error(err);
+        log().info(service.url, err.message);
         return { error: err.message };
       }
     });
