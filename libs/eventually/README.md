@@ -2,7 +2,13 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
-This project aims at exploring practical ideas around reactive micro-services. Our goal is to provide a simple recipe for building general business applications grounded on well known methodologies, patterns, and tools. Here we will test these old concepts and make some assumptions based on our own experiences with real systems, but be aware this in no way tries to cover all possible use cases.
+This project aims at exploring a practical solution to the problem of *"building software systems that gracefully evolve with a constantly changing organization"*. Changes can be driven by new business requirements, market conditions, or anything that causes the software building teams to grow, shrink, or be replaced.
+
+The truth is that many software systems fail because they become "unmaintainable black boxes" of accumulated "human decisions", where those responsible are long gone, or don't remember exactly why they made those decisions. We have tried to mitigate this by investing in "documentation" at many levels, but usually producing another large collection of stale documents a few people will actually read.
+
+Our goal is to provide a simple recipe for building general business applications grounded on well known methodologies, patterns, and tools. We are actually subscribing to ideas that started the DDD movement almost 20 years ago, but we think there is still room for improvement.
+
+This is an attempt to find a more axiomatic approach to "transfer" (not translate) information from domain models into software projects. By following a few "technical conventions", we can show new engineers how to look at our software projects as a "reflection of business models" that any stakeholder can understand and explain.
 
 ## Methodologies, Patterns, and Tools
 
@@ -13,9 +19,6 @@ This project aims at exploring practical ideas around reactive micro-services. O
 - [Command Query Responsibility Segregation](https://martinfowler.com/bliki/CQRS.html) - CQRS
 - [Hexagonal Architecture](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
 - [CUPID Principles](https://dannorth.net/2022/02/10/cupid-for-joyful-coding/)
-- [Test Driven Development](https://martinfowler.com/bliki/TestDrivenDevelopment.html) - TDD
-- [TypeScript Project References](https://www.typescriptlang.org/docs/handbook/project-references.html)
-- [Yarn 2 Workspaces](https://yarnpkg.com/features/workspaces) - Monorepo Structure
 
 ## Logical Domain Models
 
