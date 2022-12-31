@@ -7,7 +7,7 @@ import { Client, Environments } from "./types";
 import { InMemoryApp, InMemoryClient, InMemoryStore } from "./__dev__";
 
 export const config = singleton(function config() {
-  return { ..._config(), dispose: () => Promise.resolve() };
+  return { ..._config(), name: "config", dispose: () => Promise.resolve() };
 });
 
 export const app = singleton(function app<T extends Builder = InMemoryApp>(

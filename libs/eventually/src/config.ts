@@ -24,10 +24,7 @@ const getPackage = (): Package => {
 };
 
 const Schema = z.object({
-  name: z.string().min(1),
   env: z.nativeEnum(Environments),
-  host: z.string().min(5),
-  port: z.number().int().min(1000).max(65535),
   logLevel: z.nativeEnum(LogLevels),
   service: z.string().min(1),
   version: z.string().min(1),
@@ -38,7 +35,7 @@ const Schema = z.object({
 });
 export type Config = z.infer<typeof Schema>;
 
-const { NODE_ENV, HOST, PORT, LOG_LEVEL } = process.env;
+const { NODE_ENV, LOG_LEVEL } = process.env;
 
 export const config = (): Config => {
   const pkg = getPackage();
@@ -46,10 +43,7 @@ export const config = (): Config => {
   const service = parts.at(-1) || "";
   return extend(
     {
-      name: "config",
       env: (NODE_ENV as Environments) || Environments.development,
-      host: HOST || "http://localhost",
-      port: Number.parseInt(PORT || "3000"),
       logLevel: (LOG_LEVEL as LogLevels) || LogLevels.error,
       service,
       version: pkg.version,

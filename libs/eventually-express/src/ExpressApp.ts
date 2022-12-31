@@ -2,7 +2,6 @@ import {
   Builder,
   CommandAdapterFactory,
   CommandHandlerFactory,
-  config,
   decamelize,
   EventHandlerFactory,
   log,
@@ -12,6 +11,7 @@ import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
 import { OpenAPIObject } from "openapi3-ts";
+import { config } from "./config";
 import {
   allStreamHandler,
   commandHandler,
@@ -24,7 +24,7 @@ import {
   statsHandler
 } from "./handlers";
 import { openAPI } from "./openapi";
-import { home, redoc } from "./openapi/docs";
+import { home } from "./openapi/docs";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
 
 const regexIso8601 =
@@ -41,7 +41,7 @@ export class ExpressApp extends Builder {
   private _oas: OpenAPIObject | undefined;
 
   constructor() {
-    super(config().version);
+    super(config.version);
   }
 
   private _withStreams(): void {
@@ -104,7 +104,7 @@ export class ExpressApp extends Builder {
   }
 
   build(middleware?: RequestHandler[]): express.Express {
-    const { service, version, dependencies } = config();
+    const { service, version, dependencies } = config;
 
     super.build();
     this._oas = openAPI();
@@ -118,10 +118,7 @@ export class ExpressApp extends Builder {
     middleware && this._app.use(middleware);
     this._app.use(this._router);
 
-    // openapi
     this._app.get("/swagger", (_, res) => res.json(this._oas));
-    this._app.get("/_redoc", (_, res) => res.type("html").send(redoc(service)));
-
     this._app.get("/_config", (_, res) =>
       res.json({
         service,
@@ -155,13 +152,13 @@ export class ExpressApp extends Builder {
    * @param port to override port in config
    */
   async listen(silent = false, port?: number): Promise<void> {
-    const { service, version, env, logLevel } = config();
-    port = port || config().port;
+    const { service, version, env, logLevel, oas_ui } = config;
+    port = port || config.port;
 
     this._app.get("/", (_, res) => res.type("html").send(home()));
     this._app.use(errorHandler); // ensure catch-all is last handler
 
-    const _config = { env, port, logLevel, service, version };
+    const _config = { env, port, logLevel, service, version, oas_ui };
     if (silent) log().info("Config", undefined, _config);
     else
       this._server = await new Promise((resolve) => {

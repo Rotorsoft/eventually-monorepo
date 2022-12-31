@@ -35,11 +35,6 @@ describe("calculator swagger express app", () => {
     expect(stats.status).toBe(200);
   });
 
-  it("should get redoc spec", async () => {
-    const swagger = await http.get("/_redoc");
-    expect(swagger.status).toBe(200);
-  });
-
   it("should get _health", async () => {
     const swagger = await http.get("/_health");
     expect(swagger.status).toBe(200);
