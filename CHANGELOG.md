@@ -1,3 +1,5 @@
+#### 2022-12-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.2...@rotorsoft/eventually-v5.0.3) @rotorsoft/eventually-v5.0.3
+  - PATCH [713a1cad](https://github.com/Rotorsoft/eventually-monorepo/commit/713a1cad4613a65268b6e4b501355721809a71d3) fix: refactor configs, add OAS_UI env variable to configure openapi viewer
 #### 2022-12-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.3...@rotorsoft/eventually-broker-v2.0.4) @rotorsoft/eventually-broker-v2.0.4
   - PATCH [56da09d5](https://github.com/Rotorsoft/eventually-monorepo/commit/56da09d5f54c6497a9c4a1de0e5b7252ab933718) fix: make logger more fluent
 #### 2022-12-17 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.3...@rotorsoft/eventually-express-v5.0.4) @rotorsoft/eventually-express-v5.0.4
