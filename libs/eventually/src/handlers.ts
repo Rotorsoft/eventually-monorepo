@@ -89,7 +89,7 @@ const _handleMsg = async <
       stream,
       events.map(validateMessage),
       metadata,
-      metadata.causation.command?.expectedVersion,
+      metadata.causation.command?.expectedVersion || snapshot.event?.version,
       notify
     );
 
