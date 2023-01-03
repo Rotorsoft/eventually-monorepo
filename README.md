@@ -2,7 +2,7 @@
 
 ![Build Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/ci-cd.yml/badge.svg?branch=master)
 ![CodeQL Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
-<!-- [![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master) -->
+![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)(<https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master>)
 
 ## Writing a Hotel Reservation System
 

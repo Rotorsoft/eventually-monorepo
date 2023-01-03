@@ -73,6 +73,21 @@ export const get = (
   return axios.get<any>(url);
 };
 
+export const stream = async (path: string, port: number): Promise<any> => {
+  const url = `http://localhost:${port}${path}`;
+  try {
+    const response = await axios.get<any>(url, {
+      headers: {
+        responseType: "stream"
+      },
+      timeout: 1000
+    });
+    return response.data;
+  } catch {
+    return {};
+  }
+};
+
 export const post = async (
   path: string,
   body: Record<string, unknown>,

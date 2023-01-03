@@ -14,6 +14,14 @@ describe("ports", () => {
 
   it("should get store stats", async () => {
     const { store } = await import("@rotorsoft/eventually");
+    await store().commit(
+      "stream",
+      [
+        { name: "e1", data: {} },
+        { name: "e2", data: {} }
+      ],
+      { correlation: "", causation: {} }
+    );
     const stats = await store().stats();
     expect(stats).toBeDefined();
   });

@@ -1,22 +1,14 @@
-import {
-  Calculator,
-  PressKeyAdapter,
-  StatelessCounter
-} from "@rotorsoft/calculator-artifacts";
 import { app, dispose } from "@rotorsoft/eventually";
-import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
+import { config } from "../config";
+import { ExpressApp, HttpClient } from "..";
 
 const port = 4009;
 const http = HttpClient(port);
 
 const expressApp = new ExpressApp();
-app(expressApp)
-  .with(Calculator)
-  .with(StatelessCounter)
-  .with(PressKeyAdapter)
-  .build();
+app(expressApp).withStreams().build();
 
-describe("calculator swagger express app", () => {
+describe("express app", () => {
   beforeAll(async () => {
     await expressApp.listen(false, port);
   });
@@ -45,7 +37,20 @@ describe("calculator swagger express app", () => {
     expect(swagger.status).toBe(200);
   });
 
-  it("should get home", async () => {
+  it("should get home - default", async () => {
+    config.oas_ui = "SwaggerUI";
+    const swagger = await http.get("/");
+    expect(swagger.status).toBe(200);
+  });
+
+  it("should get home - redoc", async () => {
+    config.oas_ui = "Redoc";
+    const swagger = await http.get("/");
+    expect(swagger.status).toBe(200);
+  });
+
+  it("should get home - rapidoc", async () => {
+    config.oas_ui = "Rapidoc";
     const swagger = await http.get("/");
     expect(swagger.status).toBe(200);
   });
