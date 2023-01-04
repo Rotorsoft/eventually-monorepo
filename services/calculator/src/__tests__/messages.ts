@@ -4,7 +4,12 @@ import {
   CalculatorModel,
   Keys
 } from "@rotorsoft/calculator-artifacts";
-import { Client, Snapshot } from "@rotorsoft/eventually";
+import {
+  Client,
+  CommittedEvent,
+  Messages,
+  Snapshot
+} from "@rotorsoft/eventually";
 
 export const pressKey = (
   http: Client,
@@ -18,3 +23,18 @@ export const reset = (
   id: string
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
   http.command(Calculator, "Reset", {}, { id });
+
+export const createEvent = <E extends Messages>(
+  name: keyof E & string,
+  stream: string,
+  data: E[keyof E & string],
+  id: number
+): CommittedEvent<E> => ({
+  id,
+  stream,
+  version: 0,
+  created: new Date(),
+  name,
+  data,
+  metadata: { correlation: "", causation: {} }
+});

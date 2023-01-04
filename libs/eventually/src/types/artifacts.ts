@@ -7,7 +7,8 @@ export type ArtifactType =
   | "system"
   | "policy"
   | "process-manager"
-  | "command-adapter";
+  | "command-adapter"
+  | "projector";
 
 /** Empty message payload */
 export type Empty = Record<string, never>;
@@ -18,7 +19,7 @@ export const ZodEmpty = z.record(z.never());
  * All artifacts transferred from models have
  * - `description` to help with documentation
  */
-export type Artifact = {
+export type WithDescription = {
   description: string;
 };
 
@@ -71,7 +72,7 @@ type WithCommandOutputs<C extends Messages> = {
 /**
  * Streamable artifacts commit events to named streams
  */
-export type Streamable = Artifact & {
+export type Streamable = WithDescription & {
   stream: () => string;
 };
 
@@ -118,7 +119,7 @@ export type System<
 export type Policy<
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Artifact & WithEventHandlers<State, C, E> & WithCommandOutputs<C>;
+> = WithDescription & WithEventHandlers<State, C, E> & WithCommandOutputs<C>;
 
 /**
  * Process managers are policies with reducible state
@@ -134,12 +135,15 @@ export type ProcessManager<
   WithCommandOutputs<C>;
 
 /**
- * Projectors reduce events to read model state
+ * Projectors reduce events to read model states
  */
 export type Projector<
   S extends State = State,
   E extends Messages = Messages
-> = Reducible<S, E>;
+> = WithDescription &
+  Reducible<S, E> & {
+    id: () => string;
+  };
 
 /**
  * Command adapters map any message payload to commands
@@ -150,7 +154,7 @@ export type Projector<
 export type CommandAdapter<
   S extends State = State,
   C extends Messages = Messages
-> = Artifact &
+> = WithDescription &
   WithCommandOutputs<C> & {
     schemas: {
       message: ZodType<S>;
@@ -179,11 +183,12 @@ export type EventHandlingArtifact<
 /**
  * All message handling artifacts
  */
-export type MessageHandlingArtifact<
+export type Artifact<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
 > =
   | CommandHandlingArtifact<S, C, E>
   | EventHandlingArtifact<S, C, E>
-  | CommandAdapter<S, C>;
+  | CommandAdapter<S, C>
+  | Projector<S, E>;

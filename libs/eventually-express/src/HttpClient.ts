@@ -12,7 +12,9 @@ import {
   ReducibleFactory,
   Snapshot,
   EventResponse,
-  Disposable
+  Disposable,
+  ProjectorFactory,
+  ProjectionResponse
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
@@ -141,6 +143,17 @@ export const HttpClient = (
             )
         )
       );
+      return data;
+    },
+
+    project: async <S extends State, E extends Messages>(
+      factory: ProjectorFactory<S, E>,
+      events: CommittedEvent<E>[]
+    ): Promise<ProjectionResponse<S>> => {
+      const { data } = await axios.post<
+        State,
+        AxiosResponse<ProjectionResponse<S>>
+      >(url(httpPostPath(factory.name, "projector")), events);
       return data;
     }
   };

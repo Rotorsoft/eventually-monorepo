@@ -7,6 +7,8 @@ import {
   EventHandlerFactory,
   EventResponse,
   Messages,
+  ProjectorFactory,
+  ProjectionResponse,
   ReducibleFactory,
   Snapshot,
   State
@@ -46,7 +48,7 @@ export type Client = {
   /**
    * Handles event and optionally invokes command on target - side effect
    * @param factory the event handler factory
-   * @param event the committed event payload
+   * @param event the committed event
    * @returns optional command response and reducible state
    */
   event: <S extends State, C extends Messages, E extends Messages>(
@@ -83,4 +85,15 @@ export type Client = {
     last?: CommittedEvent;
     count: number;
   }>;
+
+  /**
+   * Project events
+   * @param factory the projector factory
+   * @param events the committed events
+   * @returns a projection response
+   */
+  project: <S extends State, E extends Messages>(
+    factory: ProjectorFactory<S, E>,
+    events: CommittedEvent<E>[]
+  ) => Promise<ProjectionResponse<S> | undefined>;
 };

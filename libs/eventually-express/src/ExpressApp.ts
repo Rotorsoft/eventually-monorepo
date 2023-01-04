@@ -5,6 +5,7 @@ import {
   decamelize,
   EventHandlerFactory,
   log,
+  ProjectorFactory,
   ReducibleFactory
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -18,8 +19,10 @@ import {
   errorHandler,
   eventHandler,
   getHandler,
+  getProjectionHandler,
   getStreamHandler,
   invokeHandler,
+  projectHandler,
   snapshotQueryHandler,
   statsHandler
 } from "./handlers";
@@ -81,6 +84,13 @@ export class ExpressApp extends Builder {
         const path = httpPostPath(factory.name, type);
         this._router.post(path, eventHandler(factory as EventHandlerFactory));
         log().magenta().info("POST", path, inputs);
+      } else if (type === "projector") {
+        const path = httpPostPath(factory.name, type);
+        this._router.post(path, projectHandler(factory as ProjectorFactory));
+        log().magenta().info("POST", path, inputs);
+        const getPath = path.concat("/:id");
+        this._router.get(getPath, getProjectionHandler());
+        log().green().info("GET ", getPath);
       } else
         Object.values(inputs).forEach((message) => {
           const path = httpPostPath(factory.name, type, message);

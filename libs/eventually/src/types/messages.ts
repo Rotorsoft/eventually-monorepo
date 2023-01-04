@@ -120,3 +120,11 @@ export type EventResponse<S extends State, C extends Messages> = {
   command?: Command<C>;
   state?: S;
 };
+
+/**
+ * Projection response
+ */
+export type ProjectionResponse<S extends State> = {
+  state: S;
+  watermark: number;
+};

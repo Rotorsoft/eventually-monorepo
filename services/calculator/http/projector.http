@@ -1,0 +1,7 @@
+@host = http://localhost:3000
+###
+
+GET {{host}}/calculator-totals/Totals-Calculator-calc1
+
+ 
+ 

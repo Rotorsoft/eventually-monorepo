@@ -57,6 +57,16 @@ const toPolicyResponseSchema = (commands: string[]): ResponseObject => {
   };
 };
 
+const toProjectionResponseSchema = (schema: ZodType): SchemaObject => {
+  return {
+    type: "object",
+    properties: {
+      state: toSchema(schema),
+      watermark: { type: "number" }
+    }
+  };
+};
+
 const toCommittedEventSchema = (
   name: string,
   schema: ZodType
@@ -170,6 +180,15 @@ export const getReducibleSchemas = (): Record<string, SchemaObject> =>
       return schemas;
     }, {} as Record<string, SchemaObject>);
 
+export const getProjectionSchemas = (): Record<string, SchemaObject> =>
+  Object.values(app().artifacts)
+    .filter((amd) => amd.type === "projector")
+    .reduce((schemas, { factory }) => {
+      const stateSchema = (factory as ReducibleFactory)("").schemas.state;
+      schemas[factory.name] = toProjectionResponseSchema(stateSchema);
+      return schemas;
+    }, {} as Record<string, SchemaObject>);
+
 export const getPaths = (security: Security): Record<string, PathsObject> =>
   Object.values(app().artifacts).reduce(
     (paths, { type, factory, inputs, outputs }) => {
@@ -200,6 +219,20 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
             summary: `Gets ${factory.name} stream by id`,
             responses: {
               "200": toResponse(factory.name.concat("Snapshot"), "OK", true),
+              default: { description: "Internal Server Error" }
+            }
+          }
+        };
+      } else if (type === "projector") {
+        const path = httpGetPath(factory.name).replace("/:id", "/{id}");
+        paths[path] = {
+          parameters: [{ $ref: "#/components/parameters/id" }],
+          get: {
+            operationId: `get${factory.name}ById`,
+            tags: [factory.name],
+            summary: `Gets ${factory.name} by id`,
+            responses: {
+              "200": toResponse(factory.name, "OK"),
               default: { description: "Internal Server Error" }
             }
           }
@@ -251,14 +284,46 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
             }
           };
         });
+      } else if (type === "projector") {
+        const path = httpPostPath(factory.name, type);
+        paths[path] = {
+          post: {
+            operationId: factory.name,
+            tags: [factory.name],
+            summary: `Projects ${inputs.join(",")}`,
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: {
+                      anyOf: inputs.map((message) => ({
+                        $ref: `#/components/schemas/${message}`
+                      }))
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": toResponse(factory.name, "OK"),
+              default: { description: "Internal Server Error" }
+            },
+            security: security.operations[factory.name] || [{}]
+          }
+        };
       } else {
+        const artifact = factory("");
+        const commands =
+          "commands" in artifact.schemas ? artifact.schemas.commands : {};
         const path = httpPostPath(factory.name, type);
         paths[path] = {
           post: {
             operationId: factory.name,
             tags: [factory.name],
             summary: `Handles ${inputs.join(",")}`,
-            description: Object.entries(factory("").schemas.commands)
+            description: Object.entries(commands)
               .map(([command, description]) => `"${command}": ${description}`)
               .join("<br/>"),
             requestBody: {

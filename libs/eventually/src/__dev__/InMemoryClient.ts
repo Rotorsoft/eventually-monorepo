@@ -1,5 +1,5 @@
 import { Disposable } from "../interfaces";
-import { invoke, command, event, load, query } from "../handlers";
+import { invoke, command, event, load, project, query } from "../handlers";
 import { bind } from "../utils";
 import {
   AllQuery,
@@ -40,5 +40,6 @@ export const InMemoryClient = (): Client & Disposable => ({
       callback && callback(e);
     });
     return { first, last, count };
-  }
+  },
+  project
 });

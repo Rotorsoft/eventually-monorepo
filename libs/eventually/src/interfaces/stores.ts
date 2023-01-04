@@ -4,6 +4,7 @@ import {
   CommittedEventMetadata,
   Message,
   Messages,
+  ProjectionResponse,
   Snapshot,
   SnapshotsQuery,
   State
@@ -82,4 +83,30 @@ export interface SnapshotStore extends Disposable, Seedable {
   query: <S extends State, E extends Messages>(
     query: SnapshotsQuery
   ) => Promise<Snapshot<S, E>[]>;
+}
+
+export interface ProjectorStore extends Disposable, Seedable {
+  /**
+   * Loads a projection
+   * @param id the projection id
+   * @returns the stored projection response
+   */
+  load: <S extends State>(
+    id: string
+  ) => Promise<ProjectionResponse<S> | undefined>;
+
+  /**
+   * Commits a new projection
+   * @param id the projection id
+   * @param state the projected state
+   * @param expectedWatermark expected watermark for optimistic concurrency and idempotence management
+   * @param newWatermark new watermark to be stored on success
+   * @returns the stored projection response
+   */
+  commit: <S extends State>(
+    id: string,
+    state: S,
+    expectedWatermark: number,
+    newWatermark: number
+  ) => Promise<ProjectionResponse<S>>;
 }

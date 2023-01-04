@@ -922,7 +922,7 @@ __metadata:
     "@rotorsoft/eventually-pg": "workspace:^5"
     axios: ^0.26.1
     cron: ^2.1.0
-    cron-parser: ^4.6.0
+    cron-parser: ^4.7.0
     cron-validator: ^1.3.1
     express: ^4.17.3
     express-handlebars: ^6.0.3
@@ -2268,12 +2268,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron-parser@npm:^4.6.0":
-  version: 4.6.0
-  resolution: "cron-parser@npm:4.6.0"
+"cron-parser@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "cron-parser@npm:4.7.0"
   dependencies:
-    luxon: ^3.0.1
-  checksum: cef63dee396732a8247c2c55d99512db7ad39797459f4bfd534ce5c18efdbf88b16ae8265c3b2abc40cdfadf8930bb1be6778e6ae664ae70e4ed7f206487d0cd
+    luxon: ^3.1.0
+  checksum: 25489f2cd41ada61bc35a09bdb7147e5f1d25179c740725d859e18076dabdf2551bfdd6d62fe339227d58840b068bb5a330fb6f867e695e998fd32359d6e0022
   languageName: node
   linkType: hard
 
@@ -4180,10 +4180,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "luxon@npm:3.0.1"
-  checksum: aa966eb919bf95b1bd819cda784d1f6f66e3fb65bd9ec7bf68b6a978eeb4e3e14f7e2275021b473f93b15b6b7ba2e5a30471e53add3929a7e695fcfd6dd40ec8
+"luxon@npm:^3.1.0":
+  version: 3.2.1
+  resolution: "luxon@npm:3.2.1"
+  checksum: 3fa3def2c5f5d3032b4c46220c4da8aeb467ac979888fc9d2557adcd22195f93516b4ad5909a75862bec8dc6ddc0953b0f38e6d2f4a8ab8450ddc531a83cf20d
   languageName: node
   linkType: hard
 

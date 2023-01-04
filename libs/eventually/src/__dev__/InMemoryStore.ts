@@ -1,4 +1,4 @@
-import { event } from "../handlers";
+import { event, project } from "../handlers";
 import { app } from "../index";
 import { Store, StoreStat } from "../interfaces";
 import {
@@ -7,7 +7,8 @@ import {
   CommittedEventMetadata,
   ConcurrencyError,
   EventHandlerFactory,
-  Message
+  Message,
+  ProjectorFactory
 } from "../types";
 
 export const InMemoryStore = (): Store => {
@@ -27,7 +28,9 @@ export const InMemoryStore = (): Store => {
       await Promise.all(
         Object.values(msg.handlers).map((name) => {
           const artifact = app().artifacts[name];
-          return event(artifact.factory as EventHandlerFactory, e);
+          return artifact.type === "projector"
+            ? project(artifact.factory as ProjectorFactory, [e])
+            : event(artifact.factory as EventHandlerFactory, e);
         })
       );
     }

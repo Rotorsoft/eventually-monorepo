@@ -48,7 +48,7 @@ export type ProcessManagerFactory<
 export type ProjectorFactory<
   S extends State = State,
   E extends Messages = Messages
-> = () => Projector<S, E>;
+> = (eventOrId: CommittedEvent<E> | string) => Projector<S, E>;
 
 /**
  * Command adapter factories build command adapters
@@ -88,11 +88,12 @@ export type EventHandlerFactory<
 /**
  * All message handler factories
  */
-export type MessageHandlerFactory<
+export type ArtifactFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
 > =
   | CommandHandlerFactory<S, C, E>
   | EventHandlerFactory<S, C, E>
-  | CommandAdapterFactory<S, C>;
+  | CommandAdapterFactory<S, C>
+  | ProjectorFactory<S, E>;

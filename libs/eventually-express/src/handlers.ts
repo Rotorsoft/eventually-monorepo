@@ -8,6 +8,9 @@ import {
   Errors,
   EventHandlerFactory,
   log,
+  ProjectionResponse,
+  projector,
+  ProjectorFactory,
   ReducibleFactory,
   Snapshot,
   SnapshotsQuery,
@@ -194,6 +197,37 @@ export const eventHandler =
   ): Promise<Response | undefined> => {
     try {
       const response = await client().event(factory, req.body);
+      return res.status(200).send(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const projectHandler =
+  (factory: ProjectorFactory) =>
+  async (
+    req: Request<never, any, CommittedEvent[]>,
+    res: Response<ProjectionResponse<State>>,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const response = await client().project(factory, req.body);
+      return res.status(200).send(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const getProjectionHandler =
+  () =>
+  async (
+    req: Request<{ id: string }, never, never, never>,
+    res: Response<ProjectionResponse<State>>,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const { id } = req.params;
+      const response = await projector().load(id);
       return res.status(200).send(response);
     } catch (error) {
       next(error);

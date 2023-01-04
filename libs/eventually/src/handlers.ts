@@ -1,6 +1,7 @@
-import { app, log, store } from "./ports";
+import { app, log, projector, store } from "./ports";
 import {
   AllQuery,
+  Artifact,
   Command,
   CommandAdapterFactory,
   CommandHandlerFactory,
@@ -9,8 +10,9 @@ import {
   EventHandlerFactory,
   EventResponse,
   Message,
-  MessageHandlingArtifact,
   Messages,
+  ProjectorFactory,
+  ProjectionResponse,
   Reducible,
   ReducibleFactory,
   RegistrationError,
@@ -72,7 +74,7 @@ const _handleMsg = async <
   C extends Messages,
   E extends Messages
 >(
-  artifact: MessageHandlingArtifact<S, C, E>,
+  artifact: Artifact<S, C, E>,
   callback: (state: S) => Promise<Message<E>[]>,
   metadata: CommittedEventMetadata,
   notify = true
@@ -229,3 +231,31 @@ export const query = async (
   query: AllQuery,
   callback: (event: CommittedEvent) => void
 ): Promise<number> => await store().query(callback, query);
+
+export const project = async <S extends State, E extends Messages>(
+  factory: ProjectorFactory<S, E>,
+  events: CommittedEvent<E>[]
+): Promise<ProjectionResponse<S>> => {
+  const first = events.at(0);
+  const last = events.at(-1);
+  if (!first || !last) throw Error("Missing events when calling [project]!");
+
+  log().green().trace(`\n>>> ${factory.name}`, events);
+
+  const watermark = last.id;
+  const artifact = factory(first);
+  const id = artifact.id();
+  Object.setPrototypeOf(artifact, factory as object);
+  const loaded = (await projector().load(id)) || {
+    state: artifact.init(),
+    watermark: 0
+  };
+  let state = loaded.state as Readonly<S>;
+  events.forEach((e) => {
+    state = artifact.reduce[e.name](state, e);
+  });
+  log().gray().trace(`   ... ${id} reduced ${events.length} event(s)`);
+  const pr = await projector().commit(id, state, loaded.watermark, watermark);
+  log().gray().trace(`   ... ${id} committed ${events.length} events(s)`, pr);
+  return pr;
+};
