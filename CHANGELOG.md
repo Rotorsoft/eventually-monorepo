@@ -1,3 +1,5 @@
+#### 2023-01-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.4...@rotorsoft/eventually-v5.0.5) @rotorsoft/eventually-v5.0.5
+  - PATCH [0e14b95b](https://github.com/Rotorsoft/eventually-monorepo/commit/0e14b95bea4331c5455cd7ab3629b8087d2943fd) fix: refactor types for projectors
 #### 2023-01-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.3...@rotorsoft/eventually-v5.0.4) @rotorsoft/eventually-v5.0.4
   - PATCH [f98b8603](https://github.com/Rotorsoft/eventually-monorepo/commit/f98b8603871aeb8291060c0c3479ca1c3ae2abc2) fix: use last loaded event version as expected version to commit when not provided by command
 #### 2022-12-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.4...@rotorsoft/eventually-broker-v2.0.5) @rotorsoft/eventually-broker-v2.0.5
