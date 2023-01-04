@@ -85,7 +85,7 @@ export type Streamable = Artifact & {
 export type Reducible<
   S extends State = State,
   E extends Messages = Messages
-> = Streamable & {
+> = {
   schemas: {
     state: ZodType<S>;
     events: { [K in keyof E]: ZodType<E[K]> };
@@ -102,7 +102,7 @@ export type Aggregate<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Reducible<S, E> & WithCommandHandlers<S, C, E>;
+> = Streamable & Reducible<S, E> & WithCommandHandlers<S, C, E>;
 
 /**
  * Systems handle commands and produce committed events without internal state
@@ -128,7 +128,18 @@ export type ProcessManager<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Reducible<S, E> & WithEventHandlers<S, C, E> & WithCommandOutputs<C>;
+> = Streamable &
+  Reducible<S, E> &
+  WithEventHandlers<S, C, E> &
+  WithCommandOutputs<C>;
+
+/**
+ * Projectors reduce events to read model state
+ */
+export type Projector<
+  S extends State = State,
+  E extends Messages = Messages
+> = Reducible<S, E>;
 
 /**
  * Command adapters map any message payload to commands

@@ -3,6 +3,7 @@ import {
   CommandAdapter,
   Policy,
   ProcessManager,
+  Projector,
   System
 } from "./artifacts";
 import { CommittedEvent, Messages, State } from "./messages";
@@ -40,6 +41,14 @@ export type ProcessManagerFactory<
   C extends Messages = Messages,
   E extends Messages = Messages
 > = (eventOrId: CommittedEvent<E> | string) => ProcessManager<S, C, E>;
+
+/**
+ * Projector factories build projectors
+ */
+export type ProjectorFactory<
+  S extends State = State,
+  E extends Messages = Messages
+> = () => Projector<S, E>;
 
 /**
  * Command adapter factories build command adapters

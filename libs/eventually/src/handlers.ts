@@ -15,7 +15,8 @@ import {
   ReducibleFactory,
   RegistrationError,
   Snapshot,
-  State
+  State,
+  Streamable
 } from "./types";
 import { bind, randomId, validate, validateMessage } from "./utils";
 
@@ -27,7 +28,7 @@ import { bind, randomId, validate, validateMessage } from "./utils";
  * @returns current model snapshot
  */
 const _load = async <S extends State, E extends Messages>(
-  reducible: Reducible<S, E>,
+  reducible: Streamable & Reducible<S, E>,
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
@@ -79,9 +80,10 @@ const _handleMsg = async <
   const stream = "stream" in artifact ? artifact.stream() : undefined;
   const reduce = "reduce" in artifact ? artifact.reduce : undefined;
 
-  const snapshot = reduce
-    ? await _load<S, E>(artifact as Reducible<S, E>)
-    : { state: {} as S, applyCount: 0 };
+  const snapshot =
+    stream && reduce
+      ? await _load<S, E>(artifact as Streamable & Reducible<S, E>)
+      : { state: {} as S, applyCount: 0 };
 
   const events = await callback(snapshot.state);
   if (stream && events.length) {

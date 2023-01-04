@@ -6,7 +6,7 @@ This project aims at exploring a practical solution to the problem of *"building
 
 The truth is that many software systems fail because they become "unmaintainable black boxes" of accumulated "human decisions", where those responsible are long gone, or don't remember exactly why they made those decisions. We have tried to mitigate this by investing in "documentation" at many levels, but usually producing another large collection of stale documents a few people will actually read.
 
-Our goal is to provide a simple recipe for building general business applications grounded on well known methodologies, patterns, and tools. We are actually subscribing to ideas that started the DDD movement almost 20 years ago, but we think there is still room for improvement.
+Our goal is to provide a simple recipe for building general business applications grounded on well known methodologies, patterns, and tools. We are subscribing to the ideas that started the DDD movement almost 20 years ago, but we are focusing on the issue of systematically organizing the development process.
 
 This is an attempt to find a more axiomatic approach to "transfer" (not translate) information from domain models into software projects. By following a few "technical conventions", we can show new engineers how to look at our software projects as a "reflection of business models" that any stakeholder can understand and explain.
 
@@ -40,13 +40,13 @@ This project is also trying to address the following issues:
 
 - **Transparent Model-To-Implementation Process** - Focus on transferring business models to code with minimal technical load. A “convention over configuration” philosophy removes tedious decision-making from the process.
 
-- **Ability to Swap Platform Services** - Following the hexagonal architecture based on ports and adapters.
+- **Ability to Swap Infrastructure** - Following the hexagonal architecture based on ports and adapters.
 
 ## Building your first Reactive Micro-Service
 
 > The anatomy of a micro-service as a reflection of the business model
 
-From a technical perspective, reactive microservices encapsulate a small number of protocol-agnostic message handlers in charge of solving specific business problems. These handlers are grouped together logically according to a domain model, and can be optionally streamable and reducible to some kind of pesistent state. The table below presents all available options and their proper mapping to DDD:
+From a technical perspective, reactive microservices encapsulate a small number of "protocol-agnostic" message handlers in charge of solving specific business problems. These handlers are grouped together logically according to a domain model, and can be optionally "streamable" and/or "reducible" to some kind of pesistent state. The table below presents all available options and their proper mapping to DDD:
 
 Message Handler | Consumes | Produces | Streamable | Reducible | DDD Artifact
 --- | :---: | :---: | :---: | :---: | :---:
@@ -54,12 +54,15 @@ Command Handler | ![Command](./assets/command.png) | ![Event](./assets/event.png
 Command Handler | ![Command](./assets/command.png) | ![Event](./assets/event.png) | Yes | No | ![External System](./assets/system.png)
 Event Handler | ![Event](./assets/event.png) | ![Command](./assets/command.png) | Yes | Yes | ![Process Manager](./assets/process-manager.png)
 Event Handler | ![Event](./assets/event.png) | ![Command](./assets/command.png) | No | No | ![Policy](./assets/policy.png)
-Event Handler | ![Event](./assets/event.png) | ![Read Model](./assets/read-model.png) | No | No | ![Projector](./assets/projector.png)
+Event Handler | ![Event](./assets/event.png) | ![Read Model](./assets/read-model.png) | No | Yes | ![Projector](./assets/projector.png)
 
 > - `Aggregates` define the consistency boundaries of business entities
 > - `Process Managers` can expand those boundaries across many aggregates or systems
+> - `Projectors` create fit for purpose read models (materialized views)
 
-## Composing complex systems from small reactive micro-services
+## Composing Complex Systems
+
+> [In eventually we try to separate domain concerns from system concerns](../eventually-service-expg/README.md)
 
 The biggest question we usually face when implementing real micro-service based systems is "how do we move information around services?". There are several well-known integration patterns available, but in general, we can divide services into "producers" and "consumers" of information. Producers are "upstream" of consumers. Since services are separated by network boundaries, this information gets transferred via network "messages" either "synchronously" or "asynchronously".
 
@@ -89,9 +92,7 @@ But those pieces live inside domain contexts and physical services. In DDD, you 
 
 ![Service Patterns](./assets/broker.png)
 
-> [In eventually we try to separate core domain concerns from system abstractions.](../eventually-service-expg/README.md)
-
-## Routing conventions
+## Routing Conventions
 
 Message handlers are routed by convention. Getters provide the current state of reducible artifacts, and they can be used to audit their streams or for integrations via polling. We provide an [in-memory app adapter](./src/__dev__/InMemoryApp.ts) to facilitate integration testing, while the [express app adapter](../eventually-express/src/ExpressApp.ts) is our default REST-based service adapter in real production systems:
 
