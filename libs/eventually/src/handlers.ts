@@ -236,13 +236,14 @@ export const project = async <S extends State, E extends Messages>(
   factory: ProjectorFactory<S, E>,
   events: CommittedEvent<E>[]
 ): Promise<ProjectionResponse<S>> => {
+  log().green().trace(`\n>>> ${factory.name}`, events);
+
   const first = events.at(0);
   const last = events.at(-1);
   if (!first || !last) throw Error("Missing events when calling [project]!");
-
-  log().green().trace(`\n>>> ${factory.name}`, events);
-
+  events.map(validateMessage);
   const watermark = last.id;
+
   const artifact = factory(first);
   const id = artifact.id();
   Object.setPrototypeOf(artifact, factory as object);
