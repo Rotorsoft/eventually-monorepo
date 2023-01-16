@@ -1,16 +1,20 @@
 import {
   CommittedEvent,
   Empty,
+  Projection,
   Projector,
   ZodEmpty
 } from "@rotorsoft/eventually";
 import { z } from "zod";
 import * as schemas from "./calculator.schemas";
 
-export const TotalsSchema = z.record(
-  z.enum([...schemas.DIGITS, ...schemas.OPERATORS, ...schemas.SYMBOLS]),
-  z.number()
-);
+export const TotalsSchema = z.object({
+  id: z.string(),
+  totals: z.record(
+    z.enum([...schemas.DIGITS, ...schemas.OPERATORS, ...schemas.SYMBOLS]),
+    z.number()
+  )
+});
 
 export type Totals = z.infer<typeof TotalsSchema>;
 
@@ -21,9 +25,20 @@ export type TotalsEvents = {
   EqualsPressed: Empty;
 };
 
-export const CalculatorTotals = (
-  eventOrId: CommittedEvent<TotalsEvents> | string
-): Projector<Totals, TotalsEvents> => ({
+const init = (e: CommittedEvent<TotalsEvents>): Totals => ({
+  id: `Totals-${e.stream}`,
+  totals: {}
+});
+
+const projection = (key: schemas.Keys, state?: Totals): Projection<Totals> => {
+  if (!state) throw Error("Invalid state");
+  return {
+    filter: { id: state.id },
+    values: { totals: { ...state.totals, [key]: (state.totals[key] || 0) + 1 } }
+  };
+};
+
+export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
   description: "Counts all keys pressed by calculator",
   schemas: {
     state: TotalsSchema,
@@ -34,21 +49,16 @@ export const CalculatorTotals = (
       EqualsPressed: ZodEmpty
     }
   },
-  id: () =>
-    typeof eventOrId === "string" ? eventOrId : `Totals-${eventOrId.stream}`,
-  init: () => {
-    return {} as Record<schemas.Keys, number>;
+  init: {
+    DigitPressed: (e) => init(e),
+    OperatorPressed: (e) => init(e),
+    DotPressed: (e) => init(e),
+    EqualsPressed: (e) => init(e)
   },
-  reduce: {
-    DigitPressed: (state, { data }) => ({
-      ...state,
-      [data.digit]: (state[data.digit] || 0) + 1
-    }),
-    OperatorPressed: (state, { data }) => ({
-      ...state,
-      [data.operator]: (state[data.operator] || 0) + 1
-    }),
-    DotPressed: (state) => ({ ...state, ".": (state["."] || 0) + 1 }),
-    EqualsPressed: (state) => ({ ...state, "=": (state["="] || 0) + 1 })
+  on: {
+    DigitPressed: ({ data }, state) => projection(data.digit, state),
+    OperatorPressed: ({ data }, state) => projection(data.operator, state),
+    DotPressed: (_, state) => projection(".", state),
+    EqualsPressed: (_, state) => projection("=", state)
   }
 });

@@ -1,3 +1,4 @@
+import { ProjectionRecord } from "./interfaces";
 import { app, log, projector, store } from "./ports";
 import {
   AllQuery,
@@ -12,13 +13,14 @@ import {
   Message,
   Messages,
   ProjectorFactory,
-  ProjectionResponse,
+  CommittedProjection,
   Reducible,
   ReducibleFactory,
   RegistrationError,
   Snapshot,
   State,
-  Streamable
+  Streamable,
+  ProjectionState
 } from "./types";
 import { bind, randomId, validate, validateMessage } from "./utils";
 
@@ -106,7 +108,7 @@ const _handleMsg = async <
             `   ... ${stream} committed ${event.name} @ ${event.version}`,
             event.data
           );
-        state = reduce[event.name](state, event as CommittedEvent<E>);
+        state = reduce[event.name](state, event);
         log()
           .gray()
           .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
@@ -152,20 +154,22 @@ export const command = async <
   command: Command<C>,
   metadata?: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
-  const { name, data, id, expectedVersion, actor } = command;
+  const validated = validateMessage(command);
+  const { name, id, expectedVersion, actor } = command;
+
   const msg = app().messages[name];
-  if (!msg || !msg.handlers.length) throw new RegistrationError(command);
+  if (!msg.handlers.length) throw new RegistrationError(command);
   const factory = app().artifacts[msg.handlers[0]]
     .factory as unknown as CommandHandlerFactory<S, C, E>;
   if (!factory) throw new RegistrationError(command);
+
   log().blue().trace(`\n>>> ${factory.name}`, command, metadata);
 
-  const validated = validate(data, msg.schema) as C[keyof C & string];
   const artifact = factory(id || "");
   Object.setPrototypeOf(artifact, factory as object);
   return await _handleMsg<S, C, E>(
     artifact,
-    (state) => artifact.on[name](validated, state, actor),
+    (state) => artifact.on[name](validated.data, state, actor),
     {
       correlation: metadata?.correlation || randomId(),
       causation: {
@@ -232,31 +236,29 @@ export const query = async (
   callback: (event: CommittedEvent) => void
 ): Promise<number> => await store().query(callback, query);
 
-export const project = async <S extends State, E extends Messages>(
+export const project = async <S extends ProjectionState, E extends Messages>(
   factory: ProjectorFactory<S, E>,
-  events: CommittedEvent<E>[]
-): Promise<ProjectionResponse<S>> => {
-  log().green().trace(`\n>>> ${factory.name}`, events);
+  event: CommittedEvent<E>
+): Promise<CommittedProjection<S>> => {
+  log().green().trace(`\n>>> ${factory.name}`, event);
 
-  const first = events.at(0);
-  const last = events.at(-1);
-  if (!first || !last) throw Error("Missing events when calling [project]!");
-  events.map(validateMessage);
-  const watermark = last.id;
-
-  const artifact = factory(first);
-  const id = artifact.id();
+  validateMessage(event);
+  const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
-  const loaded = (await projector().load(id)) || {
-    state: artifact.init(),
-    watermark: 0
-  };
-  let state = loaded.state as Readonly<S>;
-  events.forEach((e) => {
-    state = artifact.reduce[e.name](state, e);
-  });
-  log().gray().trace(`   ... ${id} reduced ${events.length} event(s)`);
-  const pr = await projector().commit(id, state, loaded.watermark, watermark);
-  log().gray().trace(`   ... ${id} committed ${events.length} events(s)`, pr);
-  return pr;
+
+  const init = artifact.init[event.name];
+  const state = (init && init(event)) || undefined;
+  const loaded =
+    (state && (await projector().load<S>(state.id))) ||
+    ({ state, watermark: 0 } as ProjectionRecord<S>);
+  const projection = artifact.on[event.name](event, loaded.state);
+  const committed = await projector().commit(projection, event.id);
+  log()
+    .gray()
+    .trace(
+      "   ... committed",
+      JSON.stringify(projection),
+      JSON.stringify(committed)
+    );
+  return committed;
 };

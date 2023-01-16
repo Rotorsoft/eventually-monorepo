@@ -26,8 +26,17 @@ describe("Projector", () => {
     await pressKey(id, ".");
     await pressKey(id, "3");
 
-    const response = await projector().load("Totals-Calculator-".concat(id));
-    expect(response?.state).toEqual({ "1": 2, "2": 1, "3": 1, ".": 1 });
+    const pid = "Totals-Calculator-".concat(id);
+    const response = await projector().load(pid);
+    expect(response?.state).toEqual({
+      id: pid,
+      totals: {
+        "1": 2,
+        "2": 1,
+        "3": 1,
+        ".": 1
+      }
+    });
     expect(response?.watermark).toBe(7);
   });
 });

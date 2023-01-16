@@ -14,7 +14,8 @@ import {
   EventResponse,
   Disposable,
   ProjectorFactory,
-  ProjectionResponse
+  CommittedProjection,
+  ProjectionState
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
@@ -62,8 +63,8 @@ export const HttpClient = (
 
     command: async <S extends State, C extends Messages, E extends Messages>(
       factory: CommandHandlerFactory<S, C, E>,
-      name: keyof C & string,
-      payload: Readonly<C[keyof C & string]>,
+      name: keyof C,
+      payload: Readonly<C[keyof C]>,
       target?: CommandTarget
     ): Promise<Snapshot<S, E>[]> => {
       const headers = {} as Record<string, string>;
@@ -72,7 +73,7 @@ export const HttpClient = (
       const path = httpPostPath(
         factory.name,
         "reduce" in factory("") ? "aggregate" : "system",
-        name
+        name as string
       );
       const { data } = await axios.post<State, AxiosResponse<Snapshot<S, E>[]>>(
         url(path.replace(":id", target?.id || "")),
@@ -146,14 +147,14 @@ export const HttpClient = (
       return data;
     },
 
-    project: async <S extends State, E extends Messages>(
+    project: async <S extends ProjectionState, E extends Messages>(
       factory: ProjectorFactory<S, E>,
-      events: CommittedEvent<E>[]
-    ): Promise<ProjectionResponse<S>> => {
+      event: CommittedEvent<E>
+    ): Promise<CommittedProjection<S>> => {
       const { data } = await axios.post<
         State,
-        AxiosResponse<ProjectionResponse<S>>
-      >(url(httpPostPath(factory.name, "projector")), events);
+        AxiosResponse<CommittedProjection<S>>
+      >(url(httpPostPath(factory.name, "projector")), [event]);
       return data;
     }
   };

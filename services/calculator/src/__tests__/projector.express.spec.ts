@@ -25,13 +25,29 @@ describe("calculator with projector in express app", () => {
 
   it("should project", async () => {
     const stream = "Calculator-".concat(chance.guid());
-    const r1 = await http.project(CalculatorTotals, [
-      createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 1),
+    await http.project(
+      CalculatorTotals,
+      createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 1)
+    );
+    const committed = await http.project(
+      CalculatorTotals,
       createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 2)
+    );
+    expect(committed).toEqual([
+      {
+        projection: {
+          filter: { id: `Totals-${stream}` },
+          values: { totals: { "1": 2 } }
+        },
+        records: 1,
+        watermark: 2
+      }
     ]);
-    expect(r1).toEqual({ state: { "1": 2 }, watermark: 2 });
 
-    const r2 = await http.get(`/calculator-totals/Totals-${stream}`);
-    expect(r1).toEqual(r2.data);
+    const response = await http.get(`/calculator-totals/Totals-${stream}`);
+    expect(response.data).toEqual({
+      state: { id: `Totals-${stream}`, totals: { "1": 2 } },
+      watermark: 2
+    });
   });
 });

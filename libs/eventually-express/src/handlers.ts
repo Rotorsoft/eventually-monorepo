@@ -8,7 +8,7 @@ import {
   Errors,
   EventHandlerFactory,
   log,
-  ProjectionResponse,
+  CommittedProjection,
   projector,
   ProjectorFactory,
   ReducibleFactory,
@@ -16,7 +16,9 @@ import {
   SnapshotsQuery,
   SnapshotStore,
   State,
-  store
+  store,
+  ProjectionState,
+  ProjectionRecord
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
@@ -207,12 +209,18 @@ export const projectHandler =
   (factory: ProjectorFactory) =>
   async (
     req: Request<never, any, CommittedEvent[]>,
-    res: Response<ProjectionResponse<State>>,
+    res: Response<CommittedProjection<ProjectionState>>,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const response = await client().project(factory, req.body);
-      return res.status(200).send(response);
+      res.header("content-type", "application/json");
+      res.write("[");
+      for (let i = 0; i < req.body.length; i++) {
+        i && res.write(",");
+        res.write(JSON.stringify(await client().project(factory, req.body[i])));
+      }
+      res.write("]");
+      return res.status(200).end();
     } catch (error) {
       next(error);
     }
@@ -222,7 +230,7 @@ export const getProjectionHandler =
   () =>
   async (
     req: Request<{ id: string }, never, never, never>,
-    res: Response<ProjectionResponse<State>>,
+    res: Response<ProjectionRecord<ProjectionState>>,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {

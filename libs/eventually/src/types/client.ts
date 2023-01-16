@@ -8,10 +8,11 @@ import {
   EventResponse,
   Messages,
   ProjectorFactory,
-  ProjectionResponse,
+  CommittedProjection,
   ReducibleFactory,
   Snapshot,
-  State
+  State,
+  ProjectionState
 } from ".";
 
 export type Client = {
@@ -40,8 +41,8 @@ export type Client = {
    */
   command: <S extends State, C extends Messages, E extends Messages>(
     factory: CommandHandlerFactory<S, C, E>,
-    name: keyof C & string,
-    data: Readonly<C[keyof C & string]>,
+    name: keyof C,
+    data: Readonly<C[keyof C]>,
     target?: CommandTarget
   ) => Promise<Snapshot<S, E>[]>;
 
@@ -87,13 +88,13 @@ export type Client = {
   }>;
 
   /**
-   * Project events
+   * Projects event into projector store
    * @param factory the projector factory
-   * @param events the committed events
-   * @returns a projection response
+   * @param event the committed event
+   * @returns the committed projection
    */
-  project: <S extends State, E extends Messages>(
+  project: <S extends ProjectionState, E extends Messages>(
     factory: ProjectorFactory<S, E>,
-    events: CommittedEvent<E>[]
-  ) => Promise<ProjectionResponse<S> | undefined>;
+    event: CommittedEvent<E>
+  ) => Promise<CommittedProjection<S>>;
 };

@@ -18,8 +18,8 @@ export const InMemoryClient = (): Client & Disposable => ({
   invoke,
   command: <S extends State, C extends Messages, E extends Messages>(
     factory: CommandHandlerFactory<S, C, E>,
-    name: keyof C & string,
-    data: Readonly<C[keyof C & string]>,
+    name: keyof C,
+    data: Readonly<C[keyof C]>,
     target?: CommandTarget
   ): Promise<Snapshot<S, E>[]> => command(bind(name, data, target)),
   event,

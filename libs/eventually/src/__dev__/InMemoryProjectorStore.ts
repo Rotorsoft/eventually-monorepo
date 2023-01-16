@@ -1,8 +1,8 @@
-import { ProjectorStore } from "../interfaces";
-import { ProjectionResponse, State } from "../types";
+import { ProjectionRecord, ProjectorStore } from "../interfaces";
+import { CommittedProjection, Projection, ProjectionState } from "../types";
 
 export const InMemoryProjectorStore = (): ProjectorStore => {
-  let _projections: Record<string, ProjectionResponse<State>> = {};
+  let _projections: Record<string, ProjectionRecord> = {};
 
   return {
     name: "InMemoryProjectionStore",
@@ -13,34 +13,47 @@ export const InMemoryProjectorStore = (): ProjectorStore => {
 
     seed: () => Promise.resolve(),
 
-    load: <S extends State>(id: string): Promise<ProjectionResponse<S>> =>
-      Promise.resolve(_projections[id] as ProjectionResponse<S>),
+    load: <S extends ProjectionState>(
+      id: string
+    ): Promise<ProjectionRecord<S> | undefined> =>
+      Promise.resolve(_projections[id] as ProjectionRecord<S>),
 
-    commit: async <S extends State>(
-      id: string,
-      state: S,
-      expectedWatermark: number,
-      newWatermark: number
-    ): Promise<ProjectionResponse<S>> => {
-      let p = _projections[id] as ProjectionResponse<S>;
-      if (p) {
-        if (p.watermark !== expectedWatermark) {
-          // when another process updates this projection concurrently, the stored watermark should be higher
-          if (p.watermark < expectedWatermark)
-            throw Error(
-              `Projection ${id} stored watermark ${p.watermark} behind expected ${expectedWatermark}`
-            );
-          // idempotent by default
-          return Promise.resolve(p);
-        }
-        if (newWatermark < p.watermark) {
-          throw Error(
-            `Projection ${id} new watermark ${newWatermark} behind stored watermark ${p.watermark}`
-          );
-        }
-      }
-      p = _projections[id] = { state, watermark: newWatermark };
-      return Promise.resolve(p);
+    commit: async <S extends ProjectionState>(
+      projection: Projection<S>,
+      watermark: number
+    ): Promise<CommittedProjection<S>> => {
+      const id = projection.filter.id;
+      id &&
+        !_projections[id] &&
+        (_projections[id] = {
+          state: { id, ...projection.values },
+          watermark: -1
+        });
+
+      const filter = Object.entries(projection.filter)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(";");
+      const match = Object.values(_projections).filter(
+        (p) =>
+          p.watermark < watermark &&
+          filter ===
+            Object.entries(p.state)
+              .filter(([k]) => projection.filter[k])
+              .map(([k, v]) => `${k}=${v}`)
+              .join(";")
+      );
+      match.forEach(
+        (p) =>
+          (_projections[p.state.id] = {
+            state: Object.assign(p.state, projection.values),
+            watermark
+          })
+      );
+      return Promise.resolve({
+        projection,
+        records: match.length,
+        watermark
+      });
     }
   };
 };

@@ -10,7 +10,7 @@ import {
 } from "./types";
 
 type MessageMetadata<M extends Messages = Messages> = {
-  name: keyof M & string;
+  name: keyof M;
   schema: ZodType<M[keyof M]>;
   type: "command" | "event" | "message";
   handlers: string[];
@@ -100,26 +100,22 @@ export abstract class Builder implements Disposable {
         Object.keys(artifact.on).forEach((name) => {
           this.messages[name].handlers.push(factory.name); // compile event handlers
         });
+        const inputs = Object.keys(artifact.on);
+        const outputs =
+          "commands" in artifact.schemas
+            ? Object.keys(artifact.schemas.commands)
+            : [];
         return {
-          type: reducible ? "process-manager" : "policy",
+          type: reducible
+            ? "process-manager"
+            : "init" in artifact
+            ? "projector"
+            : "policy",
           factory,
-          inputs: Object.keys(artifact.on),
-          outputs:
-            "commands" in artifact.schemas
-              ? Object.keys(artifact.schemas.commands)
-              : []
+          inputs,
+          outputs
         };
       }
-    } else if ("reduce" in artifact) {
-      Object.keys(artifact.reduce).forEach((name) => {
-        this.messages[name].handlers.push(factory.name); // compile event handlers
-      });
-      return {
-        type: "projector",
-        factory,
-        inputs: Object.keys(artifact.reduce),
-        outputs: []
-      };
     }
     // oops
     throw Error(

@@ -1,5 +1,12 @@
 import { z, ZodType } from "zod";
-import { Messages, State, Command } from "./messages";
+import {
+  Messages,
+  State,
+  Command,
+  CommittedEvent,
+  Projection,
+  ProjectionState
+} from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
 
 export type ArtifactType =
@@ -38,7 +45,7 @@ type WithCommandHandlers<
     commands: { [K in keyof C]: ZodType<C[K]> };
     events: { [K in keyof E]: ZodType<E[K]> };
   };
-  on: { [K in keyof C & string]: CommandHandler<S, C, E, K> };
+  on: { [K in keyof C]: CommandHandler<S, C, E, K> };
 };
 
 /**
@@ -55,7 +62,7 @@ type WithEventHandlers<
     events: { [K in keyof E]: ZodType<E[K]> };
   };
   on: {
-    [K in keyof E & string]: EventHandler<S, C, E, K>;
+    [K in keyof E]: EventHandler<S, C, E, K>;
   };
 };
 
@@ -92,7 +99,7 @@ export type Reducible<
     events: { [K in keyof E]: ZodType<E[K]> };
   };
   init: () => Readonly<S>;
-  reduce: { [K in keyof E & string]: EventReducer<S, E, K> };
+  reduce: { [K in keyof E]: EventReducer<S, E, K> };
 };
 
 /**
@@ -135,15 +142,26 @@ export type ProcessManager<
   WithCommandOutputs<C>;
 
 /**
- * Projectors reduce events to read model states
+ * Projectors handle events and produce projections
  */
 export type Projector<
-  S extends State = State,
+  S extends ProjectionState = ProjectionState,
   E extends Messages = Messages
-> = WithDescription &
-  Reducible<S, E> & {
-    id: () => string;
+> = WithDescription & {
+  schemas: {
+    state: ZodType<S>;
+    events: { [K in keyof E]: ZodType<E[K]> };
   };
+  init: {
+    [K in keyof E]?: (event: CommittedEvent<Pick<E, K>>) => Readonly<S>;
+  };
+  on: {
+    [K in keyof E]: (
+      event: CommittedEvent<Pick<E, K>>,
+      state?: Readonly<S>
+    ) => Projection<S>;
+  };
+};
 
 /**
  * Command adapters map any message payload to commands
@@ -191,4 +209,4 @@ export type Artifact<
   | CommandHandlingArtifact<S, C, E>
   | EventHandlingArtifact<S, C, E>
   | CommandAdapter<S, C>
-  | Projector<S, E>;
+  | Projector<S & { id: string }, E>;

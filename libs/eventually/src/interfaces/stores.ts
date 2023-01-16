@@ -4,10 +4,12 @@ import {
   CommittedEventMetadata,
   Message,
   Messages,
-  ProjectionResponse,
+  CommittedProjection,
+  Projection,
   Snapshot,
   SnapshotsQuery,
-  State
+  State,
+  ProjectionState
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
 
@@ -44,13 +46,13 @@ export interface Store extends Disposable, Seedable {
    * @param notify optional flag to notify event handlers
    * @returns array of committed events
    */
-  commit: (
+  commit: <E extends Messages>(
     stream: string,
-    events: Message[],
+    events: Message<E>[],
     metadata: CommittedEventMetadata,
     expectedVersion?: number,
     notify?: boolean
-  ) => Promise<CommittedEvent[]>;
+  ) => Promise<CommittedEvent<E>[]>;
 
   /**
    * Gets store stats
@@ -85,28 +87,29 @@ export interface SnapshotStore extends Disposable, Seedable {
   ) => Promise<Snapshot<S, E>[]>;
 }
 
+export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
+  state: Readonly<S>;
+  watermark: number;
+};
+
 export interface ProjectorStore extends Disposable, Seedable {
   /**
-   * Loads a projection
+   * Loads a projection record by id
    * @param id the projection id
-   * @returns the stored projection response
+   * @returns the stored projection state and watermark
    */
-  load: <S extends State>(
+  load: <S extends ProjectionState>(
     id: string
-  ) => Promise<ProjectionResponse<S> | undefined>;
+  ) => Promise<ProjectionRecord<S> | undefined>;
 
   /**
-   * Commits a new projection
-   * @param id the projection id
-   * @param state the projected state
-   * @param expectedWatermark expected watermark for optimistic concurrency and idempotence management
-   * @param newWatermark new watermark to be stored on success
-   * @returns the stored projection response
+   * Commits projection results with basic idempotence check
+   * @param projection the projection results
+   * @param watermark the new watermark - ignored when new watermark <= stored watermark
+   * @returns the committed projection results
    */
-  commit: <S extends State>(
-    id: string,
-    state: S,
-    expectedWatermark: number,
-    newWatermark: number
-  ) => Promise<ProjectionResponse<S>>;
+  commit: <S extends ProjectionState>(
+    projection: Projection<S>,
+    watermark: number
+  ) => Promise<CommittedProjection<S>>;
 }

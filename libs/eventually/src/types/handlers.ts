@@ -15,7 +15,7 @@ import {
 export type EventReducer<
   S extends State,
   E extends Messages,
-  K extends keyof E & string
+  K extends keyof E
 > = (state: Readonly<S>, event: CommittedEvent<Pick<E, K>>) => Readonly<S>;
 
 /**
@@ -28,7 +28,7 @@ export type CommandHandler<
   S extends State,
   C extends Messages,
   E extends Messages,
-  K extends keyof C & string
+  K extends keyof C
 > = (
   data: Readonly<C[K]>,
   state: Readonly<S>,
@@ -44,7 +44,7 @@ export type EventHandler<
   S extends State,
   C extends Messages,
   E extends Messages,
-  K extends keyof E & string
+  K extends keyof E
 > = (
   event: CommittedEvent<Pick<E, K>>,
   state: Readonly<S>

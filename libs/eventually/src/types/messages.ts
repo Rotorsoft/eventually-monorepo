@@ -1,5 +1,6 @@
 export type State = Record<string, unknown>;
 export type Messages = Record<string, Record<string, unknown>>;
+export type ProjectionState = State & { id: string };
 
 /**
  * Messages have
@@ -73,7 +74,7 @@ export type CommittedEvent<M extends Messages = Messages> = Message<M> & {
  * Snapshots hold reduced state and last applied event
  * - `state` the current state of the artifact
  * - `event?` the last event applied to the state
- * - `applyCount? the number of events reduced after last snapshot
+ * - `applyCount?` the number of events reduced after last snapshot
  */
 export type Snapshot<S extends State = State, E extends Messages = Messages> = {
   readonly state: S;
@@ -115,6 +116,9 @@ export type SnapshotsQuery = {
 
 /**
  * Response from event handlers
+ *
+ * - `command?` the command triggered by the event handler
+ * - `state?` the reducible state affected
  */
 export type EventResponse<S extends State, C extends Messages> = {
   command?: Command<C>;
@@ -122,9 +126,25 @@ export type EventResponse<S extends State, C extends Messages> = {
 };
 
 /**
- * Projection response
+ * Projection results
+ *
+ * - `filter` key/values used to filter affected records
+ * - `values` key/values used to update records
  */
-export type ProjectionResponse<S extends State> = {
-  state: S;
+export type Projection<S extends ProjectionState> = {
+  filter: Partial<S>;
+  values: Partial<Omit<S, "id">>;
+};
+
+/**
+ * Committed projection
+ *
+ * - `projection` the projection results
+ * - `records` the number of records affected by commit
+ * - `watermark` the new watermark
+ */
+export type CommittedProjection<S extends ProjectionState> = {
+  projection: Projection<S>;
+  records: number;
   watermark: number;
 };
