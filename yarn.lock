@@ -1010,6 +1010,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/eventually@workspace:libs/eventually"
   dependencies:
+    deepmerge: ^4.2.2
     dotenv: ^16.0.0
     zod: ^3.19.1
   languageName: unknown

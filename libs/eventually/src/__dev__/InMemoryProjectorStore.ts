@@ -1,3 +1,4 @@
+import deepmerge from "deepmerge";
 import { ProjectionRecord, ProjectorStore } from "../interfaces";
 import { ProjectionResults, Projection, ProjectionState } from "../types";
 
@@ -62,7 +63,7 @@ export const InMemoryProjectorStore = (): ProjectorStore => {
       to_upsert.forEach(
         (p) =>
           (_projections[p.state.id] = {
-            state: Object.assign(p.state, upsert_values),
+            state: deepmerge(p.state, upsert_values as Partial<S>),
             watermark
           })
       );

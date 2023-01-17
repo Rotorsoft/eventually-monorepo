@@ -156,7 +156,9 @@ export type Projector<
     events: { [K in keyof E]: ZodType<E[K]> };
   };
   init: {
-    [K in keyof E]?: (event: CommittedEvent<Pick<E, K>>) => Readonly<S>;
+    [K in keyof E]?: (
+      event: CommittedEvent<Pick<E, K>>
+    ) => Partial<S> & { id: string };
   };
   on: {
     [K in keyof E]: (
