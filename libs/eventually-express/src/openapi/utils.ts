@@ -57,11 +57,36 @@ const toPolicyResponseSchema = (commands: string[]): ResponseObject => {
   };
 };
 
-const toProjectionResponseSchema = (schema: ZodType): SchemaObject => {
+const toProjectionRecordSchema = (ref: string): SchemaObject => {
   return {
     type: "object",
     properties: {
-      state: toSchema(schema),
+      state: { type: "object", $ref: `#/components/schemas/${ref}` },
+      watermark: { type: "number" }
+    }
+  };
+};
+
+const toProjectionResultsSchema = (ref: string): SchemaObject => {
+  return {
+    type: "object",
+    properties: {
+      projection: {
+        type: "object",
+        properties: {
+          upsert: {
+            type: "array",
+            items: {
+              oneOf: [{ type: "object", $ref: `#/components/schemas/${ref}` }]
+            },
+            minItems: 2,
+            maxItems: 2
+          },
+          delete: { type: "object", $ref: `#/components/schemas/${ref}` }
+        }
+      },
+      upserted: { type: "number" },
+      deleted: { type: "number" },
       watermark: { type: "number" }
     }
   };
@@ -185,7 +210,13 @@ export const getProjectionSchemas = (): Record<string, SchemaObject> =>
     .filter((amd) => amd.type === "projector")
     .reduce((schemas, { factory }) => {
       const stateSchema = (factory as ReducibleFactory)("").schemas.state;
-      schemas[factory.name] = toProjectionResponseSchema(stateSchema);
+      schemas[factory.name] = toSchema(stateSchema);
+      schemas[factory.name.concat("Record")] = toProjectionRecordSchema(
+        factory.name
+      );
+      schemas[factory.name.concat("Results")] = toProjectionResultsSchema(
+        factory.name
+      );
       return schemas;
     }, {} as Record<string, SchemaObject>);
 
@@ -232,7 +263,7 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
             tags: [factory.name],
             summary: `Gets ${factory.name} by id`,
             responses: {
-              "200": toResponse(factory.name, "OK"),
+              "200": toResponse(factory.name.concat("Record"), "OK"),
               default: { description: "Internal Server Error" }
             }
           }
@@ -307,7 +338,7 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
               }
             },
             responses: {
-              "200": toResponse(factory.name, "OK"),
+              "200": toResponse(factory.name.concat("Results"), "OK"),
               default: { description: "Internal Server Error" }
             },
             security: security.operations[factory.name] || [{}]

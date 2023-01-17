@@ -14,7 +14,7 @@ import {
   EventResponse,
   Disposable,
   ProjectorFactory,
-  CommittedProjection,
+  ProjectionResults,
   ProjectionState
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
@@ -150,10 +150,10 @@ export const HttpClient = (
     project: async <S extends ProjectionState, E extends Messages>(
       factory: ProjectorFactory<S, E>,
       event: CommittedEvent<E>
-    ): Promise<CommittedProjection<S>> => {
+    ): Promise<ProjectionResults<S>> => {
       const { data } = await axios.post<
         State,
-        AxiosResponse<CommittedProjection<S>>
+        AxiosResponse<ProjectionResults<S>>
       >(url(httpPostPath(factory.name, "projector")), [event]);
       return data;
     }

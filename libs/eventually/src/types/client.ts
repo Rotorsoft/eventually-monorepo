@@ -8,7 +8,7 @@ import {
   EventResponse,
   Messages,
   ProjectorFactory,
-  CommittedProjection,
+  ProjectionResults,
   ReducibleFactory,
   Snapshot,
   State,
@@ -96,5 +96,5 @@ export type Client = {
   project: <S extends ProjectionState, E extends Messages>(
     factory: ProjectorFactory<S, E>,
     event: CommittedEvent<E>
-  ) => Promise<CommittedProjection<S>>;
+  ) => Promise<ProjectionResults<S>>;
 };

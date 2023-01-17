@@ -126,25 +126,27 @@ export type EventResponse<S extends State, C extends Messages> = {
 };
 
 /**
- * Projection results
+ * Projection filters
  *
- * - `filter` key/values used to filter affected records
- * - `values` key/values used to update records
+ * - `upsert?` key=value filters and values tuple used to upsert records
+ * - `delete?` key=value filters used to delete records
  */
 export type Projection<S extends ProjectionState> = {
-  filter: Partial<S>;
-  values: Partial<Omit<S, "id">>;
+  upsert?: [Partial<S>, Partial<Omit<S, "id">>];
+  delete?: Partial<S>;
 };
 
 /**
- * Committed projection
+ * Projection results after commit
  *
- * - `projection` the projection results
- * - `records` the number of records affected by commit
- * - `watermark` the new watermark
+ * - `projection` the projection filters
+ * - `upserted` the number of upserted records
+ * - `deleted` the number of deleted records
+ * - `watermark` the stored watermark
  */
-export type CommittedProjection<S extends ProjectionState> = {
+export type ProjectionResults<S extends ProjectionState> = {
   projection: Projection<S>;
-  records: number;
+  upserted: number;
+  deleted: number;
   watermark: number;
 };

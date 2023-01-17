@@ -2,6 +2,7 @@ import {
   CommittedEvent,
   Empty,
   Projection,
+  ProjectionRecord,
   Projector,
   ZodEmpty
 } from "@rotorsoft/eventually";
@@ -30,11 +31,20 @@ const init = (e: CommittedEvent<TotalsEvents>): Totals => ({
   totals: {}
 });
 
-const projection = (key: schemas.Keys, state?: Totals): Projection<Totals> => {
-  if (!state) throw Error("Invalid state");
+const projection = (
+  key: schemas.Keys,
+  record: ProjectionRecord<Totals>
+): Projection<Totals> => {
   return {
-    filter: { id: state.id },
-    values: { totals: { ...state.totals, [key]: (state.totals[key] || 0) + 1 } }
+    upsert: [
+      { id: record.state.id },
+      {
+        totals: {
+          ...record.state.totals,
+          [key]: (record.state.totals[key] || 0) + 1
+        }
+      }
+    ]
   };
 };
 
@@ -56,9 +66,9 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
     EqualsPressed: (e) => init(e)
   },
   on: {
-    DigitPressed: ({ data }, state) => projection(data.digit, state),
-    OperatorPressed: ({ data }, state) => projection(data.operator, state),
-    DotPressed: (_, state) => projection(".", state),
-    EqualsPressed: (_, state) => projection("=", state)
+    DigitPressed: ({ data }, record) => projection(data.digit, record),
+    OperatorPressed: ({ data }, record) => projection(data.operator, record),
+    DotPressed: (_, record) => projection(".", record),
+    EqualsPressed: (_, record) => projection("=", record)
   }
 });

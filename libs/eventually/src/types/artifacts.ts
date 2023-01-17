@@ -8,6 +8,7 @@ import {
   ProjectionState
 } from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
+import { ProjectionRecord } from "../interfaces";
 
 export type ArtifactType =
   | "aggregate"
@@ -143,6 +144,8 @@ export type ProcessManager<
 
 /**
  * Projectors handle events and produce projections
+ * - `init` handlers produce default values for events affecting a single record by id, used to load/create the projection record passed to `on`
+ * - `on` handlers produce key=value filters and values representing the area affected by the projection
  */
 export type Projector<
   S extends ProjectionState = ProjectionState,
@@ -158,7 +161,7 @@ export type Projector<
   on: {
     [K in keyof E]: (
       event: CommittedEvent<Pick<E, K>>,
-      state?: Readonly<S>
+      record: ProjectionRecord<S>
     ) => Projection<S>;
   };
 };

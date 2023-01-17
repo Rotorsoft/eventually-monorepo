@@ -4,7 +4,7 @@ import {
   CommittedEventMetadata,
   Message,
   Messages,
-  CommittedProjection,
+  ProjectionResults,
   Projection,
   Snapshot,
   SnapshotsQuery,
@@ -103,13 +103,13 @@ export interface ProjectorStore extends Disposable, Seedable {
   ) => Promise<ProjectionRecord<S> | undefined>;
 
   /**
-   * Commits projection results with basic idempotence check
-   * @param projection the projection results
+   * Commits projection with basic idempotence check
+   * @param projection the projection filters
    * @param watermark the new watermark - ignored when new watermark <= stored watermark
-   * @returns the committed projection results
+   * @returns the projection results
    */
   commit: <S extends ProjectionState>(
     projection: Projection<S>,
     watermark: number
-  ) => Promise<CommittedProjection<S>>;
+  ) => Promise<ProjectionResults<S>>;
 }

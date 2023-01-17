@@ -8,7 +8,7 @@ import {
   Errors,
   EventHandlerFactory,
   log,
-  CommittedProjection,
+  ProjectionResults,
   projector,
   ProjectorFactory,
   ReducibleFactory,
@@ -209,7 +209,7 @@ export const projectHandler =
   (factory: ProjectorFactory) =>
   async (
     req: Request<never, any, CommittedEvent[]>,
-    res: Response<CommittedProjection<ProjectionState>>,
+    res: Response<ProjectionResults<ProjectionState>>,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {

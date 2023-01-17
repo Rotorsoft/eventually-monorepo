@@ -13,7 +13,7 @@ import {
   Message,
   Messages,
   ProjectorFactory,
-  CommittedProjection,
+  ProjectionResults,
   Reducible,
   ReducibleFactory,
   RegistrationError,
@@ -239,7 +239,7 @@ export const query = async (
 export const project = async <S extends ProjectionState, E extends Messages>(
   factory: ProjectorFactory<S, E>,
   event: CommittedEvent<E>
-): Promise<CommittedProjection<S>> => {
+): Promise<ProjectionResults<S>> => {
   log().green().trace(`\n>>> ${factory.name}`, event);
 
   validateMessage(event);
@@ -250,8 +250,8 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   const state = (init && init(event)) || undefined;
   const loaded =
     (state && (await projector().load<S>(state.id))) ||
-    ({ state, watermark: 0 } as ProjectionRecord<S>);
-  const projection = artifact.on[event.name](event, loaded.state);
+    ({ state, watermark: -1 } as ProjectionRecord<S>);
+  const projection = artifact.on[event.name](event, loaded);
   const committed = await projector().commit(projection, event.id);
   log()
     .gray()
