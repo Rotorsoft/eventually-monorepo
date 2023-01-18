@@ -1,5 +1,4 @@
 import {
-  CommittedEvent,
   Empty,
   Projection,
   ProjectionRecord,
@@ -26,22 +25,21 @@ export type TotalsEvents = {
   EqualsPressed: Empty;
 };
 
-const init = (e: CommittedEvent<TotalsEvents>): Totals => ({
-  id: `Totals-${e.stream}`,
-  totals: {}
-});
+const ids = (stream: string): string[] => [`Totals-${stream}`];
 
 const projection = (
+  id: string,
   key: schemas.Keys,
-  record: ProjectionRecord<Totals>
+  records: Record<string, ProjectionRecord<Totals>>
 ): Projection<Totals> => {
+  const { totals } = (records[id] || { state: { totals: {} } }).state;
   return {
     upsert: [
-      { id: record.state.id },
+      { id },
       {
         totals: {
-          ...record.state.totals,
-          [key]: (record.state.totals[key] || 0) + 1
+          ...totals,
+          [key]: (totals[key] || 0) + 1
         }
       }
     ]
@@ -59,16 +57,18 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
       EqualsPressed: ZodEmpty
     }
   },
-  init: {
-    DigitPressed: (e) => init(e),
-    OperatorPressed: (e) => init(e),
-    DotPressed: (e) => init(e),
-    EqualsPressed: (e) => init(e)
+  load: {
+    DigitPressed: (e) => ids(e.stream),
+    OperatorPressed: (e) => ids(e.stream),
+    DotPressed: (e) => ids(e.stream),
+    EqualsPressed: (e) => ids(e.stream)
   },
   on: {
-    DigitPressed: ({ data }, record) => projection(data.digit, record),
-    OperatorPressed: ({ data }, record) => projection(data.operator, record),
-    DotPressed: (_, record) => projection(".", record),
-    EqualsPressed: (_, record) => projection("=", record)
+    DigitPressed: (e, records) =>
+      projection(ids(e.stream)[0], e.data.digit, records),
+    OperatorPressed: (e, records) =>
+      projection(ids(e.stream)[0], e.data.operator, records),
+    DotPressed: (e, records) => projection(ids(e.stream)[0], ".", records),
+    EqualsPressed: (e, records) => projection(ids(e.stream)[0], "=", records)
   }
 });

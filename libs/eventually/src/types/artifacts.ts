@@ -144,8 +144,8 @@ export type ProcessManager<
 
 /**
  * Projectors handle events and produce projections
- * - `init` handlers produce default values for events affecting a single record by id, used to load/create the projection record passed to `on`
- * - `on` handlers produce key=value filters and values representing the area affected by the projection
+ * - `load` handlers produce the ids of records loaded into the `on` handlers
+ * - `on` handlers produce key=value filters/values representing the projected area (merged or deleted)
  */
 export type Projector<
   S extends ProjectionState = ProjectionState,
@@ -155,15 +155,13 @@ export type Projector<
     state: ZodType<S>;
     events: { [K in keyof E]: ZodType<E[K]> };
   };
-  init: {
-    [K in keyof E]?: (
-      event: CommittedEvent<Pick<E, K>>
-    ) => Partial<S> & { id: string };
+  load: {
+    [K in keyof E]?: (event: CommittedEvent<Pick<E, K>>) => string[];
   };
   on: {
     [K in keyof E]: (
       event: CommittedEvent<Pick<E, K>>,
-      record: ProjectionRecord<S>
+      records: Record<string, ProjectionRecord<S>>
     ) => Projection<S>;
   };
 };

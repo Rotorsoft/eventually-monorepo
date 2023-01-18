@@ -246,12 +246,15 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
 
-  const init = artifact.init[event.name];
-  const state = (init && init(event)) || undefined;
-  const loaded =
-    (state && (await projector().load<S>(state.id))) ||
-    ({ state, watermark: -1 } as ProjectionRecord<S>);
-  const projection = artifact.on[event.name](event, loaded);
+  const load = artifact.load[event.name];
+  const ids = (load && load(event)) || [];
+  const records = (
+    await Promise.all(ids.map((id) => projector().load<S>(id)))
+  ).reduce((p, c) => {
+    c && (p[c.state.id] = c);
+    return p;
+  }, {} as Record<string, ProjectionRecord<S>>);
+  const projection = artifact.on[event.name](event, records);
   const committed = await projector().commit(projection, event.id);
   log()
     .gray()

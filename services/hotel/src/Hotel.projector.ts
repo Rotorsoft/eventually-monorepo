@@ -21,32 +21,25 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
       RoomBooked: schemas.BookRoom
     }
   },
-  init: {
-    RoomOpened: ({ data }) => {
-      return {
-        id: `Room-${data.number}`,
-        reserved: {}
-      };
-    },
-    RoomBooked: ({ data }) => {
-      return {
-        id: `Room-${data.number}`
-      };
-    }
+  load: {
+    RoomOpened: ({ data }) => [`Room-${data.number}`],
+    RoomBooked: ({ data }) => [`Room-${data.number}`]
   },
   on: {
-    RoomOpened: (_, { state }) => {
-      const { id, ...other } = state;
+    RoomOpened: ({ data }, records) => {
+      const _id = `Room-${data.number}`;
+      const { id, ...other } = (records[_id] || { state: { id: _id } }).state;
       return { upsert: [{ id }, { ...other }] };
     },
-    RoomBooked: ({ data }, record) => {
+    RoomBooked: ({ data }) => {
+      const id = `Room-${data.number}`;
       const reserved = {} as Record<string, string>;
       let day = data.checkin;
       while (day <= data.checkout) {
         reserved[day.toISOString().substring(0, 10)] = data.id;
         day = new Date(day.valueOf() + 24 * 60 * 60 * 1000);
       }
-      return { upsert: [{ id: record.state.id }, { reserved }] };
+      return { upsert: [{ id }, { reserved }] };
     }
   }
 });

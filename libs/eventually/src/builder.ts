@@ -108,7 +108,7 @@ export abstract class Builder implements Disposable {
         return {
           type: reducible
             ? "process-manager"
-            : "init" in artifact
+            : "load" in artifact
             ? "projector"
             : "policy",
           factory,
