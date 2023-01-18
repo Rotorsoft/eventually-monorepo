@@ -94,13 +94,13 @@ export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
 
 export interface ProjectorStore extends Disposable, Seedable {
   /**
-   * Loads a projection record by id
-   * @param id the projection id
-   * @returns the stored projection state and watermark
+   * Loads projection records by id
+   * @param ids the record ids
+   * @returns the stored records by id
    */
   load: <S extends ProjectionState>(
-    id: string
-  ) => Promise<ProjectionRecord<S> | undefined>;
+    ids: string[]
+  ) => Promise<Record<string, ProjectionRecord<S>>>;
 
   /**
    * Commits projection with basic idempotence check

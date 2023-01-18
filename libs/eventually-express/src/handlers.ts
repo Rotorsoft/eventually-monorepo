@@ -235,8 +235,8 @@ export const getProjectionHandler =
   ): Promise<Response | undefined> => {
     try {
       const { id } = req.params;
-      const response = await projector().load(id);
-      return res.status(200).send(response);
+      const response = await projector().load([id]);
+      return res.status(200).send(response[id]);
     } catch (error) {
       next(error);
     }

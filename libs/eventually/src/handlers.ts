@@ -1,4 +1,3 @@
-import { ProjectionRecord } from "./interfaces";
 import { app, log, projector, store } from "./ports";
 import {
   AllQuery,
@@ -248,12 +247,7 @@ export const project = async <S extends ProjectionState, E extends Messages>(
 
   const load = artifact.load[event.name];
   const ids = (load && load(event)) || [];
-  const records = (
-    await Promise.all(ids.map((id) => projector().load<S>(id)))
-  ).reduce((p, c) => {
-    c && (p[c.state.id] = c);
-    return p;
-  }, {} as Record<string, ProjectionRecord<S>>);
+  const records = await projector().load<S>(ids);
   const projection = artifact.on[event.name](event, records);
   const committed = await projector().commit(projection, event.id);
   log()

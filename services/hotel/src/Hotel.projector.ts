@@ -21,15 +21,11 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
       RoomBooked: schemas.BookRoom
     }
   },
-  load: {
-    RoomOpened: ({ data }) => [`Room-${data.number}`],
-    RoomBooked: ({ data }) => [`Room-${data.number}`]
-  },
+  load: {},
   on: {
-    RoomOpened: ({ data }, records) => {
-      const _id = `Room-${data.number}`;
-      const { id, ...other } = (records[_id] || { state: { id: _id } }).state;
-      return { upsert: [{ id }, { ...other }] };
+    RoomOpened: ({ data }) => {
+      const id = `Room-${data.number}`;
+      return { upsert: [{ id }, { ...data }] };
     },
     RoomBooked: ({ data }) => {
       const id = `Room-${data.number}`;

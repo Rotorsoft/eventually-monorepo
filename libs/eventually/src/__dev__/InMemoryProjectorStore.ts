@@ -39,9 +39,17 @@ export const InMemoryProjectorStore = (): ProjectorStore => {
     seed: () => Promise.resolve(),
 
     load: <S extends ProjectionState>(
-      id: string
-    ): Promise<ProjectionRecord<S> | undefined> =>
-      Promise.resolve(_projections[id] as ProjectionRecord<S>),
+      ids: string[]
+    ): Promise<Record<string, ProjectionRecord<S>>> =>
+      Promise.resolve(
+        ids
+          .map((id) => _projections[id])
+          .filter(Boolean)
+          .reduce((p, c) => {
+            p[c.state.id] = c as ProjectionRecord<S>;
+            return p;
+          }, {} as Record<string, ProjectionRecord<S>>)
+      ),
 
     commit: async <S extends ProjectionState>(
       projection: Projection<S>,

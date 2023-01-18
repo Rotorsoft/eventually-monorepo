@@ -27,8 +27,8 @@ describe("Projector", () => {
     await pressKey(id, "3");
 
     const pid = "Totals-Calculator-".concat(id);
-    const response = await projector().load(pid);
-    expect(response?.state).toEqual({
+    const response = await projector().load([pid]);
+    expect(response[pid]?.state).toEqual({
       id: pid,
       totals: {
         "1": 2,
@@ -37,6 +37,6 @@ describe("Projector", () => {
         ".": 1
       }
     });
-    expect(response?.watermark).toBe(7);
+    expect(response[pid]?.watermark).toBe(7);
   });
 });
