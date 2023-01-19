@@ -1,11 +1,13 @@
 import { ZodType } from "zod";
-import { Disposable, SnapshotStore } from "./interfaces";
+import { Disposable, ProjectorStore, SnapshotStore } from "./interfaces";
 import {
   AggregateFactory,
   Artifact,
   ArtifactFactory,
   ArtifactMetadata,
   Messages,
+  ProjectionState,
+  ProjectorFactory,
   State
 } from "./types";
 
@@ -35,6 +37,7 @@ export abstract class Builder implements Disposable {
   readonly snapOpts: Record<string, SnapshotOptions> = {};
   readonly messages: Record<string, MessageMetadata> = {};
   readonly artifacts: Record<string, ArtifactMetadata> = {};
+  readonly projectorStores: Record<string, ProjectorStore> = {};
 
   constructor(version: string) {
     this.version = version;
@@ -158,6 +161,19 @@ export abstract class Builder implements Disposable {
     snapshotOptions: SnapshotOptions
   ): this {
     this.snapOpts[factory.name] = snapshotOptions;
+    return this;
+  }
+
+  /**
+   * Registers projector stores
+   * @param factory the projector factory
+   * @param projectorStore the projector store
+   */
+  withProjectorStore<S extends ProjectionState, E extends Messages>(
+    factory: ProjectorFactory<S, E>,
+    projectorStore: ProjectorStore
+  ): this {
+    this.projectorStores[factory.name] = projectorStore;
     return this;
   }
 

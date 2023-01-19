@@ -9,6 +9,7 @@ import {
   Snapshot,
   SnapshotsQuery,
   State,
+  ProjectionRecord,
   ProjectionState
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
@@ -86,11 +87,6 @@ export interface SnapshotStore extends Disposable, Seedable {
     query: SnapshotsQuery
   ) => Promise<Snapshot<S, E>[]>;
 }
-
-export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
-  state: Readonly<S>;
-  watermark: number;
-};
 
 export interface ProjectorStore extends Disposable, Seedable {
   /**

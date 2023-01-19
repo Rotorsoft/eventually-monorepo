@@ -15,7 +15,8 @@ import {
   Disposable,
   ProjectorFactory,
   ProjectionResults,
-  ProjectionState
+  ProjectionState,
+  ProjectionRecord
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
@@ -155,6 +156,17 @@ export const HttpClient = (
         State,
         AxiosResponse<ProjectionResults<S>>
       >(url(httpPostPath(factory.name, "projector")), [event]);
+      return data;
+    },
+
+    read: async <S extends ProjectionState, E extends Messages>(
+      factory: ProjectorFactory<S, E>,
+      ids: string[]
+    ): Promise<Record<string, ProjectionRecord<S>>> => {
+      const { data } = await axios.get<
+        State,
+        AxiosResponse<Record<string, ProjectionRecord<S>>>
+      >(url(httpGetPath(factory.name).concat("/", ids[0])));
       return data;
     }
   };

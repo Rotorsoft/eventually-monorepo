@@ -9,7 +9,6 @@ import {
   EventHandlerFactory,
   log,
   ProjectionResults,
-  projector,
   ProjectorFactory,
   ReducibleFactory,
   Snapshot,
@@ -227,7 +226,7 @@ export const projectHandler =
   };
 
 export const getProjectionHandler =
-  () =>
+  (factory: ProjectorFactory) =>
   async (
     req: Request<{ id: string }, never, never, never>,
     res: Response<ProjectionRecord<ProjectionState>>,
@@ -235,7 +234,7 @@ export const getProjectionHandler =
   ): Promise<Response | undefined> => {
     try {
       const { id } = req.params;
-      const response = await projector().load([id]);
+      const response = await client().read(factory, [id]);
       return res.status(200).send(response[id]);
     } catch (error) {
       next(error);

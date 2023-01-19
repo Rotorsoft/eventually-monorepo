@@ -150,3 +150,14 @@ export type ProjectionResults<S extends ProjectionState> = {
   deleted: number;
   watermark: number;
 };
+
+/**
+ * Projection record
+ *
+ * - `state` the stored projection state
+ * - `watermark` the stored watermark
+ */
+export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
+  state: Readonly<S>;
+  watermark: number;
+};

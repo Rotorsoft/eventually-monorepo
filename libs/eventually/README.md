@@ -121,7 +121,6 @@ The framework provides a number of ports (abstract interfaces) that can be used 
 - `config()` provides .env loading and schema validation utilities
 - `log()` provides logging utilities
 - `store()` encapsulates event stream storage and retrieval
-- `projector()` encapsulates projection storage and retrieval
 
 ![Framework Ports](./assets/ports.png)
 

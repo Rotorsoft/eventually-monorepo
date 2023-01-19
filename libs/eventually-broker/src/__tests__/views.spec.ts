@@ -85,7 +85,8 @@ describe("views", () => {
       "/graph",
       "/contracts",
       "/api/events",
-      "/correlations/aZCNKNr3HP5pQRWIxvj3XeoZ"
+      "/correlations/aZCNKNr3HP5pQRWIxvj3XeoZ",
+      "/about"
     ];
     const responses = await Promise.all(paths.map((path) => get(path, port)));
     responses.forEach((response) => {

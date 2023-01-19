@@ -1,6 +1,6 @@
 import { Builder } from "./builder";
 import { config as _config } from "./config";
-import { Disposable, Logger, ProjectorStore, Store } from "./interfaces";
+import { Disposable, Logger, Store } from "./interfaces";
 import * as loggers from "./loggers";
 import { singleton } from "./singleton";
 import { Client, Environments } from "./types";
@@ -25,12 +25,6 @@ export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
 });
 
-export const projector = singleton(function projector(
-  projector?: ProjectorStore
-) {
-  return projector || InMemoryProjectorStore();
-});
-
 export const log = singleton(function log(logger?: Logger) {
   if (logger) return logger;
   switch (config().env) {
@@ -43,4 +37,9 @@ export const log = singleton(function log(logger?: Logger) {
 
 export const client = singleton(function client(client?: Client & Disposable) {
   return client || InMemoryClient();
+});
+
+// in-memory projection store local singleton for dev/testing
+export const _imps = singleton(function imps() {
+  return InMemoryProjectorStore();
 });

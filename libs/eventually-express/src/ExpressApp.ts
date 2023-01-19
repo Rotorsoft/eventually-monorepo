@@ -89,7 +89,10 @@ export class ExpressApp extends Builder {
         this._router.post(path, projectHandler(factory as ProjectorFactory));
         log().magenta().info("POST", path, inputs);
         const getPath = path.concat("/:id");
-        this._router.get(getPath, getProjectionHandler());
+        this._router.get(
+          getPath,
+          getProjectionHandler(factory as ProjectorFactory)
+        );
         log().green().info("GET ", getPath);
       } else
         Object.values(inputs).forEach((message) => {

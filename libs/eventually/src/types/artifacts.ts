@@ -5,10 +5,10 @@ import {
   Command,
   CommittedEvent,
   Projection,
+  ProjectionRecord,
   ProjectionState
 } from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
-import { ProjectionRecord } from "../interfaces";
 
 export type ArtifactType =
   | "aggregate"

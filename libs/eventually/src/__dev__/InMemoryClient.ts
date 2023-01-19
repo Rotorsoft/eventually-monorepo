@@ -1,6 +1,13 @@
+import {
+  command,
+  event,
+  invoke,
+  load,
+  project,
+  query,
+  read
+} from "../handlers";
 import { Disposable } from "../interfaces";
-import { invoke, command, event, load, project, query } from "../handlers";
-import { bind } from "../utils";
 import {
   AllQuery,
   Client,
@@ -11,6 +18,7 @@ import {
   Snapshot,
   State
 } from "../types";
+import { bind } from "../utils";
 
 export const InMemoryClient = (): Client & Disposable => ({
   name: "InMemoryClient",
@@ -41,5 +49,6 @@ export const InMemoryClient = (): Client & Disposable => ({
     });
     return { first, last, count };
   },
-  project
+  project,
+  read
 });

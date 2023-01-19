@@ -8,6 +8,7 @@ import {
   EventResponse,
   Messages,
   ProjectorFactory,
+  ProjectionRecord,
   ProjectionResults,
   ReducibleFactory,
   Snapshot,
@@ -97,4 +98,15 @@ export type Client = {
     factory: ProjectorFactory<S, E>,
     event: CommittedEvent<E>
   ) => Promise<ProjectionResults<S>>;
+
+  /**
+   * Reads projection records by id
+   * @param factory the projector factory
+   * @param ids the projection record ids
+   * @returns the projection records
+   */
+  read: <S extends ProjectionState, E extends Messages>(
+    factory: ProjectorFactory<S, E>,
+    ids: string[]
+  ) => Promise<Record<string, ProjectionRecord<S>>>;
 };

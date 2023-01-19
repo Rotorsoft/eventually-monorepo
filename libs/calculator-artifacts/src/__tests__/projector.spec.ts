@@ -1,4 +1,4 @@
-import { app, dispose, projector } from "@rotorsoft/eventually";
+import { app, client, dispose } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { CalculatorTotals } from "../calculator.projector";
@@ -10,7 +10,6 @@ app().with(Calculator).with(CalculatorTotals).build();
 
 describe("Projector", () => {
   beforeAll(async () => {
-    await projector().seed();
     await app().listen();
   });
   afterAll(async () => {
@@ -27,7 +26,7 @@ describe("Projector", () => {
     await pressKey(id, "3");
 
     const pid = "Totals-Calculator-".concat(id);
-    const response = await projector().load([pid]);
+    const response = await client().read(CalculatorTotals, [pid]);
     expect(response[pid]?.state).toEqual({
       id: pid,
       totals: {

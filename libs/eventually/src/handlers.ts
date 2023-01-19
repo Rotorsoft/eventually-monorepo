@@ -1,4 +1,4 @@
-import { app, log, projector, store } from "./ports";
+import { app, log, store, _imps } from "./ports";
 import {
   AllQuery,
   Artifact,
@@ -11,15 +11,16 @@ import {
   EventResponse,
   Message,
   Messages,
-  ProjectorFactory,
+  ProjectionRecord,
   ProjectionResults,
+  ProjectionState,
+  ProjectorFactory,
   Reducible,
   ReducibleFactory,
   RegistrationError,
   Snapshot,
   State,
-  Streamable,
-  ProjectionState
+  Streamable
 } from "./types";
 import { bind, randomId, validate, validateMessage } from "./utils";
 
@@ -245,11 +246,12 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
 
+  const projector = app().projectorStores[factory.name] || _imps();
   const load = artifact.load[event.name];
   const ids = (load && load(event)) || [];
-  const records = await projector().load<S>(ids);
+  const records = await projector.load<S>(ids);
   const projection = artifact.on[event.name](event, records);
-  const committed = await projector().commit(projection, event.id);
+  const committed = await projector.commit(projection, event.id);
   log()
     .gray()
     .trace(
@@ -258,4 +260,12 @@ export const project = async <S extends ProjectionState, E extends Messages>(
       JSON.stringify(committed)
     );
   return committed;
+};
+
+export const read = <S extends ProjectionState, E extends Messages>(
+  factory: ProjectorFactory<S, E>,
+  ids: string[]
+): Promise<Record<string, ProjectionRecord<S>>> => {
+  const projector = app().projectorStores[factory.name] || _imps();
+  return projector.load<S>(ids);
 };

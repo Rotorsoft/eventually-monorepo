@@ -1,6 +1,10 @@
-import { projector } from "../../ports";
+import { client } from "../../ports";
 import { CommittedEvent, Messages } from "../../types";
-import { MatchProjection, MatchProjectionEvents } from "./Match.projector";
+import {
+  MatchProjection,
+  MatchProjectionEvents,
+  MatchProjector
+} from "./Match.projector";
 import * as schemas from "./schemas";
 
 const customerId1 = 101;
@@ -25,7 +29,7 @@ const matchStream1 = matchStream(matchId1);
 const matchStream2 = matchStream(matchId2);
 
 export const trace = async (): Promise<void> => {
-  const records = await projector().load<MatchProjection>([
+  const records = await client().read(MatchProjector, [
     customerStream1,
     customerStream2,
     supplierStream1,

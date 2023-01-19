@@ -1,5 +1,5 @@
-import { client, projector, app, dispose } from "../../.";
-import { MatchProjection, MatchProjector } from "./Match.projector";
+import { client, app, dispose } from "../../.";
+import { MatchProjector } from "./Match.projector";
 import { steps, trace } from "./steps";
 
 describe("match projection", () => {
@@ -14,7 +14,7 @@ describe("match projection", () => {
   test("should work", async () => {
     for (const step of steps) {
       await client().project(MatchProjector, step.event);
-      const p = await projector().load<MatchProjection>([step.event.stream]);
+      const p = await client().read(MatchProjector, [step.event.stream]);
       expect(p[step.event.stream].state).toEqual(step.state);
       await trace();
     }

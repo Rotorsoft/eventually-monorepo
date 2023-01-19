@@ -1,10 +1,4 @@
-import {
-  app,
-  client,
-  dispose,
-  projector,
-  Snapshot
-} from "@rotorsoft/eventually";
+import { app, client, dispose, Snapshot } from "@rotorsoft/eventually";
 import { Hotel } from "../Hotel.projector";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
@@ -41,7 +35,11 @@ describe("Room", () => {
   });
 
   it("should search rooms", async () => {
-    const rooms = await projector().load(["Room-101", "Room-102", "Room-103"]);
+    const rooms = await client().read(Hotel, [
+      "Room-101",
+      "Room-102",
+      "Room-103"
+    ]);
     expect(Object.values(rooms).length).toBe(3);
   });
 
@@ -58,7 +56,7 @@ describe("Room", () => {
     expect(room[0].state?.reservations?.at(0)?.totalPrice).toBe(
       2 * room[0].state.price
     );
-    const roomstate = await projector().load(["Room-102"]);
+    const roomstate = await client().read(Hotel, ["Room-102"]);
     expect(roomstate).toEqual({
       ["Room-102"]: {
         state: {

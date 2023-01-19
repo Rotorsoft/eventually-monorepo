@@ -1,6 +1,11 @@
 import deepmerge from "deepmerge";
-import { ProjectionRecord, ProjectorStore } from "../interfaces";
-import { ProjectionResults, Projection, ProjectionState } from "../types";
+import { ProjectorStore } from "../interfaces";
+import {
+  ProjectionResults,
+  Projection,
+  ProjectionRecord,
+  ProjectionState
+} from "../types";
 
 export const InMemoryProjectorStore = (): ProjectorStore => {
   let _projections: Record<string, ProjectionRecord> = {};
