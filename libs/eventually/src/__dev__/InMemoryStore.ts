@@ -1,4 +1,4 @@
-import { event } from "../handlers";
+import { event, project } from "../handlers";
 import { app } from "../index";
 import { Store, StoreStat } from "../interfaces";
 import {
@@ -7,7 +7,9 @@ import {
   CommittedEventMetadata,
   ConcurrencyError,
   EventHandlerFactory,
-  Message
+  Message,
+  Messages,
+  ProjectorFactory
 } from "../types";
 
 export const InMemoryStore = (): Store => {
@@ -27,7 +29,9 @@ export const InMemoryStore = (): Store => {
       await Promise.all(
         Object.values(msg.handlers).map((name) => {
           const artifact = app().artifacts[name];
-          return event(artifact.factory as EventHandlerFactory, e);
+          return artifact.type === "projector"
+            ? project(artifact.factory as ProjectorFactory, e)
+            : event(artifact.factory as EventHandlerFactory, e);
         })
       );
     }
@@ -72,13 +76,13 @@ export const InMemoryStore = (): Store => {
       return Promise.resolve(count);
     },
 
-    commit: async (
+    commit: async <E extends Messages>(
       stream: string,
-      events: Message[],
+      events: Message<E>[],
       metadata: CommittedEventMetadata,
       expectedVersion?: number,
       notify?: boolean
-    ): Promise<CommittedEvent[]> => {
+    ): Promise<CommittedEvent<E>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
         throw new ConcurrencyError(
@@ -89,7 +93,7 @@ export const InMemoryStore = (): Store => {
 
       let version = aggregate.length;
       const committed = events.map(({ name, data }) => {
-        const committed: CommittedEvent = {
+        const committed: CommittedEvent<E> = {
           id: _events.length,
           stream,
           version,

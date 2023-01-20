@@ -73,3 +73,8 @@ GET {{host}}/room
 
 ### Get API stats
 GET {{host}}/stats
+
+### Get rooms from hotel projection
+GET {{host}}/hotel/Room-101
+###
+GET {{host}}/hotel/Room-102

@@ -17,7 +17,10 @@ import {
  * @param schema the zod schema
  * @returns the validated payload
  */
-export const validate = <T>(payload: T, schema: ZodType<T>): T => {
+export const validate = <T>(
+  payload: Readonly<T>,
+  schema: ZodType<T>
+): Readonly<T> => {
   try {
     return schema.parse(payload);
   } catch (error) {
@@ -41,10 +44,11 @@ export const validateMessage = <M extends Messages>(
   const metadata = app().messages[message.name];
   if (!metadata) throw new RegistrationError(message);
   try {
-    const validated = validate(message.data, metadata.schema) as Readonly<
-      M[keyof M & string]
-    >;
-    return { name: message.name, data: validated };
+    const data = validate<M[keyof M & string]>(
+      message.data,
+      metadata.schema as ZodType<M[keyof M & string]>
+    );
+    return { name: message.name, data };
   } catch (error) {
     throw new ValidationError(
       (error as ValidationError).details.errors,
@@ -61,10 +65,11 @@ export const validateMessage = <M extends Messages>(
  * @returns The bound message
  */
 export const bind = <M extends Messages>(
-  name: keyof M & string,
-  data: Readonly<M[keyof M & string]>,
+  name: keyof M,
+  data: Readonly<M[keyof M]>,
   target?: CommandTarget
-): Message<M> | Command<M> => ({ name, data, ...target });
+): Message<M> | Command<M> =>
+  ({ name, data, ...target } as Message<M> | Command<M>);
 
 /**
  * Extends target payload with source payload after validating source
@@ -143,3 +148,11 @@ export const formatTime = (seconds: number): string => {
  */
 export const sleep = (millis: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, millis));
+
+/**
+ * Date reviver when parsing JSON
+ */
+const ISO_8601 =
+  /^(\d{4}|\+\d{6})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})\.(\d{1,})(Z|([-+])(\d{2}):(\d{2}))?)?)?)?$/;
+export const dateReviver = (key: string, value: string): string | Date =>
+  typeof value === "string" && ISO_8601.test(value) ? new Date(value) : value;

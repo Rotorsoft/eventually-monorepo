@@ -1,5 +1,6 @@
 import {
   Calculator,
+  CalculatorTotals,
   Counter,
   PressKeyAdapter,
   StatelessCounter
@@ -24,7 +25,8 @@ void bootstrap(async (): Promise<void> => {
     .with(Calculator)
     .with(Counter)
     .with(StatelessCounter)
-    .with(PressKeyAdapter);
+    .with(PressKeyAdapter)
+    .with(CalculatorTotals);
 
   _app.build();
   await _app.listen();

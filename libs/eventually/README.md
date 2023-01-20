@@ -78,7 +78,8 @@ As system architects, we need to decide how information flows from service to se
 - We use "Event Sourcing" to persist all produced events as consumable streams. This guarantees `in-order` delivery
 - Asynchronous business flows can be designed by connecting consumers with producers via subscriptions
 - A broker service will sit at a higher level to deal with channel subscriptions and communications
-- Synchronous flows are also possible (querying read only projections are a common use case) but not recommended in general
+- Synchronous flows are also possible, but not recommended in general
+- Querying read only projections synchronously is a common practice
 
 ### Integration Patterns
 
@@ -103,7 +104,7 @@ Artifact | Handler | Getters
 | ![External System](./assets/system.png) | `POST /external-system/command` | `GET /all?stream=external-system` |
 | ![Policy](./assets/policy.png) | `POST /policy` | `NA` |
 | **All** Stream | `N/A` | `GET /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]` |
-| ![Projector](./assets/projector.png) | `POST /projector` | `TBD: Fee form query API` |
+| ![Projector](./assets/projector.png) | `POST /projector` | `GET /projector/:id (TBD: Fee form query API)` |
 
 ## Testing
 

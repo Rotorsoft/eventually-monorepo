@@ -4,9 +4,13 @@ import {
   CommittedEventMetadata,
   Message,
   Messages,
+  ProjectionResults,
+  Projection,
   Snapshot,
   SnapshotsQuery,
-  State
+  State,
+  ProjectionRecord,
+  ProjectionState
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
 
@@ -43,13 +47,13 @@ export interface Store extends Disposable, Seedable {
    * @param notify optional flag to notify event handlers
    * @returns array of committed events
    */
-  commit: (
+  commit: <E extends Messages>(
     stream: string,
-    events: Message[],
+    events: Message<E>[],
     metadata: CommittedEventMetadata,
     expectedVersion?: number,
     notify?: boolean
-  ) => Promise<CommittedEvent[]>;
+  ) => Promise<CommittedEvent<E>[]>;
 
   /**
    * Gets store stats
@@ -82,4 +86,26 @@ export interface SnapshotStore extends Disposable, Seedable {
   query: <S extends State, E extends Messages>(
     query: SnapshotsQuery
   ) => Promise<Snapshot<S, E>[]>;
+}
+
+export interface ProjectorStore extends Disposable, Seedable {
+  /**
+   * Loads projection records by id
+   * @param ids the record ids
+   * @returns the stored records by id
+   */
+  load: <S extends ProjectionState>(
+    ids: string[]
+  ) => Promise<Record<string, ProjectionRecord<S>>>;
+
+  /**
+   * Commits projection with basic idempotence check
+   * @param projection the projection filters
+   * @param watermark the new watermark - ignored when new watermark <= stored watermark
+   * @returns the projection results
+   */
+  commit: <S extends ProjectionState>(
+    projection: Projection<S>,
+    watermark: number
+  ) => Promise<ProjectionResults<S>>;
 }

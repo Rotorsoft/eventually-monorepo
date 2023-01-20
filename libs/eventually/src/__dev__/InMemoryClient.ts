@@ -1,6 +1,13 @@
+import {
+  command,
+  event,
+  invoke,
+  load,
+  project,
+  query,
+  read
+} from "../handlers";
 import { Disposable } from "../interfaces";
-import { invoke, command, event, load, query } from "../handlers";
-import { bind } from "../utils";
 import {
   AllQuery,
   Client,
@@ -11,6 +18,7 @@ import {
   Snapshot,
   State
 } from "../types";
+import { bind } from "../utils";
 
 export const InMemoryClient = (): Client & Disposable => ({
   name: "InMemoryClient",
@@ -18,8 +26,8 @@ export const InMemoryClient = (): Client & Disposable => ({
   invoke,
   command: <S extends State, C extends Messages, E extends Messages>(
     factory: CommandHandlerFactory<S, C, E>,
-    name: keyof C & string,
-    data: Readonly<C[keyof C & string]>,
+    name: keyof C,
+    data: Readonly<C[keyof C]>,
     target?: CommandTarget
   ): Promise<Snapshot<S, E>[]> => command(bind(name, data, target)),
   event,
@@ -40,5 +48,7 @@ export const InMemoryClient = (): Client & Disposable => ({
       callback && callback(e);
     });
     return { first, last, count };
-  }
+  },
+  project,
+  read
 });

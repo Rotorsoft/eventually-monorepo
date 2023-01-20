@@ -1,5 +1,6 @@
-export type State = Record<string, unknown>;
-export type Messages = Record<string, Record<string, unknown>>;
+export type State = Record<string, any>;
+export type Messages = Record<string, Record<string, any>>;
+export type ProjectionState = State & { id: string };
 
 /**
  * Messages have
@@ -73,7 +74,7 @@ export type CommittedEvent<M extends Messages = Messages> = Message<M> & {
  * Snapshots hold reduced state and last applied event
  * - `state` the current state of the artifact
  * - `event?` the last event applied to the state
- * - `applyCount? the number of events reduced after last snapshot
+ * - `applyCount?` the number of events reduced after last snapshot
  */
 export type Snapshot<S extends State = State, E extends Messages = Messages> = {
   readonly state: S;
@@ -115,8 +116,48 @@ export type SnapshotsQuery = {
 
 /**
  * Response from event handlers
+ *
+ * - `command?` the command triggered by the event handler
+ * - `state?` the reducible state affected
  */
 export type EventResponse<S extends State, C extends Messages> = {
   command?: Command<C>;
   state?: S;
+};
+
+/**
+ * Projection filters
+ *
+ * - `upsert?` key=value filters and values tuple used to upsert records
+ * - `delete?` key=value filters used to delete records
+ */
+export type Projection<S extends ProjectionState> = {
+  upsert?: [Partial<S>, Partial<Omit<S, "id">>];
+  delete?: Partial<S>;
+};
+
+/**
+ * Projection results after commit
+ *
+ * - `projection` the projection filters
+ * - `upserted` the number of upserted records
+ * - `deleted` the number of deleted records
+ * - `watermark` the stored watermark
+ */
+export type ProjectionResults<S extends ProjectionState> = {
+  projection: Projection<S>;
+  upserted: number;
+  deleted: number;
+  watermark: number;
+};
+
+/**
+ * Projection record
+ *
+ * - `state` the stored projection state
+ * - `watermark` the stored watermark
+ */
+export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
+  state: Readonly<S>;
+  watermark: number;
 };

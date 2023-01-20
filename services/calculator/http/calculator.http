@@ -1,4 +1,4 @@
-@host = http://localhost:3002
+@host = http://localhost:3000
 ###
 
 GET {{host}}/stats

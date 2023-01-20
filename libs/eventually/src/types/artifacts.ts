@@ -1,5 +1,13 @@
 import { z, ZodType } from "zod";
-import { Messages, State, Command } from "./messages";
+import {
+  Messages,
+  State,
+  Command,
+  CommittedEvent,
+  Projection,
+  ProjectionRecord,
+  ProjectionState
+} from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
 
 export type ArtifactType =
@@ -7,7 +15,8 @@ export type ArtifactType =
   | "system"
   | "policy"
   | "process-manager"
-  | "command-adapter";
+  | "command-adapter"
+  | "projector";
 
 /** Empty message payload */
 export type Empty = Record<string, never>;
@@ -18,7 +27,7 @@ export const ZodEmpty = z.record(z.never());
  * All artifacts transferred from models have
  * - `description` to help with documentation
  */
-export type Artifact = {
+export type WithDescription = {
   description: string;
 };
 
@@ -37,7 +46,7 @@ type WithCommandHandlers<
     commands: { [K in keyof C]: ZodType<C[K]> };
     events: { [K in keyof E]: ZodType<E[K]> };
   };
-  on: { [K in keyof C & string]: CommandHandler<S, C, E, K> };
+  on: { [K in keyof C]: CommandHandler<S, C, E, K> };
 };
 
 /**
@@ -54,7 +63,7 @@ type WithEventHandlers<
     events: { [K in keyof E]: ZodType<E[K]> };
   };
   on: {
-    [K in keyof E & string]: EventHandler<S, C, E, K>;
+    [K in keyof E]: EventHandler<S, C, E, K>;
   };
 };
 
@@ -71,7 +80,7 @@ type WithCommandOutputs<C extends Messages> = {
 /**
  * Streamable artifacts commit events to named streams
  */
-export type Streamable = Artifact & {
+export type Streamable = WithDescription & {
   stream: () => string;
 };
 
@@ -91,7 +100,7 @@ export type Reducible<
     events: { [K in keyof E]: ZodType<E[K]> };
   };
   init: () => Readonly<S>;
-  reduce: { [K in keyof E & string]: EventReducer<S, E, K> };
+  reduce: { [K in keyof E]: EventReducer<S, E, K> };
 };
 
 /**
@@ -118,7 +127,7 @@ export type System<
 export type Policy<
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Artifact & WithEventHandlers<State, C, E> & WithCommandOutputs<C>;
+> = WithDescription & WithEventHandlers<State, C, E> & WithCommandOutputs<C>;
 
 /**
  * Process managers are policies with reducible state
@@ -134,12 +143,28 @@ export type ProcessManager<
   WithCommandOutputs<C>;
 
 /**
- * Projectors reduce events to read model state
+ * Projectors handle events and produce projections
+ * - `load` handlers produce the ids of records loaded into the `on` handlers
+ * - `on` handlers produce key=value filters/values representing the projected area (merged or deleted)
  */
 export type Projector<
-  S extends State = State,
+  S extends ProjectionState = ProjectionState,
   E extends Messages = Messages
-> = Reducible<S, E>;
+> = WithDescription & {
+  schemas: {
+    state: ZodType<S>;
+    events: { [K in keyof E]: ZodType<E[K]> };
+  };
+  load: {
+    [K in keyof E]?: (event: CommittedEvent<Pick<E, K>>) => string[];
+  };
+  on: {
+    [K in keyof E]: (
+      event: CommittedEvent<Pick<E, K>>,
+      records: Record<string, ProjectionRecord<S>>
+    ) => Projection<S>;
+  };
+};
 
 /**
  * Command adapters map any message payload to commands
@@ -150,7 +175,7 @@ export type Projector<
 export type CommandAdapter<
   S extends State = State,
   C extends Messages = Messages
-> = Artifact &
+> = WithDescription &
   WithCommandOutputs<C> & {
     schemas: {
       message: ZodType<S>;
@@ -179,11 +204,12 @@ export type EventHandlingArtifact<
 /**
  * All message handling artifacts
  */
-export type MessageHandlingArtifact<
+export type Artifact<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
 > =
   | CommandHandlingArtifact<S, C, E>
   | EventHandlingArtifact<S, C, E>
-  | CommandAdapter<S, C>;
+  | CommandAdapter<S, C>
+  | Projector<S & { id: string }, E>;

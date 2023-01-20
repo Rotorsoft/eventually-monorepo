@@ -8,12 +8,16 @@ import {
   Errors,
   EventHandlerFactory,
   log,
+  ProjectionResults,
+  ProjectorFactory,
   ReducibleFactory,
   Snapshot,
   SnapshotsQuery,
   SnapshotStore,
   State,
-  store
+  store,
+  ProjectionState,
+  ProjectionRecord
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
 
@@ -195,6 +199,43 @@ export const eventHandler =
     try {
       const response = await client().event(factory, req.body);
       return res.status(200).send(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const projectHandler =
+  (factory: ProjectorFactory) =>
+  async (
+    req: Request<never, any, CommittedEvent[]>,
+    res: Response<ProjectionResults<ProjectionState>>,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      res.header("content-type", "application/json");
+      res.write("[");
+      for (let i = 0; i < req.body.length; i++) {
+        i && res.write(",");
+        res.write(JSON.stringify(await client().project(factory, req.body[i])));
+      }
+      res.write("]");
+      return res.status(200).end();
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const getProjectionHandler =
+  (factory: ProjectorFactory) =>
+  async (
+    req: Request<{ id: string }, never, never, never>,
+    res: Response<ProjectionRecord<ProjectionState>>,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const { id } = req.params;
+      const response = await client().read(factory, [id]);
+      return res.status(200).send(response[id]);
     } catch (error) {
       next(error);
     }

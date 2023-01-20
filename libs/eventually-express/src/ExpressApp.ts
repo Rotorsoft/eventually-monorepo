@@ -2,9 +2,11 @@ import {
   Builder,
   CommandAdapterFactory,
   CommandHandlerFactory,
+  dateReviver,
   decamelize,
   EventHandlerFactory,
   log,
+  ProjectorFactory,
   ReducibleFactory
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -18,21 +20,16 @@ import {
   errorHandler,
   eventHandler,
   getHandler,
+  getProjectionHandler,
   getStreamHandler,
   invokeHandler,
+  projectHandler,
   snapshotQueryHandler,
   statsHandler
 } from "./handlers";
 import { openAPI } from "./openapi";
 import { home } from "./openapi/docs";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
-
-const regexIso8601 =
-  /^(\d{4}|\+\d{6})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})\.(\d{1,})(Z|([-+])(\d{2}):(\d{2}))?)?)?)?$/;
-const dateReviver = (key: string, value: string): string | Date =>
-  typeof value === "string" && regexIso8601.test(value)
-    ? new Date(value)
-    : value;
 
 export class ExpressApp extends Builder {
   private _app = express();
@@ -81,6 +78,16 @@ export class ExpressApp extends Builder {
         const path = httpPostPath(factory.name, type);
         this._router.post(path, eventHandler(factory as EventHandlerFactory));
         log().magenta().info("POST", path, inputs);
+      } else if (type === "projector") {
+        const path = httpPostPath(factory.name, type);
+        this._router.post(path, projectHandler(factory as ProjectorFactory));
+        log().magenta().info("POST", path, inputs);
+        const getPath = path.concat("/:id");
+        this._router.get(
+          getPath,
+          getProjectionHandler(factory as ProjectorFactory)
+        );
+        log().green().info("GET ", getPath);
       } else
         Object.values(inputs).forEach((message) => {
           const path = httpPostPath(factory.name, type, message);

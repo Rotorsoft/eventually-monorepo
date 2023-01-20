@@ -6,7 +6,7 @@ import {
   Projector,
   System
 } from "./artifacts";
-import { CommittedEvent, Messages, State } from "./messages";
+import { CommittedEvent, Messages, ProjectionState, State } from "./messages";
 
 /**
  * Aggregate factories build aggregates
@@ -46,7 +46,7 @@ export type ProcessManagerFactory<
  * Projector factories build projectors
  */
 export type ProjectorFactory<
-  S extends State = State,
+  S extends ProjectionState = ProjectionState,
   E extends Messages = Messages
 > = () => Projector<S, E>;
 
@@ -88,11 +88,12 @@ export type EventHandlerFactory<
 /**
  * All message handler factories
  */
-export type MessageHandlerFactory<
+export type ArtifactFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
 > =
   | CommandHandlerFactory<S, C, E>
   | EventHandlerFactory<S, C, E>
-  | CommandAdapterFactory<S, C>;
+  | CommandAdapterFactory<S, C>
+  | ProjectorFactory<S & { id: string }, E>;

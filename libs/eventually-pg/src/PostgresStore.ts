@@ -3,12 +3,14 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   ConcurrencyError,
+  dateReviver,
   log,
   Message,
+  Messages,
   Store,
   StoreStat
 } from "@rotorsoft/eventually";
-import { Pool } from "pg";
+import { Pool, types } from "pg";
 import { config } from "./config";
 import { stream } from "./seed";
 
@@ -21,6 +23,8 @@ type Event = {
   created: Date;
   metadata: any;
 };
+
+types.setTypeParser(types.builtins.JSON, (val) => JSON.parse(val, dateReviver));
 
 export const PostgresStore = (table: string): Store => {
   const pool = new Pool(config.pg);
@@ -89,12 +93,12 @@ export const PostgresStore = (table: string): Store => {
       return result.rowCount;
     },
 
-    commit: async (
+    commit: async <E extends Messages>(
       stream: string,
-      events: Message[],
+      events: Message<E>[],
       metadata: CommittedEventMetadata,
       expectedVersion?: number
-    ): Promise<CommittedEvent[]> => {
+    ): Promise<CommittedEvent<E>[]> => {
       const client = await pool.connect();
       let version = -1;
       try {
@@ -115,7 +119,7 @@ export const PostgresStore = (table: string): Store => {
           VALUES($1, $2, $3, $4, $5) RETURNING *`,
               [name, data, stream, version, metadata]
             );
-            return committed.rows[0] as CommittedEvent;
+            return committed.rows[0] as CommittedEvent<E>;
           })
         );
 

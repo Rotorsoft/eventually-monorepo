@@ -1,8 +1,8 @@
 import {
   app,
+  ArtifactFactory,
   bootstrap,
   log,
-  MessageHandlerFactory,
   store
 } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
@@ -29,7 +29,7 @@ export const boot = (): Promise<void> =>
             try {
               const pkg = await import(packname);
               artifacts.forEach((artifact) =>
-                _app.with(pkg[artifact] as MessageHandlerFactory)
+                _app.with(pkg[artifact] as ArtifactFactory)
               );
             } catch (error) {
               log().error(error);

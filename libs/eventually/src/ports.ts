@@ -4,7 +4,12 @@ import { Disposable, Logger, Store } from "./interfaces";
 import * as loggers from "./loggers";
 import { singleton } from "./singleton";
 import { Client, Environments } from "./types";
-import { InMemoryApp, InMemoryClient, InMemoryStore } from "./__dev__";
+import {
+  InMemoryApp,
+  InMemoryClient,
+  InMemoryProjectorStore,
+  InMemoryStore
+} from "./__dev__";
 
 export const config = singleton(function config() {
   return { ..._config(), name: "config", dispose: () => Promise.resolve() };
@@ -32,4 +37,9 @@ export const log = singleton(function log(logger?: Logger) {
 
 export const client = singleton(function client(client?: Client & Disposable) {
   return client || InMemoryClient();
+});
+
+// in-memory projection store local singleton for dev/testing
+export const _imps = singleton(function imps() {
+  return InMemoryProjectorStore();
 });

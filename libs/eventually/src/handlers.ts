@@ -1,6 +1,7 @@
-import { app, log, store } from "./ports";
+import { app, log, store, _imps } from "./ports";
 import {
   AllQuery,
+  Artifact,
   Command,
   CommandAdapterFactory,
   CommandHandlerFactory,
@@ -9,8 +10,11 @@ import {
   EventHandlerFactory,
   EventResponse,
   Message,
-  MessageHandlingArtifact,
   Messages,
+  ProjectionRecord,
+  ProjectionResults,
+  ProjectionState,
+  ProjectorFactory,
   Reducible,
   ReducibleFactory,
   RegistrationError,
@@ -72,7 +76,7 @@ const _handleMsg = async <
   C extends Messages,
   E extends Messages
 >(
-  artifact: MessageHandlingArtifact<S, C, E>,
+  artifact: Artifact<S, C, E>,
   callback: (state: S) => Promise<Message<E>[]>,
   metadata: CommittedEventMetadata,
   notify = true
@@ -104,7 +108,7 @@ const _handleMsg = async <
             `   ... ${stream} committed ${event.name} @ ${event.version}`,
             event.data
           );
-        state = reduce[event.name](state, event as CommittedEvent<E>);
+        state = reduce[event.name](state, event);
         log()
           .gray()
           .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
@@ -150,20 +154,22 @@ export const command = async <
   command: Command<C>,
   metadata?: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
-  const { name, data, id, expectedVersion, actor } = command;
+  const validated = validateMessage(command);
+  const { name, id, expectedVersion, actor } = command;
+
   const msg = app().messages[name];
-  if (!msg || !msg.handlers.length) throw new RegistrationError(command);
+  if (!msg.handlers.length) throw new RegistrationError(command);
   const factory = app().artifacts[msg.handlers[0]]
     .factory as unknown as CommandHandlerFactory<S, C, E>;
   if (!factory) throw new RegistrationError(command);
+
   log().blue().trace(`\n>>> ${factory.name}`, command, metadata);
 
-  const validated = validate(data, msg.schema) as C[keyof C & string];
   const artifact = factory(id || "");
   Object.setPrototypeOf(artifact, factory as object);
   return await _handleMsg<S, C, E>(
     artifact,
-    (state) => artifact.on[name](validated, state, actor),
+    (state) => artifact.on[name](validated.data, state, actor),
     {
       correlation: metadata?.correlation || randomId(),
       causation: {
@@ -229,3 +235,37 @@ export const query = async (
   query: AllQuery,
   callback: (event: CommittedEvent) => void
 ): Promise<number> => await store().query(callback, query);
+
+export const project = async <S extends ProjectionState, E extends Messages>(
+  factory: ProjectorFactory<S, E>,
+  event: CommittedEvent<E>
+): Promise<ProjectionResults<S>> => {
+  log().green().trace(`\n>>> ${factory.name}`, event);
+
+  validateMessage(event);
+  const artifact = factory();
+  Object.setPrototypeOf(artifact, factory as object);
+
+  const projector = app().projectorStores[factory.name] || _imps();
+  const load = artifact.load[event.name];
+  const ids = (load && load(event)) || [];
+  const records = await projector.load<S>(ids);
+  const projection = artifact.on[event.name](event, records);
+  const committed = await projector.commit(projection, event.id);
+  log()
+    .gray()
+    .trace(
+      "   ... committed",
+      JSON.stringify(projection),
+      JSON.stringify(committed)
+    );
+  return committed;
+};
+
+export const read = <S extends ProjectionState, E extends Messages>(
+  factory: ProjectorFactory<S, E>,
+  ids: string[]
+): Promise<Record<string, ProjectionRecord<S>>> => {
+  const projector = app().projectorStores[factory.name] || _imps();
+  return projector.load<S>(ids);
+};

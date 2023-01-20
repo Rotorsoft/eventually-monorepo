@@ -1,10 +1,5 @@
-import {
-  app,
-  client,
-  dispose,
-  InMemorySnapshotStore,
-  Snapshot
-} from "@rotorsoft/eventually";
+import { app, client, dispose, Snapshot } from "@rotorsoft/eventually";
+import { Hotel } from "../Hotel.projector";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
@@ -26,16 +21,8 @@ const bookRoom = (
   );
 
 describe("Room", () => {
-  const snapshotStore = InMemorySnapshotStore();
-
   beforeAll(async () => {
-    app()
-      .with(Room)
-      .withSnapshot(Room, {
-        store: snapshotStore,
-        threshold: -1
-      })
-      .build();
+    app().with(Room).with(Hotel).build();
     await app().listen();
 
     await openRoom({ number: 101, price: 100, type: schemas.RoomType.SINGLE });
@@ -48,8 +35,12 @@ describe("Room", () => {
   });
 
   it("should search rooms", async () => {
-    const rooms = await snapshotStore.query({});
-    expect(rooms.length).toBe(3);
+    const rooms = await client().read(Hotel, [
+      "Room-101",
+      "Room-102",
+      "Room-103"
+    ]);
+    expect(Object.values(rooms).length).toBe(3);
   });
 
   it("should book room", async () => {
@@ -65,6 +56,27 @@ describe("Room", () => {
     expect(room[0].state?.reservations?.at(0)?.totalPrice).toBe(
       2 * room[0].state.price
     );
+    const roomstate = await client().read(Hotel, ["Room-102"]);
+    expect(roomstate).toEqual({
+      ["Room-102"]: {
+        state: {
+          id: "Room-102",
+          number: 102,
+          type: schemas.RoomType.DOUBLE,
+          price: 200,
+          reserved: {
+            [checkin.toISOString().substring(0, 10)]: "r1",
+            [new Date(checkin.valueOf() + 1 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .substring(0, 10)]: "r1",
+            [new Date(checkin.valueOf() + 2 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .substring(0, 10)]: "r1"
+          }
+        },
+        watermark: 3
+      }
+    });
   });
 
   it("should fail booking", async () => {

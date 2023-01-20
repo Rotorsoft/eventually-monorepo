@@ -12,6 +12,7 @@ import {
   getArtifactTags,
   getMessageSchemas,
   getPaths,
+  getProjectionSchemas,
   getReducibleSchemas,
   Security,
   toResponse,
@@ -217,6 +218,7 @@ export const openAPI = (): OpenAPIObject => {
       schemas: {
         ...getMessageSchemas(),
         ...getReducibleSchemas(),
+        ...getProjectionSchemas(),
         ...allStreamSchemas(allStream),
         ...errorSchemas
       }
