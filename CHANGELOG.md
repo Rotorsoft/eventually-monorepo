@@ -1,3 +1,14 @@
+#### 2023-01-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.5...@rotorsoft/eventually-v5.0.6) @rotorsoft/eventually-v5.0.6
+  - PATCH [1c38b331](https://github.com/Rotorsoft/eventually-monorepo/commit/1c38b3311d2bb950d762806d26d93f4bd168389e) fix: implement pg projector store, add date reviver to pg json parsing
+  - PATCH [7196b817](https://github.com/Rotorsoft/eventually-monorepo/commit/7196b817aef772879e37ce09dc25769e422a102e) fix: add projector stores to builder interface
+  - PATCH [54581db7](https://github.com/Rotorsoft/eventually-monorepo/commit/54581db7ce1e1f66c535632dba3996f947d8eb99) fix: refactor projector abstraction
+  - PATCH [c1860fd8](https://github.com/Rotorsoft/eventually-monorepo/commit/c1860fd85432b0236bab770129dd2e625c969e9f) fix: add hotel projector
+  - PATCH [390f2b00](https://github.com/Rotorsoft/eventually-monorepo/commit/390f2b005698dce9f78665d0f15d986d6f49c221) fix: refine projector abstraction
+  - PATCH [aca66b09](https://github.com/Rotorsoft/eventually-monorepo/commit/aca66b093fe759dca3f83974f4046a30e162f80b) fix: support key/value projections using filters and values
+  - PATCH [32c292fe](https://github.com/Rotorsoft/eventually-monorepo/commit/32c292fe91b9ecade8cba436f67bb084952222c5) fix: add message validation to project
+  - PATCH [2e7d8a64](https://github.com/Rotorsoft/eventually-monorepo/commit/2e7d8a648953d58757abd25919f56e71b6e14ffe) fix: in-memory-projector-store to catch out of order watermarks
+  - PATCH [42e9dd4e](https://github.com/Rotorsoft/eventually-monorepo/commit/42e9dd4e707beecae342d8b73300e6bf11eea5a0) fix: update documentation
+  - PATCH [25a6efe7](https://github.com/Rotorsoft/eventually-monorepo/commit/25a6efe7f2b3ef8045d5bac2e98bffdc30f0baed) fix: add projector artifact
 #### 2023-01-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.4...@rotorsoft/eventually-v5.0.5) @rotorsoft/eventually-v5.0.5
   - PATCH [0e14b95b](https://github.com/Rotorsoft/eventually-monorepo/commit/0e14b95bea4331c5455cd7ab3629b8087d2943fd) fix: refactor types for projectors
 #### 2023-01-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.3...@rotorsoft/eventually-v5.0.4) @rotorsoft/eventually-v5.0.4
