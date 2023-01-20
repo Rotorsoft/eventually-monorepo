@@ -1,6 +1,3 @@
-process.env.NODE_ENV = "development";
-process.env.LOG_LEVEL = "trace";
-
 import {
   dispose,
   Projection,
