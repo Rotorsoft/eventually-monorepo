@@ -1,3 +1,5 @@
+#### 2023-01-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.1...@rotorsoft/eventually-service-expg-v1.0.2) @rotorsoft/eventually-service-expg-v1.0.2
+  - PATCH [25a6efe7](https://github.com/Rotorsoft/eventually-monorepo/commit/25a6efe7f2b3ef8045d5bac2e98bffdc30f0baed) fix: add projector artifact
 #### 2023-01-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.5...@rotorsoft/eventually-broker-v2.0.6) @rotorsoft/eventually-broker-v2.0.6
   - PATCH [7196b817](https://github.com/Rotorsoft/eventually-monorepo/commit/7196b817aef772879e37ce09dc25769e422a102e) fix: add projector stores to builder interface
   - PATCH [25a6efe7](https://github.com/Rotorsoft/eventually-monorepo/commit/25a6efe7f2b3ef8045d5bac2e98bffdc30f0baed) fix: add projector artifact
