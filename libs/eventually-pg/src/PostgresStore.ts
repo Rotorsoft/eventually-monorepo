@@ -3,13 +3,14 @@ import {
   CommittedEvent,
   CommittedEventMetadata,
   ConcurrencyError,
+  dateReviver,
   log,
   Message,
   Messages,
   Store,
   StoreStat
 } from "@rotorsoft/eventually";
-import { Pool } from "pg";
+import { Pool, types } from "pg";
 import { config } from "./config";
 import { stream } from "./seed";
 
@@ -22,6 +23,8 @@ type Event = {
   created: Date;
   metadata: any;
 };
+
+types.setTypeParser(types.builtins.JSON, (val) => JSON.parse(val, dateReviver));
 
 export const PostgresStore = (table: string): Store => {
   const pool = new Pool(config.pg);

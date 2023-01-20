@@ -1,3 +1,5 @@
+import { ProjectionState } from "@rotorsoft/eventually";
+
 export const stream = (table: string): string => `
 CREATE TABLE IF NOT EXISTS public.${table}
 (
@@ -61,3 +63,23 @@ CREATE TABLE IF NOT EXISTS public.${table}
   stream varchar(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY,
   data json
 ) TABLESPACE pg_default;`;
+
+// TODO: infer pg schema types from projection state (zod?)
+export type ProjectionSchema<S extends ProjectionState> = {
+  [K in keyof S]: string;
+};
+export const projector = <S extends ProjectionState>(
+  table: string,
+  schema: ProjectionSchema<S>,
+  indexes: string
+): string => {
+  const fields = Object.entries(schema).map(
+    ([field, type]) => `"${field}" ${type}`
+  );
+  return `
+  CREATE TABLE IF NOT EXISTS public.${table}(
+    ${fields.join(",\n\t")},
+    __watermark bigint NOT NULL) TABLESPACE pg_default;
+
+  ${indexes}`;
+};

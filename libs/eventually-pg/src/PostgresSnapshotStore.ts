@@ -1,7 +1,14 @@
-import { dispose, log, SnapshotStore } from "@rotorsoft/eventually";
-import { Pool } from "pg";
+import {
+  dateReviver,
+  dispose,
+  log,
+  SnapshotStore
+} from "@rotorsoft/eventually";
+import { Pool, types } from "pg";
 import { config } from "./config";
 import { snapshot } from "./seed";
+
+types.setTypeParser(types.builtins.JSON, (val) => JSON.parse(val, dateReviver));
 
 export const PostgresSnapshotStore = (table: string): SnapshotStore => {
   const pool = new Pool(config.pg);

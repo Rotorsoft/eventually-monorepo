@@ -1,5 +1,5 @@
-export type State = Record<string, unknown>;
-export type Messages = Record<string, Record<string, unknown>>;
+export type State = Record<string, any>;
+export type Messages = Record<string, Record<string, any>>;
 export type ProjectionState = State & { id: string };
 
 /**
