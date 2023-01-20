@@ -1,3 +1,6 @@
+#### 2023-01-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.0.1...@rotorsoft/eventually-pg-v5.0.2) @rotorsoft/eventually-pg-v5.0.2
+  - PATCH [1c38b331](https://github.com/Rotorsoft/eventually-monorepo/commit/1c38b3311d2bb950d762806d26d93f4bd168389e) fix: implement pg projector store, add date reviver to pg json parsing
+  - PATCH [aca66b09](https://github.com/Rotorsoft/eventually-monorepo/commit/aca66b093fe759dca3f83974f4046a30e162f80b) fix: support key/value projections using filters and values
 #### 2023-01-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.5...@rotorsoft/eventually-v5.0.6) @rotorsoft/eventually-v5.0.6
   - PATCH [1c38b331](https://github.com/Rotorsoft/eventually-monorepo/commit/1c38b3311d2bb950d762806d26d93f4bd168389e) fix: implement pg projector store, add date reviver to pg json parsing
   - PATCH [7196b817](https://github.com/Rotorsoft/eventually-monorepo/commit/7196b817aef772879e37ce09dc25769e422a102e) fix: add projector stores to builder interface
