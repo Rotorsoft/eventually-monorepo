@@ -1,41 +1,16 @@
-import { event, project } from "../handlers";
-import { app } from "../index";
 import { Store, StoreStat } from "../interfaces";
 import {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
   ConcurrencyError,
-  EventHandlerFactory,
   Message,
-  Messages,
-  ProjectorFactory
+  Messages
 } from "../types";
 
 export const InMemoryStore = (): Store => {
   const _events: CommittedEvent[] = [];
-
-  /**
-   * !!! IMPORTANT !!!
-   * In memory store is used only for unit testing systems
-   * The entire system is configured in memory and all event handlers are automatically subscribed to a single channel
-   * Committed events are automatically published to all policies that are able to handle the events
-   * A broker service should manage subscriptions when using a database as the store or in a distributed deployment
-   * @param events the committed events
-   */
-  const _notify = async (events: CommittedEvent[]): Promise<void> => {
-    for (const e of events) {
-      const msg = app().messages[e.name];
-      await Promise.all(
-        Object.values(msg.handlers).map((name) => {
-          const artifact = app().artifacts[name];
-          return artifact.type === "projector"
-            ? project(artifact.factory as ProjectorFactory, e)
-            : event(artifact.factory as EventHandlerFactory, e);
-        })
-      );
-    }
-  };
+  const _watermarks: Record<string, number> = {};
 
   return {
     name: "InMemoryStore",
@@ -76,12 +51,11 @@ export const InMemoryStore = (): Store => {
       return Promise.resolve(count);
     },
 
-    commit: async <E extends Messages>(
+    commit: <E extends Messages>(
       stream: string,
       events: Message<E>[],
       metadata: CommittedEventMetadata,
-      expectedVersion?: number,
-      notify?: boolean
+      expectedVersion?: number
     ): Promise<CommittedEvent<E>[]> => {
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
@@ -106,8 +80,7 @@ export const InMemoryStore = (): Store => {
         version++;
         return committed;
       });
-      notify && (await _notify(committed));
-      return committed;
+      return Promise.resolve(committed);
     },
 
     stats: (): Promise<StoreStat[]> => {
@@ -124,6 +97,12 @@ export const InMemoryStore = (): Store => {
         stat.lastCreated = e.created;
       });
       return Promise.resolve(Object.values(stats));
+    },
+
+    get_watermarks: () => Promise.resolve(_watermarks),
+    set_watermarks: (watermarks) => {
+      Object.assign(_watermarks, watermarks);
+      return Promise.resolve();
     }
   };
 };

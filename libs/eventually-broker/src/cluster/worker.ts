@@ -1,4 +1,11 @@
-import { CommittedEvent, dispose, ExitCodes, log } from "@rotorsoft/eventually";
+import {
+  CommittedEvent,
+  dispose,
+  ExitCodes,
+  log,
+  scheduler,
+  Schedule
+} from "@rotorsoft/eventually";
 import {
   AppOptions,
   Operation,
@@ -10,7 +17,6 @@ import {
   TriggerPayload
 } from "..";
 import { formatDate } from "../utils";
-import { loop, Loop } from "./loop";
 import {
   WorkerConfig,
   CommittableHttpStatus,
@@ -43,13 +49,13 @@ const sendState = (state: SubscriptionState, logit = true): void => {
 
 type Sub = {
   state: SubscriptionState;
-  loop: Loop;
+  loop: Schedule;
   retry_count: number;
 };
 
 export const work = async (options: AppOptions): Promise<void> => {
   const config = JSON.parse(process.env.WORKER_ENV || "") as WorkerConfig;
-  const masterLoop = loop(config.id);
+  const masterLoop = scheduler(config.id);
   const subs: Record<string, Sub> = {};
   let refreshTimer: NodeJS.Timeout;
 
@@ -143,7 +149,7 @@ export const work = async (options: AppOptions): Promise<void> => {
       }
 
       let count = state.batchSize;
-      while (count === state.batchSize && !loop.stopped()) {
+      while (count === state.batchSize && loop.status() === "running") {
         // pull events
         state.stats.batches++;
         state.endpointStatus.name = undefined;
@@ -319,7 +325,7 @@ export const work = async (options: AppOptions): Promise<void> => {
       current && Object.assign(state.stats, current.state.stats);
       const refresh = (subs[sub.id] = subs[sub.id] || {
         state,
-        loop: loop(sub.id),
+        loop: scheduler(sub.id),
         retry_count: 0
       });
       refresh.state = state;
@@ -358,7 +364,7 @@ export const work = async (options: AppOptions): Promise<void> => {
       Object.values(config.subscriptions).map(async (sub) => {
         const s = (subs[sub.id] = {
           state: await toState(sub),
-          loop: loop(sub.id),
+          loop: scheduler(sub.id),
           retry_count: 0
         });
         sendState(s.state, false);

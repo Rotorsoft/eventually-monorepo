@@ -164,6 +164,37 @@ export const PostgresStore = (table: string): Store => {
           5 DESC`;
 
       return (await pool.query<StoreStat>(sql)).rows;
+    },
+
+    get_watermarks: async () => {
+      const rows = (
+        await pool.query<{ name: string; watermark: number }>(
+          `SELECT * FROM ${table}_watermarks`
+        )
+      ).rows.map(({ name, watermark }) => [name, watermark]);
+      return Object.fromEntries(rows);
+    },
+
+    set_watermarks: async (watermarks) => {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        await Promise.all(
+          Object.entries(watermarks).map(([name, watermark]) =>
+            client.query(
+              `INSERT INTO ${table}_watermarks VALUES($1, $2) ON CONFLICT (name) DO UPDATE SET watermark=$2 WHERE ${table}_watermarks.name=$1`,
+              [name, watermark]
+            )
+          )
+        );
+        await client.query("COMMIT");
+      } catch (error) {
+        log().error(error);
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
     }
   };
 };

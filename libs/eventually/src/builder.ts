@@ -6,7 +6,6 @@ import {
   ArtifactFactory,
   ArtifactMetadata,
   Messages,
-  ProjectionState,
   ProjectorFactory,
   State
 } from "./types";
@@ -16,12 +15,6 @@ type MessageMetadata<M extends Messages = Messages> = {
   schema: ZodType<M[keyof M]>;
   type: "command" | "event" | "message";
   handlers: string[];
-};
-
-type SnapshotOptions = {
-  store: SnapshotStore;
-  threshold: number;
-  expose?: boolean;
 };
 
 export abstract class Builder implements Disposable {
@@ -34,10 +27,9 @@ export abstract class Builder implements Disposable {
 
   private _hasStreams = false;
   readonly version;
-  readonly snapOpts: Record<string, SnapshotOptions> = {};
   readonly messages: Record<string, MessageMetadata> = {};
   readonly artifacts: Record<string, ArtifactMetadata> = {};
-  readonly projectorStores: Record<string, ProjectorStore> = {};
+  readonly stores: Record<string, ProjectorStore | SnapshotStore> = {};
 
   constructor(version: string) {
     this.version = version;
@@ -152,28 +144,30 @@ export abstract class Builder implements Disposable {
   }
 
   /**
-   * Registers aggregate snapshot options
+   * Registers artifact stores
    * @param factory the factory
-   * @param snapshotOptions snapshot options
+   * @param store the store
    */
-  withSnapshot<S extends State, C extends Messages, E extends Messages>(
-    factory: AggregateFactory<S, C, E>,
-    snapshotOptions: SnapshotOptions
+  withStore<S extends State, C extends Messages, E extends Messages>(
+    factory:
+      | AggregateFactory<S, C, E>
+      | ProjectorFactory<S & { id: string }, E>,
+    store: SnapshotStore | ProjectorStore
   ): this {
-    this.snapOpts[factory.name] = snapshotOptions;
-    return this;
-  }
-
-  /**
-   * Registers projector stores
-   * @param factory the projector factory
-   * @param projectorStore the projector store
-   */
-  withProjectorStore<S extends ProjectionState, E extends Messages>(
-    factory: ProjectorFactory<S, E>,
-    projectorStore: ProjectorStore
-  ): this {
-    this.projectorStores[factory.name] = projectorStore;
+    const metadata = this.artifacts[factory.name];
+    if (!metadata)
+      throw Error(`Factory ${factory.name} must be registered before store.`);
+    if (
+      !(
+        (metadata.type === "aggregate" &&
+          "read" in store &&
+          "upsert" in store &&
+          "query" in store) ||
+        (metadata.type === "projector" && "load" in store && "commit" in store)
+      )
+    )
+      throw Error(`Invalid store ${store.name} for ${factory.name}.`);
+    this.stores[factory.name] = store;
     return this;
   }
 

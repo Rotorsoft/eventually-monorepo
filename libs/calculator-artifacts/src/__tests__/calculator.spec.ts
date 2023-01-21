@@ -4,19 +4,19 @@ import { Calculator } from "../calculator.aggregate";
 import { Counter } from "../counter.policy";
 import { Forget } from "../forget.system";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
-import { InMemorySnapshotStore } from "../../../eventually/src/__dev__";
+import { InMemorySnapshotStore } from "../../../eventually/src/adapters";
 import { CalculatorCommands } from "../calculator.schemas";
 import { createEvent, pressKey } from "./messages";
 
 // app setup
 const chance = new Chance();
-const inMemorySnapshots = InMemorySnapshotStore();
+const inMemorySnapshots = InMemorySnapshotStore(2);
 app()
   .with(Forget)
   .with(Calculator)
   .with(Counter)
   .with(PressKeyAdapter)
-  .withSnapshot(Calculator, { store: inMemorySnapshots, threshold: 2 })
+  .withStore(Calculator, inMemorySnapshots)
   .build();
 
 describe("Calculator", () => {

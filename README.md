@@ -247,11 +247,6 @@ import { Room } from "./Room.aggregate";
 void bootstrap(async (): Promise<void> => {
   app(new ExpressApp())
     .with(Room)
-    .withSnapshot(Room, {
-      store: InMemorySnapshotStore(),
-      threshold: -1,
-      expose: true
-    })
     .build();
   await app().listen();
 });
@@ -324,10 +319,6 @@ describe("Room", () => {
   beforeAll(async () => {
     app()
       .with(Room)
-      .withSnapshot(Room, {
-        store: snapshotStore,
-        threshold: -1
-      })
       .build();
     await app().listen();
 

@@ -26,7 +26,7 @@ void bootstrap(async (): Promise<void> => {
   app(new ExpressApp())
     .with(Room)
     .with(Hotel)
-    .withProjectorStore(Hotel, pgProjectorStore)
+    .withStore(Hotel, pgProjectorStore)
     .build();
   await app().listen();
 });

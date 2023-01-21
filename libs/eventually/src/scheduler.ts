@@ -1,12 +1,6 @@
-import { log } from "@rotorsoft/eventually";
+import { log } from "./ports";
 
-/**
- * Loops are infinite FIFO queues of async actions executed sequentially
- * Loops are started/restarted by pushing new actions to it
- * Loops can also be stopped
- * Optional callback after action is completed
- * Optional delay before action is enqueued
- */
+type Status = "running" | "stopping" | "stopped";
 type Action = {
   id: string;
   action: () => Promise<boolean | undefined>;
@@ -14,34 +8,41 @@ type Action = {
   delay?: number;
 };
 
-export type Loop = {
+/**
+ * Schedules are FIFO queues of async actions executed sequentially
+ * Schedules can be:
+ *  - Started/Restarted - by pushing new actions, with optional callback and delay
+ *  - Stopped
+ */
+export type Schedule = {
   push: (action: Action) => void;
   stop: () => Promise<void>;
-  stopped: () => boolean;
+  status: () => Status;
 };
 
 /**
- * Loop factory
- * @param name The name of the loop
- * @returns A new loop
+ * Schedule factory
+ * @param name The name of the schedule
+ * @returns A new schedule
  */
-export const loop = (name: string): Loop => {
+export const scheduler = (name: string): Schedule => {
   const queue: Array<Action> = [];
   let pending: Record<string, NodeJS.Timeout> = {};
-  let running = false;
-  let status: "running" | "stopping" | "stopped" = "running";
+  let status: Status = "running";
+  let breakIt = false;
+
+  log().green().trace(`Schedule [${name}] created`);
 
   const push = (action: Action): void => {
     queue.push(action);
-    status = "running";
     setImmediate(run);
   };
 
   const run = async (): Promise<void> => {
-    if (!running) {
-      running = true;
+    if (status !== "stopping") {
+      status = "running";
       while (queue.length) {
-        if (status === "stopping") break;
+        if (breakIt) break;
         const action = queue.shift();
         if (action) {
           const result = await action.action();
@@ -49,7 +50,6 @@ export const loop = (name: string): Loop => {
         }
       }
       status = "stopped";
-      running = false;
     }
   };
 
@@ -65,11 +65,10 @@ export const loop = (name: string): Loop => {
     },
     stop: async (): Promise<void> => {
       if (queue.length > 0 && status === "running") {
+        breakIt = true;
         status = "stopping";
         for (let i = 1; status === "stopping" && i <= 30; i++) {
-          log()
-            .red()
-            .trace(`[${process.pid}] Stopping loop [${name}] (${i})...`);
+          log().red().trace(`Stopping schedule [${name}] (${i})...`);
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
@@ -77,7 +76,8 @@ export const loop = (name: string): Loop => {
       queue.length = 0;
       Object.values(pending).forEach((timeout) => clearTimeout(timeout));
       pending = {};
+      breakIt = false;
     },
-    stopped: () => status !== "running"
+    status: () => status
   };
 };

@@ -1,4 +1,5 @@
 import {
+  broker,
   Builder,
   CommandAdapterFactory,
   CommandHandlerFactory,
@@ -7,7 +8,8 @@ import {
   EventHandlerFactory,
   log,
   ProjectorFactory,
-  ReducibleFactory
+  ReducibleFactory,
+  SnapshotStore
 } from "@rotorsoft/eventually";
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
@@ -62,10 +64,10 @@ export class ExpressApp extends Builder {
     this._router.get(streamPath, getStreamHandler(factory));
     log().green().info("GET ", streamPath);
 
-    const snapOpts = this.snapOpts[factory.name];
-    if (snapOpts && snapOpts.expose) {
+    const snapStore = this.stores[factory.name] as SnapshotStore;
+    if (snapStore) {
       const path = `/${decamelize(factory.name)}`;
-      this._router.get(path, snapshotQueryHandler(snapOpts.store));
+      this._router.get(path, snapshotQueryHandler(snapStore));
       log().green().info("GET ", path);
     }
   }
@@ -177,6 +179,7 @@ export class ExpressApp extends Builder {
           resolve(server);
         });
       });
+    void broker().start();
   }
 
   get name(): string {

@@ -44,24 +44,32 @@ export interface Store extends Disposable, Seedable {
    * @param events array of uncommitted events
    * @param metadata metadata
    * @param expectedVersion optional aggregate expected version to provide optimistic concurrency, raises concurrency exception when not matched
-   * @param notify optional flag to notify event handlers
    * @returns array of committed events
    */
   commit: <E extends Messages>(
     stream: string,
     events: Message<E>[],
     metadata: CommittedEventMetadata,
-    expectedVersion?: number,
-    notify?: boolean
+    expectedVersion?: number
   ) => Promise<CommittedEvent<E>[]>;
 
   /**
    * Gets store stats
    */
   stats: () => Promise<StoreStat[]>;
+
+  /** Get stored event handler watermarks */
+  get_watermarks: () => Promise<Record<string, number>>;
+  /** Store event handler watermarks */
+  set_watermarks: (watermarks: Record<string, number>) => Promise<void>;
 }
 
 export interface SnapshotStore extends Disposable, Seedable {
+  /**
+   * Snapshot threshold
+   */
+  threshold: number;
+
   /**
    * Reads snapshot from store for stream
    */

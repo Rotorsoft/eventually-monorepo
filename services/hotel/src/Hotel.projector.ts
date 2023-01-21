@@ -25,7 +25,8 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
   on: {
     RoomOpened: ({ data }) => {
       const id = `Room-${data.number}`;
-      return { upsert: [{ id }, { ...data }] };
+      const { number, type, price } = data;
+      return { upsert: [{ id }, { number, type, price }] };
     },
     RoomBooked: ({ data }) => {
       const id = `Room-${data.number}`;

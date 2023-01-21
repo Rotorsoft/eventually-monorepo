@@ -1,4 +1,5 @@
-import { app, log, store, _imps } from "./ports";
+import { ProjectorStore, SnapshotStore } from "./interfaces";
+import { app, broker, log, store, _imps } from "./ports";
 import {
   AllQuery,
   Artifact,
@@ -36,11 +37,12 @@ const _load = async <S extends State, E extends Messages>(
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
-  const snapOps =
-    (useSnapshots && app().snapOpts[Object.getPrototypeOf(reducible).name]) ||
+  const snapStore =
+    ((useSnapshots &&
+      app().stores[Object.getPrototypeOf(reducible).name]) as SnapshotStore) ||
     undefined;
   const snapshot =
-    (snapOps && (await snapOps.store.read<S, E>(reducible.stream()))) ||
+    (snapStore && (await snapStore.read<S, E>(reducible.stream()))) ||
     undefined;
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
@@ -68,7 +70,6 @@ const _load = async <S extends State, E extends Messages>(
  * @param artifact the message handling artifact
  * @param callback the message handling callback
  * @param metadata the message metadata
- * @param notify flag to notify commits
  * @returns reduced snapshots of new events when artifact is reducible
  */
 const _handleMsg = async <
@@ -78,8 +79,7 @@ const _handleMsg = async <
 >(
   artifact: Artifact<S, C, E>,
   callback: (state: S) => Promise<Message<E>[]>,
-  metadata: CommittedEventMetadata,
-  notify = true
+  metadata: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
   const stream = "stream" in artifact ? artifact.stream() : undefined;
   const reduce = "reduce" in artifact ? artifact.reduce : undefined;
@@ -95,8 +95,7 @@ const _handleMsg = async <
       stream,
       events.map(validateMessage),
       metadata,
-      metadata.causation.command?.expectedVersion || snapshot.event?.version,
-      notify
+      metadata.causation.command?.expectedVersion || snapshot.event?.version
     );
 
     if (reduce) {
@@ -114,11 +113,13 @@ const _handleMsg = async <
           .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
         return { event, state } as Snapshot<S, E>;
       });
-      const snapOps = app().snapOpts[Object.getPrototypeOf(artifact).name];
-      if (snapOps && snapshot.applyCount > snapOps.threshold) {
+      const snapStore = app().stores[
+        Object.getPrototypeOf(artifact).name
+      ] as SnapshotStore;
+      if (snapStore && snapshot.applyCount > snapStore.threshold) {
         try {
           // TODO: implement reliable async snapshotting from persisted queue started by app
-          await snapOps.store.upsert(stream, snapshots.at(-1) as Snapshot);
+          await snapStore.upsert(stream, snapshots.at(-1) as Snapshot);
         } catch {
           // fail quietly for now
           // TODO: monitor failures to recover
@@ -167,7 +168,7 @@ export const command = async <
 
   const artifact = factory(id || "");
   Object.setPrototypeOf(artifact, factory as object);
-  return await _handleMsg<S, C, E>(
+  const snapshots = await _handleMsg<S, C, E>(
     artifact,
     (state) => artifact.on[name](validated.data, state, actor),
     {
@@ -179,6 +180,8 @@ export const command = async <
       }
     }
   );
+  await broker().on(snapshots.map((s) => s.event));
+  return snapshots;
 };
 
 export const event = async <
@@ -207,8 +210,7 @@ export const event = async <
       cmd && (await command<S, C, E>(cmd, metadata)); // handles commands synchronously, thus policies can fail
       return [bind(name, data)];
     },
-    metadata,
-    false // dont notify events committed by process managers to avoid loops
+    metadata
   );
   return {
     command: cmd,
@@ -246,12 +248,12 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
 
-  const projector = app().projectorStores[factory.name] || _imps();
+  const projStore = (app().stores[factory.name] as ProjectorStore) || _imps();
   const load = artifact.load[event.name];
   const ids = (load && load(event)) || [];
-  const records = await projector.load<S>(ids);
+  const records = (ids.length && (await projStore.load<S>(ids))) || {};
   const projection = artifact.on[event.name](event, records);
-  const committed = await projector.commit(projection, event.id);
+  const committed = await projStore.commit(projection, event.id);
   log()
     .gray()
     .trace(
@@ -266,6 +268,6 @@ export const read = <S extends ProjectionState, E extends Messages>(
   factory: ProjectorFactory<S, E>,
   ids: string[]
 ): Promise<Record<string, ProjectionRecord<S>>> => {
-  const projector = app().projectorStores[factory.name] || _imps();
-  return projector.load<S>(ids);
+  const projStore = (app().stores[factory.name] as ProjectorStore) || _imps();
+  return projStore.load<S>(ids);
 };
