@@ -402,7 +402,7 @@ export const state = singleton(function state(): State {
       clearTimeout(timer);
       delete _timers[id];
     });
-    await operationsLoop.stop();
+    await operationsLoop.dispose();
   });
 
   return {

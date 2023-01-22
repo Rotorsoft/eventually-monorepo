@@ -53,7 +53,9 @@ type Sub = {
   retry_count: number;
 };
 
-export const work = async (options: AppOptions): Promise<void> => {
+export const work = async (
+  options: AppOptions
+): Promise<() => Promise<void>> => {
   const config = JSON.parse(process.env.WORKER_ENV || "") as WorkerConfig;
   const masterLoop = scheduler(config.id);
   const subs: Record<string, Sub> = {};
@@ -337,14 +339,27 @@ export const work = async (options: AppOptions): Promise<void> => {
   };
 
   const exit = async (): Promise<void> => {
-    await dispose()(ExitCodes.ERROR);
+    await dispose()(
+      process.env.NODE_ENV === "test" ? ExitCodes.UNIT_TEST : ExitCodes.ERROR
+    );
   };
 
-  dispose(async () => {
+  const drain = async (): Promise<void> => {
     clearInterval(refreshTimer);
-    await Promise.all(Object.values(subs).map((sub) => sub.loop.stop()));
-    await masterLoop.stop();
-  });
+    const keys =
+      (Object.keys(subs).length &&
+        (await Promise.all(
+          Object.entries(subs).map(async ([key, sub]) => {
+            await sub.loop.dispose();
+            return key;
+          })
+        ))) ||
+      [];
+    keys.forEach((key) => delete subs[key]);
+    await masterLoop.dispose();
+  };
+
+  dispose(drain);
 
   process.on("message", (msg: MasterMessage) => {
     if (msg.operation === "REFRESH") {
@@ -381,4 +396,6 @@ export const work = async (options: AppOptions): Promise<void> => {
     process.send && process.send({ error: { message: error.message } });
     process.exit(0);
   }
+
+  return drain;
 };

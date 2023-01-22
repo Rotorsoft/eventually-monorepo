@@ -1,4 +1,6 @@
+import { Disposable } from "./interfaces";
 import { log } from "./ports";
+import { sleep } from "./utils";
 
 type Status = "running" | "stopping" | "stopped";
 type Action = {
@@ -9,16 +11,19 @@ type Action = {
 };
 
 /**
- * Schedules are FIFO queues of async actions executed sequentially
- * Schedules can be:
- *  - Started/Restarted - by pushing new actions, with optional callback and delay
- *  - Stopped
+ * Schedules are queues of async actions that need to be executed sequentially
+ * - Actions can be queued immediately or with a delay, callbacks inform when the action has been completed
+ * - Action ids are unique, rescheduling cancels any pending actions with the same id
+ * - A schedule rotates around `stopped` -> `running` -> `stopping` -> `stopped` -> ...
+ * - You can `push` actions to a `stopped` or `running` schedule
+ * - You can `stop` a `running` schedule, or it stops automatically when the queue is empty
  */
-export type Schedule = {
+export interface Schedule extends Disposable {
   push: (action: Action) => void;
   stop: () => Promise<void>;
   status: () => Status;
-};
+  pending: () => number;
+}
 
 /**
  * Schedule factory
@@ -27,22 +32,28 @@ export type Schedule = {
  */
 export const scheduler = (name: string): Schedule => {
   const queue: Array<Action> = [];
-  let pending: Record<string, NodeJS.Timeout> = {};
-  let status: Status = "running";
-  let breakIt = false;
+  const delayed: Record<string, NodeJS.Timeout> = {};
+  let status: Status = "stopped";
 
-  log().green().trace(`Schedule [${name}] created`);
+  log().green().trace(`Schedule "${name}" created`);
 
-  const push = (action: Action): void => {
-    queue.push(action);
-    setImmediate(run);
+  const schedule = (action: Action): void => {
+    delayed[action.id] && clearTimeout(delayed[action.id]);
+    delayed[action.id] = setTimeout(() => {
+      delete delayed[action.id];
+      enqueue(action);
+    }, action.delay);
   };
 
-  const run = async (): Promise<void> => {
+  const enqueue = (action: Action): void => {
+    queue.push(action);
+    status === "stopped" && setImmediate(dequeue);
+  };
+
+  const dequeue = async (): Promise<void> => {
     if (status !== "stopping") {
       status = "running";
-      while (queue.length) {
-        if (breakIt) break;
+      while (queue.length && status === "running") {
         const action = queue.shift();
         if (action) {
           const result = await action.action();
@@ -53,31 +64,31 @@ export const scheduler = (name: string): Schedule => {
     }
   };
 
-  return {
-    push: (action: Action): void => {
-      if (action.delay) {
-        pending[action.id] && clearTimeout(pending[action.id]);
-        pending[action.id] = setTimeout(() => {
-          delete pending[action.id];
-          push(action);
-        }, action.delay);
-      } else push(action);
-    },
-    stop: async (): Promise<void> => {
-      if (queue.length > 0 && status === "running") {
-        breakIt = true;
-        status = "stopping";
-        for (let i = 1; status === "stopping" && i <= 30; i++) {
-          log().red().trace(`Stopping schedule [${name}] (${i})...`);
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
+  const stop = async (): Promise<void> => {
+    if (status === "running") {
+      status = "stopping";
+      const ids = Object.entries(delayed).map(([id, timeout]) => {
+        clearTimeout(timeout);
+        return id;
+      });
+      ids.forEach((id) => delete delayed[id]);
+      for (let i = 1; status === "stopping" && i <= 30; i++) {
+        log().red().trace(`Stopping schedule "${name}" (${i})...`);
+        await sleep(1000);
       }
-      // reset on stop
       queue.length = 0;
-      Object.values(pending).forEach((timeout) => clearTimeout(timeout));
-      pending = {};
-      breakIt = false;
+    }
+  };
+
+  return {
+    name,
+    dispose: stop,
+    push: (action: Action): void => {
+      if (status !== "stopping")
+        action.delay ? schedule(action) : enqueue(action);
     },
-    status: () => status
+    stop,
+    status: () => status,
+    pending: () => Object.keys(delayed).length
   };
 };

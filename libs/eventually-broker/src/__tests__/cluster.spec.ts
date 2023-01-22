@@ -1,4 +1,4 @@
-import { dispose } from "@rotorsoft/eventually";
+import { dispose, sleep } from "@rotorsoft/eventually";
 import axios from "axios";
 import cluster from "cluster";
 import {
@@ -16,7 +16,7 @@ import {
   toViewModel,
   work
 } from "../cluster";
-import { InMemorySubscriptionStore } from "../__dev__";
+import { InMemorySubscriptionStore } from "../adapters";
 import {
   createCommittedEvent,
   FakeChildProcess,
@@ -174,15 +174,15 @@ describe("cluster", () => {
       runs: 0
     };
     process.env.WORKER_ENV = JSON.stringify(chanConfig);
-    await work({
+    const drain = await work({
       subscriptionStoreFactory: () => InMemorySubscriptionStore(),
       resolvers: {
         ...defaultResolvers,
         ...{ push: { "test:": () => TestPushChannel() } }
       }
     });
-    // await for pump to finish async
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await sleep(1000);
+    await drain();
     expect(1).toBe(1);
   });
 });
