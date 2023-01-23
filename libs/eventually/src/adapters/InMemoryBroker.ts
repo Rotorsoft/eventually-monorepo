@@ -13,10 +13,6 @@ import {
 } from "../types";
 import { randomId } from "../utils";
 
-// TODO: configure timeout and limit
-const timeout = 5000;
-const limit = 25;
-
 const event_handler_types: Array<ArtifactType> = [
   "policy",
   "process-manager",
@@ -31,12 +27,15 @@ const consumers = (): ArtifactMetadata[] =>
  * @returns true to keep polling
  */
 let _polling = false;
-const poll = async <E extends Messages>(): Promise<boolean> => {
+const poll = async <E extends Messages>(
+  timeout: number,
+  limit: number
+): Promise<boolean> => {
   if (_polling) return false;
   _polling = true;
   let maxBatch = 0;
   for (const consumer of consumers()) {
-    let watermark: number | undefined = undefined;
+    let watermark = -1;
     const lease = randomId();
     try {
       const events: Array<CommittedEvent<E>> = [];
@@ -62,26 +61,31 @@ const poll = async <E extends Messages>(): Promise<boolean> => {
     } catch (error) {
       log().error(error);
     }
-    watermark && (await store().ack(consumer.factory.name, lease, watermark));
+    watermark > -1 &&
+      (await store().ack(consumer.factory.name, lease, watermark));
   }
   _polling = false;
   return maxBatch === limit;
 };
 
-export const InMemorySyncBroker = (): Broker => ({
+export const InMemorySyncBroker = (timeout = 100, limit = 5): Broker => ({
   name: "InMemorySyncBroker",
   dispose: () => Promise.resolve(),
-  poll
+  poll: () => poll(timeout, limit)
 });
 
-export const InMemoryAsyncBroker = (pollingFrequency = 60 * 1000): Broker => {
+export const InMemoryAsyncBroker = (
+  pollingFrequency = 60 * 1000,
+  timeout = 5000,
+  limit = 25
+): Broker => {
   const name = "InMemoryAsyncBroker";
   const schedule = scheduler(name);
 
   const action = async (): Promise<boolean> => {
     try {
       log().magenta().trace("async broker polling...");
-      const more = await poll();
+      const more = await poll(timeout, limit);
       schedule.push({
         id: "poll",
         action,

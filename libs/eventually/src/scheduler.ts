@@ -65,7 +65,7 @@ export const scheduler = (name: string): Schedule => {
   };
 
   const stop = async (): Promise<void> => {
-    if (status === "running") {
+    if (status !== "stopping") {
       status = "stopping";
       const ids = Object.entries(delayed).map(([id, timeout]) => {
         clearTimeout(timeout);

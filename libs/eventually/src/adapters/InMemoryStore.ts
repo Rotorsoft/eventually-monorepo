@@ -110,15 +110,19 @@ export const InMemoryStore = (): Store => {
       timeout: number,
       callback: (event: CommittedEvent<E>) => void
     ) => {
-      const subscription = _subscriptions[consumer] || { watermark: -1 };
+      const subscription = (_subscriptions[consumer] = _subscriptions[
+        consumer
+      ] || { watermark: -1 });
+      // IMPORTANT! - this is needed with async brokers, but will break synchronous/in-memory unit testing
       // block competing consumers while existing lease is valid
-      if (
-        !(
-          subscription.lease &&
-          subscription.expires &&
-          subscription.expires > new Date()
-        )
-      ) {
+      // if (
+      //   !(
+      //     subscription.lease &&
+      //     subscription.expires &&
+      //     subscription.expires > new Date()
+      //   )
+      // )
+      {
         // create a new lease
         subscription.lease = lease;
         subscription.expires = new Date(Date.now() + timeout);
@@ -132,9 +136,10 @@ export const InMemoryStore = (): Store => {
     },
 
     ack: (consumer: string, lease: string, watermark: number) => {
-      const subscription = _subscriptions[consumer] || { watermark: -1 };
+      const subscription = _subscriptions[consumer];
       // update watermark while lease is still valid
       if (
+        subscription &&
         subscription.lease &&
         subscription.lease === lease &&
         subscription.expires &&
