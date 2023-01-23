@@ -4,20 +4,28 @@ import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
 
+const DAY = 24 * 60 * 60 * 1000;
+const fromToday = (days: number): Date =>
+  new Date(new Date().valueOf() + days * DAY);
+
 const openRoom = (
-  room: models.Room
+  room: models.Room,
+  id?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
-  client().command(Room, "OpenRoom", room, { id: room.number.toString() });
+  client().command(Room, "OpenRoom", room, {
+    id: id || room.number.toString()
+  });
 
 const bookRoom = (
   number: number,
-  reservation: models.Reservation
+  reservation: models.Reservation,
+  id?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
   client().command(
     Room,
     "BookRoom",
     { number, ...reservation },
-    { id: number.toString() }
+    { id: id || number.toString() }
   );
 
 describe("Room", () => {
@@ -44,8 +52,9 @@ describe("Room", () => {
   });
 
   it("should book room", async () => {
-    const checkin = new Date();
-    const checkout = new Date(checkin.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const checkin = fromToday(1);
+    const checkout = fromToday(2);
+
     const room = await bookRoom(102, {
       id: "r1",
       checkin,
@@ -54,7 +63,7 @@ describe("Room", () => {
     });
     expect(room[0].state?.reservations?.length).toBe(1);
     expect(room[0].state?.reservations?.at(0)?.totalPrice).toBe(
-      2 * room[0].state.price
+      room[0].state.price
     );
     const roomstate = await client().read(Hotel, ["Room-102"]);
     expect(roomstate).toEqual({
@@ -66,12 +75,7 @@ describe("Room", () => {
           price: 200,
           reserved: {
             [checkin.toISOString().substring(0, 10)]: "r1",
-            [new Date(checkin.valueOf() + 1 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .substring(0, 10)]: "r1",
-            [new Date(checkin.valueOf() + 2 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .substring(0, 10)]: "r1"
+            [checkout.toISOString().substring(0, 10)]: "r1"
           }
         },
         watermark: 3
@@ -80,8 +84,8 @@ describe("Room", () => {
   });
 
   it("should fail booking", async () => {
-    const checkin = new Date();
-    const checkout = new Date(checkin.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const checkin = fromToday(1);
+    const checkout = fromToday(2);
     await bookRoom(103, {
       id: "r2",
       checkin,
@@ -96,5 +100,76 @@ describe("Room", () => {
         totalPrice: 0
       })
     ).rejects.toThrowError();
+  });
+
+  it("should fail invariants", async () => {
+    const today = fromToday(0);
+    const yesterday = fromToday(-1);
+    const tomorrow = fromToday(1);
+    const afterTomorrow = fromToday(2);
+
+    await expect(
+      openRoom(
+        { number: 200, price: 100, type: schemas.RoomType.DELUXE },
+        "201"
+      )
+    ).rejects.toThrow("Invalid room number 200");
+
+    await expect(
+      bookRoom(
+        200,
+        {
+          id: "r3",
+          checkin: tomorrow,
+          checkout: afterTomorrow,
+          totalPrice: 0
+        },
+        "201"
+      )
+    ).rejects.toThrow("Invalid room number 200");
+
+    await expect(
+      bookRoom(
+        200,
+        {
+          id: "r3",
+          checkin: tomorrow,
+          checkout: afterTomorrow,
+          totalPrice: 0
+        },
+        "201"
+      )
+    ).rejects.toThrow("Invalid room number 200");
+
+    await expect(
+      bookRoom(200, {
+        id: "r3",
+        checkin: yesterday,
+        checkout: afterTomorrow,
+        totalPrice: 0
+      })
+    ).rejects.toThrow(
+      `Invalid checkin date ${yesterday}. Must be in the future.`
+    );
+
+    await expect(
+      bookRoom(200, {
+        id: "r3",
+        checkin: tomorrow,
+        checkout: today,
+        totalPrice: 0
+      })
+    ).rejects.toThrow(`Invalid checkout date ${today}. Must be in the future.`);
+
+    await expect(
+      bookRoom(200, {
+        id: "r3",
+        checkin: afterTomorrow,
+        checkout: tomorrow,
+        totalPrice: 0
+      })
+    ).rejects.toThrow(
+      `Invalid reservation ${afterTomorrow} - ${tomorrow}. Checkin must be earlier than checkout.`
+    );
   });
 });

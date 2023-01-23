@@ -1,0 +1,30 @@
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Number</th>
+      <th scope="col">Type</th>
+      <th scope="col">Price</th>
+      <th scope="col">Reserved</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each rooms}}
+      <tr>
+        <td>{{this.number}}</td>
+        <td>{{this.type}}</td>
+        <td>{{this.price}}</td>
+        <td>
+          {{#each this.reserved}}
+            {{this.day}}
+            <i>{{this.id}}</i>
+            <br />
+          {{/each}}
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<script>
+
+</script>
