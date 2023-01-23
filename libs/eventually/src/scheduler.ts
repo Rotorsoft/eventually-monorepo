@@ -72,11 +72,14 @@ export const scheduler = (name: string): Schedule => {
         return id;
       });
       ids.forEach((id) => delete delayed[id]);
-      for (let i = 1; status === "stopping" && i <= 30; i++) {
-        log().red().trace(`Stopping schedule "${name}" (${i})...`);
+      for (let i = 1; queue.length && status === "stopping" && i <= 10; i++) {
+        log()
+          .red()
+          .trace(`Schedule "${name}" - ${status} [${queue.length}] (${i})...`);
         await sleep(1000);
       }
       queue.length = 0;
+      status = "stopped";
     }
   };
 

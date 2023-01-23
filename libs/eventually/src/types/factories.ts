@@ -21,16 +21,16 @@ export type AggregateFactory<
  * System factories build systems
  */
 export type SystemFactory<
-  C extends Messages,
-  E extends Messages
+  C extends Messages = Messages,
+  E extends Messages = Messages
 > = () => System<C, E>;
 
 /**
  * Policy factories build policies
  */
 export type PolicyFactory<
-  C extends Messages,
-  E extends Messages
+  C extends Messages = Messages,
+  E extends Messages = Messages
 > = () => Policy<C, E>;
 
 /**
@@ -57,6 +57,18 @@ export type CommandAdapterFactory<
   P extends State = State,
   C extends Messages = Messages
 > = () => CommandAdapter<P, C>;
+
+/**
+ * All streamable factories
+ */
+export type StreamableFactory<
+  S extends State = State,
+  C extends Messages = Messages,
+  E extends Messages = Messages
+> =
+  | AggregateFactory<S, C, E>
+  | ProcessManagerFactory<S, C, E>
+  | SystemFactory<C, E>;
 
 /**
  * All reducible factories

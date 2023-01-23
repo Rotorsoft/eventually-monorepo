@@ -57,6 +57,6 @@ describe("scheduler", () => {
 
     await schedule.stop();
     expect(schedule.status()).toBe("stopped");
-    expect(callback2).toHaveBeenCalled();
+    expect(callback2).toHaveBeenCalledTimes(0);
   });
 });

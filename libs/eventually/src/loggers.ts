@@ -1,5 +1,6 @@
 import { config } from "./config";
 import { Logger } from "./interfaces";
+import { CommittedEvent } from "./types";
 import { Environments, LogLevels } from "./types/enums";
 
 enum Color {
@@ -57,6 +58,10 @@ const error = (error: any): void => {
   console.error(JSON.stringify({ severity: "ERROR", ...error }));
 };
 
+const events = (events: CommittedEvent[]): void => {
+  console.table(events, ["id", "stream", "name", "version", "created", "data"]);
+};
+
 export const devLogger = (): Logger => {
   const logger: Logger = {
     name: "dev-logger",
@@ -94,7 +99,8 @@ export const devLogger = (): Logger => {
       ),
     error: (error: unknown) => {
       console.error(error);
-    }
+    },
+    events
   };
   return logger;
 };
@@ -126,7 +132,8 @@ export const plainLogger = (): Logger => {
         config().logLevel !== LogLevels.error &&
         plain) ||
       nop,
-    error: (config().env !== Environments.test && error) || nop
+    error: (config().env !== Environments.test && error) || nop,
+    events
   };
   return logger;
 };

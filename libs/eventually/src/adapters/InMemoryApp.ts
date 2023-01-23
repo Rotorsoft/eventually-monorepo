@@ -16,7 +16,7 @@ export class InMemoryApp extends Builder {
 
   listen(): Promise<void> {
     log().info("InMemory app is listening...", undefined, config());
-    void broker().start();
+    void broker().poll();
     return Promise.resolve();
   }
 }

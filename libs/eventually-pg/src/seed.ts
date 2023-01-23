@@ -56,10 +56,12 @@ DROP INDEX IF EXISTS stream_ix;
 DROP INDEX IF EXISTS name_id;
 DROP INDEX IF EXISTS created_id_ix;
 
-CREATE TABLE IF NOT EXISTS public.${table}_watermarks
+CREATE TABLE IF NOT EXISTS public.${table}_subscriptions
 (
-	name varchar(100) PRIMARY KEY,
-  watermark bigint NOT NULL
+	consumer varchar(100) PRIMARY KEY,
+  watermark bigint NOT NULL,
+  lease varchar(100),
+  expires timestamptz
 ) TABLESPACE pg_default;
 `;
 

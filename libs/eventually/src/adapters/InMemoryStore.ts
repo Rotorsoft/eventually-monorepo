@@ -10,7 +10,40 @@ import {
 
 export const InMemoryStore = (): Store => {
   const _events: CommittedEvent[] = [];
-  const _watermarks: Record<string, number> = {};
+  const _subscriptions: Record<
+    string,
+    { watermark: number; lease?: string; expires?: Date }
+  > = {};
+
+  const query = async <E extends Messages>(
+    callback: (event: CommittedEvent<E>) => void,
+    query?: AllQuery
+  ): Promise<number> => {
+    const {
+      stream,
+      names,
+      before,
+      after = -1,
+      limit,
+      created_before,
+      created_after,
+      correlation
+    } = query || {};
+    let i = after + 1,
+      count = 0;
+    while (i < _events.length) {
+      const e = _events[i++] as CommittedEvent<E>;
+      if (stream && e.stream !== stream) continue;
+      if (names && !names.includes(e.name)) continue;
+      if (correlation && e.metadata?.correlation !== correlation) continue;
+      if (created_after && e.created <= created_after) continue;
+      if (before && e.id >= before) break;
+      if (created_before && e.created >= created_before) break;
+      callback(e);
+      if (limit && ++count >= limit) break;
+    }
+    return Promise.resolve(count);
+  };
 
   return {
     name: "InMemoryStore",
@@ -18,38 +51,8 @@ export const InMemoryStore = (): Store => {
       _events.length = 0;
       return Promise.resolve();
     },
-
     seed: () => Promise.resolve(),
-
-    query: (
-      callback: (event: CommittedEvent) => void,
-      query?: AllQuery
-    ): Promise<number> => {
-      const {
-        stream,
-        names,
-        before,
-        after = -1,
-        limit,
-        created_before,
-        created_after,
-        correlation
-      } = query || {};
-      let i = after + 1,
-        count = 0;
-      while (i < _events.length) {
-        const e = _events[i++];
-        if (stream && e.stream !== stream) continue;
-        if (names && !names.includes(e.name)) continue;
-        if (correlation && e.metadata?.correlation !== correlation) continue;
-        if (created_after && e.created <= created_after) continue;
-        if (before && e.id >= before) break;
-        if (created_before && e.created >= created_before) break;
-        callback(e);
-        if (limit && ++count >= limit) break;
-      }
-      return Promise.resolve(count);
-    },
+    query,
 
     commit: <E extends Messages>(
       stream: string,
@@ -99,10 +102,50 @@ export const InMemoryStore = (): Store => {
       return Promise.resolve(Object.values(stats));
     },
 
-    get_watermarks: () => Promise.resolve(_watermarks),
-    set_watermarks: (watermarks) => {
-      Object.assign(_watermarks, watermarks);
-      return Promise.resolve();
+    poll: async <E extends Messages>(
+      consumer: string,
+      names: string[],
+      limit: number,
+      lease: string,
+      timeout: number,
+      callback: (event: CommittedEvent<E>) => void
+    ) => {
+      const subscription = _subscriptions[consumer] || { watermark: -1 };
+      // block competing consumers while existing lease is valid
+      if (
+        !(
+          subscription.lease &&
+          subscription.expires &&
+          subscription.expires > new Date()
+        )
+      ) {
+        // create a new lease
+        subscription.lease = lease;
+        subscription.expires = new Date(Date.now() + timeout);
+        // get events after watermark
+        await query<E>((e) => callback(e), {
+          after: subscription.watermark,
+          limit,
+          names
+        });
+      }
+    },
+
+    ack: (consumer: string, lease: string, watermark: number) => {
+      const subscription = _subscriptions[consumer] || { watermark: -1 };
+      // update watermark while lease is still valid
+      if (
+        subscription.lease &&
+        subscription.lease === lease &&
+        subscription.expires &&
+        subscription.expires > new Date()
+      ) {
+        subscription.watermark = watermark;
+        delete subscription.lease;
+        delete subscription.expires;
+        return Promise.resolve(true);
+      }
+      return Promise.resolve(false);
     }
   };
 };

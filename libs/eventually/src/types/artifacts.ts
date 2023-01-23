@@ -94,7 +94,7 @@ export type Streamable = WithDescription & {
 export type Reducible<
   S extends State = State,
   E extends Messages = Messages
-> = {
+> = WithDescription & {
   schemas: {
     state: ZodType<S>;
     events: { [K in keyof E]: ZodType<E[K]> };
@@ -132,6 +132,7 @@ export type Policy<
 /**
  * Process managers are policies with reducible state
  * - Expand consistency boundaries by reducing events from different sources into local state machines
+ * - IMPORTANT! - Process manager streams are prefixed with the factory name, so we can identify these events
  */
 export type ProcessManager<
   S extends State = State,

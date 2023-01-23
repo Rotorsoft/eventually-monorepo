@@ -179,7 +179,7 @@ export class ExpressApp extends Builder {
           resolve(server);
         });
       });
-    void broker().start();
+    void broker().poll();
   }
 
   get name(): string {

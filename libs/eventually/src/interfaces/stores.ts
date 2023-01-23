@@ -33,8 +33,8 @@ export interface Store extends Disposable, Seedable {
    * @param query optional query values
    * @returns number of records
    */
-  query: (
-    callback: (event: CommittedEvent) => void,
+  query: <E extends Messages>(
+    callback: (event: CommittedEvent<E>) => void,
     query?: AllQuery
   ) => Promise<number>;
 
@@ -58,10 +58,35 @@ export interface Store extends Disposable, Seedable {
    */
   stats: () => Promise<StoreStat[]>;
 
-  /** Get stored event handler watermarks */
-  get_watermarks: () => Promise<Record<string, number>>;
-  /** Store event handler watermarks */
-  set_watermarks: (watermarks: Record<string, number>) => Promise<void>;
+  /**
+   * Polls for new events after stored consumer watermark
+   * - Creates an expiring consumer lease to serialize competing consumers
+   * - Commits the new watermark after the `ack` response is received within lease time
+   * - Rejects `ack` and allows new consumers after lease expires
+   * - `consumer` the consumer name
+   * - `names` the event names to poll
+   * - `limit` the max number of events to poll
+   * - `lease` the unique lease id
+   * - `timeout` the lease timeout in ms
+   * - `callback` the callback with events after consumer stored watermark
+   */
+  poll: <E extends Messages>(
+    consumer: string,
+    names: string[],
+    limit: number,
+    lease: string,
+    timeout: number,
+    callback: (event: CommittedEvent<E>) => void
+  ) => Promise<void>;
+
+  /**
+   * Acknowledges when a consumer handled polled events succesfully
+   * - `consumer` the consumer name
+   * - `lease` the unique lease id to ack
+   * - `watermark` the new watermark of consumed events
+   * - returns false when ack is rejected due to lease expiration
+   * */
+  ack: (consumer: string, lease: string, watermark: number) => Promise<boolean>;
 }
 
 export interface SnapshotStore extends Disposable, Seedable {

@@ -3,6 +3,7 @@ import { app, broker, log, store, _imps } from "./ports";
 import {
   AllQuery,
   Artifact,
+  ArtifactFactory,
   Command,
   CommandAdapterFactory,
   CommandHandlerFactory,
@@ -21,52 +22,64 @@ import {
   RegistrationError,
   Snapshot,
   State,
-  Streamable
+  Streamable,
+  StreamableFactory
 } from "./types";
 import { bind, randomId, validate, validateMessage } from "./utils";
 
 /**
+ * Process manager streams are prefixed with the factory name
+ */
+const _stream = <S extends State, C extends Messages, E extends Messages>(
+  factory: StreamableFactory<S, C, E>,
+  streamable: Streamable
+): string =>
+  app().artifacts[factory.name].type === "process-manager"
+    ? factory.name.concat(":", streamable.stream())
+    : streamable.stream();
+
+/**
  * Loads reducible artifact from store
+ * @param factory the reducible factory
  * @param reducible the reducible artifact
  * @param useSnapshots flag to use stored snapshots
  * @param callback optional reduction predicate
  * @returns current model snapshot
  */
-const _load = async <S extends State, E extends Messages>(
-  reducible: Streamable & Reducible<S, E>,
+const _load = async <S extends State, C extends Messages, E extends Messages>(
+  factory: ReducibleFactory<S, C, E>,
+  reducible: Reducible<S, E> & Streamable,
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
+  const stream = _stream(factory, reducible);
   const snapStore =
-    ((useSnapshots &&
-      app().stores[Object.getPrototypeOf(reducible).name]) as SnapshotStore) ||
+    ((useSnapshots && app().stores[factory.name]) as SnapshotStore) ||
     undefined;
   const snapshot =
-    (snapStore && (await snapStore.read<S, E>(reducible.stream()))) ||
-    undefined;
+    (snapStore && (await snapStore.read<S, E>(stream))) || undefined;
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
   let applyCount = 0;
 
-  await store().query(
+  await store().query<E>(
     (e) => {
-      event = e as CommittedEvent<E>;
+      event = e;
       state = reducible.reduce[event.name](state as Readonly<S>, event);
       applyCount++;
       callback && callback({ event, state, applyCount });
     },
-    { stream: reducible.stream(), after: event?.id }
+    { stream, after: event?.id }
   );
 
-  log()
-    .gray()
-    .trace(`   ... ${reducible.stream()} loaded ${applyCount} event(s)`);
+  log().gray().trace(`   ... ${stream} loaded ${applyCount} event(s)`);
 
   return { event, state, applyCount };
 };
 
 /**
  * Generic message handler
+ * @param factory the artifact factory
  * @param artifact the message handling artifact
  * @param callback the message handling callback
  * @param metadata the message metadata
@@ -77,19 +90,26 @@ const _handleMsg = async <
   C extends Messages,
   E extends Messages
 >(
+  factory: ArtifactFactory<S, C, E>,
   artifact: Artifact<S, C, E>,
-  callback: (state: S) => Promise<Message<E>[]>,
+  callback: (snapshot: Snapshot<S>) => Promise<Message<E>[]>,
   metadata: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
-  const stream = "stream" in artifact ? artifact.stream() : undefined;
+  const stream =
+    "stream" in artifact
+      ? _stream(factory as StreamableFactory<S, C, E>, artifact)
+      : undefined;
   const reduce = "reduce" in artifact ? artifact.reduce : undefined;
 
   const snapshot =
     stream && reduce
-      ? await _load<S, E>(artifact as Streamable & Reducible<S, E>)
+      ? await _load(
+          factory as ReducibleFactory<S, C, E>,
+          artifact as Reducible<S, E> & Streamable
+        )
       : { state: {} as S, applyCount: 0 };
 
-  const events = await callback(snapshot.state);
+  const events = await callback(snapshot);
   if (stream && events.length) {
     const committed = await store().commit(
       stream,
@@ -97,7 +117,6 @@ const _handleMsg = async <
       metadata,
       metadata.causation.command?.expectedVersion || snapshot.event?.version
     );
-
     if (reduce) {
       let state = snapshot.state;
       const snapshots = committed.map((event) => {
@@ -113,9 +132,7 @@ const _handleMsg = async <
           .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
         return { event, state } as Snapshot<S, E>;
       });
-      const snapStore = app().stores[
-        Object.getPrototypeOf(artifact).name
-      ] as SnapshotStore;
+      const snapStore = app().stores[factory.name || ""] as SnapshotStore;
       if (snapStore && snapshot.applyCount > snapStore.threshold) {
         try {
           // TODO: implement reliable async snapshotting from persisted queue started by app
@@ -169,8 +186,9 @@ export const command = async <
   const artifact = factory(id || "");
   Object.setPrototypeOf(artifact, factory as object);
   const snapshots = await _handleMsg<S, C, E>(
+    factory,
     artifact,
-    (state) => artifact.on[name](validated.data, state, actor),
+    ({ state }) => artifact.on[name](validated.data, state, actor),
     {
       correlation: metadata?.correlation || randomId(),
       causation: {
@@ -180,7 +198,7 @@ export const command = async <
       }
     }
   );
-  await broker().on(snapshots.map((s) => s.event));
+  snapshots.length && (await broker().poll());
   return snapshots;
 };
 
@@ -204,10 +222,15 @@ export const event = async <
   };
   let cmd: Command<C> | undefined;
   const snapshots = await _handleMsg(
+    factory,
     artifact,
-    async (state) => {
-      cmd = await artifact.on[name](event, state);
-      cmd && (await command<S, C, E>(cmd, metadata)); // handles commands synchronously, thus policies can fail
+    async (snapshot) => {
+      // ensure process managers are idempotent
+      if (snapshot && snapshot.event && event.id <= snapshot.event.id)
+        return [];
+      // command side effects are handled synchronously, thus event handlers can fail
+      cmd = await artifact.on[name](event, snapshot.state);
+      cmd && (await command<S, C, E>(cmd, metadata));
       return [bind(name, data)];
     },
     metadata
@@ -230,7 +253,7 @@ export const load = async <
 ): Promise<Snapshot<S, E>> => {
   const reducible = factory(id);
   Object.setPrototypeOf(reducible, factory as object);
-  return _load<S, E>(reducible, useSnapshots, callback);
+  return _load<S, C, E>(factory, reducible, useSnapshots, callback);
 };
 
 export const query = async (

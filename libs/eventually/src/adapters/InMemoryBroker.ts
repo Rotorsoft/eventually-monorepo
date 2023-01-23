@@ -3,69 +3,89 @@ import { Broker } from "../interfaces";
 import { app, log, store } from "../ports";
 import { scheduler } from "../scheduler";
 import {
+  ArtifactMetadata,
   ArtifactType,
   CommittedEvent,
   EventHandlerFactory,
+  Messages,
+  PolicyFactory,
   ProjectorFactory
 } from "../types";
+import { randomId } from "../utils";
+
+// TODO: configure timeout and limit
+const timeout = 5000;
+const limit = 25;
 
 const event_handler_types: Array<ArtifactType> = [
   "policy",
   "process-manager",
   "projector"
 ];
+const consumers = (): ArtifactMetadata[] =>
+  Object.entries(app().artifacts)
+    .filter(([, v]) => event_handler_types.includes(v.type) && v.inputs.length)
+    .map(([k]) => app().artifacts[k]);
 
-const watermarks: Record<string, number> = {};
-const handle = async (
-  events: Array<CommittedEvent | undefined>
-): Promise<void> => {
-  for (const e of events) {
-    if (e) {
-      try {
-        const msg = app().messages[e.name];
-        for (const handler of msg.handlers) {
-          if ((watermarks[handler] || -1) < e.id) {
-            const artifact = app().artifacts[handler];
-            artifact.type === "projector"
-              ? await project(artifact.factory as ProjectorFactory, e)
-              : await event(artifact.factory as EventHandlerFactory, e);
-            const watermark = { [handler]: e.id };
-            await store().set_watermarks(watermark);
-            Object.assign(watermarks, watermark);
-          }
-        }
-      } catch (error) {
-        log().error(error);
+/**
+ * @returns true to keep polling
+ */
+let _polling = false;
+const poll = async <E extends Messages>(): Promise<boolean> => {
+  if (_polling) return false;
+  _polling = true;
+  let maxBatch = 0;
+  for (const consumer of consumers()) {
+    let watermark: number | undefined = undefined;
+    const lease = randomId();
+    try {
+      const events: Array<CommittedEvent<E>> = [];
+      await store().poll<E>(
+        consumer.factory.name,
+        consumer.inputs,
+        limit,
+        lease,
+        timeout,
+        (e) => events.push(e)
+      );
+      maxBatch = Math.max(maxBatch, events.length);
+      for (const e of events) {
+        if (consumer.type === "projector")
+          await project(consumer.factory as ProjectorFactory, e);
+        else if (consumer.type === "policy")
+          await event(consumer.factory as PolicyFactory, e);
+        else if (!e.stream.startsWith(consumer.factory.name))
+          // process managers skip their own events
+          await event(consumer.factory as EventHandlerFactory, e);
+        watermark = e.id;
       }
+    } catch (error) {
+      log().error(error);
     }
+    watermark && (await store().ack(consumer.factory.name, lease, watermark));
   }
+  _polling = false;
+  return maxBatch === limit;
 };
 
 export const InMemorySyncBroker = (): Broker => ({
   name: "InMemorySyncBroker",
   dispose: () => Promise.resolve(),
-  start: () => Promise.resolve(),
-  on: async (events: Array<CommittedEvent | undefined>) => handle(events)
+  poll
 });
 
-export const InMemoryAsyncBroker = (
-  batchSize = 100,
-  pollingFrequency = 60 * 1000
-): Broker => {
+export const InMemoryAsyncBroker = (pollingFrequency = 60 * 1000): Broker => {
   const name = "InMemoryAsyncBroker";
-  const broker_loop = scheduler(name);
+  const schedule = scheduler(name);
 
-  const pump = async (): Promise<boolean> => {
+  const action = async (): Promise<boolean> => {
     try {
-      log().magenta().trace("async broker pump...", watermarks);
-      const after = Math.min(...Object.values(watermarks));
-      const events: CommittedEvent[] = [];
-      await store().query((e) => events.push(e), { after, limit: batchSize });
-      await handle(events);
-      broker_loop.push({
-        id: "continue",
-        action: pump,
-        delay: events.length === batchSize ? 100 : pollingFrequency
+      log().magenta().trace("async broker polling...");
+      const more = await poll();
+      schedule.push({
+        id: "poll",
+        action,
+        delay: more ? 100 : pollingFrequency
       });
       return true;
     } catch (error) {
@@ -76,37 +96,10 @@ export const InMemoryAsyncBroker = (
 
   return {
     name,
-    dispose: () => broker_loop.stop(),
-    start: async () => {
-      const handlers = Object.entries(app().artifacts)
-        .filter(
-          ([, v]) => event_handler_types.includes(v.type) && v.inputs.length
-        )
-        .map(([k]) => k);
-      if (handlers.length) {
-        const stored_watermarks = await store().get_watermarks();
-        let last_id = -1;
-        await store().query((e) => (last_id = e.id), {
-          backward: true,
-          limit: 1
-        });
-        // TODO: decide if new handlers should start from event 0 or last event
-        handlers.forEach(
-          (h) => (watermarks[h] = stored_watermarks[h] || last_id)
-        );
-        broker_loop.push({
-          id: "start",
-          action: pump
-        });
-      }
-    },
-    on: () => {
-      Object.keys(watermarks).length &&
-        broker_loop.push({
-          id: "events",
-          action: pump
-        });
-      return Promise.resolve();
+    dispose: () => schedule.dispose(),
+    poll: () => {
+      consumers().length && schedule.push({ id: "poll", action });
+      return Promise.resolve(false);
     }
   };
 };
