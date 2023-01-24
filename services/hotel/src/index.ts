@@ -8,11 +8,15 @@ import path from "node:path";
 import { Hotel, RoomState } from "./Hotel.projector";
 import { Room } from "./Room.aggregate";
 import { engine } from "express-handlebars";
+import { DaySales, Next30Days } from "./Next30Days.projector";
+import { addDays } from "./utils";
 
 void bootstrap(async (): Promise<void> => {
   store(PostgresStore("hotel"));
-  const pgProjectorStore = PostgresProjectorStore<RoomState>(
-    "hotel_projection",
+  await store().seed();
+
+  const pgHotelProjectorStore = PostgresProjectorStore<RoomState>(
+    "hotel_rooms",
     {
       id: 'varchar(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY',
       type: 'varchar(20) COLLATE pg_catalog."default"',
@@ -20,15 +24,27 @@ void bootstrap(async (): Promise<void> => {
       price: "int",
       reserved: "json"
     },
-    `CREATE INDEX IF NOT EXISTS hotel_projection_type_ix ON public.hotel_projection USING btree ("type" ASC) TABLESPACE pg_default;`
+    `CREATE INDEX IF NOT EXISTS hotel_projection_type_ix ON public.hotel_rooms USING btree ("type" ASC) TABLESPACE pg_default;`
   );
-  await store().seed();
-  await pgProjectorStore.seed();
+  await pgHotelProjectorStore.seed();
+
+  const pgNext30ProjectorStore = PostgresProjectorStore<DaySales>(
+    "hotel_daysales",
+    {
+      id: 'varchar(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY',
+      total: "int",
+      reserved: "int[]"
+    },
+    ""
+  );
+  await pgNext30ProjectorStore.seed();
 
   const express = app(new ExpressApp())
     .with(Room)
     .with(Hotel)
-    .withStore(Hotel, pgProjectorStore)
+    .with(Next30Days)
+    .withStore(Hotel, pgHotelProjectorStore)
+    .withStore(Next30Days, pgNext30ProjectorStore)
     .build();
 
   // get some ui
@@ -48,8 +64,10 @@ void bootstrap(async (): Promise<void> => {
       "Room-104",
       "Room-105"
     ]);
-    console.log(rooms);
+    const tomorrow = addDays(new Date(), 1).toISOString().substring(0, 10);
+    const days = await client().read(Next30Days, [tomorrow]);
     res.render("home", {
+      tomorrow: days[tomorrow]?.state,
       rooms: Object.values(rooms)
         .map((r) => r.state)
         .map(({ number, type, price, reserved }) => ({

@@ -271,11 +271,8 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
 
+  const projection = await artifact.on[event.name](event);
   const projStore = (app().stores[factory.name] as ProjectorStore) || _imps();
-  const load = artifact.load[event.name];
-  const ids = (load && load(event)) || [];
-  const records = (ids.length && (await projStore.load<S>(ids))) || {};
-  const projection = artifact.on[event.name](event, records);
   const committed = await projStore.commit(projection, event.id);
   log()
     .gray()

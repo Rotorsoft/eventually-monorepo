@@ -1,12 +1,10 @@
 import { app, client, dispose, Snapshot } from "@rotorsoft/eventually";
 import { Hotel } from "../Hotel.projector";
+import { Next30Days } from "../Next30Days.projector";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
-
-const DAY = 24 * 60 * 60 * 1000;
-const fromToday = (days: number): Date =>
-  new Date(new Date().valueOf() + days * DAY);
+import { fromToday } from "../utils";
 
 const openRoom = (
   room: models.Room,
@@ -30,12 +28,13 @@ const bookRoom = (
 
 describe("Room", () => {
   beforeAll(async () => {
-    app().with(Room).with(Hotel).build();
+    app().with(Room).with(Hotel).with(Next30Days).build();
     await app().listen();
 
     await openRoom({ number: 101, price: 100, type: schemas.RoomType.SINGLE });
     await openRoom({ number: 102, price: 200, type: schemas.RoomType.DOUBLE });
     await openRoom({ number: 103, price: 300, type: schemas.RoomType.DELUXE });
+    await openRoom({ number: 104, price: 400, type: schemas.RoomType.DELUXE });
   });
 
   afterAll(async () => {
@@ -55,17 +54,19 @@ describe("Room", () => {
     const checkin = fromToday(1);
     const checkout = fromToday(2);
 
-    const room = await bookRoom(102, {
+    let room = await bookRoom(102, {
       id: "r1",
       checkin,
       checkout,
-      totalPrice: 0
+      totalPrice: 400
     });
     expect(room[0].state?.reservations?.length).toBe(1);
     expect(room[0].state?.reservations?.at(0)?.totalPrice).toBe(
       room[0].state.price
     );
+
     const roomstate = await client().read(Hotel, ["Room-102"]);
+    console.log(roomstate);
     expect(roomstate).toEqual({
       ["Room-102"]: {
         state: {
@@ -78,7 +79,28 @@ describe("Room", () => {
             [checkout.toISOString().substring(0, 10)]: "r1"
           }
         },
-        watermark: 3
+        watermark: 4
+      }
+    });
+
+    room = await bookRoom(104, {
+      id: "r2",
+      checkin,
+      checkout,
+      totalPrice: 800
+    });
+    const next30 = await client().read(Next30Days, [
+      checkin.toISOString().substring(0, 10),
+      checkout.toISOString().substring(0, 10)
+    ]);
+    expect(next30).toEqual({
+      "2023-01-25": {
+        state: { id: "2023-01-25", total: 600, reserved: [102, 104] },
+        watermark: 5
+      },
+      "2023-01-26": {
+        state: { id: "2023-01-26", total: 600, reserved: [102, 104] },
+        watermark: 5
       }
     });
   });

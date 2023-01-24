@@ -1,7 +1,8 @@
 import z from "zod";
-import { Projector } from "@rotorsoft/eventually";
+import { client, Projector } from "@rotorsoft/eventually";
 import * as schemas from "./Room.schemas";
 import * as models from "./Room.models";
+import { addDays } from "./utils";
 
 export const RoomStateSchema = z.object({
   id: z.string(),
@@ -21,24 +22,27 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
       RoomBooked: schemas.BookRoom
     }
   },
-  load: {
-    RoomBooked: ({ data }) => [`Room-${data.number}`]
-  },
   on: {
     RoomOpened: ({ data }) => {
       const id = `Room-${data.number}`;
       const { number, type, price } = data;
-      return { upsert: [{ id }, { number, type, price }] };
+      return Promise.resolve({
+        upserts: [{ where: { id }, values: { number, type, price } }]
+      });
     },
-    RoomBooked: ({ data }, r) => {
+    RoomBooked: async ({ data }) => {
       const id = `Room-${data.number}`;
-      const reserved = r[id]?.state.reserved || ({} as Record<string, string>);
+      const records = await client().read(Hotel, [id]);
+      const room = records[id];
+      const reserved = room?.state.reserved || {};
       let day = data.checkin;
       while (day <= data.checkout) {
         reserved[day.toISOString().substring(0, 10)] = data.id;
-        day = new Date(day.valueOf() + 24 * 60 * 60 * 1000);
+        day = addDays(day, 1);
       }
-      return { upsert: [{ id }, { reserved }] };
+      return Promise.resolve({
+        upserts: [{ where: { id }, values: { reserved } }]
+      });
     }
   }
 });

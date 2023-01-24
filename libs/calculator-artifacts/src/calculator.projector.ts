@@ -1,7 +1,7 @@
 import {
+  client,
   Empty,
   Projection,
-  ProjectionRecord,
   Projector,
   ZodEmpty
 } from "@rotorsoft/eventually";
@@ -25,25 +25,26 @@ export type TotalsEvents = {
   EqualsPressed: Empty;
 };
 
-const ids = (stream: string): string[] => [`Totals-${stream}`];
-
-const projection = (
-  id: string,
-  key: schemas.Keys,
-  records: Record<string, ProjectionRecord<Totals>>
-): Projection<Totals> => {
+const projection = async (
+  stream: string,
+  key: schemas.Keys
+): Promise<Projection<Totals>> => {
+  const id = `Totals-${stream}`;
+  const records = await client().read(CalculatorTotals, [id]);
   const { totals } = (records[id] || { state: { totals: {} } }).state;
-  return {
-    upsert: [
-      { id },
+  return Promise.resolve({
+    upserts: [
       {
-        totals: {
-          ...totals,
-          [key]: (totals[key] || 0) + 1
+        where: { id },
+        values: {
+          totals: {
+            ...totals,
+            [key]: (totals[key] || 0) + 1
+          }
         }
       }
     ]
-  };
+  });
 };
 
 export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
@@ -57,18 +58,10 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
       EqualsPressed: ZodEmpty
     }
   },
-  load: {
-    DigitPressed: (e) => ids(e.stream),
-    OperatorPressed: (e) => ids(e.stream),
-    DotPressed: (e) => ids(e.stream),
-    EqualsPressed: (e) => ids(e.stream)
-  },
   on: {
-    DigitPressed: (e, records) =>
-      projection(ids(e.stream)[0], e.data.digit, records),
-    OperatorPressed: (e, records) =>
-      projection(ids(e.stream)[0], e.data.operator, records),
-    DotPressed: (e, records) => projection(ids(e.stream)[0], ".", records),
-    EqualsPressed: (e, records) => projection(ids(e.stream)[0], "=", records)
+    DigitPressed: (e) => projection(e.stream, e.data.digit),
+    OperatorPressed: (e) => projection(e.stream, e.data.operator),
+    DotPressed: (e) => projection(e.stream, "."),
+    EqualsPressed: (e) => projection(e.stream, "=")
   }
 });

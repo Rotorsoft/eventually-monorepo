@@ -1,4 +1,3 @@
-import deepmerge from "deepmerge";
 import { ProjectorStore } from "../interfaces";
 import {
   ProjectionResults,
@@ -60,38 +59,42 @@ export const InMemoryProjectorStore = (): ProjectorStore => {
       projection: Projection<S>,
       watermark: number
     ): Promise<ProjectionResults<S>> => {
-      const [upsert_filter, upsert_values] = projection.upsert || [
-        undefined,
-        undefined
-      ];
-      const id = upsert_filter && upsert_filter.id;
-      id &&
-        !_projections[id] &&
-        (_projections[id] = {
-          state: { id, ...upsert_values },
-          watermark: -1
+      const results: ProjectionResults<S> = {
+        projection,
+        upserted: 0,
+        deleted: 0,
+        watermark
+      };
+
+      projection.upserts &&
+        projection.upserts.forEach(({ where, values }) => {
+          const id = where.id;
+          id &&
+            !_projections[id] &&
+            (_projections[id] = {
+              state: { id, ...values },
+              watermark: -1
+            });
+
+          const to_upsert = select(watermark, where);
+          to_upsert.forEach(
+            (p) =>
+              (_projections[p.state.id] = {
+                state: Object.assign(p.state, values), // deepmerge(p.state, values as Partial<S>),
+                watermark
+              })
+          );
+          results.upserted += to_upsert.length;
         });
 
-      const to_upsert = select(watermark, upsert_filter);
-      to_upsert.forEach(
-        (p) =>
-          (_projections[p.state.id] = {
-            state: deepmerge(p.state, upsert_values as Partial<S>),
-            watermark
-          })
-      );
+      projection.deletes &&
+        projection.deletes.forEach(({ where }) => {
+          const to_delete = select(watermark, where).map((p) => p.state.id);
+          to_delete.forEach((id) => delete _projections[id]);
+          results.deleted += to_delete.length;
+        });
 
-      const to_delete = select(watermark, projection.delete).map(
-        (p) => p.state.id
-      );
-      to_delete.forEach((id) => delete _projections[id]);
-
-      return Promise.resolve({
-        projection,
-        upserted: to_upsert.length,
-        deleted: to_delete.length,
-        watermark
-      });
+      return Promise.resolve(results);
     }
   };
 };
