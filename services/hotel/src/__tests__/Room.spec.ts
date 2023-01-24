@@ -66,7 +66,6 @@ describe("Room", () => {
     );
 
     const roomstate = await client().read(Hotel, ["Room-102"]);
-    console.log(roomstate);
     expect(roomstate).toEqual({
       ["Room-102"]: {
         state: {
