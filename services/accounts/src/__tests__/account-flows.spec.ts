@@ -35,7 +35,7 @@ describe("account integration flows", () => {
     const snapshots = [] as Snapshot[];
     await client().load(
       policies.WaitForAllAndComplete,
-      `WaitForAllAndComplete:${t?.data?.id}`,
+      t?.data?.id,
       false,
       (s) => snapshots.push(s)
     );
@@ -57,7 +57,7 @@ describe("account integration flows", () => {
     const snapshots = [] as Snapshot[];
     await client().load(
       policies.WaitForAllAndComplete,
-      `WaitForAllAndComplete:${t?.data?.id}`,
+      t?.data?.id,
       false,
       (s) => snapshots.push(s)
     );

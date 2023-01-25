@@ -3,7 +3,7 @@ import cluster from "cluster";
 import { subscriptions } from "..";
 import { broker } from "../broker";
 import { state } from "../cluster";
-import { InMemorySubscriptionStore } from "../__dev__";
+import { InMemorySubscriptionStore } from "../adapters";
 import {
   FakeChildProcess,
   get,

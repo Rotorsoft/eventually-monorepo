@@ -10,18 +10,14 @@ import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
 
 void bootstrap(async (): Promise<void> => {
-  const snapshotStore = PostgresSnapshotStore("calculators");
+  const snapshotStore = PostgresSnapshotStore("calculators", 0);
   await snapshotStore.seed();
 
   store(PostgresStore("calculator"));
   await store().seed();
 
   const _app = app(new ExpressApp())
-    .withSnapshot(Calculator, {
-      store: snapshotStore,
-      threshold: 0,
-      expose: true
-    })
+    .withStore(Calculator, snapshotStore)
     .with(Calculator)
     .with(Counter)
     .with(StatelessCounter)

@@ -36,7 +36,12 @@ describe("calculator with projector in express app", () => {
     expect(committed).toEqual([
       {
         projection: {
-          upsert: [{ id: `Totals-${stream}` }, { totals: { "1": 2 } }]
+          upserts: [
+            {
+              where: { id: `Totals-${stream}` },
+              values: { totals: { "1": 2 } }
+            }
+          ]
         },
         upserted: 1,
         deleted: 0,

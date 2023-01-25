@@ -1,32 +1,36 @@
 import { app, bootstrap, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
-import {
-  PostgresProjectorStore,
-  PostgresStore
-} from "@rotorsoft/eventually-pg";
-import { Hotel, RoomState } from "./Hotel.projector";
+import path from "node:path";
+import { Hotel } from "./Hotel.projector";
 import { Room } from "./Room.aggregate";
+import { engine } from "express-handlebars";
+import { Next30Days } from "./Next30Days.projector";
+import * as routes from "./routes";
+import { pgHotelProjectorStore, pgNext30ProjectorStore } from "./stores";
 
 void bootstrap(async (): Promise<void> => {
-  store(PostgresStore("hotel"));
-  const pgProjectorStore = PostgresProjectorStore<RoomState>(
-    "hotel_projection",
-    {
-      id: 'varchar(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY',
-      type: 'varchar(20) COLLATE pg_catalog."default"',
-      number: "int",
-      price: "int",
-      reserved: "json"
-    },
-    `CREATE INDEX IF NOT EXISTS hotel_projection_type_ix ON public.hotel_projection USING btree ("type" ASC) TABLESPACE pg_default;`
-  );
   await store().seed();
-  await pgProjectorStore.seed();
+  await pgHotelProjectorStore.seed();
+  await pgNext30ProjectorStore.seed();
 
-  app(new ExpressApp())
+  const express = app(new ExpressApp())
     .with(Room)
     .with(Hotel)
-    .withProjectorStore(Hotel, pgProjectorStore)
+    .with(Next30Days)
+    .withStore(Hotel, pgHotelProjectorStore)
+    .withStore(Next30Days, pgNext30ProjectorStore)
     .build();
+
+  // get some ui to play with it
+  express.engine(
+    "hbs",
+    engine({
+      extname: ".hbs"
+    })
+  );
+  express.set("view engine", "hbs");
+  express.set("views", path.resolve(__dirname, "./views"));
+  express.get("/home", routes.home);
+
   await app().listen();
 });

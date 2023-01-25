@@ -10,7 +10,10 @@ import { snapshot } from "./seed";
 
 types.setTypeParser(types.builtins.JSON, (val) => JSON.parse(val, dateReviver));
 
-export const PostgresSnapshotStore = (table: string): SnapshotStore => {
+export const PostgresSnapshotStore = (
+  table: string,
+  threshold: number
+): SnapshotStore => {
   const pool = new Pool(config.pg);
   const store: SnapshotStore = {
     name: `PostgresSnapshotStore:${table}`,
@@ -21,6 +24,8 @@ export const PostgresSnapshotStore = (table: string): SnapshotStore => {
     seed: async () => {
       await pool.query(snapshot(table));
     },
+
+    threshold,
 
     read: async (stream) => {
       const sql = `SELECT * FROM ${table} WHERE stream=$1`;

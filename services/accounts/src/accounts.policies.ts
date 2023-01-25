@@ -69,15 +69,9 @@ export const WaitForAllAndComplete: ProcessManagerFactory<
       Account3Created: schemas.ExternalAccount
     }
   },
-  stream: () =>
-    typeof eventOrId === "string"
-      ? eventOrId
-      : `WaitForAllAndComplete:${eventOrId.data.id}`,
+  stream: () => (typeof eventOrId === "string" ? eventOrId : eventOrId.data.id),
   init: () => ({
-    id:
-      typeof eventOrId === "string"
-        ? eventOrId.substring("WaitForAllAndComplete:".length)
-        : eventOrId.data.id
+    id: typeof eventOrId === "string" ? eventOrId : eventOrId.data.id
   }),
 
   on: {

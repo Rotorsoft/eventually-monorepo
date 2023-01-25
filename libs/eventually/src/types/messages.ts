@@ -126,20 +126,20 @@ export type EventResponse<S extends State, C extends Messages> = {
 };
 
 /**
- * Projection filters
+ * Projection slices
  *
- * - `upsert?` key=value filters and values tuple used to upsert records
- * - `delete?` key=value filters used to delete records
+ * - `upserts?` the array of key=value expressions {where, values} used to upsert slices of records
+ * - `deletes?` the array of key=value expressions {where} used to delete records
  */
 export type Projection<S extends ProjectionState> = {
-  upsert?: [Partial<S>, Partial<Omit<S, "id">>];
-  delete?: Partial<S>;
+  upserts?: [{ where: Partial<S>; values: Partial<Omit<S, "id">> }];
+  deletes?: [{ where: Partial<S> }];
 };
 
 /**
  * Projection results after commit
  *
- * - `projection` the projection filters
+ * - `projection` the projection slices
  * - `upserted` the number of upserted records
  * - `deleted` the number of deleted records
  * - `watermark` the stored watermark

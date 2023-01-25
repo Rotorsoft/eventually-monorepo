@@ -80,7 +80,7 @@ const insertRecords: Record<string, ProjectionRecord<Schema>> = {
 const projections: Array<Projection<Schema>> = Object.values(insertRecords).map(
   (r) => {
     const { id, ...other } = r.state;
-    return { upsert: [{ id }, { ...other }] };
+    return { upserts: [{ where: { id }, values: { ...other } }] };
   }
 );
 
@@ -129,11 +129,15 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
   it("should update records by id", async () => {
     let result = await db.load<Schema>(["User-1", "User-3"]);
     await db.commit<Schema>(
-      { upsert: [{ id: "User-1" }, { age: 45 }] },
+      { upserts: [{ where: { id: "User-1" }, values: { age: 45 } }] },
       result["User-1"].watermark + 1
     );
     await db.commit<Schema>(
-      { upsert: [{ id: "User-3" }, { name: "Pepe", age: 12 }] },
+      {
+        upserts: [
+          { where: { id: "User-3" }, values: { name: "Pepe", age: 12 } }
+        ]
+      },
       result["User-3"].watermark + 1
     );
     result = await db.load<Schema>(["User-1", "User-3"]);
@@ -146,12 +150,21 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
     let result = await db.load<Schema>(["User-1", "User-2"]);
     await db.commit<Schema>(
       {
-        upsert: [{ countryId: 1 }, { countryName: "United States of America" }]
+        upserts: [
+          {
+            where: { countryId: 1 },
+            values: { countryName: "United States of America" }
+          }
+        ]
       },
       result["User-2"].watermark + 1
     );
     await db.commit<Schema>(
-      { upsert: [{ managerId: 1 }, { managerName: "Manager One" }] },
+      {
+        upserts: [
+          { where: { managerId: 1 }, values: { managerName: "Manager One" } }
+        ]
+      },
       result["User-2"].watermark + 1
     );
     result = await db.load<Schema>(["User-1", "User-2"]);
@@ -168,7 +181,7 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
   it("should delete records", async () => {
     let loaded = await db.load<Schema>(["Country-1"]);
     const result = await db.commit<Schema>(
-      { delete: { countryId: 1 } },
+      { deletes: [{ where: { countryId: 1 } }] },
       loaded["Country-1"].watermark + 1
     );
     expect(result.deleted).toBe(1);
@@ -178,14 +191,19 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
 
   it("should ignore low watermarks", async () => {
     const result1 = await db.commit<Schema>(
-      { upsert: [{ id: "User-1" }, { age: 45 }] },
+      { upserts: [{ where: { id: "User-1" }, values: { age: 45 } }] },
       0
     );
     const result2 = await db.commit<Schema>(
-      { upsert: [{ countryId: 1 }, { countryName: "test" }] },
+      {
+        upserts: [{ where: { countryId: 1 }, values: { countryName: "test" } }]
+      },
       0
     );
-    const result3 = await db.commit<Schema>({ delete: { countryId: 1 } }, 0);
+    const result3 = await db.commit<Schema>(
+      { deletes: [{ where: { countryId: 1 } }] },
+      0
+    );
     expect(result1.upserted).toBe(0);
     expect(result2.upserted).toBe(0);
     expect(result3.deleted).toBe(0);

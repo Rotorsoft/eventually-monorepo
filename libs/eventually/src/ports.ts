@@ -1,15 +1,17 @@
+import {
+  InMemoryApp,
+  InMemoryAsyncBroker,
+  InMemoryClient,
+  InMemoryProjectorStore,
+  InMemoryStore,
+  InMemorySyncBroker
+} from "./adapters";
 import { Builder } from "./builder";
 import { config as _config } from "./config";
 import { Disposable, Logger, Store } from "./interfaces";
 import * as loggers from "./loggers";
 import { singleton } from "./singleton";
 import { Client, Environments } from "./types";
-import {
-  InMemoryApp,
-  InMemoryClient,
-  InMemoryProjectorStore,
-  InMemoryStore
-} from "./__dev__";
 
 export const config = singleton(function config() {
   return { ..._config(), name: "config", dispose: () => Promise.resolve() };
@@ -28,6 +30,7 @@ export const store = singleton(function store(store?: Store) {
 export const log = singleton(function log(logger?: Logger) {
   if (logger) return logger;
   switch (config().env) {
+    // case Environments.test: //-- to log when testing
     case Environments.development:
       return loggers.devLogger();
     default:
@@ -37,6 +40,15 @@ export const log = singleton(function log(logger?: Logger) {
 
 export const client = singleton(function client(client?: Client & Disposable) {
   return client || InMemoryClient();
+});
+
+export const broker = singleton(function broker() {
+  switch (config().env) {
+    case Environments.test:
+      return InMemorySyncBroker();
+    default:
+      return InMemoryAsyncBroker();
+  }
 });
 
 // in-memory projection store local singleton for dev/testing

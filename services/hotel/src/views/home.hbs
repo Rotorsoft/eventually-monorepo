@@ -1,0 +1,80 @@
+<div>
+  <select class="form-control" id="number">
+    <option>101</option>
+    <option>102</option>
+    <option>103</option>
+    <option>104</option>
+    <option>105</option>
+  </select>
+
+  <input
+    type="text"
+    class="form-control"
+    id="id"
+    placeholder="Reservation Id"
+  />
+
+  <input type="date" class="form-control" id="checkin" placeholder="Checkin" />
+
+  <input
+    type="date"
+    class="form-control"
+    id="checkout"
+    placeholder="Checkout"
+  />
+
+  <div class="mb-3">
+    <button class="btn btn-primary" id="book">Book it</button>
+  </div>
+</div>
+
+<div style="background-color: silver;">
+  <h3>
+    Tomorrow Sales: ${{this.tomorrow.total}}
+  </h3>
+  Tomorrow Bookings:
+  {{this.tomorrow.reserved}}
+</div>
+
+<table class="table align-middle">
+  <thead>
+    <tr>
+      <th scope="col">Number</th>
+      <th scope="col">Type</th>
+      <th scope="col">Price</th>
+      <th scope="col">Reserved</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each rooms}}
+      <tr>
+        <td>{{this.number}}</td>
+        <td>{{this.type}}</td>
+        <td>{{this.price}}</td>
+        <td>
+          {{#each this.reserved}}
+            {{this.day}}
+            <i>{{this.id}}</i>
+            <br />
+          {{/each}}
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () { const bookBtn =
+  document.getElementById("book"); const numberInput =
+  document.getElementById("number"); const idInput =
+  document.getElementById("id"); const checkinInput =
+  document.getElementById("checkin"); const checkoutInput =
+  document.getElementById("checkout"); bookBtn.onclick = () => { const body =
+  {id: idInput.value, number: +numberInput.value, checkin: checkinInput.value
+  ,checkout: checkoutInput.value, totalPrice: 0}; console.log(body);
+  fetch(`/room/${numberInput.value}/book-room`, { method: "post", body:
+  JSON.stringify(body), headers: { 'Content-type':
+  'application/json;charset=UTF-8' } }) .then((response) => response.json())
+  .then((json) => { alert(JSON.stringify(json)); }) .catch((error) => {
+  alert(JSON.stringify(error)); }) }; });
+</script>

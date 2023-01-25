@@ -1,7 +1,7 @@
 import { log } from "../ports";
 import { SnapshotStore } from "../interfaces";
 
-export const InMemorySnapshotStore = (): SnapshotStore => {
+export const InMemorySnapshotStore = (threshold = 100): SnapshotStore => {
   let _store: Record<string, any> = {};
 
   return {
@@ -12,6 +12,8 @@ export const InMemorySnapshotStore = (): SnapshotStore => {
     },
 
     seed: () => Promise.resolve(),
+
+    threshold,
 
     read: (stream) => {
       _store[stream] && log().trace(`Snapshot loaded for stream ${stream}`);

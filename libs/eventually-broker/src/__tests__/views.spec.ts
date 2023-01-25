@@ -4,7 +4,7 @@ import { CommittedEvent, dispose } from "@rotorsoft/eventually";
 import cluster from "cluster";
 import { subscriptions } from "..";
 import { broker } from "../broker";
-import { InMemorySubscriptionStore } from "../__dev__";
+import { InMemorySubscriptionStore } from "../adapters";
 import {
   FakeChildProcess,
   get,

@@ -1,3 +1,4 @@
+import { CommittedEvent } from "../types";
 import { Disposable } from "./generic";
 
 export interface Logger extends Disposable {
@@ -16,5 +17,6 @@ export interface Logger extends Disposable {
   underlined(): Logger;
   trace(message: string, ...params: any[]): void;
   info(message: string, ...params: any[]): void;
+  events(events: CommittedEvent[]): void;
   error(error: unknown): void;
 }

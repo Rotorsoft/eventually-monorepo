@@ -5,6 +5,7 @@ import {
   ArtifactType,
   decamelize,
   ReducibleFactory,
+  Scope,
   ZodEmpty
 } from "@rotorsoft/eventually";
 import {
@@ -74,15 +75,31 @@ const toProjectionResultsSchema = (ref: string): SchemaObject => {
       projection: {
         type: "object",
         properties: {
-          upsert: {
+          upserts: {
             type: "array",
             items: {
-              oneOf: [{ type: "object", $ref: `#/components/schemas/${ref}` }]
-            },
-            minItems: 2,
-            maxItems: 2
+              type: "object",
+              properties: {
+                where: {
+                  type: "object",
+                  $ref: `#/components/schemas/${ref}`
+                },
+                values: {
+                  type: "object",
+                  $ref: `#/components/schemas/${ref}`
+                }
+              }
+            }
           },
-          delete: { type: "object", $ref: `#/components/schemas/${ref}` }
+          deletes: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                where: { type: "object", $ref: `#/components/schemas/${ref}` }
+              }
+            }
+          }
         }
       },
       upserted: { type: "number" },
@@ -223,6 +240,9 @@ export const getProjectionSchemas = (): Record<string, SchemaObject> =>
 export const getPaths = (security: Security): Record<string, PathsObject> =>
   Object.values(app().artifacts).reduce(
     (paths, { type, factory, inputs, outputs }) => {
+      const endpoints = inputs
+        .filter((input) => input.scope === Scope.public)
+        .map((input) => input.name);
       if (type === "aggregate" || type === "process-manager") {
         const path = httpGetPath(factory.name).replace("/:id", "/{id}");
         paths[path] = {
@@ -270,7 +290,7 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
         };
       }
       if (type === "aggregate" || type === "system") {
-        inputs.forEach((message) => {
+        endpoints.forEach((message) => {
           const path = httpPostPath(factory.name, type, message);
           paths[path.replace("/:id/", "/{id}/")] = {
             parameters:
@@ -316,35 +336,37 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
           };
         });
       } else if (type === "projector") {
-        const path = httpPostPath(factory.name, type);
-        paths[path] = {
-          post: {
-            operationId: factory.name,
-            tags: [factory.name],
-            summary: `Projects ${inputs.join(",")}`,
-            requestBody: {
-              required: true,
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "array",
-                    items: {
-                      anyOf: inputs.map((message) => ({
-                        $ref: `#/components/schemas/${message}`
-                      }))
+        if (endpoints.length) {
+          const path = httpPostPath(factory.name, type);
+          paths[path] = {
+            post: {
+              operationId: factory.name,
+              tags: [factory.name],
+              summary: `Projects ${endpoints.join(",")}`,
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "array",
+                      items: {
+                        anyOf: endpoints.map((message) => ({
+                          $ref: `#/components/schemas/${message}`
+                        }))
+                      }
                     }
                   }
                 }
-              }
-            },
-            responses: {
-              "200": toResponse(factory.name.concat("Results"), "OK"),
-              default: { description: "Internal Server Error" }
-            },
-            security: security.operations[factory.name] || [{}]
-          }
-        };
-      } else {
+              },
+              responses: {
+                "200": toResponse(factory.name.concat("Results"), "OK"),
+                default: { description: "Internal Server Error" }
+              },
+              security: security.operations[factory.name] || [{}]
+            }
+          };
+        }
+      } else if (endpoints.length) {
         const artifact = factory("");
         const commands =
           "commands" in artifact.schemas ? artifact.schemas.commands : {};
@@ -353,7 +375,7 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
           post: {
             operationId: factory.name,
             tags: [factory.name],
-            summary: `Handles ${inputs.join(",")}`,
+            summary: `Handles ${endpoints.join(",")}`,
             description: Object.entries(commands)
               .map(([command, description]) => `"${command}": ${description}`)
               .join("<br/>"),
@@ -362,7 +384,7 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
               content: {
                 "application/json": {
                   schema: {
-                    oneOf: inputs.map((message) => ({
+                    oneOf: endpoints.map((message) => ({
                       $ref: `#/components/schemas/${message}`
                     }))
                   }

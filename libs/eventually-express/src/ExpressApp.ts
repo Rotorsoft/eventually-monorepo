@@ -1,4 +1,5 @@
 import {
+  broker,
   Builder,
   CommandAdapterFactory,
   CommandHandlerFactory,
@@ -7,7 +8,9 @@ import {
   EventHandlerFactory,
   log,
   ProjectorFactory,
-  ReducibleFactory
+  ReducibleFactory,
+  Scope,
+  SnapshotStore
 } from "@rotorsoft/eventually";
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
@@ -62,26 +65,33 @@ export class ExpressApp extends Builder {
     this._router.get(streamPath, getStreamHandler(factory));
     log().green().info("GET ", streamPath);
 
-    const snapOpts = this.snapOpts[factory.name];
-    if (snapOpts && snapOpts.expose) {
+    const snapStore = this.stores[factory.name] as SnapshotStore;
+    if (snapStore) {
       const path = `/${decamelize(factory.name)}`;
-      this._router.get(path, snapshotQueryHandler(snapOpts.store));
+      this._router.get(path, snapshotQueryHandler(snapStore));
       log().green().info("GET ", path);
     }
   }
 
   private _withPosts(): void {
     Object.values(this.artifacts).forEach(({ type, factory, inputs }) => {
+      const endpoints = inputs
+        .filter((input) => input.scope === Scope.public)
+        .map((input) => input.name);
       (type === "aggregate" || type === "process-manager") &&
         this._withGets(factory as ReducibleFactory);
       if (type === "policy" || type === "process-manager") {
-        const path = httpPostPath(factory.name, type);
-        this._router.post(path, eventHandler(factory as EventHandlerFactory));
-        log().magenta().info("POST", path, inputs);
+        if (endpoints.length) {
+          const path = httpPostPath(factory.name, type);
+          this._router.post(path, eventHandler(factory as EventHandlerFactory));
+          log().magenta().info("POST", path, endpoints);
+        }
       } else if (type === "projector") {
         const path = httpPostPath(factory.name, type);
-        this._router.post(path, projectHandler(factory as ProjectorFactory));
-        log().magenta().info("POST", path, inputs);
+        if (endpoints.length) {
+          this._router.post(path, projectHandler(factory as ProjectorFactory));
+          log().magenta().info("POST", path, inputs);
+        }
         const getPath = path.concat("/:id");
         this._router.get(
           getPath,
@@ -89,8 +99,8 @@ export class ExpressApp extends Builder {
         );
         log().green().info("GET ", getPath);
       } else
-        Object.values(inputs).forEach((message) => {
-          const path = httpPostPath(factory.name, type, message);
+        endpoints.forEach((name) => {
+          const path = httpPostPath(factory.name, type, name);
           if (type === "command-adapter")
             this._router.post(
               path,
@@ -101,7 +111,7 @@ export class ExpressApp extends Builder {
               path,
               commandHandler(
                 factory as CommandHandlerFactory,
-                message,
+                name,
                 type === "aggregate"
               )
             );
@@ -133,11 +143,12 @@ export class ExpressApp extends Builder {
         dependencies,
         artifacts: this.artifacts,
         messages: Object.values(this.messages).map(
-          ({ name, type, schema, handlers }) => ({
+          ({ name, type, schema, handlers, producer }) => ({
             name,
             type,
             description: schema.description || "",
-            handlers
+            handlers,
+            producer
           })
         )
       })
@@ -177,6 +188,7 @@ export class ExpressApp extends Builder {
           resolve(server);
         });
       });
+    void broker().poll();
   }
 
   get name(): string {

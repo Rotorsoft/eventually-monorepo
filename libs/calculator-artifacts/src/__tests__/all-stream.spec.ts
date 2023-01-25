@@ -1,16 +1,13 @@
 import { app, client, dispose, sleep } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import { InMemorySnapshotStore } from "../../../eventually/src/__dev__";
+import { InMemorySnapshotStore } from "../../../eventually/src/adapters";
 import { pressKey } from "./messages";
 
 // app setup
 const chance = new Chance();
-const inMemorySnapshots = InMemorySnapshotStore();
-app()
-  .with(Calculator)
-  .withSnapshot(Calculator, { store: inMemorySnapshots, threshold: 2 })
-  .build();
+const inMemorySnapshots = InMemorySnapshotStore(2);
+app().with(Calculator).withStore(Calculator, inMemorySnapshots).build();
 
 describe("All Stream", () => {
   const id = chance.guid();

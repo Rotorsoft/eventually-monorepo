@@ -25,11 +25,7 @@ app(expressApp)
   .with(Calculator)
   .with(StatelessCounter)
   .with(PressKeyAdapter)
-  .withSnapshot(Calculator, {
-    store: InMemorySnapshotStore(),
-    threshold: 2,
-    expose: true
-  })
+  .withStore(Calculator, InMemorySnapshotStore(2))
   .build([GcpGatewayMiddleware]);
 
 describe("calculator express app", () => {

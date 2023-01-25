@@ -4,7 +4,7 @@ import { PostgresSnapshotStore } from "..";
 import { config } from "../config";
 
 const table = "snapshots_test";
-const db = PostgresSnapshotStore(table);
+const db = PostgresSnapshotStore(table, 5);
 
 describe("snapshots", () => {
   const event: CommittedEvent = {

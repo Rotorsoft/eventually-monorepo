@@ -39,10 +39,7 @@ describe("calculator with counter in express app", () => {
     const calc_snapshots = await http.stream(Calculator, id);
     expect(calc_snapshots.length).toEqual(6);
 
-    const count_snapshots = await http.stream(
-      Counter,
-      `Counter-Calculator-${id}`
-    );
+    const count_snapshots = await http.stream(Counter, `Calculator-${id}`);
     expect(count_snapshots.length).toEqual(6);
   });
 });

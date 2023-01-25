@@ -1,5 +1,5 @@
 import { Builder } from "../builder";
-import { config, log } from "../ports";
+import { broker, config, log } from "../ports";
 
 export class InMemoryApp extends Builder {
   constructor() {
@@ -16,6 +16,7 @@ export class InMemoryApp extends Builder {
 
   listen(): Promise<void> {
     log().info("InMemory app is listening...", undefined, config());
+    void broker().poll();
     return Promise.resolve();
   }
 }

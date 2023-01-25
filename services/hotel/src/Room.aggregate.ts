@@ -51,10 +51,35 @@ export const Room = (
     })
   },
   on: {
-    OpenRoom: (data) => Promise.resolve([bind("RoomOpened", data)]),
+    OpenRoom: (data) => {
+      if (data.number.toString() !== id)
+        throw Error(`Invalid room number ${data.number}`);
+
+      return Promise.resolve([bind("RoomOpened", data)]);
+    },
     BookRoom: (data, state) => {
+      const today = new Date();
+      if (data.number !== state.number)
+        throw Error(`Invalid room number ${data.number}`);
+
+      if (data.checkin <= today)
+        throw Error(
+          `Invalid checkin date ${data.checkin}. Must be in the future.`
+        );
+
+      if (data.checkout <= today)
+        throw Error(
+          `Invalid checkout date ${data.checkout}. Must be in the future.`
+        );
+
+      if (data.checkin >= data.checkout)
+        throw Error(
+          `Invalid reservation ${data.checkin} - ${data.checkout}. Checkin must be earlier than checkout.`
+        );
+
       if (isBooked(state, data.checkin, data.checkout))
         throw Error(`Room ${state.number} is booked.`);
+
       return Promise.resolve([bind("RoomBooked", data)]);
     }
   }

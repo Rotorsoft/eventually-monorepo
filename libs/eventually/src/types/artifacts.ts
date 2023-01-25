@@ -5,7 +5,6 @@ import {
   Command,
   CommittedEvent,
   Projection,
-  ProjectionRecord,
   ProjectionState
 } from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
@@ -94,7 +93,7 @@ export type Streamable = WithDescription & {
 export type Reducible<
   S extends State = State,
   E extends Messages = Messages
-> = {
+> = WithDescription & {
   schemas: {
     state: ZodType<S>;
     events: { [K in keyof E]: ZodType<E[K]> };
@@ -132,6 +131,7 @@ export type Policy<
 /**
  * Process managers are policies with reducible state
  * - Expand consistency boundaries by reducing events from different sources into local state machines
+ * - IMPORTANT! - Process manager streams are prefixed with the factory name, so we can identify these events
  */
 export type ProcessManager<
   S extends State = State,
@@ -143,9 +143,7 @@ export type ProcessManager<
   WithCommandOutputs<C>;
 
 /**
- * Projectors handle events and produce projections
- * - `load` handlers produce the ids of records loaded into the `on` handlers
- * - `on` handlers produce key=value filters/values representing the projected area (merged or deleted)
+ * Projectors handle events and produce slices of filters/values representing the area being created/merged or deleted
  */
 export type Projector<
   S extends ProjectionState = ProjectionState,
@@ -155,14 +153,10 @@ export type Projector<
     state: ZodType<S>;
     events: { [K in keyof E]: ZodType<E[K]> };
   };
-  load: {
-    [K in keyof E]?: (event: CommittedEvent<Pick<E, K>>) => string[];
-  };
   on: {
     [K in keyof E]: (
-      event: CommittedEvent<Pick<E, K>>,
-      records: Record<string, ProjectionRecord<S>>
-    ) => Projection<S>;
+      event: CommittedEvent<Pick<E, K>>
+    ) => Promise<Projection<S>>;
   };
 };
 

@@ -1,33 +1,40 @@
 import { app, client, dispose, Snapshot } from "@rotorsoft/eventually";
 import { Hotel } from "../Hotel.projector";
+import { Next30Days } from "../Next30Days.projector";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
+import { fromToday } from "../utils";
 
 const openRoom = (
-  room: models.Room
+  room: models.Room,
+  id?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
-  client().command(Room, "OpenRoom", room, { id: room.number.toString() });
+  client().command(Room, "OpenRoom", room, {
+    id: id || room.number.toString()
+  });
 
 const bookRoom = (
   number: number,
-  reservation: models.Reservation
+  reservation: models.Reservation,
+  id?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
   client().command(
     Room,
     "BookRoom",
     { number, ...reservation },
-    { id: number.toString() }
+    { id: id || number.toString() }
   );
 
 describe("Room", () => {
   beforeAll(async () => {
-    app().with(Room).with(Hotel).build();
+    app().with(Room).with(Hotel).with(Next30Days).build();
     await app().listen();
 
     await openRoom({ number: 101, price: 100, type: schemas.RoomType.SINGLE });
     await openRoom({ number: 102, price: 200, type: schemas.RoomType.DOUBLE });
     await openRoom({ number: 103, price: 300, type: schemas.RoomType.DELUXE });
+    await openRoom({ number: 104, price: 400, type: schemas.RoomType.DELUXE });
   });
 
   afterAll(async () => {
@@ -44,18 +51,22 @@ describe("Room", () => {
   });
 
   it("should book room", async () => {
-    const checkin = new Date();
-    const checkout = new Date(checkin.getTime() + 2 * 24 * 60 * 60 * 1000);
-    const room = await bookRoom(102, {
+    const checkin = fromToday(1);
+    const checkout = fromToday(2);
+    const checkin_key = checkin.toISOString().substring(0, 10);
+    const checkout_key = checkout.toISOString().substring(0, 10);
+
+    let room = await bookRoom(102, {
       id: "r1",
       checkin,
       checkout,
-      totalPrice: 0
+      totalPrice: 400
     });
     expect(room[0].state?.reservations?.length).toBe(1);
     expect(room[0].state?.reservations?.at(0)?.totalPrice).toBe(
-      2 * room[0].state.price
+      room[0].state.price
     );
+
     const roomstate = await client().read(Hotel, ["Room-102"]);
     expect(roomstate).toEqual({
       ["Room-102"]: {
@@ -65,23 +76,36 @@ describe("Room", () => {
           type: schemas.RoomType.DOUBLE,
           price: 200,
           reserved: {
-            [checkin.toISOString().substring(0, 10)]: "r1",
-            [new Date(checkin.valueOf() + 1 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .substring(0, 10)]: "r1",
-            [new Date(checkin.valueOf() + 2 * 24 * 60 * 60 * 1000)
-              .toISOString()
-              .substring(0, 10)]: "r1"
+            [checkin_key]: "r1",
+            [checkout_key]: "r1"
           }
         },
-        watermark: 3
+        watermark: 4
+      }
+    });
+
+    room = await bookRoom(104, {
+      id: "r2",
+      checkin,
+      checkout,
+      totalPrice: 800
+    });
+    const next30 = await client().read(Next30Days, [checkin_key, checkout_key]);
+    expect(next30).toEqual({
+      [checkin_key]: {
+        state: { id: checkin_key, total: 600, reserved: [102, 104] },
+        watermark: 5
+      },
+      [checkout_key]: {
+        state: { id: checkout_key, total: 600, reserved: [102, 104] },
+        watermark: 5
       }
     });
   });
 
   it("should fail booking", async () => {
-    const checkin = new Date();
-    const checkout = new Date(checkin.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const checkin = fromToday(1);
+    const checkout = fromToday(2);
     await bookRoom(103, {
       id: "r2",
       checkin,
@@ -96,5 +120,76 @@ describe("Room", () => {
         totalPrice: 0
       })
     ).rejects.toThrowError();
+  });
+
+  it("should fail invariants", async () => {
+    const today = fromToday(0);
+    const yesterday = fromToday(-1);
+    const tomorrow = fromToday(1);
+    const afterTomorrow = fromToday(2);
+
+    await expect(
+      openRoom(
+        { number: 200, price: 100, type: schemas.RoomType.DELUXE },
+        "201"
+      )
+    ).rejects.toThrow("Invalid room number 200");
+
+    await expect(
+      bookRoom(
+        200,
+        {
+          id: "r3",
+          checkin: tomorrow,
+          checkout: afterTomorrow,
+          totalPrice: 0
+        },
+        "201"
+      )
+    ).rejects.toThrow("Invalid room number 200");
+
+    await expect(
+      bookRoom(
+        200,
+        {
+          id: "r3",
+          checkin: tomorrow,
+          checkout: afterTomorrow,
+          totalPrice: 0
+        },
+        "201"
+      )
+    ).rejects.toThrow("Invalid room number 200");
+
+    await expect(
+      bookRoom(200, {
+        id: "r3",
+        checkin: yesterday,
+        checkout: afterTomorrow,
+        totalPrice: 0
+      })
+    ).rejects.toThrow(
+      `Invalid checkin date ${yesterday}. Must be in the future.`
+    );
+
+    await expect(
+      bookRoom(200, {
+        id: "r3",
+        checkin: tomorrow,
+        checkout: today,
+        totalPrice: 0
+      })
+    ).rejects.toThrow(`Invalid checkout date ${today}. Must be in the future.`);
+
+    await expect(
+      bookRoom(200, {
+        id: "r3",
+        checkin: afterTomorrow,
+        checkout: tomorrow,
+        totalPrice: 0
+      })
+    ).rejects.toThrow(
+      `Invalid reservation ${afterTomorrow} - ${tomorrow}. Checkin must be earlier than checkout.`
+    );
   });
 });

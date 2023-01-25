@@ -43,71 +43,76 @@ export const PostgresProjectorStore = <S extends ProjectionState>(
     },
 
     commit: async (projection, watermark) => {
-      const id = projection.upsert?.[0].id || projection.upsert?.[1].id; // when id found in filter or values -> full upsert, otherwise update
-      const upsert_filter = projection.upsert
-        ? Object.entries(projection.upsert[0])
-        : undefined;
-      const upsert_values = projection.upsert
-        ? Object.entries(projection.upsert[1])
-        : undefined;
-      const delete_filter = projection.delete
-        ? Object.entries(projection.delete)
-        : undefined;
+      const upserts: Array<{ sql: string; vals: any[] }> = [];
+      const deletes: Array<{ sql: string; vals: any[] }> = [];
+      const results = {
+        projection,
+        upserted: 0,
+        deleted: 0,
+        watermark
+      };
 
-      const ins =
-        upsert_filter && upsert_values && id
-          ? `INSERT INTO ${table}(id, ${upsert_values
-              .map(([k]) => `"${k}"`)
-              .join(", ")}, __watermark) VALUES('${id}', ${upsert_values
-              .map((_, index) => `$${upsert_filter.length + index + 1}`)
-              .join(", ")}, ${watermark}) ON CONFLICT (id) DO
-              `
-          : "";
+      projection.upserts &&
+        projection.upserts.forEach(({ where, values }) => {
+          const id = where.id || values.id; // when id found in filter or values -> full upsert, otherwise update
+          const where_entries = Object.entries(where);
+          const values_entries = Object.entries(values);
+          if (where_entries.length && values_entries.length) {
+            const sql = (
+              id
+                ? `INSERT INTO ${table}(id, ${values_entries
+                    .map(([k]) => `"${k}"`)
+                    .join(", ")}, __watermark) VALUES('${id}', ${values_entries
+                    .map((_, index) => `$${where_entries.length + index + 1}`)
+                    .join(", ")}, ${watermark}) ON CONFLICT (id) DO
+                `
+                : ""
+            ).concat(
+              `UPDATE ${id ? "" : table} SET ${values_entries
+                .map(
+                  ([k], index) => `"${k}"=$${where_entries.length + index + 1}`
+                )
+                .join(
+                  ", "
+                )} WHERE ${table}.__watermark < ${watermark} AND ${where_entries
+                .map(([k], index) => `${table}."${k}"=$${index + 1}`)
+                .join(" AND ")}`
+            );
+            upserts.push({
+              sql,
+              vals: where_entries
+                .map(([, v]) => v)
+                .concat(values_entries.map(([, v]) => v))
+            });
+          }
+        });
 
-      const upd =
-        upsert_filter && upsert_values
-          ? `UPDATE ${id ? "" : table} SET ${upsert_values
-              .map(
-                ([k], index) => `"${k}"=$${upsert_filter.length + index + 1}`
-              )
-              .join(
-                ", "
-              )} WHERE ${table}.__watermark < ${watermark} AND ${upsert_filter
+      projection.deletes &&
+        projection.deletes.forEach(({ where }) => {
+          const where_entries = Object.entries(where);
+          if (where_entries.length) {
+            const sql = `DELETE FROM ${table} WHERE ${table}.__watermark < ${watermark} AND ${where_entries
               .map(([k], index) => `${table}."${k}"=$${index + 1}`)
-              .join(" AND ")}`
-          : undefined;
-
-      const ups = upd ? ins.concat(upd) : undefined;
-      const ups_v =
-        upsert_filter && upsert_values
-          ? upsert_filter
-              .map(([, v]) => v)
-              .concat(upsert_values.map(([, v]) => v))
-          : [];
-
-      const del = delete_filter
-        ? `DELETE FROM ${table} WHERE ${table}.__watermark < ${watermark} AND ${delete_filter
-            .map(([k], index) => `${table}."${k}"=$${index + 1}`)
-            .join(" AND ")}`
-        : undefined;
-      const del_v = delete_filter ? delete_filter.map(([, v]) => v) : [];
+              .join(" AND ")}`;
+            deletes.push({ sql, vals: where_entries.map(([, v]) => v) });
+          }
+        });
 
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        const upserted = ups ? (await client.query(ups, ups_v)).rowCount : 0;
-        const deleted = del ? (await client.query(del, del_v)).rowCount : 0;
+        for (const { sql, vals } of upserts) {
+          results.upserted += (await client.query(sql, vals)).rowCount;
+        }
+        for (const { sql, vals } of deletes) {
+          results.deleted += (await client.query(sql, vals)).rowCount;
+        }
         await client.query("COMMIT");
-        return Promise.resolve({
-          projection,
-          upserted,
-          deleted,
-          watermark
-        });
+        return results;
       } catch (error) {
         log().error(error);
-        ups && log().red().trace(ups, ups_v);
-        del && log().red().trace(del, del_v);
+        upserts.forEach(({ sql, vals }) => log().red().trace(sql, vals));
+        deletes.forEach(({ sql, vals }) => log().red().trace(sql, vals));
         await client.query("ROLLBACK");
         throw error;
       } finally {
