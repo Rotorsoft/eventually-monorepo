@@ -1,3 +1,7 @@
+#### 2023-01-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.1...@rotorsoft/calculator-artifacts-v1.0.2) @rotorsoft/calculator-artifacts-v1.0.2
+  - PATCH [81b08b85](https://github.com/Rotorsoft/eventually-monorepo/commit/81b08b85e7ed24ebfe3bb000b6974abafc195486) fix: add next 30 sales projection to hotel, refactor projector without load, make handlers async
+  - PATCH [2e7d50d1](https://github.com/Rotorsoft/eventually-monorepo/commit/2e7d50d1059116aa8a5fbdd21646d6fcaef89820) fix: refactor internal broker using polling/lease pattern, make process managers idempotent with automatic prefix
+  - PATCH [7eeb4326](https://github.com/Rotorsoft/eventually-monorepo/commit/7eeb43267b2edc0548de32e5058184fcfe48627e) fix: implement in-memory broker adapters
 #### 2023-01-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.6...@rotorsoft/eventually-broker-v2.0.7) @rotorsoft/eventually-broker-v2.0.7
   - PATCH [6a6d2fdb](https://github.com/Rotorsoft/eventually-monorepo/commit/6a6d2fdbc64046b8bb68eac07b6ea0525e4493ad) fix: add scopes, expose only public endpoints, pass options to in-memory projector store, up cron
   - PATCH [186736c5](https://github.com/Rotorsoft/eventually-monorepo/commit/186736c508b1e968d976dd331779b6b6cb82b3e5) fix: add scheduler test
