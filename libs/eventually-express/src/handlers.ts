@@ -12,8 +12,6 @@ import {
   ProjectorFactory,
   ReducibleFactory,
   Snapshot,
-  SnapshotsQuery,
-  SnapshotStore,
   State,
   store,
   ProjectionState,
@@ -122,24 +120,6 @@ export const getStreamHandler =
       });
       res.write("]");
       return res.status(200).end();
-    } catch (error) {
-      next(error);
-    }
-  };
-
-export const snapshotQueryHandler =
-  (store: SnapshotStore) =>
-  async (
-    req: Request<any, Snapshot, any, SnapshotsQuery>,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const { limit = 10 } = req.query;
-      const result = await store.query({
-        limit
-      });
-      return res.status(200).send(result);
     } catch (error) {
       next(error);
     }

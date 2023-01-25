@@ -7,10 +7,10 @@ import {
   ProjectionResults,
   Projection,
   Snapshot,
-  SnapshotsQuery,
   State,
   ProjectionRecord,
-  ProjectionState
+  ProjectionState,
+  ProjectionQuery
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
 
@@ -110,15 +110,6 @@ export interface SnapshotStore extends Disposable, Seedable {
     stream: string,
     state: Snapshot<S, E>
   ) => Promise<void>;
-
-  /**
-   * Queries the snapshot store
-   * @param query query parameters
-   * @returns array of snapshots
-   */
-  query: <S extends State, E extends Messages>(
-    query: SnapshotsQuery
-  ) => Promise<Snapshot<S, E>[]>;
 }
 
 export interface ProjectorStore extends Disposable, Seedable {
@@ -141,4 +132,15 @@ export interface ProjectorStore extends Disposable, Seedable {
     projection: Projection<S>,
     watermark: number
   ) => Promise<ProjectionResults<S>>;
+
+  /**
+   * Queries projection
+   * @param query the projection query
+   * @param callback the callback receiving results
+   * @returns the number of records found
+   */
+  query: <S extends ProjectionState>(
+    query: ProjectionQuery<S>,
+    callback: (state: Partial<S>, watermark: number) => void
+  ) => Promise<number>;
 }

@@ -4,13 +4,11 @@ import {
   CommandAdapterFactory,
   CommandHandlerFactory,
   dateReviver,
-  decamelize,
   EventHandlerFactory,
   log,
   ProjectorFactory,
   ReducibleFactory,
-  Scope,
-  SnapshotStore
+  Scope
 } from "@rotorsoft/eventually";
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
@@ -27,7 +25,6 @@ import {
   getStreamHandler,
   invokeHandler,
   projectHandler,
-  snapshotQueryHandler,
   statsHandler
 } from "./handlers";
 import { openAPI } from "./openapi";
@@ -64,13 +61,6 @@ export class ExpressApp extends Builder {
     const streamPath = path.concat("/stream");
     this._router.get(streamPath, getStreamHandler(factory));
     log().green().info("GET ", streamPath);
-
-    const snapStore = this.stores[factory.name] as SnapshotStore;
-    if (snapStore) {
-      const path = `/${decamelize(factory.name)}`;
-      this._router.get(path, snapshotQueryHandler(snapStore));
-      log().green().info("GET ", path);
-    }
   }
 
   private _withPosts(): void {

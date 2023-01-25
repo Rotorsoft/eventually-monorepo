@@ -84,15 +84,15 @@ export type Snapshot<S extends State = State, E extends Messages = Messages> = {
 
 /**
  * Options to query the all stream
- * - stream? filter by stream
- * - names? filter by event names
- * - before? filter events before this id
- * - after? filter events after this id
- * - limit? limit the number of events to return
- * - created_before? filter events created before this date/time
- * - created_after? filter events created after this date/time
- * - backward? order descending when true
- * - correlation? filter by correlation
+ * - `stream?` filter by stream
+ * - `names?` filter by event names
+ * - `before?` filter events before this id
+ * - `after?` filter events after this id
+ * - `limit?` limit the number of events to return
+ * - `created_before?` filter events created before this date/time
+ * - `created_after?` filter events created after this date/time
+ * - `backward?` order descending when true
+ * - `correlation?` filter by correlation
  */
 export type AllQuery = {
   readonly stream?: string;
@@ -104,14 +104,6 @@ export type AllQuery = {
   readonly created_after?: Date;
   readonly backward?: boolean;
   readonly correlation?: string;
-};
-
-/**
- * Options to query snapshots
- * - limit? limit the number of snapthots to return
- */
-export type SnapshotsQuery = {
-  readonly limit?: number;
 };
 
 /**
@@ -132,8 +124,8 @@ export type EventResponse<S extends State, C extends Messages> = {
  * - `deletes?` the array of key=value expressions {where} used to delete records
  */
 export type Projection<S extends ProjectionState> = {
-  upserts?: [{ where: Partial<S>; values: Partial<Omit<S, "id">> }];
-  deletes?: [{ where: Partial<S> }];
+  upserts?: Array<{ where: Partial<S>; values: Partial<Omit<S, "id">> }>;
+  deletes?: Array<{ where: Partial<S> }>;
 };
 
 /**
@@ -160,4 +152,24 @@ export type ProjectionResults<S extends ProjectionState> = {
 export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
   state: Readonly<S>;
   watermark: number;
+};
+
+/**
+ * Filter condition
+ */
+export type Condition<T> = {
+  operator: string;
+  value: T;
+};
+
+/**
+ * Options to query projections
+ * - `select?` selected fields
+ * - `where?` filters
+ * - `limit?` limit number of records
+ */
+export type ProjectionQuery<S extends ProjectionState = ProjectionState> = {
+  readonly select?: Array<keyof S>;
+  readonly where?: { [K in keyof S]?: Condition<S[K]> };
+  readonly limit?: number;
 };

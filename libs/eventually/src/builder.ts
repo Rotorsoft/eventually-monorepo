@@ -174,8 +174,7 @@ export abstract class Builder implements Disposable {
       !(
         (metadata.type === "aggregate" &&
           "read" in store &&
-          "upsert" in store &&
-          "query" in store) ||
+          "upsert" in store) ||
         (metadata.type === "projector" && "load" in store && "commit" in store)
       )
     )

@@ -1,6 +1,7 @@
 import {
   dispose,
   log,
+  ProjectionQuery,
   ProjectionState,
   ProjectorStore
 } from "@rotorsoft/eventually";
@@ -118,6 +119,34 @@ export const PostgresProjectorStore = <S extends ProjectionState>(
       } finally {
         client.release();
       }
+    },
+
+    query: async <S extends ProjectionState>(
+      query: ProjectionQuery<S>,
+      callback: (state: Partial<S>, watermark: number) => void
+    ): Promise<number> => {
+      const fields = query.select
+        ? query.select.join(", ").concat(", __watermark")
+        : "*";
+      const where = query.where
+        ? "WHERE ".concat(
+            Object.entries(query.where)
+              .map(
+                ([key, condition], index) =>
+                  `${key}${condition.operator}$${index + 1}`
+              )
+              .join(" AND ")
+          )
+        : "";
+      const values = query.where
+        ? Object.values(query.where).map((condition) => condition.value)
+        : [];
+      const limit = query.limit ? `LIMIT ${query.limit}` : "";
+      const sql = `SELECT ${fields} FROM ${table} ${where} ${limit}`;
+      const result = await pool.query<S & { __watermark: number }>(sql, values);
+      for (const { __watermark, ...state } of result.rows)
+        callback(state as unknown as Partial<S>, __watermark);
+      return result.rowCount;
     }
   };
 

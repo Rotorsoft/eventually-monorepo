@@ -4,7 +4,8 @@ import {
   ProjectionResults,
   Projection,
   ProjectionRecord,
-  ProjectionState
+  ProjectionState,
+  ProjectionQuery
 } from "../types";
 
 // default deepmerge options: arrays are replaced
@@ -103,6 +104,16 @@ export const InMemoryProjectorStore = (
         });
 
       return Promise.resolve(results);
+    },
+
+    query: async <S extends ProjectionState>(
+      query: ProjectionQuery<S>,
+      callback: (state: Partial<S>, watermark: number) => void
+    ): Promise<number> => {
+      //TODO: todo query _projections records
+      console.log(query);
+      callback({}, 0);
+      return Promise.resolve(0);
     }
   };
 };

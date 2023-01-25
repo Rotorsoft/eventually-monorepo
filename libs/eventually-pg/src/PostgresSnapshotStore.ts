@@ -43,20 +43,6 @@ export const PostgresSnapshotStore = (
         [stream, data]
       );
       log().trace(`Snapshot Created for stream ${stream}`);
-    },
-
-    query: async (query) => {
-      const { limit = 10 } = query;
-
-      const values: any[] = [];
-      let sql = `SELECT * FROM ${table}`;
-      if (limit) {
-        values.push(limit);
-        sql = sql.concat(` LIMIT $${values.length}`);
-      }
-
-      const result = await pool.query(sql, values);
-      return result.rows.map((r) => r.data);
     }
   };
 
