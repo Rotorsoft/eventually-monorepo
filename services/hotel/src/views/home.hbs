@@ -1,80 +1,103 @@
-<div>
-  <select class="form-control" id="number">
-    <option>101</option>
-    <option>102</option>
-    <option>103</option>
-    <option>104</option>
-    <option>105</option>
-  </select>
+<form class="border rounded m-3 p-3 bg-light">
+  <div class="row">
+    <div class="form-group col-md-4">
+      <label for="number">Room Number</label>
+      <select class="form-control" id="number">
+        <option>101</option>
+        <option>102</option>
+        <option>103</option>
+        <option>104</option>
+        <option>105</option>
+      </select>
+    </div>
+    <div class="form-group col-md-4">
+      <label for="id">Reservation Id</label>
+      <input
+        type="text"
+        class="form-control"
+        id="id"
+        placeholder="Reservation Id"
+      />
+    </div>
+  </div>
+  <div class="row">
+    <div class="form-group col-md-4">
+      <label for="checkin">Check-In Date</label>
+      <input type="date" class="form-control" id="checkin" placeholder="Checkin" />
+    </div>
+    <div class="form-group col-md-4">
+      <label for="checkout">Check-Out Date</label>  
+      <input
+        type="date"
+        class="form-control"
+        id="checkout"
+        placeholder="Checkout"
+      />
+    </div>  
+    <div class="form-group col-md-4">
+      <button class="btn btn-primary" id="book">Book it</button>
+    </div>
+  </div>
+</form>
 
-  <input
-    type="text"
-    class="form-control"
-    id="id"
-    placeholder="Reservation Id"
-  />
-
-  <input type="date" class="form-control" id="checkin" placeholder="Checkin" />
-
-  <input
-    type="date"
-    class="form-control"
-    id="checkout"
-    placeholder="Checkout"
-  />
-
-  <div class="mb-3">
-    <button class="btn btn-primary" id="book">Book it</button>
+<div class="border rounded bg-dark m-3 p-3">
+  <div class="row">
+    <div class="text-light col-md-6">
+      <h3>Tomorrow's Sales: ${{this.tomorrow.total}}</h3>
+    </div>
+    <div class="text-white-50 col-md-6">
+      <h4>Rooms: {{this.tomorrow.reserved}}</h4>
+    </div>
   </div>
 </div>
 
-<div style="background-color: silver;">
-  <h3>
-    Tomorrow Sales: ${{this.tomorrow.total}}
-  </h3>
-  Tomorrow Bookings:
-  {{this.tomorrow.reserved}}
+<div class="border rounded m-3 p-3">
+  <table class="table align-middle">
+    <thead>
+      <tr>
+        <th scope="col">Room Number</th>
+        <th scope="col">Room Type</th>
+        <th scope="col" class="text-end">Price</th>
+        <th scope="col" class="text-end">Days Reserved</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each rooms}}
+        <tr>
+          <td>{{this.number}}</td>
+          <td>{{this.type}}</td>
+          <td class="text-end">${{this.price}}</td>
+          <td class="text-end">{{this.reserved}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
 </div>
 
-<table class="table align-middle">
-  <thead>
-    <tr>
-      <th scope="col">Number</th>
-      <th scope="col">Type</th>
-      <th scope="col">Price</th>
-      <th scope="col">Reserved</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each rooms}}
-      <tr>
-        <td>{{this.number}}</td>
-        <td>{{this.type}}</td>
-        <td>{{this.price}}</td>
-        <td>
-          {{#each this.reserved}}
-            {{this.day}}
-            <i>{{this.id}}</i>
-            <br />
-          {{/each}}
-        </td>
-      </tr>
-    {{/each}}
-  </tbody>
-</table>
-
 <script>
-  document.addEventListener("DOMContentLoaded", function () { const bookBtn =
-  document.getElementById("book"); const numberInput =
-  document.getElementById("number"); const idInput =
-  document.getElementById("id"); const checkinInput =
-  document.getElementById("checkin"); const checkoutInput =
-  document.getElementById("checkout"); bookBtn.onclick = () => { const body =
-  {id: idInput.value, number: +numberInput.value, checkin: checkinInput.value
-  ,checkout: checkoutInput.value, totalPrice: 0}; console.log(body);
-  fetch(`/room/${numberInput.value}/book-room`, { method: "post", body:
-  JSON.stringify(body), headers: { 'Content-type':
-  'application/json;charset=UTF-8' } }) .then((response) => response.json())
-  .then((json) => { alert(JSON.stringify(json)); }) .catch((error) => {
-  alert(JSON.stringify(error)); }) }; });
+  document.addEventListener("DOMContentLoaded", function () { 
+    const bookBtn = document.getElementById("book");
+    const numberInput = document.getElementById("number");
+    const idInput = document.getElementById("id");
+    const checkinInput = document.getElementById("checkin");
+    const checkoutInput = document.getElementById("checkout");
+
+    bookBtn.onclick = () => {
+      const body = {
+        id: idInput.value,
+        number: +numberInput.value,
+        checkin: checkinInput.value,
+        checkout: checkoutInput.value,
+        totalPrice: 0
+      };
+      fetch(`/room/${numberInput.value}/book-room`, {
+        method: "post",
+        body: JSON.stringify(body),
+        headers: { 'Content-type': 'application/json;charset=UTF-8' }
+      })
+      .then((response) => response.json())
+      .then((json) => { alert(JSON.stringify(json)); })
+      .catch((error) => { alert(JSON.stringify(error)); })
+    };
+  });
 </script>
