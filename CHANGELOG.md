@@ -1,3 +1,8 @@
+#### 2023-01-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.0.2...@rotorsoft/eventually-pg-v5.0.3) @rotorsoft/eventually-pg-v5.0.3
+  - PATCH [f77f3f56](https://github.com/Rotorsoft/eventually-monorepo/commit/f77f3f56e46a17f4a74d9f7d5a64879b912ed06c) fix: fix unit test
+  - PATCH [81b08b85](https://github.com/Rotorsoft/eventually-monorepo/commit/81b08b85e7ed24ebfe3bb000b6974abafc195486) fix: add next 30 sales projection to hotel, refactor projector without load, make handlers async
+  - PATCH [2e7d50d1](https://github.com/Rotorsoft/eventually-monorepo/commit/2e7d50d1059116aa8a5fbdd21646d6fcaef89820) fix: refactor internal broker using polling/lease pattern, make process managers idempotent with automatic prefix
+  - PATCH [7eeb4326](https://github.com/Rotorsoft/eventually-monorepo/commit/7eeb43267b2edc0548de32e5058184fcfe48627e) fix: implement in-memory broker adapters
 #### 2023-01-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.6...@rotorsoft/eventually-v5.0.7) @rotorsoft/eventually-v5.0.7
   - PATCH [6a6d2fdb](https://github.com/Rotorsoft/eventually-monorepo/commit/6a6d2fdbc64046b8bb68eac07b6ea0525e4493ad) fix: add scopes, expose only public endpoints, pass options to in-memory projector store, up cron
   - PATCH [81b08b85](https://github.com/Rotorsoft/eventually-monorepo/commit/81b08b85e7ed24ebfe3bb000b6974abafc195486) fix: add next 30 sales projection to hotel, refactor projector without load, make handlers async
