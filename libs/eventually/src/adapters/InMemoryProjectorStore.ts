@@ -1,3 +1,4 @@
+import deepmerge from "deepmerge";
 import { ProjectorStore } from "../interfaces";
 import {
   ProjectionResults,
@@ -6,7 +7,14 @@ import {
   ProjectionState
 } from "../types";
 
-export const InMemoryProjectorStore = (): ProjectorStore => {
+// default deepmerge options: arrays are replaced
+const defaultOptions: deepmerge.Options = {
+  arrayMerge: (target, source) => source
+};
+
+export const InMemoryProjectorStore = (
+  options = defaultOptions
+): ProjectorStore => {
   let _projections: Record<string, ProjectionRecord> = {};
 
   const select = <S extends ProjectionState>(
@@ -80,7 +88,7 @@ export const InMemoryProjectorStore = (): ProjectorStore => {
           to_upsert.forEach(
             (p) =>
               (_projections[p.state.id] = {
-                state: Object.assign(p.state, values), // deepmerge(p.state, values as Partial<S>),
+                state: deepmerge(p.state, values as Partial<S>, options),
                 watermark
               })
           );

@@ -3,6 +3,18 @@ import { ArtifactFactory } from "./factories";
 import { Messages, State } from "./messages";
 
 /**
+ * Artifact registration scopes
+ * - `public` input handlers are public (as HTTP endpoints)
+ * - `private` input handlers are only avilable within the service via client() ports
+ * - `default` command handlers are public, event handlers are private when event producers are found within the service, otherwise public
+ */
+export enum Scope {
+  public = "public",
+  private = "private",
+  default = "default"
+}
+
+/**
  * Artifact reflected metadata
  */
 export type ArtifactMetadata<
@@ -12,8 +24,8 @@ export type ArtifactMetadata<
 > = {
   type: ArtifactType;
   factory: ArtifactFactory<S, C, E>;
-  inputs: string[]; // input message names - endpoints
-  outputs: string[]; // output message names - side effects
+  inputs: Array<{ name: string; scope: Scope }>; // input messages = endpoints
+  outputs: string[]; // output messages = side effects
 };
 
 export * from "./artifacts";

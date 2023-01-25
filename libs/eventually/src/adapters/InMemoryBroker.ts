@@ -41,7 +41,7 @@ const poll = async <E extends Messages>(
       const events: Array<CommittedEvent<E>> = [];
       await store().poll<E>(
         consumer.factory.name,
-        consumer.inputs,
+        consumer.inputs.map((input) => input.name),
         limit,
         lease,
         timeout,

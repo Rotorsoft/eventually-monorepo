@@ -53,6 +53,8 @@ describe("Room", () => {
   it("should book room", async () => {
     const checkin = fromToday(1);
     const checkout = fromToday(2);
+    const checkin_key = checkin.toISOString().substring(0, 10);
+    const checkout_key = checkout.toISOString().substring(0, 10);
 
     let room = await bookRoom(102, {
       id: "r1",
@@ -74,8 +76,8 @@ describe("Room", () => {
           type: schemas.RoomType.DOUBLE,
           price: 200,
           reserved: {
-            [checkin.toISOString().substring(0, 10)]: "r1",
-            [checkout.toISOString().substring(0, 10)]: "r1"
+            [checkin_key]: "r1",
+            [checkout_key]: "r1"
           }
         },
         watermark: 4
@@ -88,17 +90,14 @@ describe("Room", () => {
       checkout,
       totalPrice: 800
     });
-    const next30 = await client().read(Next30Days, [
-      checkin.toISOString().substring(0, 10),
-      checkout.toISOString().substring(0, 10)
-    ]);
+    const next30 = await client().read(Next30Days, [checkin_key, checkout_key]);
     expect(next30).toEqual({
-      "2023-01-25": {
-        state: { id: "2023-01-25", total: 600, reserved: [102, 104] },
+      [checkin_key]: {
+        state: { id: checkin_key, total: 600, reserved: [102, 104] },
         watermark: 5
       },
-      "2023-01-26": {
-        state: { id: "2023-01-26", total: 600, reserved: [102, 104] },
+      [checkout_key]: {
+        state: { id: checkout_key, total: 600, reserved: [102, 104] },
         watermark: 5
       }
     });

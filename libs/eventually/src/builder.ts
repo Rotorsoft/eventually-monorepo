@@ -7,6 +7,7 @@ import {
   ArtifactMetadata,
   Messages,
   ProjectorFactory,
+  Scope,
   State
 } from "./types";
 
@@ -15,6 +16,7 @@ type MessageMetadata<M extends Messages = Messages> = {
   schema: ZodType<M[keyof M]>;
   type: "command" | "event" | "message";
   handlers: string[];
+  producer?: string;
 };
 
 export abstract class Builder implements Disposable {
@@ -35,7 +37,10 @@ export abstract class Builder implements Disposable {
     this.version = version;
   }
 
-  private _reflect = (factory: ArtifactFactory): ArtifactMetadata => {
+  private _reflect = (
+    factory: ArtifactFactory,
+    scope: Scope
+  ): ArtifactMetadata => {
     const artifact = factory("") as Artifact;
 
     "stream" in artifact && this.withStreams();
@@ -64,13 +69,14 @@ export abstract class Builder implements Disposable {
           return {
             type: "command-adapter",
             factory,
-            inputs: [factory.name],
+            inputs: [{ name: factory.name, scope }],
             outputs: Object.keys(artifact.schemas.commands)
           };
         }
         if (artifact.on[Object.keys(artifact.schemas.commands).at(0) || ""]) {
           const schemas = artifact.schemas.commands as Record<string, ZodType>;
-          Object.keys(artifact.on).forEach((name) => {
+          const inputs = Object.keys(artifact.on);
+          inputs.forEach((name) => {
             // enforce one command handler per command
             if (this.messages[name])
               throw Error(
@@ -86,20 +92,19 @@ export abstract class Builder implements Disposable {
           return {
             type: reducible ? "aggregate" : "system",
             factory,
-            inputs: Object.keys(artifact.on),
-            outputs: reducible ? Object.keys(artifact.reduce) : []
+            inputs: inputs.map((name) => ({ name, scope })),
+            outputs:
+              "events" in artifact.schemas
+                ? Object.keys(artifact.schemas.events)
+                : []
           };
         }
       }
       if ("events" in artifact.schemas) {
-        Object.keys(artifact.on).forEach((name) => {
+        const inputs = Object.keys(artifact.on);
+        inputs.forEach((name) => {
           this.messages[name].handlers.push(factory.name); // compile event handlers
         });
-        const inputs = Object.keys(artifact.on);
-        const outputs =
-          "commands" in artifact.schemas
-            ? Object.keys(artifact.schemas.commands)
-            : [];
         return {
           type: reducible
             ? "process-manager"
@@ -107,8 +112,11 @@ export abstract class Builder implements Disposable {
             ? "policy"
             : "projector",
           factory,
-          inputs,
-          outputs
+          inputs: inputs.map((name) => ({ name, scope })),
+          outputs:
+            "commands" in artifact.schemas
+              ? Object.keys(artifact.schemas.commands)
+              : []
         };
       }
     }
@@ -133,13 +141,18 @@ export abstract class Builder implements Disposable {
   /**
    * Registers factory
    * @param factory the factory
+   * @param scope the scope
    */
   with<S extends State, C extends Messages, E extends Messages>(
-    factory: ArtifactFactory<S, C, E>
+    factory: ArtifactFactory<S, C, E>,
+    scope = Scope.default
   ): this {
     if (this.artifacts[factory.name])
       throw Error(`Duplicate artifact "${factory.name}"`);
-    this.artifacts[factory.name] = this._reflect(factory as ArtifactFactory);
+    this.artifacts[factory.name] = this._reflect(
+      factory as ArtifactFactory,
+      scope
+    );
     return this;
   }
 
@@ -177,6 +190,28 @@ export abstract class Builder implements Disposable {
    * @returns optional internal application object (e.g. express)
    */
   build(): unknown | undefined {
+    // set producers
+    Object.values(this.artifacts).forEach((md) => {
+      md.outputs
+        .map((msg) => this.messages[msg])
+        .filter(Boolean)
+        .forEach((msg) => (msg.producer = md.factory.name));
+    });
+    // scope default endpoints
+    Object.values(this.artifacts).forEach((md) => {
+      md.inputs
+        .filter((input) => input.scope === Scope.default)
+        .forEach((input) => {
+          input.scope =
+            process.env.NODE_ENV === "test" || // force public when testing
+            md.type === "aggregate" ||
+            md.type === "system" ||
+            md.type === "command-adapter" ||
+            !this.messages[input.name].producer
+              ? Scope.public
+              : Scope.private;
+        });
+    });
     return;
   }
 }
