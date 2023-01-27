@@ -1,6 +1,10 @@
 import {
+  Condition,
   dispose,
   log,
+  Operator,
+  ProjectionQuery,
+  ProjectionRecord,
   ProjectionState,
   ProjectorStore
 } from "@rotorsoft/eventually";
@@ -9,6 +13,24 @@ import { config } from "./config";
 import { projector, ProjectionSchema } from "./seed";
 
 types.setTypeParser(types.builtins.INT8, (val) => parseInt(val, 10));
+
+const EQUALS: Operator[] = [
+  Operator.eq,
+  Operator.lte,
+  Operator.gte,
+  Operator.in
+];
+
+const OPS = {
+  [Operator.eq]: "=",
+  [Operator.neq]: "<>",
+  [Operator.lt]: "<",
+  [Operator.gt]: ">",
+  [Operator.lte]: "<=",
+  [Operator.gte]: ">=",
+  [Operator.in]: "in",
+  [Operator.not_in]: "not in"
+};
 
 export const PostgresProjectorStore = <S extends ProjectionState>(
   table: string,
@@ -33,13 +55,12 @@ export const PostgresProjectorStore = <S extends ProjectionState>(
         .map((id) => `'${id}'`)
         .join(", ")})`;
       const result = await pool.query<S & { __watermark: number }>(sql);
-      return result.rows.reduce((p, c) => {
-        const state = Object.fromEntries(
-          Object.entries(c).filter(([k, v]) => v && k !== "__watermark")
-        );
-        p[state.id] = { state, watermark: c.__watermark };
-        return p;
-      }, {} as Record<string, any>);
+      return result.rows.map(({ __watermark, ...state }) => {
+        return {
+          state: state as any,
+          watermark: __watermark
+        };
+      });
     },
 
     commit: async (projection, watermark) => {
@@ -118,6 +139,55 @@ export const PostgresProjectorStore = <S extends ProjectionState>(
       } finally {
         client.release();
       }
+    },
+
+    query: async <S extends ProjectionState>(
+      query: ProjectionQuery<S>,
+      callback: (record: ProjectionRecord<S>) => void
+    ): Promise<number> => {
+      const fields = query.select
+        ? query.select
+            .map((field) => `"${field as string}"`)
+            .join(", ")
+            .concat(", __watermark")
+        : "*";
+      const where = query.where
+        ? "WHERE ".concat(
+            Object.entries(query.where)
+              .map(
+                (
+                  [key, { value, operator }]: [string, Condition<any>],
+                  index
+                ) => {
+                  const operation =
+                    value === null
+                      ? EQUALS.includes(operator)
+                        ? "is null"
+                        : "is not null"
+                      : `${OPS[operator]} $${index + 1}`;
+                  return `${table}."${key}" ${operation}`;
+                }
+              )
+              .join(" AND ")
+          )
+        : "";
+      const sort = query.sort
+        ? "ORDER BY ".concat(
+            Object.entries(query.sort)
+              .map(([key, order]) => `"${key}" ${order}`)
+              .join(", ")
+          )
+        : "";
+
+      const values = query.where
+        ? Object.values(query.where).map(({ value }: Condition<any>) => value)
+        : [];
+      const limit = query.limit ? `LIMIT ${query.limit}` : "";
+      const sql = `SELECT ${fields} FROM ${table} ${where} ${sort} ${limit}`;
+      const result = await pool.query<S & { __watermark: number }>(sql, values);
+      for (const { __watermark, ...state } of result.rows)
+        callback({ state: state as any, watermark: __watermark });
+      return result.rowCount;
     }
   };
 

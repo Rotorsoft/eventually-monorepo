@@ -137,9 +137,4 @@ describe("calculator allstream express app", () => {
     );
     expect(count).toBe(1);
   });
-
-  it("should read snapshot", async () => {
-    const snaps = await http.get("/calculator");
-    expect(snaps).toBeDefined();
-  });
 });

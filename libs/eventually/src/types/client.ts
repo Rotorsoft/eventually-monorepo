@@ -13,7 +13,8 @@ import {
   ReducibleFactory,
   Snapshot,
   State,
-  ProjectionState
+  ProjectionState,
+  ProjectionQuery
 } from ".";
 
 export type Client = {
@@ -100,13 +101,15 @@ export type Client = {
   ) => Promise<ProjectionResults<S>>;
 
   /**
-   * Reads projection records by id
+   * Reads projection records by id or query
    * @param factory the projector factory
-   * @param ids the projection record ids
-   * @returns the projection records
+   * @param query the record id(s) or a more complex query
+   * @param callback record predicate
+   * @returns the number of records matched
    */
   read: <S extends ProjectionState, E extends Messages>(
     factory: ProjectorFactory<S, E>,
-    ids: string[]
-  ) => Promise<Record<string, ProjectionRecord<S>>>;
+    query: string | string[] | ProjectionQuery<S>,
+    callback: (record: ProjectionRecord<S>) => void
+  ) => Promise<number>;
 };

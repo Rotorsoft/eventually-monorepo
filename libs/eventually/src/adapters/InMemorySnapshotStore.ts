@@ -24,10 +24,6 @@ export const InMemorySnapshotStore = (threshold = 100): SnapshotStore => {
       _store[stream] = data;
       log().trace(`Snapshot created for stream ${stream}`);
       return Promise.resolve();
-    },
-
-    query: (query) => {
-      return Promise.resolve(Object.values(_store).slice(0, query.limit));
     }
   };
 };

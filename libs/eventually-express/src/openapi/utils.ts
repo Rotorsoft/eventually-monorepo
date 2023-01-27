@@ -4,19 +4,22 @@ import {
   ArtifactMetadata,
   ArtifactType,
   decamelize,
+  ProjectorFactory,
   ReducibleFactory,
   Scope,
+  State,
   ZodEmpty
 } from "@rotorsoft/eventually";
 import {
   HeadersObject,
+  ParameterObject,
   PathsObject,
   ResponseObject,
   SchemaObject,
   SecuritySchemeObject,
   TagObject
 } from "openapi3-ts";
-import z, { ZodType } from "zod";
+import z, { ZodObject, ZodType } from "zod";
 
 const toSnapshotSchema = (name: string, events: string[]): SchemaObject => {
   return {
@@ -104,9 +107,49 @@ const toProjectionResultsSchema = (ref: string): SchemaObject => {
       },
       upserted: { type: "number" },
       deleted: { type: "number" },
-      watermark: { type: "number" }
+      watermark: { type: "number" },
+      error: { type: "string" }
     }
   };
+};
+
+const toProjectionQueryParameters = (
+  factory: ProjectorFactory
+): Array<ParameterObject> => {
+  const keys = (factory().schemas.state as unknown as ZodObject<State>).keyof();
+  const schema = toSchema(keys);
+  return [
+    {
+      in: "query",
+      name: "ids",
+      description: "Get these ids",
+      schema: { type: "array", items: { type: "string" } }
+    },
+    {
+      in: "query",
+      name: "select",
+      description: "Selected fields",
+      schema: { type: "array", items: schema }
+    },
+    {
+      in: "query",
+      name: "where",
+      description: "Apply filters using [field op value] syntax",
+      schema: { type: "array", items: { type: "string" } }
+    },
+    {
+      in: "query",
+      name: "sort",
+      description: "Apply sorting using [field asc] or [field desc]",
+      schema: { type: "array", items: { type: "string" } }
+    },
+    {
+      in: "query",
+      name: "limit",
+      description: "Max number of records to return",
+      schema: { type: "integer" }
+    }
+  ];
 };
 
 const toCommittedEventSchema = (
@@ -275,15 +318,17 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
           }
         };
       } else if (type === "projector") {
-        const path = httpGetPath(factory.name).replace("/:id", "/{id}");
+        const path = "/".concat(decamelize(factory.name));
         paths[path] = {
-          parameters: [{ $ref: "#/components/parameters/id" }],
           get: {
-            operationId: `get${factory.name}ById`,
+            operationId: `query${factory.name}`,
             tags: [factory.name],
-            summary: `Gets ${factory.name} by id`,
+            summary: `Query ${factory.name}`,
+            parameters: toProjectionQueryParameters(
+              factory as ProjectorFactory
+            ),
             responses: {
-              "200": toResponse(factory.name.concat("Record"), "OK"),
+              "200": toResponse(factory.name.concat("Record"), "OK", true),
               default: { description: "Internal Server Error" }
             }
           }

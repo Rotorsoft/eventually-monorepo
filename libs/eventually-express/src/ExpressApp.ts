@@ -4,13 +4,11 @@ import {
   CommandAdapterFactory,
   CommandHandlerFactory,
   dateReviver,
-  decamelize,
   EventHandlerFactory,
   log,
   ProjectorFactory,
   ReducibleFactory,
-  Scope,
-  SnapshotStore
+  Scope
 } from "@rotorsoft/eventually";
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
@@ -23,11 +21,10 @@ import {
   errorHandler,
   eventHandler,
   getHandler,
-  getProjectionHandler,
+  readHandler,
   getStreamHandler,
   invokeHandler,
   projectHandler,
-  snapshotQueryHandler,
   statsHandler
 } from "./handlers";
 import { openAPI } from "./openapi";
@@ -64,13 +61,6 @@ export class ExpressApp extends Builder {
     const streamPath = path.concat("/stream");
     this._router.get(streamPath, getStreamHandler(factory));
     log().green().info("GET ", streamPath);
-
-    const snapStore = this.stores[factory.name] as SnapshotStore;
-    if (snapStore) {
-      const path = `/${decamelize(factory.name)}`;
-      this._router.get(path, snapshotQueryHandler(snapStore));
-      log().green().info("GET ", path);
-    }
   }
 
   private _withPosts(): void {
@@ -87,17 +77,18 @@ export class ExpressApp extends Builder {
           log().magenta().info("POST", path, endpoints);
         }
       } else if (type === "projector") {
+        const projector_factory = factory as ProjectorFactory;
+        const projector = projector_factory();
         const path = httpPostPath(factory.name, type);
         if (endpoints.length) {
-          this._router.post(path, projectHandler(factory as ProjectorFactory));
+          this._router.post(path, projectHandler(projector_factory));
           log().magenta().info("POST", path, inputs);
         }
-        const getPath = path.concat("/:id");
         this._router.get(
-          getPath,
-          getProjectionHandler(factory as ProjectorFactory)
+          path,
+          readHandler(projector_factory, projector.schemas.state)
         );
-        log().green().info("GET ", getPath);
+        log().green().info("GET ", path);
       } else
         endpoints.forEach((name) => {
           const path = httpPostPath(factory.name, type, name);

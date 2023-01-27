@@ -17,8 +17,8 @@ void bootstrap(async (): Promise<void> => {
   await store().seed();
 
   const _app = app(new ExpressApp())
-    .withStore(Calculator, snapshotStore)
     .with(Calculator)
+    .withStore(Calculator, snapshotStore)
     .with(Counter)
     .with(StatelessCounter)
     .with(PressKeyAdapter)

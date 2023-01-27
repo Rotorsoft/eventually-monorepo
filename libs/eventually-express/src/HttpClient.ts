@@ -16,10 +16,12 @@ import {
   ProjectorFactory,
   ProjectionResults,
   ProjectionState,
-  ProjectionRecord
+  ProjectionRecord,
+  ProjectionQuery
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
+import { toExpressProjectionQuery } from "./query";
 
 export type EventResponseEx<
   S extends State = State,
@@ -161,13 +163,26 @@ export const HttpClient = (
 
     read: async <S extends ProjectionState, E extends Messages>(
       factory: ProjectorFactory<S, E>,
-      ids: string[]
-    ): Promise<Record<string, ProjectionRecord<S>>> => {
+      query: string | string[] | ProjectionQuery<S>,
+      callback: (record: ProjectionRecord<S>) => void
+    ): Promise<number> => {
+      const ids =
+        typeof query === "string"
+          ? [query]
+          : Array.isArray(query)
+          ? query
+          : undefined;
       const { data } = await axios.get<
         State,
-        AxiosResponse<Record<string, ProjectionRecord<S>>>
-      >(url(httpGetPath(factory.name).concat("/", ids[0])));
-      return data;
+        AxiosResponse<ProjectionRecord<S>[]>
+      >(url("/".concat(decamelize(factory.name))), {
+        params: ids
+          ? { ids }
+          : toExpressProjectionQuery(query as ProjectionQuery)
+      });
+      // WARNING: to be used only in unit tests with small query responses - entire response buffer in data
+      data.forEach((record) => callback(record));
+      return data.length;
     }
   };
 };

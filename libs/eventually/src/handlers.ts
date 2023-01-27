@@ -13,6 +13,7 @@ import {
   EventResponse,
   Message,
   Messages,
+  ProjectionQuery,
   ProjectionRecord,
   ProjectionResults,
   ProjectionState,
@@ -284,10 +285,22 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   return committed;
 };
 
-export const read = <S extends ProjectionState, E extends Messages>(
+export const read = async <S extends ProjectionState, E extends Messages>(
   factory: ProjectorFactory<S, E>,
-  ids: string[]
-): Promise<Record<string, ProjectionRecord<S>>> => {
+  query: string | string[] | ProjectionQuery<S>,
+  callback: (record: ProjectionRecord<S>) => void
+): Promise<number> => {
   const projStore = (app().stores[factory.name] as ProjectorStore) || _imps();
-  return projStore.load<S>(ids);
+  const ids =
+    typeof query === "string"
+      ? [query]
+      : Array.isArray(query)
+      ? query
+      : undefined;
+  if (ids) {
+    const records = await projStore.load<S>(ids);
+    records.forEach((record) => callback(record));
+    return records.length;
+  }
+  return projStore.query<S>(query as ProjectionQuery<S>, callback);
 };

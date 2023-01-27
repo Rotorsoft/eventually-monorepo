@@ -1,9 +1,15 @@
-import { app, dispose } from "@rotorsoft/eventually";
+import {
+  app,
+  dispose,
+  Operator,
+  ProjectionRecord
+} from "@rotorsoft/eventually";
 import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import {
   Calculator,
   CalculatorTotals,
+  Totals,
   TotalsEvents
 } from "@rotorsoft/calculator-artifacts";
 import { createEvent } from "./messages";
@@ -39,7 +45,7 @@ describe("calculator with projector in express app", () => {
           upserts: [
             {
               where: { id: `Totals-${stream}` },
-              values: { totals: { "1": 2 } }
+              values: { "1": 2 }
             }
           ]
         },
@@ -49,10 +55,57 @@ describe("calculator with projector in express app", () => {
       }
     ]);
 
-    const response = await http.get(`/calculator-totals/Totals-${stream}`);
-    expect(response.data).toEqual({
-      state: { id: `Totals-${stream}`, totals: { "1": 2 } },
-      watermark: 2
-    });
+    let response: ProjectionRecord<Totals> | undefined;
+    await http.read(
+      CalculatorTotals,
+      `Totals-${stream}`,
+      (r) => (response = r)
+    );
+    expect(response?.state["1"]).toEqual(2);
+    expect(response?.watermark).toEqual(2);
+  });
+
+  it("should query", async () => {
+    const stream1 = "Calculator-".concat(chance.guid());
+    const stream2 = "Calculator-".concat(chance.guid());
+    await http.project(
+      CalculatorTotals,
+      createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "1" }, 1)
+    );
+    await http.project(
+      CalculatorTotals,
+      createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "2" }, 2)
+    );
+    await http.project(
+      CalculatorTotals,
+      createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 3)
+    );
+    await http.project(
+      CalculatorTotals,
+      createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 4)
+    );
+    await http.project(
+      CalculatorTotals,
+      createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 5)
+    );
+
+    let rec: ProjectionRecord<Totals> | undefined;
+    await http.read(CalculatorTotals, `Totals-${stream2}`, (r) => (rec = r));
+    expect(rec?.state["3"]).toBe(3);
+
+    const r1 = await http.read(
+      CalculatorTotals,
+      {
+        select: ["id"],
+        where: {
+          id: { operator: Operator.eq, value: `Totals-${stream2}` },
+          ["3"]: { operator: Operator.gt, value: 1 }
+        },
+        sort: { id: "asc" },
+        limit: 10
+      },
+      (r) => r
+    );
+    expect(r1).toEqual(1);
   });
 });

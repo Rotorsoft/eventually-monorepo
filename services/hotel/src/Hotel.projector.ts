@@ -32,9 +32,12 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
     },
     RoomBooked: async ({ data }) => {
       const id = `Room-${data.number}`;
-      const records = await client().read(Hotel, [id]);
-      const room = records[id];
-      const reserved = room?.state.reserved || {};
+      let reserved: Record<string, string> = {};
+      await client().read(
+        Hotel,
+        id,
+        (room) => (reserved = room.state.reserved || {})
+      );
       let day = data.checkin;
       while (day <= data.checkout) {
         reserved[day.toISOString().substring(0, 10)] = data.id;

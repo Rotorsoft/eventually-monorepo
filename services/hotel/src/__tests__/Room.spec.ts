@@ -1,6 +1,12 @@
-import { app, client, dispose, Snapshot } from "@rotorsoft/eventually";
+import {
+  app,
+  client,
+  dispose,
+  ProjectionRecord,
+  Snapshot
+} from "@rotorsoft/eventually";
 import { Hotel } from "../Hotel.projector";
-import { Next30Days } from "../Next30Days.projector";
+import { DaySales, Next30Days } from "../Next30Days.projector";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
@@ -42,12 +48,14 @@ describe("Room", () => {
   });
 
   it("should search rooms", async () => {
-    const rooms = await client().read(Hotel, [
-      "Room-101",
-      "Room-102",
-      "Room-103"
-    ]);
-    expect(Object.values(rooms).length).toBe(3);
+    const len = await client().read(
+      Hotel,
+      ["Room-101", "Room-102", "Room-103"],
+      () => {
+        return;
+      }
+    );
+    expect(len).toBe(3);
   });
 
   it("should book room", async () => {
@@ -67,20 +75,16 @@ describe("Room", () => {
       room[0].state.price
     );
 
-    const roomstate = await client().read(Hotel, ["Room-102"]);
+    let roomstate;
+    await client().read(Hotel, "Room-102", (r) => (roomstate = r.state));
     expect(roomstate).toEqual({
-      ["Room-102"]: {
-        state: {
-          id: "Room-102",
-          number: 102,
-          type: schemas.RoomType.DOUBLE,
-          price: 200,
-          reserved: {
-            [checkin_key]: "r1",
-            [checkout_key]: "r1"
-          }
-        },
-        watermark: 4
+      id: "Room-102",
+      number: 102,
+      type: schemas.RoomType.DOUBLE,
+      price: 200,
+      reserved: {
+        [checkin_key]: "r1",
+        [checkout_key]: "r1"
       }
     });
 
@@ -90,17 +94,20 @@ describe("Room", () => {
       checkout,
       totalPrice: 800
     });
-    const next30 = await client().read(Next30Days, [checkin_key, checkout_key]);
-    expect(next30).toEqual({
-      [checkin_key]: {
+    const next30: ProjectionRecord<DaySales>[] = [];
+    await client().read(Next30Days, [checkin_key, checkout_key], (r) =>
+      next30.push(r)
+    );
+    expect(next30).toEqual([
+      {
         state: { id: checkin_key, total: 600, reserved: [102, 104] },
         watermark: 5
       },
-      [checkout_key]: {
+      {
         state: { id: checkout_key, total: 600, reserved: [102, 104] },
         watermark: 5
       }
-    });
+    ]);
   });
 
   it("should fail booking", async () => {
