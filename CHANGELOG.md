@@ -1,3 +1,7 @@
+#### 2023-01-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.0.3...@rotorsoft/eventually-pg-v5.0.4) @rotorsoft/eventually-pg-v5.0.4
+  - PATCH [d107e8d6](https://github.com/Rotorsoft/eventually-monorepo/commit/d107e8d63dc42b3fd7d7b3d56eb6c90af3faff35) fix: test queries in express
+  - PATCH [ca11867c](https://github.com/Rotorsoft/eventually-monorepo/commit/ca11867c8a9f95c595aa6755ec46889b84967889) fix: add projection query to read
+  - PATCH [b3dd28e4](https://github.com/Rotorsoft/eventually-monorepo/commit/b3dd28e44639f3d3de134d12129fc7cd35c61c72) fix: add query to projection store
 #### 2023-01-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.7...@rotorsoft/eventually-v5.0.8) @rotorsoft/eventually-v5.0.8
   - PATCH [d107e8d6](https://github.com/Rotorsoft/eventually-monorepo/commit/d107e8d63dc42b3fd7d7b3d56eb6c90af3faff35) fix: test queries in express
   - PATCH [ca11867c](https://github.com/Rotorsoft/eventually-monorepo/commit/ca11867c8a9f95c595aa6755ec46889b84967889) fix: add projection query to read
