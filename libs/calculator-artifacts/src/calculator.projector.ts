@@ -30,8 +30,9 @@ const projection = async (
   key: schemas.Keys
 ): Promise<Projection<Totals>> => {
   const id = `Totals-${stream}`;
-  const records = await client().read(CalculatorTotals, [id]);
-  const { totals } = (records[id] || { state: { totals: {} } }).state;
+  let state: Totals = { id: key, totals: {} };
+  await client().read(CalculatorTotals, id, (r) => (state = r.state));
+  const { totals } = state || { totals: {} };
   return Promise.resolve({
     upserts: [
       {

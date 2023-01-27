@@ -4,19 +4,23 @@ import {
   ArtifactMetadata,
   ArtifactType,
   decamelize,
+  ProjectorFactory,
   ReducibleFactory,
   Scope,
+  State,
   ZodEmpty
 } from "@rotorsoft/eventually";
 import {
   HeadersObject,
+  ParameterObject,
   PathsObject,
+  ReferenceObject,
   ResponseObject,
   SchemaObject,
   SecuritySchemeObject,
   TagObject
 } from "openapi3-ts";
-import z, { ZodType } from "zod";
+import z, { ZodObject, ZodType } from "zod";
 
 const toSnapshotSchema = (name: string, events: string[]): SchemaObject => {
   return {
@@ -104,9 +108,48 @@ const toProjectionResultsSchema = (ref: string): SchemaObject => {
       },
       upserted: { type: "number" },
       deleted: { type: "number" },
-      watermark: { type: "number" }
+      watermark: { type: "number" },
+      error: { type: "string" }
     }
   };
+};
+
+const toProjectionQueryParameters = (
+  factory: ProjectorFactory
+): Array<ParameterObject | ReferenceObject> => {
+  const keys = (factory().schemas.state as unknown as ZodObject<State>).keyof();
+  const schema = toSchema(keys);
+  return [
+    {
+      in: "query",
+      name: "id",
+      description: "Projection record ids",
+      schema: { type: "string" },
+      required: false
+    },
+    {
+      in: "query",
+      name: "select",
+      description: "Projection fields",
+      schema,
+      required: false
+    },
+    {
+      in: "query",
+      name: "where",
+      description: "Projection filters",
+      schema, // TODO: add operator/values to schema
+      required: false
+    },
+    {
+      in: "query",
+      name: "sort",
+      description: "Projection sorting",
+      schema, // TODO: add asc/desc to schema
+      required: false
+    },
+    { $ref: "#/components/parameters/limit" }
+  ];
 };
 
 const toCommittedEventSchema = (
@@ -275,15 +318,17 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
           }
         };
       } else if (type === "projector") {
-        const path = httpGetPath(factory.name).replace("/:id", "/{id}");
+        const path = "/".concat(decamelize(factory.name));
         paths[path] = {
-          parameters: [{ $ref: "#/components/parameters/id" }],
           get: {
-            operationId: `get${factory.name}ById`,
+            operationId: `query${factory.name}`,
             tags: [factory.name],
-            summary: `Gets ${factory.name} by id`,
+            summary: `Query ${factory.name}`,
+            parameters: toProjectionQueryParameters(
+              factory as ProjectorFactory
+            ),
             responses: {
-              "200": toResponse(factory.name.concat("Record"), "OK"),
+              "200": toResponse(factory.name.concat("Record"), "OK", true),
               default: { description: "Internal Server Error" }
             }
           }

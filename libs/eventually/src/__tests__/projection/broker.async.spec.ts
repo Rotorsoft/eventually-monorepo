@@ -32,9 +32,10 @@ describe("async broker", () => {
     await sleep(1000);
     await broker.poll();
     await sleep(1000);
-    const p = await client().read(MatchProjector, ["MatchSystem"]);
-    expect(p["MatchSystem"]).toBeDefined();
-    expect(p["MatchSystem"].watermark).toBe(1);
+    let p = { watermark: 0 };
+    await client().read(MatchProjector, "MatchSystem", (r) => (p = r));
+    expect(p).toBeDefined();
+    expect(p.watermark).toBe(1);
     await broker.dispose();
   });
 });

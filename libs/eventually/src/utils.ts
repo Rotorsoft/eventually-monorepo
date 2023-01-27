@@ -4,6 +4,7 @@ import { app } from "./ports";
 import {
   Command,
   CommandTarget,
+  ZodEmpty,
   Message,
   Messages,
   RegistrationError,
@@ -43,6 +44,7 @@ export const validateMessage = <M extends Messages>(
 ): Message<M> => {
   const metadata = app().messages[message.name];
   if (!metadata) throw new RegistrationError(message);
+  if (!message.data && metadata.schema === ZodEmpty) return message;
   try {
     const data = validate<M[keyof M & string]>(
       message.data,

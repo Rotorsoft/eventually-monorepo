@@ -120,7 +120,7 @@ export interface ProjectorStore extends Disposable, Seedable {
    */
   load: <S extends ProjectionState>(
     ids: string[]
-  ) => Promise<Record<string, ProjectionRecord<S>>>;
+  ) => Promise<ProjectionRecord<S>[]>;
 
   /**
    * Commits projection with basic idempotence check
@@ -141,6 +141,6 @@ export interface ProjectorStore extends Disposable, Seedable {
    */
   query: <S extends ProjectionState>(
     query: ProjectionQuery<S>,
-    callback: (state: Partial<S>, watermark: number) => void
+    callback: (record: ProjectionRecord<S>) => void
   ) => Promise<number>;
 }

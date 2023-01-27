@@ -21,7 +21,7 @@ import {
   errorHandler,
   eventHandler,
   getHandler,
-  getProjectionHandler,
+  readHandler,
   getStreamHandler,
   invokeHandler,
   projectHandler,
@@ -82,12 +82,8 @@ export class ExpressApp extends Builder {
           this._router.post(path, projectHandler(factory as ProjectorFactory));
           log().magenta().info("POST", path, inputs);
         }
-        const getPath = path.concat("/:id");
-        this._router.get(
-          getPath,
-          getProjectionHandler(factory as ProjectorFactory)
-        );
-        log().green().info("GET ", getPath);
+        this._router.get(path, readHandler(factory as ProjectorFactory));
+        log().green().info("GET ", path);
       } else
         endpoints.forEach((name) => {
           const path = httpPostPath(factory.name, type, name);

@@ -1,5 +1,6 @@
 import {
   dispose,
+  Operator,
   Projection,
   ProjectionRecord,
   ProjectorStore
@@ -123,14 +124,20 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
 
   it("should have inserted records", async () => {
     const result = await db.load<Schema>(Object.keys(insertRecords));
-    expect(result).toEqual(insertRecords);
+    Object.values(insertRecords).forEach((r, i) => {
+      const clean = Object.entries(result[i].state)
+        .filter(([, v]) => v !== null)
+        .reduce((p, [k, v]) => Object.assign(p, { [k]: v }), {});
+      expect(r.state).toEqual(clean);
+      expect(r.watermark).toBe(result[i].watermark);
+    });
   });
 
   it("should update records by id", async () => {
     let result = await db.load<Schema>(["User-1", "User-3"]);
     await db.commit<Schema>(
       { upserts: [{ where: { id: "User-1" }, values: { age: 45 } }] },
-      result["User-1"].watermark + 1
+      result[0].watermark + 1
     );
     await db.commit<Schema>(
       {
@@ -138,16 +145,17 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
           { where: { id: "User-3" }, values: { name: "Pepe", age: 12 } }
         ]
       },
-      result["User-3"].watermark + 1
+      result[1].watermark + 1
     );
     result = await db.load<Schema>(["User-1", "User-3"]);
-    expect(result["User-1"].state.age).toEqual(45);
-    expect(result["User-3"].state.name).toEqual("Pepe");
-    expect(result["User-3"].state.age).toEqual(12);
+    expect(result[0].state.age).toEqual(45);
+    expect(result[1].state.name).toEqual("Pepe");
+    expect(result[1].state.age).toEqual(12);
   });
 
   it("should update records by fk", async () => {
     let result = await db.load<Schema>(["User-1", "User-2"]);
+    const water = Math.max(result[0].watermark, result[1].watermark) + 1;
     await db.commit<Schema>(
       {
         upserts: [
@@ -157,7 +165,7 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
           }
         ]
       },
-      result["User-2"].watermark + 1
+      water
     );
     await db.commit<Schema>(
       {
@@ -165,28 +173,25 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
           { where: { managerId: 1 }, values: { managerName: "Manager One" } }
         ]
       },
-      result["User-2"].watermark + 1
+      water
     );
     result = await db.load<Schema>(["User-1", "User-2"]);
-    expect(result["User-1"].state.countryName).toEqual(
-      "United States of America"
-    );
-    expect(result["User-2"].state.countryName).toEqual(
-      "United States of America"
-    );
-    expect(result["User-1"].state.managerName).toEqual("Manager One");
-    expect(result["User-2"].state.managerName).toEqual("Manager One");
+
+    expect(result[0].state.countryName).toEqual("United States of America");
+    expect(result[1].state.countryName).toEqual("United States of America");
+    expect(result[0].state.managerName).toEqual("Manager One");
+    expect(result[1].state.managerName).toEqual("Manager One");
   });
 
   it("should delete records", async () => {
     let loaded = await db.load<Schema>(["Country-1"]);
     const result = await db.commit<Schema>(
       { deletes: [{ where: { countryId: 1 } }] },
-      loaded["Country-1"].watermark + 1
+      loaded[0].watermark + 1
     );
     expect(result.deleted).toBe(1);
     loaded = await db.load<Schema>(["Country-1"]);
-    expect(loaded["Country-1"]).toBeUndefined();
+    expect(loaded[0]).toBeUndefined();
   });
 
   it("should ignore low watermarks", async () => {
@@ -207,5 +212,44 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
     expect(result1.upserted).toBe(0);
     expect(result2.upserted).toBe(0);
     expect(result3.deleted).toBe(0);
+  });
+
+  it("should query all", async () => {
+    const r = await db.query({}, (r) => r);
+    expect(r).toBe(6);
+  });
+
+  it("should query by age", async () => {
+    const records: Array<ProjectionRecord<Schema>> = [];
+    const r = await db.query<Schema>(
+      {
+        select: ["id", "name", "age", "countryName"],
+        where: { age: { operator: Operator.gte, value: 40 } },
+        limit: 5,
+        sort: { age: "desc" }
+      },
+      (r) => records.push(r)
+    );
+    expect(r).toBe(2);
+    expect(records).toEqual([
+      {
+        state: {
+          age: 45,
+          countryName: "United States of America",
+          id: "User-1",
+          name: "John Doe"
+        },
+        watermark: 4
+      },
+      {
+        state: {
+          age: 40,
+          countryName: "United States of America",
+          id: "User-2",
+          name: "Jane Doe"
+        },
+        watermark: 5
+      }
+    ]);
   });
 });

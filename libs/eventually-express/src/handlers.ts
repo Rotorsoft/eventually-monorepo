@@ -15,9 +15,12 @@ import {
   State,
   store,
   ProjectionState,
+  ProjectionQuery,
+  Environments,
   ProjectionRecord
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
+import { config } from "./config";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
   const etag = snapshot?.event?.version;
@@ -38,7 +41,7 @@ export const statsHandler = async (
 };
 
 export const allStreamHandler = async (
-  req: Request<any, CommittedEvent[], any, AllQuery>,
+  req: Request<never, CommittedEvent[], never, AllQuery>,
   res: Response,
   next: NextFunction
 ): Promise<Response | undefined> => {
@@ -188,34 +191,71 @@ export const projectHandler =
   (factory: ProjectorFactory) =>
   async (
     req: Request<never, any, CommittedEvent[]>,
-    res: Response<ProjectionResults<ProjectionState>>,
-    next: NextFunction
+    res: Response<ProjectionResults<ProjectionState>>
   ): Promise<Response | undefined> => {
-    try {
-      res.header("content-type", "application/json");
-      res.write("[");
-      for (let i = 0; i < req.body.length; i++) {
-        i && res.write(",");
-        res.write(JSON.stringify(await client().project(factory, req.body[i])));
+    res.header("content-type", "application/json");
+    res.write("[");
+    for (let i = 0; i < req.body.length; i++) {
+      i && res.write(",");
+      try {
+        const results = await client().project(factory, req.body[i]);
+        res.write(JSON.stringify(results));
+      } catch (_error: unknown) {
+        log().error(_error);
+        const error =
+          _error instanceof Error
+            ? _error.message
+            : typeof _error === "string"
+            ? _error
+            : `Error found when projecting ${req.body[i].name} at position ${i}.`;
+        const results: ProjectionResults = {
+          projection: {},
+          upserted: 0,
+          deleted: 0,
+          watermark: -1,
+          error
+        };
+        res.write(JSON.stringify(results));
+        break;
       }
-      res.write("]");
-      return res.status(200).end();
-    } catch (error) {
-      next(error);
     }
+    res.write("]");
+    return res.status(200).end();
   };
 
-export const getProjectionHandler =
+const parseProjectionQuery = (query: ProjectionQuery): ProjectionQuery => {
+  // TODO: finish this
+  console.log(query);
+  return query;
+};
+
+export const readHandler =
   (factory: ProjectorFactory) =>
   async (
-    req: Request<{ id: string }, never, never, never>,
-    res: Response<ProjectionRecord<ProjectionState>>,
+    req: Request<
+      never,
+      ProjectionRecord[],
+      never,
+      string | string[] | ProjectionQuery
+    >,
+    res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const { id } = req.params;
-      const response = await client().read(factory, [id]);
-      return res.status(200).send(response[id]);
+      const query =
+        typeof req.query === "string" || Array.isArray(req.query)
+          ? req.query
+          : parseProjectionQuery(req.query);
+      res.header("content-type", "application/json");
+      res.write("[");
+      let i = 0;
+      await client().read(factory, query, (record) => {
+        i && res.write(",");
+        res.write(JSON.stringify(record));
+        i++;
+      });
+      res.write("]");
+      return res.status(200).end();
     } catch (error) {
       next(error);
     }
@@ -225,20 +265,26 @@ export const errorHandler = (
   error: Error,
   _: Request,
   res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  __: NextFunction
-): Response => {
+  next: NextFunction
+): void => {
   log().error(error);
-  // eslint-disable-next-line
+  if (res.headersSent) return next(error);
   const { name, message, stack, ...other } = error;
   switch (name) {
     case Errors.ValidationError:
-      return res.status(400).send({ name, message, ...other });
+      res.status(400).send({ name, message, ...other });
+      break;
     case Errors.RegistrationError:
-      return res.status(404).send({ name, message, ...other });
+      res.status(404).send({ name, message, ...other });
+      break;
     case Errors.ConcurrencyError:
-      return res.status(409).send({ name, message, ...other });
+      res.status(409).send({ name, message, ...other });
+      break;
     default:
-      return res.status(500).send({ name, message });
+      res.status(500).send({
+        name,
+        message,
+        stack: config.env !== Environments.production && stack
+      });
   }
 };

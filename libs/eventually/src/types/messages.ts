@@ -135,12 +135,14 @@ export type Projection<S extends ProjectionState> = {
  * - `upserted` the number of upserted records
  * - `deleted` the number of deleted records
  * - `watermark` the stored watermark
+ * - `error?` the error message when project throws
  */
-export type ProjectionResults<S extends ProjectionState> = {
+export type ProjectionResults<S extends ProjectionState = ProjectionState> = {
   projection: Projection<S>;
   upserted: number;
   deleted: number;
   watermark: number;
+  error?: string;
 };
 
 /**
@@ -157,8 +159,18 @@ export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
 /**
  * Filter condition
  */
+export enum Operator {
+  eq = "=",
+  neq = "<>",
+  lt = "<",
+  gt = ">",
+  lte = "<=",
+  gte = ">=",
+  in = "in",
+  not_in = "not in"
+}
 export type Condition<T> = {
-  operator: string;
+  operator: Operator;
   value: T;
 };
 
@@ -166,10 +178,12 @@ export type Condition<T> = {
  * Options to query projections
  * - `select?` selected fields
  * - `where?` filters
+ * - `sort?` sorted fields
  * - `limit?` limit number of records
  */
 export type ProjectionQuery<S extends ProjectionState = ProjectionState> = {
   readonly select?: Array<keyof S>;
   readonly where?: { [K in keyof S]?: Condition<S[K]> };
+  readonly sort?: { [K in keyof S]?: "asc" | "desc" };
   readonly limit?: number;
 };

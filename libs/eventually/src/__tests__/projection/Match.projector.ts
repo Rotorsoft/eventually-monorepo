@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Projector } from "../../types";
+import { ProjectionRecord, Projector } from "../../types";
 import * as schemas from "./schemas";
 import * as events from "./events";
 import { client } from "../..";
@@ -67,8 +67,9 @@ export const MatchProjector = (): Projector<
       }),
     JobCreated: async (e) => {
       const customerId = `Customer-${e.data.customerId}`;
-      const records = await client().read(MatchProjector, [customerId]);
-      const customer = records[customerId];
+      const records: ProjectionRecord<MatchProjection>[] = [];
+      await client().read(MatchProjector, customerId, (r) => records.push(r));
+      const customer = records[0];
       return Promise.resolve({
         upserts: [
           {
@@ -99,9 +100,12 @@ export const MatchProjector = (): Projector<
     MatchCreated: async (e) => {
       const jobId = `Job-${e.data.jobId}`;
       const supplierId = `Supplier-${e.data.supplierId}`;
-      const records = await client().read(MatchProjector, [jobId, supplierId]);
-      const job = records[jobId];
-      const supplier = records[supplierId];
+      const records: ProjectionRecord<MatchProjection>[] = [];
+      await client().read(MatchProjector, [jobId, supplierId], (r) =>
+        records.push(r)
+      );
+      const job = records[0];
+      const supplier = records[1];
       return Promise.resolve({
         upserts: [
           {

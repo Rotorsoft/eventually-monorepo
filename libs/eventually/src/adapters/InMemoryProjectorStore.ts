@@ -5,7 +5,9 @@ import {
   Projection,
   ProjectionRecord,
   ProjectionState,
-  ProjectionQuery
+  ProjectionQuery,
+  Condition,
+  Operator
 } from "../types";
 
 // default deepmerge options: arrays are replaced
@@ -53,15 +55,9 @@ export const InMemoryProjectorStore = (
 
     load: <S extends ProjectionState>(
       ids: string[]
-    ): Promise<Record<string, ProjectionRecord<S>>> =>
+    ): Promise<ProjectionRecord<S>[]> =>
       Promise.resolve(
-        ids
-          .map((id) => _projections[id])
-          .filter(Boolean)
-          .reduce((p, c) => {
-            p[c.state.id] = c as ProjectionRecord<S>;
-            return p;
-          }, {} as Record<string, ProjectionRecord<S>>)
+        ids.map((id) => _projections[id] as ProjectionRecord<S>).filter(Boolean)
       ),
 
     commit: async <S extends ProjectionState>(
@@ -106,14 +102,45 @@ export const InMemoryProjectorStore = (
       return Promise.resolve(results);
     },
 
-    query: async <S extends ProjectionState>(
+    query: <S extends ProjectionState>(
       query: ProjectionQuery<S>,
-      callback: (state: Partial<S>, watermark: number) => void
+      callback: (record: ProjectionRecord<S>) => void
     ): Promise<number> => {
-      //TODO: todo query _projections records
-      console.log(query);
-      callback({}, 0);
-      return Promise.resolve(0);
+      let count = 0;
+      Object.values(_projections).forEach((record) => {
+        // TODO: apply sort and select clauses
+        const match = query.where
+          ? Object.entries(query.where).reduce(
+              (match, [key, condition]: [string, Condition<any>]) => {
+                switch (condition.operator) {
+                  case Operator.eq:
+                    return match && record.state[key] == condition.value;
+                  case Operator.neq:
+                    return match && record.state[key] != condition.value;
+                  case Operator.lt:
+                    return match && record.state[key] < condition.value;
+                  case Operator.lte:
+                    return match && record.state[key] <= condition.value;
+                  case Operator.gt:
+                    return match && record.state[key] > condition.value;
+                  case Operator.gte:
+                    return match && record.state[key] >= condition.value;
+                  case Operator.in:
+                    return match && record.state[key] == condition.value;
+                  case Operator.not_in:
+                    return match && record.state[key] != condition.value;
+                }
+              },
+              true
+            )
+          : true;
+        if (match) {
+          count++;
+          if (query.limit && count > query.limit) return count;
+          callback(record as ProjectionRecord<S>);
+        }
+      });
+      return Promise.resolve(count);
     }
   };
 };

@@ -1,9 +1,10 @@
-import { app, dispose } from "@rotorsoft/eventually";
+import { app, dispose, ProjectionRecord } from "@rotorsoft/eventually";
 import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import {
   Calculator,
   CalculatorTotals,
+  Totals,
   TotalsEvents
 } from "@rotorsoft/calculator-artifacts";
 import { createEvent } from "./messages";
@@ -49,8 +50,16 @@ describe("calculator with projector in express app", () => {
       }
     ]);
 
-    const response = await http.get(`/calculator-totals/Totals-${stream}`);
-    expect(response.data).toEqual({
+    let response: ProjectionRecord<Totals> = {
+      state: { id: "", totals: {} },
+      watermark: -1
+    };
+    await http.read(
+      CalculatorTotals,
+      `Totals-${stream}`,
+      (r) => (response = r)
+    );
+    expect(response).toEqual({
       state: { id: `Totals-${stream}`, totals: { "1": 2 } },
       watermark: 2
     });
