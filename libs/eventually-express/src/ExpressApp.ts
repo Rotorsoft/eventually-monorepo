@@ -77,12 +77,17 @@ export class ExpressApp extends Builder {
           log().magenta().info("POST", path, endpoints);
         }
       } else if (type === "projector") {
+        const projector_factory = factory as ProjectorFactory;
+        const projector = projector_factory();
         const path = httpPostPath(factory.name, type);
         if (endpoints.length) {
-          this._router.post(path, projectHandler(factory as ProjectorFactory));
+          this._router.post(path, projectHandler(projector_factory));
           log().magenta().info("POST", path, inputs);
         }
-        this._router.get(path, readHandler(factory as ProjectorFactory));
+        this._router.get(
+          path,
+          readHandler(projector_factory, projector.schemas.state)
+        );
         log().green().info("GET ", path);
       } else
         endpoints.forEach((name) => {

@@ -14,7 +14,6 @@ import {
   HeadersObject,
   ParameterObject,
   PathsObject,
-  ReferenceObject,
   ResponseObject,
   SchemaObject,
   SecuritySchemeObject,
@@ -116,39 +115,40 @@ const toProjectionResultsSchema = (ref: string): SchemaObject => {
 
 const toProjectionQueryParameters = (
   factory: ProjectorFactory
-): Array<ParameterObject | ReferenceObject> => {
+): Array<ParameterObject> => {
   const keys = (factory().schemas.state as unknown as ZodObject<State>).keyof();
   const schema = toSchema(keys);
   return [
     {
       in: "query",
-      name: "id",
-      description: "Projection record ids",
-      schema: { type: "string" },
-      required: false
+      name: "ids",
+      description: "Get these ids",
+      schema: { type: "array", items: { type: "string" } }
     },
     {
       in: "query",
       name: "select",
-      description: "Projection fields",
-      schema,
-      required: false
+      description: "Selected fields",
+      schema: { type: "array", items: schema }
     },
     {
       in: "query",
       name: "where",
-      description: "Projection filters",
-      schema, // TODO: add operator/values to schema
-      required: false
+      description: "Apply filters using [field op value] syntax",
+      schema: { type: "array", items: { type: "string" } }
     },
     {
       in: "query",
       name: "sort",
-      description: "Projection sorting",
-      schema, // TODO: add asc/desc to schema
-      required: false
+      description: "Apply sorting using [field asc] or [field desc]",
+      schema: { type: "array", items: { type: "string" } }
     },
-    { $ref: "#/components/parameters/limit" }
+    {
+      in: "query",
+      name: "limit",
+      description: "Max number of records to return",
+      schema: { type: "integer" }
+    }
   ];
 };
 

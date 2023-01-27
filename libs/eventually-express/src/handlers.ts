@@ -5,22 +5,23 @@ import {
   CommandAdapterFactory,
   CommandHandlerFactory,
   CommittedEvent,
+  Environments,
   Errors,
   EventHandlerFactory,
   log,
+  ProjectionRecord,
   ProjectionResults,
+  ProjectionState,
   ProjectorFactory,
   ReducibleFactory,
   Snapshot,
   State,
-  store,
-  ProjectionState,
-  ProjectionQuery,
-  Environments,
-  ProjectionRecord
+  store
 } from "@rotorsoft/eventually";
 import { NextFunction, Request, Response } from "express";
+import { ZodObject, ZodType } from "zod";
 import { config } from "./config";
+import { ExpressProjectionQuery, toProjectionQuery } from "./query";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
   const etag = snapshot?.event?.version;
@@ -223,29 +224,17 @@ export const projectHandler =
     return res.status(200).end();
   };
 
-const parseProjectionQuery = (query: ProjectionQuery): ProjectionQuery => {
-  // TODO: finish this
-  console.log(query);
-  return query;
-};
-
 export const readHandler =
-  (factory: ProjectorFactory) =>
+  (factory: ProjectorFactory, schema: ZodType) =>
   async (
-    req: Request<
-      never,
-      ProjectionRecord[],
-      never,
-      string | string[] | ProjectionQuery
-    >,
+    req: Request<never, ProjectionRecord[], never, ExpressProjectionQuery>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const query =
-        typeof req.query === "string" || Array.isArray(req.query)
-          ? req.query
-          : parseProjectionQuery(req.query);
+      const query = toProjectionQuery(req.query, schema as ZodObject<State>);
+      log().green().trace(`${factory.name}?`, query);
+
       res.header("content-type", "application/json");
       res.write("[");
       let i = 0;

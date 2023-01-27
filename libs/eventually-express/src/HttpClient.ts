@@ -21,6 +21,7 @@ import {
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
+import { toExpressProjectionQuery } from "./query";
 
 export type EventResponseEx<
   S extends State = State,
@@ -165,10 +166,20 @@ export const HttpClient = (
       query: string | string[] | ProjectionQuery<S>,
       callback: (record: ProjectionRecord<S>) => void
     ): Promise<number> => {
+      const ids =
+        typeof query === "string"
+          ? [query]
+          : Array.isArray(query)
+          ? query
+          : undefined;
       const { data } = await axios.get<
         State,
         AxiosResponse<ProjectionRecord<S>[]>
-      >(url("/".concat(decamelize(factory.name))), { params: query });
+      >(url("/".concat(decamelize(factory.name))), {
+        params: ids
+          ? { ids }
+          : toExpressProjectionQuery(query as ProjectionQuery)
+      });
       // WARNING: to be used only in unit tests with small query responses - entire response buffer in data
       data.forEach((record) => callback(record));
       return data.length;

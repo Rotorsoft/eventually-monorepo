@@ -21,6 +21,17 @@ const EQUALS: Operator[] = [
   Operator.in
 ];
 
+const OPS = {
+  [Operator.eq]: "=",
+  [Operator.neq]: "<>",
+  [Operator.lt]: "<",
+  [Operator.gt]: ">",
+  [Operator.lte]: "<=",
+  [Operator.gte]: ">=",
+  [Operator.in]: "in",
+  [Operator.not_in]: "not in"
+};
+
 export const PostgresProjectorStore = <S extends ProjectionState>(
   table: string,
   schema: ProjectionSchema<S>,
@@ -153,7 +164,7 @@ export const PostgresProjectorStore = <S extends ProjectionState>(
                       ? EQUALS.includes(operator)
                         ? "is null"
                         : "is not null"
-                      : `${operator} $${index + 1}`;
+                      : `${OPS[operator]} $${index + 1}`;
                   return `${table}."${key}" ${operation}`;
                 }
               )

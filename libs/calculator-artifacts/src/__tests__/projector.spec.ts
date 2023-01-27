@@ -26,20 +26,14 @@ describe("Projector", () => {
     await pressKey(id, "3");
 
     const pid = "Totals-Calculator-".concat(id);
-    let record: ProjectionRecord<Totals> = {
-      state: { id: "", totals: {} },
-      watermark: -1
-    };
+    let record: ProjectionRecord<Totals> | undefined;
     await client().read(CalculatorTotals, pid, (r) => (record = r));
-    expect(record.state).toEqual({
+    expect(record?.state).toEqual({
       id: pid,
-      totals: {
-        "1": 2,
-        "2": 1,
-        "3": 1,
-        ".": 1
-      }
+      "1": 2,
+      "2": 1,
+      "3": 1
     });
-    expect(record.watermark).toBe(7);
+    expect(record?.watermark).toBe(7);
   });
 });

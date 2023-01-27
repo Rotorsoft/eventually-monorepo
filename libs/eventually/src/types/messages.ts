@@ -160,14 +160,14 @@ export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
  * Filter condition
  */
 export enum Operator {
-  eq = "=",
-  neq = "<>",
-  lt = "<",
-  gt = ">",
-  lte = "<=",
-  gte = ">=",
+  eq = "eq",
+  neq = "neq",
+  lt = "lt",
+  gt = "gt",
+  lte = "lte",
+  gte = "gte",
   in = "in",
-  not_in = "not in"
+  not_in = "not_in"
 }
 export type Condition<T> = {
   operator: Operator;
@@ -181,9 +181,15 @@ export type Condition<T> = {
  * - `sort?` sorted fields
  * - `limit?` limit number of records
  */
+export type ProjectionWhere<S extends ProjectionState = ProjectionState> = {
+  [K in keyof S]?: Condition<S[K]>;
+};
+export type ProjectionSort<S extends ProjectionState = ProjectionState> = {
+  [K in keyof S]?: "asc" | "desc";
+};
 export type ProjectionQuery<S extends ProjectionState = ProjectionState> = {
   readonly select?: Array<keyof S>;
-  readonly where?: { [K in keyof S]?: Condition<S[K]> };
-  readonly sort?: { [K in keyof S]?: "asc" | "desc" };
+  readonly where?: ProjectionWhere<S>;
+  readonly sort?: ProjectionSort<S>;
   readonly limit?: number;
 };
