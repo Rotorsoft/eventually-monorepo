@@ -1,3 +1,5 @@
+#### 2023-02-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.7...@rotorsoft/eventually-broker-v2.0.8) @rotorsoft/eventually-broker-v2.0.8
+  - PATCH [1e7a9d34](https://github.com/Rotorsoft/eventually-monorepo/commit/1e7a9d34cc54d3ecea7815e05952b7ae8c9ffa13) fix: use href instead of origin to query swagger endpoints in broker
 #### 2023-01-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.2...@rotorsoft/calculator-artifacts-v1.0.3) @rotorsoft/calculator-artifacts-v1.0.3
   - PATCH [d107e8d6](https://github.com/Rotorsoft/eventually-monorepo/commit/d107e8d63dc42b3fd7d7b3d56eb6c90af3faff35) fix: test queries in express
   - PATCH [ca11867c](https://github.com/Rotorsoft/eventually-monorepo/commit/ca11867c8a9f95c595aa6755ec46889b84967889) fix: add projection query to read
