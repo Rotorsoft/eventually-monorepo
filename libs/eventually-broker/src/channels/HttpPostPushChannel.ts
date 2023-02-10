@@ -1,4 +1,3 @@
-import { log } from "@rotorsoft/eventually";
 import axios, { AxiosRequestHeaders } from "axios";
 import { CommittableHttpStatus } from "../cluster";
 import { PushChannel } from "../interfaces";
@@ -18,8 +17,7 @@ const push = async (
       headers
     });
     return { statusCode: status, statusText };
-  } catch (error) {
-    log().error(error);
+  } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         const { status, statusText, data } = error.response;

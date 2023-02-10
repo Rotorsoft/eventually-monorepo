@@ -27,7 +27,7 @@
     "express": "^4.17.3",
     "express-handlebars": "^6.0.3",
     "helmet": "^6.0.0",
-    "joi": "^17.6.0",
+    "joi": "^17.7.1",
     "openapi3-ts": "^3.1.1",
     "pg": "^8.7.1",
     "pg-listen": "^1.7.0"

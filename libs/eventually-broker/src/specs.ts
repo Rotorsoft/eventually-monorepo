@@ -46,7 +46,7 @@ const getServiceSwagger = async (
   const url = new URL(service.url);
   if (!url.protocol.startsWith("http")) return undefined;
   const secretsQueryString = state().serviceSecretsQueryString(service.id);
-  const path = `${url.origin}/swagger${secretsQueryString}`;
+  const path = `${url.href}/swagger${secretsQueryString}`;
   const { data } = await axios.get<OpenAPIObject>(path, {
     timeout: HTTP_TIMEOUT
   });
@@ -296,10 +296,15 @@ export const refreshServiceSpec = async (service: Service): Promise<void> => {
     try {
       const data = await getServiceSwagger(service);
       return { data };
-    } catch (err: any) {
-      log().info(service.url, err.message);
-      err.code === "ENOTFOUND" && service.breaker && service.breaker.pause();
-      return { error: err.message };
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        log().info(`${service.url}/swagger`, err.message);
+        err.code === "ENOTFOUND" && service.breaker && service.breaker.pause();
+        return { error: err.message };
+      }
+      const msg = `Oops! Request to ${service.url}/swagger failed, but we don't have details!`;
+      log().info(msg);
+      return { error: msg };
     }
   });
   if (data) {
