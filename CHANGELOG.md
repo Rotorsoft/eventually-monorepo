@@ -1,3 +1,6 @@
+#### 2023-02-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.8...@rotorsoft/eventually-broker-v2.0.9) @rotorsoft/eventually-broker-v2.0.9
+  - PATCH [3d7943b3](https://github.com/Rotorsoft/eventually-monorepo/commit/3d7943b38bfe2daf9608e580400d2d3242dd687c) fix: test
+  - PATCH [b3baeb1c](https://github.com/Rotorsoft/eventually-monorepo/commit/b3baeb1cc644ae6d9f9fb2a19c77db702569fe91) fix: replace training slashes
 #### 2023-02-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.7...@rotorsoft/eventually-broker-v2.0.8) @rotorsoft/eventually-broker-v2.0.8
   - PATCH [1e7a9d34](https://github.com/Rotorsoft/eventually-monorepo/commit/1e7a9d34cc54d3ecea7815e05952b7ae8c9ffa13) fix: use href instead of origin to query swagger endpoints in broker
 #### 2023-01-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.2...@rotorsoft/calculator-artifacts-v1.0.3) @rotorsoft/calculator-artifacts-v1.0.3
