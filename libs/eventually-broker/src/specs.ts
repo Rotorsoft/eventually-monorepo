@@ -46,7 +46,10 @@ const getServiceSwagger = async (
   const url = new URL(service.url);
   if (!url.protocol.startsWith("http")) return undefined;
   const secretsQueryString = state().serviceSecretsQueryString(service.id);
-  const path = `${url.href}/swagger${secretsQueryString}`;
+  const path = `${service.url.replace(
+    /\/+$/,
+    ""
+  )}/swagger${secretsQueryString}`;
   const { data } = await axios.get<OpenAPIObject>(path, {
     timeout: HTTP_TIMEOUT
   });

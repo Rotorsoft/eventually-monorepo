@@ -49,17 +49,16 @@ export const ensureArray = (anyOrArray: any | any[]): any[] =>
 /**
  * Builds query string from payload
  */
-const toQS = (key: string, val: any): string => `&${key}=${val.toString()}`;
+const toQS = (key: string, val: any): string => `${key}=${val.toString()}`;
 export const toQueryString = (payload: Record<string, unknown>): string =>
   Object.entries(payload)
     .filter(([, val]) => val)
-    .reduce(
-      (q, [key, val]) =>
-        Array.isArray(val)
-          ? val.map((v) => q.concat(toQS(key, v))).join("")
-          : q.concat(toQS(key, val)),
-      ""
-    );
+    .map(([key, val]) =>
+      Array.isArray(val)
+        ? val.map((v) => toQS(key, v)).join("&")
+        : toQS(key, val)
+    )
+    .join("&");
 
 /**
  * Builds headers from payload
