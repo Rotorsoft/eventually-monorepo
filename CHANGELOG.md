@@ -1,3 +1,5 @@
+#### 2023-02-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.0.4...@rotorsoft/eventually-pg-v5.0.5) @rotorsoft/eventually-pg-v5.0.5
+  - PATCH [ec34505e](https://github.com/Rotorsoft/eventually-monorepo/commit/ec34505eed324d029261b18bd695fbb2ac0ae050) fix: test default scopes
 #### 2023-02-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.8...@rotorsoft/eventually-v5.0.9) @rotorsoft/eventually-v5.0.9
   - PATCH [ec34505e](https://github.com/Rotorsoft/eventually-monorepo/commit/ec34505eed324d029261b18bd695fbb2ac0ae050) fix: test default scopes
 #### 2023-02-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.8...@rotorsoft/eventually-broker-v2.0.9) @rotorsoft/eventually-broker-v2.0.9
