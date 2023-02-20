@@ -203,8 +203,6 @@ export abstract class Builder implements Disposable {
         .forEach((input) => {
           input.scope =
             process.env.NODE_ENV === "test" || // force public when testing
-            md.type === "aggregate" ||
-            md.type === "system" ||
             md.type === "command-adapter" ||
             !this.messages[input.name].producer
               ? Scope.public
