@@ -113,23 +113,23 @@ describe("calculator express app", () => {
         { key: "1" },
         { id, expectedVersion: -1 }
       )
-    ).rejects.toThrowError("Request failed with status code 409");
+    ).rejects.toThrow("Request failed with status code 409");
   });
 
   it("should throw validation error", async () => {
     await expect(
       http.command(Calculator, "PressKey", {}, { id: chance.guid() })
-    ).rejects.toThrowError("Request failed with status code 400");
+    ).rejects.toThrow("Request failed with status code 400");
   });
 
   it("should throw 404 error", async () => {
-    await expect(http.get("/calculato")).rejects.toThrowError(
+    await expect(http.get("/calculato")).rejects.toThrow(
       "Request failed with status code 404"
     );
   });
 
   it("should throw model invariant violation", async () => {
-    await expect(pressKey(http, chance.guid(), "=")).rejects.toThrowError(
+    await expect(pressKey(http, chance.guid(), "=")).rejects.toThrow(
       "Request failed with status code 500"
     );
   });

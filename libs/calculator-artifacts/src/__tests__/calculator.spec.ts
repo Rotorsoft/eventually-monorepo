@@ -144,7 +144,7 @@ describe("Calculator", () => {
   });
 
   it("should throw model invariant violation", async () => {
-    await expect(pressKey(chance.guid(), "=")).rejects.toThrowError(
+    await expect(pressKey(chance.guid(), "=")).rejects.toThrow(
       "Don't have an operator"
     );
   });

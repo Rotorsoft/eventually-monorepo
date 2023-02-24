@@ -43,6 +43,6 @@ describe("express", () => {
   it("should throw validation error", async () => {
     await expect(
       http.command(systems.ExternalSystem1, "CreateAccount1", { id: "" })
-    ).rejects.toThrowError("Request failed with status code 400");
+    ).rejects.toThrow("Request failed with status code 400");
   });
 });

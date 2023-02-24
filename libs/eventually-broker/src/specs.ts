@@ -60,7 +60,7 @@ const getSnapshotEvents = (schema: SchemaObject): string[] => {
   const refs = [] as string[];
   schema?.properties?.state &&
     schema?.properties?.event &&
-    "anyOf" in schema?.properties?.event &&
+    "anyOf" in schema.properties.event &&
     getRefs(schema.properties.event, refs);
   return refs;
 };

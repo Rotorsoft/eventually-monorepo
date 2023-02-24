@@ -18,8 +18,8 @@
     "build": "npx tsc --build"
   },
   "dependencies": {
-    "deepmerge": "^4.2.2",
-    "dotenv": "^16.0.0",
+    "deepmerge": "^4.3.0",
+    "dotenv": "^16.0.3",
     "zod": "^3.20.6"
   }
 }

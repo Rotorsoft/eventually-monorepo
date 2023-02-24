@@ -15,9 +15,9 @@ export const DIGITS = [
 ] as const;
 export const OPERATORS = ["+", "-", "*", "/"] as const;
 export const SYMBOLS = [".", "="] as const;
-export type Digits = typeof DIGITS[number];
-export type Operators = typeof OPERATORS[number];
-export type Symbols = typeof SYMBOLS[number];
+export type Digits = (typeof DIGITS)[number];
+export type Operators = (typeof OPERATORS)[number];
+export type Symbols = (typeof SYMBOLS)[number];
 export type Keys = Digits | Operators | Symbols;
 
 export const CalculatorSchema = z

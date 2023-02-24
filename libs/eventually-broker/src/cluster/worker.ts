@@ -318,7 +318,7 @@ export const work = async (
       sendState(current.state, false);
       if (!sub.active || operation === "DELETE") {
         delete subs[sub.id];
-        !Object.keys(subs).length && exit();
+        !Object.keys(subs).length && void exit();
         return;
       }
     }

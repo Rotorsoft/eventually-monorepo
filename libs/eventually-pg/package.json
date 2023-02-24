@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^5",
-    "pg": "^8.7.1",
+    "pg": "^8.9.0",
     "zod": "^3.20.6"
   }
 }

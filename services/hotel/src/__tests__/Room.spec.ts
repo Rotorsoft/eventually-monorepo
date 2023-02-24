@@ -126,7 +126,7 @@ describe("Room", () => {
         checkout,
         totalPrice: 0
       })
-    ).rejects.toThrowError();
+    ).rejects.toThrow();
   });
 
   it("should fail invariants", async () => {

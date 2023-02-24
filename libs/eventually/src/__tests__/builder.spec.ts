@@ -65,14 +65,12 @@ describe("Builder", () => {
 
   it("should throw duplicate artifact", () => {
     app().with(Factory);
-    expect(() => app().with(Factory)).toThrowError(
-      'Duplicate artifact "Factory"'
-    );
+    expect(() => app().with(Factory)).toThrow('Duplicate artifact "Factory"');
   });
 
   it("should throw duplicate command", () => {
     app().with(Factory);
-    expect(() => app().with(Factory2)).toThrowError(
+    expect(() => app().with(Factory2)).toThrow(
       'Duplicate command "Command1" found in "Factory" and "Factory2"'
     );
   });

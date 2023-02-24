@@ -24,18 +24,18 @@ describe("calculator express app with store errors", () => {
   });
 
   it("should throw internal error on stream", async () => {
-    await expect(http.get("/all")).rejects.toThrowError();
+    await expect(http.get("/all")).rejects.toThrow();
   });
 
   it("should throw internal error on aggregate", async () => {
-    await expect(http.get("/calculator/test")).rejects.toThrowError("500");
+    await expect(http.get("/calculator/test")).rejects.toThrow("500");
   });
 
   it("should throw internal error on stats", async () => {
-    await expect(http.get("/stats")).rejects.toThrowError("500");
+    await expect(http.get("/stats")).rejects.toThrow("500");
   });
 
   it("should throw validation error", async () => {
-    await expect(http.get("/query")).rejects.toThrowError("400");
+    await expect(http.get("/query")).rejects.toThrow("400");
   });
 });

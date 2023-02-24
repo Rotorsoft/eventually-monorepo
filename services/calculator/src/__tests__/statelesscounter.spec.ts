@@ -84,7 +84,7 @@ describe("calculator with stateless counter express app", () => {
         data: {},
         metadata: { correlation: "", causation: {} }
       })
-    ).rejects.toThrowError("Request failed with status code 400");
+    ).rejects.toThrow("Request failed with status code 400");
   });
 
   it("should throw registration error", async () => {
@@ -93,6 +93,6 @@ describe("calculator with stateless counter express app", () => {
       http.event(StatelessCounter, {
         name: "IgnoreThis"
       } as any)
-    ).rejects.toThrowError("Request failed with status code 404");
+    ).rejects.toThrow("Request failed with status code 404");
   });
 });
