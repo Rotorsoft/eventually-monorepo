@@ -47,6 +47,7 @@ const _stream = <S extends State, C extends Messages, E extends Messages>(
  * @param callback optional reduction predicate
  * @returns current model snapshot
  */
+const STATE_EVENT = "__state__";
 const _load = async <S extends State, C extends Messages, E extends Messages>(
   factory: ReducibleFactory<S, C, E>,
   reducible: Reducible<S, E> & Streamable,
@@ -62,20 +63,26 @@ const _load = async <S extends State, C extends Messages, E extends Messages>(
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
   let applyCount = 0;
+  let stateCount = 0;
 
   await store().query<E>(
     (e) => {
       event = e;
-      state = reducible.reduce[event.name](state as Readonly<S>, event);
-      applyCount++;
-      callback && callback({ event, state, applyCount });
+      if (e.name === STATE_EVENT) {
+        state = e.data as S;
+        stateCount++;
+      } else {
+        state = reducible.reduce[e.name](state, e);
+        applyCount++;
+      }
+      callback && callback({ event, state, applyCount, stateCount });
     },
     { stream, after: event?.id }
   );
 
   log().gray().trace(`   ... ${stream} loaded ${applyCount} event(s)`);
 
-  return { event, state, applyCount };
+  return { event, state, applyCount, stateCount };
 };
 
 /**
@@ -108,13 +115,19 @@ const _handleMsg = async <
           factory as ReducibleFactory<S, C, E>,
           artifact as Reducible<S, E> & Streamable
         )
-      : { state: {} as S, applyCount: 0 };
+      : ({ state: {} as S, applyCount: 0, stateCount: 0 } as Snapshot<S, E>);
 
   const events = await callback(snapshot);
+  if (app().commitState && snapshot.stateCount === 0) {
+    events.push({
+      name: STATE_EVENT,
+      data: snapshot.state as Readonly<E[keyof E & string]>
+    });
+  }
   if (stream && events.length) {
     const committed = await store().commit(
       stream,
-      events.map(validateMessage),
+      events.map((e) => (e.name === STATE_EVENT ? e : validateMessage(e))),
       metadata,
       metadata.causation.command?.expectedVersion || snapshot.event?.version
     );
@@ -127,22 +140,18 @@ const _handleMsg = async <
             `   ... ${stream} committed ${event.name} @ ${event.version}`,
             event.data
           );
-        state = reduce[event.name](state, event);
+        state =
+          event.name === STATE_EVENT
+            ? (event.data as S)
+            : reduce[event.name](state, event);
         log()
           .gray()
           .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
         return { event, state } as Snapshot<S, E>;
       });
       const snapStore = app().stores[factory.name || ""] as SnapshotStore;
-      if (snapStore && snapshot.applyCount > snapStore.threshold) {
-        try {
-          // TODO: implement reliable async snapshotting from persisted queue started by app
-          await snapStore.upsert(stream, snapshots.at(-1) as Snapshot);
-        } catch {
-          // fail quietly for now
-          // TODO: monitor failures to recover
-        }
-      }
+      if (snapStore && snapshot.applyCount > snapStore.threshold)
+        void broker().snapshot(snapStore, stream, snapshots.at(-1) as Snapshot);
       return snapshots;
     } else
       return committed.map(

@@ -1,5 +1,5 @@
 import { event, project } from "../handlers";
-import { Broker } from "../interfaces";
+import { Broker, SnapshotStore } from "../interfaces";
 import { app, log, store } from "../ports";
 import { scheduler } from "../scheduler";
 import {
@@ -9,7 +9,8 @@ import {
   EventHandlerFactory,
   Messages,
   PolicyFactory,
-  ProjectorFactory
+  ProjectorFactory,
+  Snapshot
 } from "../types";
 import { randomId } from "../utils";
 
@@ -68,10 +69,20 @@ const poll = async <E extends Messages>(
   return maxBatch === limit;
 };
 
+const snapshot = async (
+  store: SnapshotStore,
+  stream: string,
+  snapshot: Snapshot
+): Promise<boolean> => {
+  await store.upsert(stream, snapshot).catch((error) => log().error(error));
+  return true;
+};
+
 export const InMemorySyncBroker = (timeout = 100, limit = 5): Broker => ({
   name: "InMemorySyncBroker",
   dispose: () => Promise.resolve(),
-  poll: () => poll(timeout, limit)
+  poll: () => poll(timeout, limit),
+  snapshot
 });
 
 export const InMemoryAsyncBroker = (
@@ -82,13 +93,13 @@ export const InMemoryAsyncBroker = (
   const name = "InMemoryAsyncBroker";
   const schedule = scheduler(name);
 
-  const action = async (): Promise<boolean> => {
+  const _poll = async (): Promise<boolean> => {
     try {
       log().magenta().trace("async broker polling...");
       const more = await poll(timeout, limit);
       schedule.push({
         id: "poll",
-        action,
+        action: _poll,
         delay: more ? 100 : pollingFrequency
       });
       return true;
@@ -102,8 +113,15 @@ export const InMemoryAsyncBroker = (
     name,
     dispose: () => schedule.dispose(),
     poll: () => {
-      consumers().length && schedule.push({ id: "poll", action });
+      consumers().length && schedule.push({ id: "poll", action: _poll });
       return Promise.resolve(false);
+    },
+    snapshot: (store, stream, snap) => {
+      schedule.push({
+        id: "snapshot",
+        action: async () => await snapshot(store, stream, snap)
+      });
+      return Promise.resolve(true);
     }
   };
 };

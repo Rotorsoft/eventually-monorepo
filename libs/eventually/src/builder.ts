@@ -28,6 +28,7 @@ export abstract class Builder implements Disposable {
   abstract listen(): Promise<void>;
 
   private _hasStreams = false;
+  private _commitState = false;
   readonly version;
   readonly messages: Record<string, MessageMetadata> = {};
   readonly artifacts: Record<string, ArtifactMetadata> = {};
@@ -136,6 +137,18 @@ export abstract class Builder implements Disposable {
 
   get hasStreams(): boolean {
     return this._hasStreams;
+  }
+
+  /**
+   * Flags state commits in streams
+   */
+  withCommitState(): this {
+    this._commitState = true;
+    return this;
+  }
+
+  get commitState(): boolean {
+    return this._commitState;
   }
 
   /**

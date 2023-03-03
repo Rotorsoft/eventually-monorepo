@@ -33,7 +33,8 @@ describe("snapshots", () => {
     const result = await db.upsert("snapshot1", {
       event,
       state,
-      applyCount: 0
+      applyCount: 0,
+      stateCount: 0
     });
     expect(result).toBeUndefined();
 
@@ -41,7 +42,7 @@ describe("snapshots", () => {
     expect(pgTable.rows.length).toEqual(1);
     expect(pgTable.rows[0]).toEqual({
       stream: "snapshot1",
-      data: { event, state, applyCount: 0 }
+      data: { event, state, applyCount: 0, stateCount: 0 }
     });
   });
 
@@ -49,12 +50,14 @@ describe("snapshots", () => {
     const result1 = await db.upsert("snapshot1", {
       event,
       state,
-      applyCount: 0
+      applyCount: 0,
+      stateCount: 0
     });
     const result2 = await db.upsert("snapshot1", {
       event,
       state: { value: "some other updated state" },
-      applyCount: 0
+      applyCount: 0,
+      stateCount: 0
     });
     expect(result1).toBeUndefined();
     expect(result2).toBeUndefined();
@@ -66,13 +69,19 @@ describe("snapshots", () => {
       data: {
         event,
         state: { value: "some other updated state" },
-        applyCount: 0
+        applyCount: 0,
+        stateCount: 0
       }
     });
   });
 
   it("should read stream by name", async () => {
-    await db.upsert("snapshot2", { event, state, applyCount: 0 });
+    await db.upsert("snapshot2", {
+      event,
+      state,
+      applyCount: 0,
+      stateCount: 0
+    });
     const result = await db.read("snapshot2");
     expect(result.event).toEqual(event);
     expect(result.state).toEqual(state);

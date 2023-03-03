@@ -17,7 +17,7 @@
         "@rotorsoft/eventually-express": "workspace:^5",
         "@rotorsoft/eventually-pg": "workspace:^5",
         "express": "^4.18.2",
-        "express-handlebars": "^6.0.7",
+        "express-handlebars": "^7.0.1",
         "zod": "^3.20.6"
     },
     "devDependencies": {

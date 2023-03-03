@@ -1,6 +1,6 @@
 # Eventually [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
 
-![Logical Model](./assets/eventually.png)
+![Eventually](./assets/eventually.png)
 
 This project aims at exploring a practical solution to the problem of *"building software systems that gracefully evolve with a constantly changing organization"*. Changes can be driven by new business requirements, market conditions, or anything that causes the software building teams to grow, shrink, or be replaced.
 
