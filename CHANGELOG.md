@@ -1,3 +1,5 @@
+#### 2023-03-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.10...@rotorsoft/eventually-v5.0.11) @rotorsoft/eventually-v5.0.11
+  - PATCH [dab2c86e](https://github.com/Rotorsoft/eventually-monorepo/commit/dab2c86e426b9342e9731ca241545517d6b086d5) fix: add commit predicate to builder interface as options, so we can control state commits from the outside
 #### 2023-03-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.4...@rotorsoft/calculator-artifacts-v1.0.5) @rotorsoft/calculator-artifacts-v1.0.5
   - PATCH [3a535c30](https://github.com/Rotorsoft/eventually-monorepo/commit/3a535c30a14144b2816419b28e2529f0b3ad3b1e) fix: prepare app with commit-state option to allow 'closing the books' scenarios in the future, move snapshots to the in-memory broker
 #### 2023-03-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.9...@rotorsoft/eventually-broker-v2.0.10) @rotorsoft/eventually-broker-v2.0.10
