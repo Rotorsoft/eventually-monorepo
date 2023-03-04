@@ -118,7 +118,8 @@ const _handleMsg = async <
       : ({ state: {} as S, applyCount: 0, stateCount: 0 } as Snapshot<S, E>);
 
   const events = await callback(snapshot);
-  if (app().commitState && snapshot.stateCount === 0) {
+  const commit = reduce && app().commits[factory.name];
+  if (commit && commit(snapshot)) {
     events.push({
       name: STATE_EVENT,
       data: snapshot.state as Readonly<E[keyof E & string]>

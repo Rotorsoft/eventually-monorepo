@@ -8,15 +8,36 @@ import {
   Messages,
   ProjectorFactory,
   Scope,
+  Snapshot,
   State
 } from "./types";
 
+/**
+ * Internal message details used as main drivers of public interfaces and documentation
+ */
 type MessageMetadata<M extends Messages = Messages> = {
   name: keyof M;
   schema: ZodType<M[keyof M]>;
   type: "command" | "event" | "message";
   handlers: string[];
   producer?: string;
+};
+
+/**
+ * Returns true to commit state in stream given loaded snapshot
+ */
+type CommitPredicate<S extends State = State, E extends Messages = Messages> = (
+  snapshot: Snapshot<S, E>
+) => boolean;
+
+/**
+ * Registration options
+ * `scope`: the scope
+ * `commit?`: the commit predicate
+ */
+type WithOptions = {
+  scope: Scope;
+  commit?: CommitPredicate;
 };
 
 export abstract class Builder implements Disposable {
@@ -28,11 +49,11 @@ export abstract class Builder implements Disposable {
   abstract listen(): Promise<void>;
 
   private _hasStreams = false;
-  private _commitState = false;
   readonly version;
   readonly messages: Record<string, MessageMetadata> = {};
   readonly artifacts: Record<string, ArtifactMetadata> = {};
   readonly stores: Record<string, ProjectorStore | SnapshotStore> = {};
+  readonly commits: Record<string, CommitPredicate> = {};
 
   constructor(version: string) {
     this.version = version;
@@ -140,32 +161,21 @@ export abstract class Builder implements Disposable {
   }
 
   /**
-   * Flags state commits in streams
-   */
-  withCommitState(): this {
-    this._commitState = true;
-    return this;
-  }
-
-  get commitState(): boolean {
-    return this._commitState;
-  }
-
-  /**
    * Registers factory
    * @param factory the factory
-   * @param scope the scope
+   * @param options the options
    */
   with<S extends State, C extends Messages, E extends Messages>(
     factory: ArtifactFactory<S, C, E>,
-    scope = Scope.default
+    options: WithOptions = { scope: Scope.default }
   ): this {
     if (this.artifacts[factory.name])
       throw Error(`Duplicate artifact "${factory.name}"`);
     this.artifacts[factory.name] = this._reflect(
       factory as ArtifactFactory,
-      scope
+      options.scope
     );
+    options.commit && (this.commits[factory.name] = options.commit);
     return this;
   }
 

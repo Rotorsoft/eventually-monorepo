@@ -858,13 +858,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@okta/oidc-middleware@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "@okta/oidc-middleware@npm:5.0.1"
+"@okta/oidc-middleware@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "@okta/oidc-middleware@npm:5.1.0"
   dependencies:
     "@okta/configuration-validation": ^0.4.1
+    "@types/csurf": ^1.11.2
+    "@types/express": ^4.17.17
     body-parser: ^1.20.1
-    csurf: ^1.9.0
+    csurf: ^1.11.0
     express: ^4.18.2
     lodash: ^4.17.21
     negotiator: ^0.6.1
@@ -872,7 +874,7 @@ __metadata:
     openid-client: ^5.1.9
     passport: ^0.6.0
     uuid: ^8.3.2
-  checksum: 61f54c766b068cc66a1c3ab7bba1ee2827e8b788560e45bf52a03146d506ffc65d392de5bb52d72c005b0219ce0cb523d36b6acdf175cf78dca5a7505628950d
+  checksum: 6d1192216bb344ab0f95c93221eb2a0fe074ebc9c81a59b1ad3cf0ab393ad99c1323d35bf03d5504d4b5e4accada4b0f1ca33134618c6e1ae9857c755ec4dbec
   languageName: node
   linkType: hard
 
@@ -883,7 +885,7 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-express": "workspace:^5"
     uuid: ^9.0.0
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -891,7 +893,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rotorsoft/broker@workspace:services/broker"
   dependencies:
-    "@okta/oidc-middleware": ^5.0.1
+    "@okta/oidc-middleware": ^5.1.0
     "@rotorsoft/eventually-broker": "workspace:^2"
     "@types/express-session": ^1.17.6
     express-session: ^1.17.3
@@ -903,7 +905,7 @@ __metadata:
   resolution: "@rotorsoft/calculator-artifacts@workspace:libs/calculator-artifacts"
   dependencies:
     "@rotorsoft/eventually": "workspace:^5"
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -915,7 +917,7 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-express": "workspace:^5"
     "@rotorsoft/eventually-pg": "workspace:^5"
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -950,7 +952,7 @@ __metadata:
     cors: ^2.8.5
     express: ^4.18.2
     openapi3-ts: ^3.2.0
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -966,7 +968,7 @@ __metadata:
     "@types/cron": ^2.0.0
     "@types/jest": ^29.4.0
     "@types/minimist": ^1.2.2
-    "@types/node": ^18.14.5
+    "@types/node": ^18.14.6
     "@types/pg": ^8.6.6
     "@types/uuid": ^9.0.1
     "@typescript-eslint/eslint-plugin": ^5.54.0
@@ -986,7 +988,7 @@ __metadata:
     ts-node-dev: ^2.0.0
     tsconfig-paths: ^4.1.2
     typescript: ^4.9.5
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -996,7 +998,7 @@ __metadata:
   dependencies:
     "@rotorsoft/eventually": "workspace:^5"
     pg: ^8.9.0
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -1007,7 +1009,7 @@ __metadata:
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-express": "workspace:^5"
     "@rotorsoft/eventually-pg": "workspace:^5"
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -1017,7 +1019,7 @@ __metadata:
   dependencies:
     deepmerge: ^4.3.0
     dotenv: ^16.0.3
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -1190,7 +1192,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express-serve-static-core@npm:^4.17.33":
+"@types/csurf@npm:^1.11.2":
+  version: 1.11.2
+  resolution: "@types/csurf@npm:1.11.2"
+  dependencies:
+    "@types/express-serve-static-core": "*"
+  checksum: 1827f6760d43ae12390f0308289f2c40537bbcb19ec854d0c654e3129074edf6108ddab99a06986813b6cf31d4fc9fa34eaa3d418f647edf607d8af4c69d62e7
+  languageName: node
+  linkType: hard
+
+"@types/express-serve-static-core@npm:*, @types/express-serve-static-core@npm:^4.17.33":
   version: 4.17.33
   resolution: "@types/express-serve-static-core@npm:4.17.33"
   dependencies:
@@ -1294,17 +1305,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 18.14.2
-  resolution: "@types/node@npm:18.14.2"
-  checksum: 53c07e721f6ae33de71306f6a0b75dae6066a4f55bd5484c93bd59ff25f0c5f004ceafeef509a4d0cb9e24a247efc34d50489bcc1b05a53ecc68e2fc088e65cb
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^18.14.5":
-  version: 18.14.5
-  resolution: "@types/node@npm:18.14.5"
-  checksum: 415fb0edc132baa9580f1b7a381a3f10b662f5d7a7d11641917fa0961788ccede3272badc414aadc47306e9fc35c5f6c59159ac470b46d3f3a15fb0446224c8c
+"@types/node@npm:*, @types/node@npm:^18.14.6":
+  version: 18.14.6
+  resolution: "@types/node@npm:18.14.6"
+  checksum: 2f88f482cabadc6dbddd627a1674239e68c3c9beab56eb4ae2309fb96fd17fc3a509d99b0309bafe13b58529574f49ecf3a583f2ebe2896dd32fe4be436dc96e
   languageName: node
   linkType: hard
 
@@ -2194,10 +2198,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:0.3.1":
-  version: 0.3.1
-  resolution: "cookie@npm:0.3.1"
-  checksum: 5309937344947a049283573861c24bed054fac3334ce5a0fa74b9bc6bf39bd387d3a0fca7f3ed6f4a09f112de82c00b541a0e7d6ce7a8de0f5d1301eec799730
+"cookie@npm:0.4.0":
+  version: 0.4.0
+  resolution: "cookie@npm:0.4.0"
+  checksum: 760384ba0aef329c52523747e36a452b5e51bc49b34160363a6934e7b7df3f93fcc88b35e33450361535d40a92a96412da870e1816aba9aa6cc556a9fedd8492
   languageName: node
   linkType: hard
 
@@ -2279,15 +2283,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csurf@npm:^1.9.0":
-  version: 1.10.0
-  resolution: "csurf@npm:1.10.0"
+"csurf@npm:^1.11.0":
+  version: 1.11.0
+  resolution: "csurf@npm:1.11.0"
   dependencies:
-    cookie: 0.3.1
+    cookie: 0.4.0
     cookie-signature: 1.0.6
     csrf: 3.1.0
-    http-errors: ~1.7.2
-  checksum: df15ffb6a74b31bc1ce1772e94d843b76ae9bf29eb4a54f8a073082b14ae7763a7f1bbe29220c0041890a7f4817bbaaef282fa3996e9fc439997cbe30303dc8f
+    http-errors: ~1.7.3
+  checksum: c41a1ec593000301f8ad57b8b43c13520c9939af61e0ed2d03f753f69870478ba40f874c02349312ff001c2d349421b649aef4af222b3c699bb10f1d98ce2860
   languageName: node
   linkType: hard
 
@@ -3235,7 +3239,7 @@ __metadata:
     express-handlebars: ^7.0.1
     jest: ^29.4.3
     ts-node-dev: ^2.0.0
-    zod: ^3.20.6
+    zod: ^3.21.0
   languageName: unknown
   linkType: soft
 
@@ -3266,7 +3270,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"http-errors@npm:~1.7.2":
+"http-errors@npm:~1.7.3":
   version: 1.7.3
   resolution: "http-errors@npm:1.7.3"
   dependencies:
@@ -6193,9 +6197,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.20.6":
-  version: 3.20.6
-  resolution: "zod@npm:3.20.6"
-  checksum: 804b1934b8b5e2fa3750bec90043e8118b201f330b9957b8b768389a971acadf812d2060cf62921086512dab4af691d10490acb03333da58fc485c0791893c89
+"zod@npm:^3.21.0":
+  version: 3.21.0
+  resolution: "zod@npm:3.21.0"
+  checksum: 459e75ad32f2dd1069af8bfe16f133ad4e135f351e84ef99fd50f239f8a23ec7f731e65fe98c1c0e2ab8b708165d2763a60e045f7d276e4654b66aa615afaccf
   languageName: node
   linkType: hard
