@@ -20,6 +20,6 @@
   "dependencies": {
     "deepmerge": "^4.3.0",
     "dotenv": "^16.0.3",
-    "zod": "^3.21.0"
+    "zod": "^3.21.2"
   }
 }

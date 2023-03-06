@@ -20,6 +20,6 @@
     "@rotorsoft/eventually": "workspace:^5",
     "@rotorsoft/eventually-express": "workspace:^5",
     "uuid": "^9.0.0",
-    "zod": "^3.21.0"
+    "zod": "^3.21.2"
   }
 }

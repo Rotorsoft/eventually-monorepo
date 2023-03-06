@@ -19,6 +19,6 @@
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^5",
-    "zod": "^3.21.0"
+    "zod": "^3.21.2"
   }
 }
