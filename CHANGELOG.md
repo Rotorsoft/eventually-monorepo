@@ -1,3 +1,5 @@
+#### 2023-03-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.0.7...@rotorsoft/eventually-pg-v5.0.8) @rotorsoft/eventually-pg-v5.0.8
+  - PATCH [067765fc](https://github.com/Rotorsoft/eventually-monorepo/commit/067765fc6c2af66de06c7e56aee2f840e3fcf45f) fix: up dependencies
 #### 2023-03-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.11...@rotorsoft/eventually-v5.0.12) @rotorsoft/eventually-v5.0.12
   - PATCH [067765fc](https://github.com/Rotorsoft/eventually-monorepo/commit/067765fc6c2af66de06c7e56aee2f840e3fcf45f) fix: up dependencies
 #### 2023-03-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.5...@rotorsoft/calculator-artifacts-v1.0.6) @rotorsoft/calculator-artifacts-v1.0.6
