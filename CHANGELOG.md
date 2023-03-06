@@ -1,3 +1,5 @@
+#### 2023-03-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.11...@rotorsoft/eventually-v5.0.12) @rotorsoft/eventually-v5.0.12
+  - PATCH [067765fc](https://github.com/Rotorsoft/eventually-monorepo/commit/067765fc6c2af66de06c7e56aee2f840e3fcf45f) fix: up dependencies
 #### 2023-03-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.5...@rotorsoft/calculator-artifacts-v1.0.6) @rotorsoft/calculator-artifacts-v1.0.6
   - PATCH [dab2c86e](https://github.com/Rotorsoft/eventually-monorepo/commit/dab2c86e426b9342e9731ca241545517d6b086d5) fix: add commit predicate to builder interface as options, so we can control state commits from the outside
 #### 2023-03-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.3...@rotorsoft/eventually-service-expg-v1.0.4) @rotorsoft/eventually-service-expg-v1.0.4
