@@ -15,6 +15,10 @@ const defaultOptions: deepmerge.Options = {
   arrayMerge: (target, source) => source
 };
 
+/**
+ * @category Adapters
+ * @remarks In-memory projector store
+ */
 export const InMemoryProjectorStore = (
   options = defaultOptions
 ): ProjectorStore => {

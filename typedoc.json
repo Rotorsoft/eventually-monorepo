@@ -6,5 +6,7 @@
     "./libs/eventually-pg/src/index.ts",
     "./libs/eventually-broker/src/index.ts"
   ],
-  "out": "docs"
+  "out": "docs",
+  "excludePrivate": true,
+  "readme": "none"
 }

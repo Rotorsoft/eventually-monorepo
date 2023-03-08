@@ -20,6 +20,10 @@ import {
 } from "../types";
 import { bind } from "../utils";
 
+/**
+ * @category Adapters
+ * @remarks In-memory client
+ */
 export const InMemoryClient = (): Client & Disposable => ({
   name: "InMemoryClient",
   dispose: () => Promise.resolve(),

@@ -13,6 +13,9 @@ interface UserInfo {
   roles: string[];
 }
 
+/**
+ * Sample middleware parsing headers injected by gcp api gateway
+ */
 export const GcpGatewayMiddleware = (
   req: Request & { actor?: Actor },
   _: Response,

@@ -2,8 +2,15 @@ import { Disposable } from "./interfaces";
 import { log } from "./ports";
 import { sleep } from "./utils";
 
-type Status = "running" | "stopping" | "stopped";
-type Action = {
+/**
+ * Scheduler statuses
+ */
+export type Status = "running" | "stopping" | "stopped";
+
+/**
+ * Scheduler actions
+ */
+export type Action = {
   id: string;
   action: () => Promise<boolean | undefined>;
   callback?: (id: string, result: boolean | undefined) => void;

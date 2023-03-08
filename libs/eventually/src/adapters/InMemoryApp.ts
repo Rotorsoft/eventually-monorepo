@@ -1,6 +1,10 @@
 import { Builder } from "../builder";
 import { broker, config, log } from "../ports";
 
+/**
+ * @category Adapters
+ * @remarks In-memory app adapter
+ */
 export class InMemoryApp extends Builder {
   constructor() {
     super(config().version);

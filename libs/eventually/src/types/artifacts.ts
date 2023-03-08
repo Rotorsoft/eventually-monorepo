@@ -36,7 +36,7 @@ export type WithDescription = {
  * - `events` schemas for output validation
  * - `on` command handlers
  */
-type WithCommandHandlers<
+export type WithCommandHandlers<
   S extends State,
   C extends Messages,
   E extends Messages
@@ -53,7 +53,7 @@ type WithCommandHandlers<
  * - `events` schemas for input validation
  * - `on` event handlers
  */
-type WithEventHandlers<
+export type WithEventHandlers<
   S extends State,
   C extends Messages,
   E extends Messages
@@ -70,7 +70,7 @@ type WithEventHandlers<
  * Command producing artifacts have
  * - `commands` produced command names to help with documentation
  */
-type WithCommandOutputs<C extends Messages> = {
+export type WithCommandOutputs<C extends Messages> = {
   schemas: {
     commands: { [K in keyof C]: string };
   };

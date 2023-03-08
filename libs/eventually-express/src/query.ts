@@ -9,6 +9,9 @@ import {
 } from "@rotorsoft/eventually";
 import { z, ZodObject } from "zod";
 
+/**
+ * Projection query options
+ */
 export type ExpressProjectionQuery = {
   ids?: string[];
   select?: string[];

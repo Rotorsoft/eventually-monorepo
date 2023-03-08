@@ -78,6 +78,11 @@ const snapshot = async (
   return true;
 };
 
+/**
+ * @category Adapters
+ * @remarks In-memory synchronous broker
+ * - only used when testing
+ */
 export const InMemorySyncBroker = (timeout = 100, limit = 5): Broker => ({
   name: "InMemorySyncBroker",
   dispose: () => Promise.resolve(),
@@ -85,6 +90,10 @@ export const InMemorySyncBroker = (timeout = 100, limit = 5): Broker => ({
   snapshot
 });
 
+/**
+ * @category Adapters
+ * @remarks In-memory asynchronous broker
+ */
 export const InMemoryAsyncBroker = (
   pollingFrequency = 60 * 1000,
   timeout = 5000,

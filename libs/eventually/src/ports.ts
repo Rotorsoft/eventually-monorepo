@@ -13,20 +13,36 @@ import * as loggers from "./loggers";
 import { singleton } from "./singleton";
 import { Client, Environments } from "./types";
 
+/**
+ * @category Ports
+ * @remarks Global port to configuration
+ */
 export const config = singleton(function config() {
   return { ..._config(), name: "config", dispose: () => Promise.resolve() };
 });
 
+/**
+ * @category Ports
+ * @remarks Global port to application builder
+ */
 export const app = singleton(function app<T extends Builder = InMemoryApp>(
   app?: T
 ): T {
   return app || (new InMemoryApp() as T);
 });
 
+/**
+ * @category Ports
+ * @remarks Global port to event store
+ */
 export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
 });
 
+/**
+ * @category Ports
+ * @remarks Global port to logging
+ */
 export const log = singleton(function log(logger?: Logger) {
   if (logger) return logger;
   switch (config().env) {
@@ -38,10 +54,18 @@ export const log = singleton(function log(logger?: Logger) {
   }
 });
 
+/**
+ * @category Ports
+ * @remarks Global port to client api
+ */
 export const client = singleton(function client(client?: Client & Disposable) {
   return client || InMemoryClient();
 });
 
+/**
+ * @category Ports
+ * @remarks Global port to internal broker
+ */
 export const broker = singleton(function broker() {
   switch (config().env) {
     case Environments.test:
@@ -51,7 +75,11 @@ export const broker = singleton(function broker() {
   }
 });
 
-// in-memory projection store local singleton for dev/testing
+/**
+ * @category Ports
+ * @remarks Global port to in-memory projection store
+ * - this is used only in dev/testing mode
+ */
 export const _imps = singleton(function imps() {
   return InMemoryProjectorStore();
 });

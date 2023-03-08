@@ -13,6 +13,9 @@ const Schema = z.object({
 
 const { PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE, PG_PORT } = process.env;
 
+/**
+ * Postgres configuration options
+ */
 export const config = extend(
   {
     pg: {

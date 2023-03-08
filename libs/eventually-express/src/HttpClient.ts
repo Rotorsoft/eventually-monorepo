@@ -23,12 +23,18 @@ import axios, { AxiosResponse } from "axios";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
 import { toExpressProjectionQuery } from "./query";
 
+/**
+ * Http client extended response
+ */
 export type EventResponseEx<
   S extends State = State,
   C extends Messages = Messages
 > = EventResponse<S, C> & { status: number };
 
-type HttpClientExt = Client &
+/**
+ * Http client extended interface
+ */
+export type HttpClientExt = Client &
   Disposable & {
     get: (path: string) => Promise<AxiosResponse<any>>;
     stream: <S extends State, C extends Messages, E extends Messages>(
@@ -40,6 +46,13 @@ type HttpClientExt = Client &
     ) => Promise<Snapshot<S, E>[]>;
   };
 
+/**
+ * Factory function with http implementation of `Client` interface
+ *
+ * @param port - port number
+ * @param globalHeaders - global http headers
+ * @returns HttpClient
+ */
 export const HttpClient = (
   port = 3000,
   globalHeaders: Record<string, string> = {}

@@ -15,7 +15,7 @@ import {
 /**
  * Internal message details used as main drivers of public interfaces and documentation
  */
-type MessageMetadata<M extends Messages = Messages> = {
+export type MessageMetadata<M extends Messages = Messages> = {
   name: keyof M;
   schema: ZodType<M[keyof M]>;
   type: "command" | "event" | "message";
@@ -24,18 +24,20 @@ type MessageMetadata<M extends Messages = Messages> = {
 };
 
 /**
- * Returns true to commit state in stream given loaded snapshot
+ * Returns true to commit state in stream
+ * @param snapshot - current snapshot
  */
-type CommitPredicate<S extends State = State, E extends Messages = Messages> = (
-  snapshot: Snapshot<S, E>
-) => boolean;
+export type CommitPredicate<
+  S extends State = State,
+  E extends Messages = Messages
+> = (snapshot: Snapshot<S, E>) => boolean;
 
 /**
  * Registration options
- * `scope`: the scope
- * `commit?`: the commit predicate
+ * - `scope` the scope
+ * - `commit?` the commit predicate
  */
-type WithOptions = {
+export type WithOptions = {
   scope: Scope;
   commit?: CommitPredicate;
 };

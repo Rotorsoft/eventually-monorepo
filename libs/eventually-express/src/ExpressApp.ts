@@ -31,6 +31,11 @@ import { openAPI } from "./openapi";
 import { home } from "./openapi/docs";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
 
+/**
+ * Eventually express app builder
+ *
+ * @remarks Exposes public interface as `express` HTTP endpoints
+ */
 export class ExpressApp extends Builder {
   private _app = express();
   private _router = Router();

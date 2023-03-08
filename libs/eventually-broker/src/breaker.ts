@@ -1,22 +1,36 @@
 import { log } from "@rotorsoft/eventually";
 
-type Response<T> = {
+/**
+ * Circuit breaker response
+ */
+export type BreakerResponse<T> = {
   data?: T;
   error?: string;
 };
 
+/**
+ * Circuit breaker interface
+ */
 export interface Breaker {
-  exec: <T>(promise: () => Promise<Response<T>>) => Promise<Response<T>>;
+  exec: <T>(
+    promise: () => Promise<BreakerResponse<T>>
+  ) => Promise<BreakerResponse<T>>;
   pause: () => void;
   state: () => States;
 }
 
-type Options = {
+/**
+ * Circuit breaker options
+ */
+export type BreakerOptions = {
   failureThreshold: number;
   successThreshold: number;
   timeout: number;
 };
 
+/**
+ * Circuit breaker states
+ */
 export enum States {
   Green = "green",
   Yellow = "yellow",
@@ -24,9 +38,16 @@ export enum States {
   Paused = "paused"
 }
 
+/**
+ * Circuit breaker utility
+ *
+ * @param name - circuit name
+ * @param opts - options
+ * @returns a new circuit breaker
+ */
 export const breaker = (
   name: string,
-  opts: Options = {
+  opts: BreakerOptions = {
     failureThreshold: 3,
     successThreshold: 2,
     timeout: 5000
@@ -37,7 +58,7 @@ export const breaker = (
   let successCount = 0;
   let nextAttempt = Date.now();
 
-  const success = <T>(data?: T): Response<T> => {
+  const success = <T>(data?: T): BreakerResponse<T> => {
     failureCount = 0;
     if (state === States.Yellow) {
       successCount++;
@@ -50,7 +71,7 @@ export const breaker = (
     return { data };
   };
 
-  const failure = <T>(error: string): Response<T> => {
+  const failure = <T>(error: string): BreakerResponse<T> => {
     failureCount++;
     if (failureCount >= opts.failureThreshold) {
       state = States.Red;
@@ -61,8 +82,8 @@ export const breaker = (
 
   return {
     exec: async <T>(
-      promise: () => Promise<Response<T>>
-    ): Promise<Response<T>> => {
+      promise: () => Promise<BreakerResponse<T>>
+    ): Promise<BreakerResponse<T>> => {
       if (state === States.Paused) return {};
       if (state === States.Red) {
         if (nextAttempt > Date.now())

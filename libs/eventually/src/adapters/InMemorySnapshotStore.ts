@@ -1,6 +1,10 @@
 import { log } from "../ports";
 import { SnapshotStore } from "../interfaces";
 
+/**
+ * @category Adapters
+ * @remarks In-memory snapshot store
+ */
 export const InMemorySnapshotStore = (threshold = 100): SnapshotStore => {
   let _store: Record<string, any> = {};
 

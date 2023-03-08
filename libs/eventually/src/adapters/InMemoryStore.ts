@@ -8,6 +8,10 @@ import {
   Messages
 } from "../types";
 
+/**
+ * @category Adapters
+ * @remarks In-memory event store
+ */
 export const InMemoryStore = (): Store => {
   const _events: CommittedEvent[] = [];
   const _subscriptions: Record<
