@@ -1,4 +1,4 @@
-# Eventually [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
+# [Eventually](./docs/modules.html) [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)  
 
 ![Eventually](./assets/eventually.png)
 

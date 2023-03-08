@@ -122,8 +122,8 @@ export type EventResponse<S extends State, C extends Messages> = {
 /**
  * Projection slices
  *
- * - `upserts?` the array of key=value expressions {where, values} used to upsert slices of records
- * - `deletes?` the array of key=value expressions {where} used to delete records
+ * - `upserts?` the array of key=value expressions used to upsert slices of records
+ * - `deletes?` the array of key=value expressions used to delete records
  */
 export type Projection<S extends ProjectionState> = {
   upserts?: Array<{ where: Partial<S>; values: Partial<Omit<S, "id">> }>;

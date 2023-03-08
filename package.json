@@ -33,7 +33,8 @@
     "postinstall": "husky install",
     "prepack": "pinst --disable",
     "postpack": "pinst --enable",
-    "generic-service": "node ./node_modules/@rotorsoft/eventually-service-expg/dist/index.js"
+    "generic-service": "node ./node_modules/@rotorsoft/eventually-service-expg/dist/index.js",
+    "gendocs": "npx typedoc"
   },
   "devDependencies": {
     "@types/chance": "^1.1.3",
@@ -45,8 +46,8 @@
     "@types/node": "^18.14.6",
     "@types/pg": "^8.6.6",
     "@types/uuid": "^9.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.54.0",
-    "@typescript-eslint/parser": "^5.54.0",
+    "@typescript-eslint/eslint-plugin": "^5.54.1",
+    "@typescript-eslint/parser": "^5.54.1",
     "chance": "^1.1.11",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.7.0",
@@ -59,16 +60,14 @@
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.1.2",
+    "typedoc": "^0.23.26",
     "typescript": "^4.9.5"
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^5",
     "@rotorsoft/eventually-express": "workspace:^5",
     "@rotorsoft/eventually-pg": "workspace:^5",
-    "handlebars": "^4.7.7",
-    "http-cache-semantics": "^4.1.1",
-    "minimist": "^1.2.8",
-    "zod": "^3.21.2"
+    "http-cache-semantics": "^4.1.1"
   },
   "packageManager": "yarn@3.4.1",
   "eventually": {
