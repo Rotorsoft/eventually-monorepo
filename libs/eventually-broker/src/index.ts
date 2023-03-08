@@ -1,3 +1,4 @@
+/** @module eventually-broker */
 import { singleton } from "@rotorsoft/eventually";
 import { VoidPullChannel } from "./channels";
 import { PullChannel, SubscriptionStore } from "./interfaces";

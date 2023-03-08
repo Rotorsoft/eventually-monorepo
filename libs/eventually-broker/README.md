@@ -1,4 +1,4 @@
-# [eventually-broker](https://rotorsoft.github.io/eventually-monorepo/modules/eventually_broker_src.html)
+# [eventually-broker](https://rotorsoft.github.io/eventually-monorepo/modules/eventually_broker.html)
 
 [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually-broker.svg)](https://www.npmjs.com/package/@rotorsoft/eventually-broker)
 

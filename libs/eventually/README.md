@@ -1,4 +1,4 @@
-# [eventually](https://rotorsoft.github.io/eventually-monorepo/modules/eventually_src.html) [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)  
+# [eventually](https://rotorsoft.github.io/eventually-monorepo/modules/eventually.html) [![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)  
 
 ![Eventually](./assets/eventually.png)
 
