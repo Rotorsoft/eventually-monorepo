@@ -1,3 +1,5 @@
+#### 2023-03-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.12...@rotorsoft/eventually-v5.0.13) @rotorsoft/eventually-v5.0.13
+  - PATCH [0ba16e34](https://github.com/Rotorsoft/eventually-monorepo/commit/0ba16e348e055082f10632ee9c250347b4b1615f) fix: move store registration to with options
 #### 2023-03-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.6...@rotorsoft/calculator-artifacts-v1.0.7) @rotorsoft/calculator-artifacts-v1.0.7
   - PATCH [067765fc](https://github.com/Rotorsoft/eventually-monorepo/commit/067765fc6c2af66de06c7e56aee2f840e3fcf45f) fix: up dependencies
 #### 2023-03-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.4...@rotorsoft/eventually-service-expg-v1.0.5) @rotorsoft/eventually-service-expg-v1.0.5
