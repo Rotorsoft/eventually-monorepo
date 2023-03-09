@@ -1,3 +1,5 @@
+#### 2023-03-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.7...@rotorsoft/calculator-artifacts-v1.0.8) @rotorsoft/calculator-artifacts-v1.0.8
+  - PATCH [0ba16e34](https://github.com/Rotorsoft/eventually-monorepo/commit/0ba16e348e055082f10632ee9c250347b4b1615f) fix: move store registration to with options
 #### 2023-03-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.0.12...@rotorsoft/eventually-v5.0.13) @rotorsoft/eventually-v5.0.13
   - PATCH [0ba16e34](https://github.com/Rotorsoft/eventually-monorepo/commit/0ba16e348e055082f10632ee9c250347b4b1615f) fix: move store registration to with options
 #### 2023-03-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.6...@rotorsoft/calculator-artifacts-v1.0.7) @rotorsoft/calculator-artifacts-v1.0.7
