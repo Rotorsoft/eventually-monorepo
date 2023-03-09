@@ -13,10 +13,9 @@ const chance = new Chance();
 const inMemorySnapshots = InMemorySnapshotStore(2);
 app()
   .with(Forget)
-  .with(Calculator)
+  .with(Calculator, { store: inMemorySnapshots })
   .with(Counter)
   .with(PressKeyAdapter)
-  .withStore(Calculator, inMemorySnapshots)
   .build();
 
 describe("Calculator", () => {

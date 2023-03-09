@@ -1,12 +1,10 @@
 import { ZodType } from "zod";
 import { Disposable, ProjectorStore, SnapshotStore } from "./interfaces";
 import {
-  AggregateFactory,
   Artifact,
   ArtifactFactory,
   ArtifactMetadata,
   Messages,
-  ProjectorFactory,
   Scope,
   Snapshot,
   State
@@ -34,12 +32,14 @@ export type CommitPredicate<
 
 /**
  * Registration options
- * - `scope` the scope
- * - `commit?` the commit predicate
+ * - `scope?` the scope used to publish message handlers
+ * - `commit?` a commit predicate to store state snapshots in the stream
+ * - `store?` a projector or snapshot store associated with the artifact
  */
 export type WithOptions = {
-  scope: Scope;
+  scope?: Scope;
   commit?: CommitPredicate;
+  store?: SnapshotStore | ProjectorStore;
 };
 
 export abstract class Builder implements Disposable {
@@ -164,8 +164,8 @@ export abstract class Builder implements Disposable {
 
   /**
    * Registers factory
-   * @param factory the factory
-   * @param options the options
+   * @param factory the artifact factory
+   * @param options the artifact options
    */
   with<S extends State, C extends Messages, E extends Messages>(
     factory: ArtifactFactory<S, C, E>,
@@ -173,38 +173,25 @@ export abstract class Builder implements Disposable {
   ): this {
     if (this.artifacts[factory.name])
       throw Error(`Duplicate artifact "${factory.name}"`);
-    this.artifacts[factory.name] = this._reflect(
+    const metadata = (this.artifacts[factory.name] = this._reflect(
       factory as ArtifactFactory,
-      options.scope
-    );
+      options.scope || Scope.default
+    ));
     options.commit && (this.commits[factory.name] = options.commit);
-    return this;
-  }
-
-  /**
-   * Registers artifact stores
-   * @param factory the factory
-   * @param store the store
-   */
-  withStore<S extends State, C extends Messages, E extends Messages>(
-    factory:
-      | AggregateFactory<S, C, E>
-      | ProjectorFactory<S & { id: string }, E>,
-    store: SnapshotStore | ProjectorStore
-  ): this {
-    const metadata = this.artifacts[factory.name];
-    if (!metadata)
-      throw Error(`Factory ${factory.name} must be registered before store.`);
-    if (
-      !(
-        (metadata.type === "aggregate" &&
-          "read" in store &&
-          "upsert" in store) ||
-        (metadata.type === "projector" && "load" in store && "commit" in store)
+    if (options.store) {
+      if (
+        !(
+          (metadata.type === "aggregate" &&
+            "read" in options.store &&
+            "upsert" in options.store) ||
+          (metadata.type === "projector" &&
+            "load" in options.store &&
+            "commit" in options.store)
+        )
       )
-    )
-      throw Error(`Invalid store ${store.name} for ${factory.name}.`);
-    this.stores[factory.name] = store;
+        throw Error(`Invalid store ${options.store.name} for ${factory.name}.`);
+      this.stores[factory.name] = options.store;
+    }
     return this;
   }
 

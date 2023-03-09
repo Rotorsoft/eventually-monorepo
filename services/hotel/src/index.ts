@@ -15,10 +15,8 @@ void bootstrap(async (): Promise<void> => {
 
   const express = app(new ExpressApp())
     .with(Room)
-    .with(Hotel)
-    .with(Next30Days)
-    .withStore(Hotel, pgHotelProjectorStore)
-    .withStore(Next30Days, pgNext30ProjectorStore)
+    .with(Hotel, { store: pgHotelProjectorStore })
+    .with(Next30Days, { store: pgNext30ProjectorStore })
     .build();
 
   // get some ui to play with it

@@ -7,7 +7,7 @@ import { pressKey } from "./messages";
 // app setup
 const chance = new Chance();
 const inMemorySnapshots = InMemorySnapshotStore(2);
-app().with(Calculator).withStore(Calculator, inMemorySnapshots).build();
+app().with(Calculator, { store: inMemorySnapshots }).build();
 
 describe("All Stream", () => {
   const id = chance.guid();

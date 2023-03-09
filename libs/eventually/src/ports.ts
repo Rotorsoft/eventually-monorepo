@@ -24,6 +24,25 @@ export const config = singleton(function config() {
 /**
  * @category Ports
  * @remarks Global port to application builder
+ * @example Bootstrapping a service
+ ```ts
+ void bootstrap(async (): Promise<void> => {
+  // Seed the stores (this should be done by CI/CD pipelines)
+  await store().seed();
+  await pgHotelProjectorStore.seed();
+  await pgNext30ProjectorStore.seed();
+
+  // Register artifacts, build the app
+  const express = app(new ExpressApp())
+    .with(Room)
+    .with(Hotel, { store: pgHotelProjectorStore })
+    .with(Next30Days, { store: pgNext30ProjectorStore })
+    .build();
+
+  // Start listing to incoming messages  
+  await app().listen();
+});
+ ``` 
  */
 export const app = singleton(function app<T extends Builder = InMemoryApp>(
   app?: T
@@ -34,6 +53,20 @@ export const app = singleton(function app<T extends Builder = InMemoryApp>(
 /**
  * @category Ports
  * @remarks Global port to event store
+ * @example Bootstrapping a service with a Postgres store adapter
+ ```ts
+ void bootstrap(async (): Promise<void> => {
+  store(PostgresStore("hotel"));
+
+  // Register artifacts, build the app
+  const express = app(new ExpressApp())
+    .with(Room)
+    .build();
+
+  // Start listing to incoming messages  
+  await app().listen();
+});
+ ``` 
  */
 export const store = singleton(function store(store?: Store) {
   return store || InMemoryStore();
@@ -57,6 +90,12 @@ export const log = singleton(function log(logger?: Logger) {
 /**
  * @category Ports
  * @remarks Global port to client api
+ * @example Calling a command via the client port
+ ```ts
+ await client().command(Room, "OpenRoom", room, {
+    id: id || room.number.toString()
+ });
+ ```
  */
 export const client = singleton(function client(client?: Client & Disposable) {
   return client || InMemoryClient();

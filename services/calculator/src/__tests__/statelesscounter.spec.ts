@@ -24,10 +24,9 @@ const http = HttpClient(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator)
+  .with(Calculator, { store: InMemorySnapshotStore(2) })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
-  .withStore(Calculator, InMemorySnapshotStore(2))
   .build();
 
 describe("calculator with stateless counter express app", () => {
