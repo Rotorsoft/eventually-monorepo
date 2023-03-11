@@ -1,3 +1,5 @@
+#### 2023-03-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.11...@rotorsoft/eventually-broker-v2.0.12) @rotorsoft/eventually-broker-v2.0.12
+  - PATCH [d89c74f3](https://github.com/Rotorsoft/eventually-monorepo/commit/d89c74f389d9e68913284fca9cfedc2d251e03d1) fix: validate types in builder with options
 #### 2023-03-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.11...@rotorsoft/eventually-express-v5.0.12) @rotorsoft/eventually-express-v5.0.12
   - PATCH [d89c74f3](https://github.com/Rotorsoft/eventually-monorepo/commit/d89c74f389d9e68913284fca9cfedc2d251e03d1) fix: validate types in builder with options
 #### 2023-03-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.0.8...@rotorsoft/eventually-pg-v5.0.9) @rotorsoft/eventually-pg-v5.0.9
