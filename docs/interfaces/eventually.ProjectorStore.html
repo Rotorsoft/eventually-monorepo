@@ -15,10 +15,15 @@
 <li><a href="../index.html">@rotorsoft/eventually-monorepo</a></li>
 <li><a href="../modules/eventually.html">eventually</a></li>
 <li><a href="eventually.ProjectorStore.html">ProjectorStore</a></li></ul>
-<h1>Interface ProjectorStore</h1></div>
+<h1>Interface ProjectorStore&lt;S&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Disposable resources</p>
-</div></section>
+</div></section> 
+<section class="tsd-panel tsd-type-parameters">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameters">
+<li>
+<h4>S<span class="tsd-signature-symbol"> extends </span><a href="../types/eventually.State.html" class="tsd-signature-type" data-tsd-kind="Type alias">State</a> = <a href="../types/eventually.State.html" class="tsd-signature-type" data-tsd-kind="Type alias">State</a></h4></li></ul></section> 
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
@@ -27,7 +32,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">ProjectorStore</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/9591b37/libs/eventually/src/interfaces/stores.ts#L115">libs/eventually/src/interfaces/stores.ts:115</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/38f65ef/libs/eventually/src/interfaces/stores.ts#L113">libs/eventually/src/interfaces/stores.ts:113</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -46,23 +51,18 @@
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="commit" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>commit</span><a href="#commit" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
-<div class="tsd-signature">commit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>projection<span class="tsd-signature-symbol">: </span><a href="../types/eventually.Projection.html" class="tsd-signature-type" data-tsd-kind="Type alias">Projection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, watermark<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionResults.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionResults</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">commit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>projection<span class="tsd-signature-symbol">: </span><a href="../types/eventually.Projection.html" class="tsd-signature-type" data-tsd-kind="Type alias">Projection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, watermark<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionResults.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionResults</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
-<li class="tsd-signature" id="commit.__type.__type-1"><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>projection<span class="tsd-signature-symbol">: </span><a href="../types/eventually.Projection.html" class="tsd-signature-type" data-tsd-kind="Type alias">Projection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, watermark<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionResults.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionResults</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-signature" id="commit.__type.__type-1"><span class="tsd-signature-symbol">(</span>projection<span class="tsd-signature-symbol">: </span><a href="../types/eventually.Projection.html" class="tsd-signature-type" data-tsd-kind="Type alias">Projection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, watermark<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionResults.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionResults</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Commits projection with basic idempotence check</p>
 
 <h3>Returns</h3><p>the projection results</p>
 </div>
-<section class="tsd-panel tsd-type-parameters">
-<h4>Type Parameters</h4>
-<ul class="tsd-type-parameters">
-<li>
-<h4>S<span class="tsd-signature-symbol"> extends </span><a href="../types/eventually.ProjectionState.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionState</a></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -76,32 +76,27 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionResults.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionResults</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/9591b37/libs/eventually/src/interfaces/stores.ts#L131">libs/eventually/src/interfaces/stores.ts:131</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/38f65ef/libs/eventually/src/interfaces/stores.ts#L129">libs/eventually/src/interfaces/stores.ts:129</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a id="dispose" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>dispose</span><a href="#dispose" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">dispose<span class="tsd-signature-symbol">:</span> <a href="../types/eventually.Disposer.html" class="tsd-signature-type" data-tsd-kind="Type alias">Disposer</a></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Disposable.html">Disposable</a>.<a href="eventually.Disposable.html#dispose">dispose</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/9591b37/libs/eventually/src/interfaces/generic.ts#L16">libs/eventually/src/interfaces/generic.ts:16</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/38f65ef/libs/eventually/src/interfaces/generic.ts#L16">libs/eventually/src/interfaces/generic.ts:16</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="load" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>load</span><a href="#load" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">load<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>ids<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">load<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>ids<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
-<li class="tsd-signature" id="load.__type-2.__type-3"><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>ids<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-signature" id="load.__type-2.__type-3"><span class="tsd-signature-symbol">(</span>ids<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Loads projection records by id</p>
 
 <h3>Returns</h3><p>the stored records by id</p>
 </div>
-<section class="tsd-panel tsd-type-parameters">
-<h4>Type Parameters</h4>
-<ul class="tsd-type-parameters">
-<li>
-<h4>S<span class="tsd-signature-symbol"> extends </span><a href="../types/eventually.ProjectionState.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionState</a></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -111,32 +106,27 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/9591b37/libs/eventually/src/interfaces/stores.ts#L121">libs/eventually/src/interfaces/stores.ts:121</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/38f65ef/libs/eventually/src/interfaces/stores.ts#L121">libs/eventually/src/interfaces/stores.ts:121</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a id="name" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>name</span><a href="#name" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Disposable.html">Disposable</a>.<a href="eventually.Disposable.html#name">name</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/9591b37/libs/eventually/src/interfaces/generic.ts#L15">libs/eventually/src/interfaces/generic.ts:15</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/38f65ef/libs/eventually/src/interfaces/generic.ts#L15">libs/eventually/src/interfaces/generic.ts:15</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface"><a id="query" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>query</span><a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
-<div class="tsd-signature">query<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionQuery.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionQuery</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>record<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
+<div class="tsd-signature">query<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionQuery.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionQuery</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>record<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></div>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter-signature">
 <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
-<li class="tsd-signature" id="query.__type-4.__type-5"><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionQuery.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionQuery</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>record<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-signature" id="query.__type-4.__type-5"><span class="tsd-signature-symbol">(</span>query<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionQuery.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionQuery</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span>, callback<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span>record<span class="tsd-signature-symbol">: </span><a href="../types/eventually.ProjectionRecord.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionRecord</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Queries projection</p>
 
 <h3>Returns</h3><p>the number of records found</p>
 </div>
-<section class="tsd-panel tsd-type-parameters">
-<h4>Type Parameters</h4>
-<ul class="tsd-type-parameters">
-<li>
-<h4>S<span class="tsd-signature-symbol"> extends </span><a href="../types/eventually.ProjectionState.html" class="tsd-signature-type" data-tsd-kind="Type alias">ProjectionState</a></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -161,13 +151,13 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/9591b37/libs/eventually/src/interfaces/stores.ts#L142">libs/eventually/src/interfaces/stores.ts:142</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/38f65ef/libs/eventually/src/interfaces/stores.ts#L140">libs/eventually/src/interfaces/stores.ts:140</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a id="seed" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>seed</span><a href="#seed" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">seed<span class="tsd-signature-symbol">:</span> <a href="../types/eventually.Seeder.html" class="tsd-signature-type" data-tsd-kind="Type alias">Seeder</a></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Seedable.html">Seedable</a>.<a href="eventually.Seedable.html#seed">seed</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/9591b37/libs/eventually/src/interfaces/generic.ts#L23">libs/eventually/src/interfaces/generic.ts:23</a></li></ul></aside></section></section></div>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/38f65ef/libs/eventually/src/interfaces/generic.ts#L23">libs/eventually/src/interfaces/generic.ts:23</a></li></ul></aside></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">

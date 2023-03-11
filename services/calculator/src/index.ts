@@ -1,5 +1,7 @@
 import {
   Calculator,
+  CalculatorEvents,
+  CalculatorModel,
   CalculatorTotals,
   Counter,
   PressKeyAdapter,
@@ -10,7 +12,10 @@ import { ExpressApp } from "@rotorsoft/eventually-express";
 import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
 
 void bootstrap(async (): Promise<void> => {
-  const snapshotStore = PostgresSnapshotStore("calculators", 0);
+  const snapshotStore = PostgresSnapshotStore<
+    CalculatorModel,
+    CalculatorEvents
+  >("calculators", 0);
   await snapshotStore.seed();
 
   store(PostgresStore("calculator"));

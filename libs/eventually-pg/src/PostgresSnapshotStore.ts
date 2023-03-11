@@ -2,7 +2,9 @@ import {
   dateReviver,
   dispose,
   log,
-  SnapshotStore
+  Messages,
+  SnapshotStore,
+  State
 } from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
@@ -10,12 +12,12 @@ import { snapshot } from "./seed";
 
 types.setTypeParser(types.builtins.JSON, (val) => JSON.parse(val, dateReviver));
 
-export const PostgresSnapshotStore = (
+export const PostgresSnapshotStore = <S extends State, E extends Messages>(
   table: string,
   threshold: number
-): SnapshotStore => {
+): SnapshotStore<S, E> => {
   const pool = new Pool(config.pg);
-  const store: SnapshotStore = {
+  const store: SnapshotStore<S, E> = {
     name: `PostgresSnapshotStore:${table}`,
     dispose: async () => {
       await pool.end();

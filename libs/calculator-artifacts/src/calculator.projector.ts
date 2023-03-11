@@ -4,16 +4,16 @@ import * as schemas from "./calculator.schemas";
 
 export const TotalsSchema = z.object({
   id: z.string(),
-  [schemas.DIGITS[0]]: z.number(),
-  [schemas.DIGITS[1]]: z.number(),
-  [schemas.DIGITS[2]]: z.number(),
-  [schemas.DIGITS[3]]: z.number(),
-  [schemas.DIGITS[4]]: z.number(),
-  [schemas.DIGITS[5]]: z.number(),
-  [schemas.DIGITS[6]]: z.number(),
-  [schemas.DIGITS[7]]: z.number(),
-  [schemas.DIGITS[8]]: z.number(),
-  [schemas.DIGITS[9]]: z.number()
+  [schemas.DIGITS[0]]: z.number().optional(),
+  [schemas.DIGITS[1]]: z.number().optional(),
+  [schemas.DIGITS[2]]: z.number().optional(),
+  [schemas.DIGITS[3]]: z.number().optional(),
+  [schemas.DIGITS[4]]: z.number().optional(),
+  [schemas.DIGITS[5]]: z.number().optional(),
+  [schemas.DIGITS[6]]: z.number().optional(),
+  [schemas.DIGITS[7]]: z.number().optional(),
+  [schemas.DIGITS[8]]: z.number().optional(),
+  [schemas.DIGITS[9]]: z.number().optional()
 });
 
 export type Totals = z.infer<typeof TotalsSchema>;

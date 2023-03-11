@@ -16,7 +16,6 @@ import {
   ProjectionQuery,
   ProjectionRecord,
   ProjectionResults,
-  ProjectionState,
   ProjectorFactory,
   Reducible,
   ReducibleFactory,
@@ -56,10 +55,9 @@ const _load = async <S extends State, C extends Messages, E extends Messages>(
 ): Promise<Snapshot<S, E>> => {
   const stream = _stream(factory, reducible);
   const snapStore =
-    ((useSnapshots && app().stores[factory.name]) as SnapshotStore) ||
+    ((useSnapshots && app().stores[factory.name]) as SnapshotStore<S, E>) ||
     undefined;
-  const snapshot =
-    (snapStore && (await snapStore.read<S, E>(stream))) || undefined;
+  const snapshot = (snapStore && (await snapStore.read(stream))) || undefined;
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
   let applyCount = 0;
@@ -272,7 +270,7 @@ export const query = async (
   callback: (event: CommittedEvent) => void
 ): Promise<number> => await store().query(callback, query);
 
-export const project = async <S extends ProjectionState, E extends Messages>(
+export const project = async <S extends State, E extends Messages>(
   factory: ProjectorFactory<S, E>,
   event: CommittedEvent<E>
 ): Promise<ProjectionResults<S>> => {
@@ -283,7 +281,8 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   Object.setPrototypeOf(artifact, factory as object);
 
   const projection = await artifact.on[event.name](event);
-  const projStore = (app().stores[factory.name] as ProjectorStore) || _imps();
+  const projStore =
+    (app().stores[factory.name] as ProjectorStore<S>) || _imps();
   const committed = await projStore.commit(projection, event.id);
   log()
     .gray()
@@ -295,12 +294,13 @@ export const project = async <S extends ProjectionState, E extends Messages>(
   return committed;
 };
 
-export const read = async <S extends ProjectionState, E extends Messages>(
+export const read = async <S extends State, E extends Messages>(
   factory: ProjectorFactory<S, E>,
   query: string | string[] | ProjectionQuery<S>,
   callback: (record: ProjectionRecord<S>) => void
 ): Promise<number> => {
-  const projStore = (app().stores[factory.name] as ProjectorStore) || _imps();
+  const projStore =
+    (app().stores[factory.name] as ProjectorStore<S>) || _imps();
   const ids =
     typeof query === "string"
       ? [query]
@@ -308,9 +308,9 @@ export const read = async <S extends ProjectionState, E extends Messages>(
       ? query
       : undefined;
   if (ids) {
-    const records = await projStore.load<S>(ids);
+    const records = await projStore.load(ids);
     records.forEach((record) => callback(record));
     return records.length;
   }
-  return projStore.query<S>(query as ProjectionQuery<S>, callback);
+  return projStore.query(query as ProjectionQuery<S>, callback);
 };

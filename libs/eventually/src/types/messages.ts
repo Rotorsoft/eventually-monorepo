@@ -1,6 +1,6 @@
 export type State = Record<string, any>;
+export type StateWithId<S extends State> = S & { id: string };
 export type Messages = Record<string, Record<string, any>>;
-export type ProjectionState = State & { id: string };
 
 /**
  * Messages have
@@ -18,8 +18,8 @@ export type Message<M extends Messages = Messages> = {
  * - `roles` some roles
  */
 export type Actor = {
-  name: string;
-  roles: string[];
+  readonly name: string;
+  readonly roles: string[];
 };
 
 /**
@@ -115,8 +115,8 @@ export type AllQuery = {
  * - `state?` the reducible state affected
  */
 export type EventResponse<S extends State, C extends Messages> = {
-  command?: Command<C>;
-  state?: S;
+  readonly command?: Command<C>;
+  readonly state?: S;
 };
 
 /**
@@ -125,9 +125,12 @@ export type EventResponse<S extends State, C extends Messages> = {
  * - `upserts?` the array of key=value expressions used to upsert slices of records
  * - `deletes?` the array of key=value expressions used to delete records
  */
-export type Projection<S extends ProjectionState> = {
-  upserts?: Array<{ where: Partial<S>; values: Partial<Omit<S, "id">> }>;
-  deletes?: Array<{ where: Partial<S> }>;
+export type Projection<S extends State> = {
+  readonly upserts?: Array<{
+    where: Partial<StateWithId<S>>;
+    values: Partial<S>;
+  }>;
+  readonly deletes?: Array<{ where: Partial<StateWithId<S>> }>;
 };
 
 /**
@@ -139,12 +142,12 @@ export type Projection<S extends ProjectionState> = {
  * - `watermark` the stored watermark
  * - `error?` the error message when project throws
  */
-export type ProjectionResults<S extends ProjectionState = ProjectionState> = {
-  projection: Projection<S>;
-  upserted: number;
-  deleted: number;
-  watermark: number;
-  error?: string;
+export type ProjectionResults<S extends State = State> = {
+  readonly projection: Projection<S>;
+  readonly upserted: number;
+  readonly deleted: number;
+  readonly watermark: number;
+  readonly error?: string;
 };
 
 /**
@@ -153,9 +156,9 @@ export type ProjectionResults<S extends ProjectionState = ProjectionState> = {
  * - `state` the stored projection state
  * - `watermark` the stored watermark
  */
-export type ProjectionRecord<S extends ProjectionState = ProjectionState> = {
-  state: Readonly<S>;
-  watermark: number;
+export type ProjectionRecord<S extends State = State> = {
+  readonly state: StateWithId<S>;
+  readonly watermark: number;
 };
 
 /**
@@ -172,8 +175,8 @@ export enum Operator {
   not_in = "not_in"
 }
 export type Condition<T> = {
-  operator: Operator;
-  value: T;
+  readonly operator: Operator;
+  readonly value: T;
 };
 
 /**
@@ -183,14 +186,14 @@ export type Condition<T> = {
  * - `sort?` sorted fields
  * - `limit?` limit number of records
  */
-export type ProjectionWhere<S extends ProjectionState = ProjectionState> = {
-  [K in keyof S]?: Condition<S[K]>;
+export type ProjectionWhere<S extends State = State> = {
+  readonly [K in keyof StateWithId<S>]?: Condition<StateWithId<S>[K]>;
 };
-export type ProjectionSort<S extends ProjectionState = ProjectionState> = {
-  [K in keyof S]?: "asc" | "desc";
+export type ProjectionSort<S extends State = State> = {
+  readonly [K in keyof StateWithId<S>]?: "asc" | "desc";
 };
-export type ProjectionQuery<S extends ProjectionState = ProjectionState> = {
-  readonly select?: Array<keyof S>;
+export type ProjectionQuery<S extends State = State> = {
+  readonly select?: Array<keyof StateWithId<S>>;
   readonly where?: ProjectionWhere<S>;
   readonly sort?: ProjectionSort<S>;
   readonly limit?: number;

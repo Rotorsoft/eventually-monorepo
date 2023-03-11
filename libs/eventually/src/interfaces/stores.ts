@@ -9,7 +9,6 @@ import {
   Snapshot,
   State,
   ProjectionRecord,
-  ProjectionState,
   ProjectionQuery
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
@@ -89,7 +88,11 @@ export interface Store extends Disposable, Seedable {
   ack: (consumer: string, lease: string, watermark: number) => Promise<boolean>;
 }
 
-export interface SnapshotStore extends Disposable, Seedable {
+export interface SnapshotStore<
+  S extends State = State,
+  E extends Messages = Messages
+> extends Disposable,
+    Seedable {
   /**
    * Snapshot threshold
    */
@@ -98,29 +101,24 @@ export interface SnapshotStore extends Disposable, Seedable {
   /**
    * Reads snapshot from store for stream
    */
-  read: <S extends State, E extends Messages>(
-    stream: string
-  ) => Promise<Snapshot<S, E>>;
+  read: (stream: string) => Promise<Snapshot<S, E>>;
 
   /**
    * Commits a snapshot into stream for stream
    * @param data the current state to be sotred
    */
-  upsert: <S extends State, E extends Messages>(
-    stream: string,
-    state: Snapshot<S, E>
-  ) => Promise<void>;
+  upsert: (stream: string, state: Snapshot<S, E>) => Promise<void>;
 }
 
-export interface ProjectorStore extends Disposable, Seedable {
+export interface ProjectorStore<S extends State = State>
+  extends Disposable,
+    Seedable {
   /**
    * Loads projection records by id
    * @param ids the record ids
    * @returns the stored records by id
    */
-  load: <S extends ProjectionState>(
-    ids: string[]
-  ) => Promise<ProjectionRecord<S>[]>;
+  load: (ids: string[]) => Promise<ProjectionRecord<S>[]>;
 
   /**
    * Commits projection with basic idempotence check
@@ -128,7 +126,7 @@ export interface ProjectorStore extends Disposable, Seedable {
    * @param watermark the new watermark - ignored when new watermark <= stored watermark
    * @returns the projection results
    */
-  commit: <S extends ProjectionState>(
+  commit: (
     projection: Projection<S>,
     watermark: number
   ) => Promise<ProjectionResults<S>>;
@@ -139,7 +137,7 @@ export interface ProjectorStore extends Disposable, Seedable {
    * @param callback the callback receiving results
    * @returns the number of records found
    */
-  query: <S extends ProjectionState>(
+  query: (
     query: ProjectionQuery<S>,
     callback: (record: ProjectionRecord<S>) => void
   ) => Promise<number>;

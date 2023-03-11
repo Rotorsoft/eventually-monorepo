@@ -33,13 +33,13 @@ export type CommitPredicate<
 /**
  * Registration options
  * - `scope?` the scope used to publish message handlers
- * - `commit?` a commit predicate to store state snapshots in the stream
- * - `store?` a projector or snapshot store associated with the artifact
+ * - `store?` a snapshot store associated with aggregates, or a projector store associated with projectors
+ * - `commit?` flags when to store state snapshots in the aggregate stream
  */
-export type WithOptions = {
+export type WithOptions<S extends State, E extends Messages> = {
   scope?: Scope;
-  commit?: CommitPredicate;
-  store?: SnapshotStore | ProjectorStore;
+  store?: SnapshotStore<S, E> | ProjectorStore<S>;
+  commit?: CommitPredicate<S, E>;
 };
 
 export abstract class Builder implements Disposable {
@@ -169,28 +169,32 @@ export abstract class Builder implements Disposable {
    */
   with<S extends State, C extends Messages, E extends Messages>(
     factory: ArtifactFactory<S, C, E>,
-    options: WithOptions = { scope: Scope.default }
+    options?: WithOptions<S, E>
   ): this {
     if (this.artifacts[factory.name])
       throw Error(`Duplicate artifact "${factory.name}"`);
     const metadata = (this.artifacts[factory.name] = this._reflect(
       factory as ArtifactFactory,
-      options.scope || Scope.default
+      options?.scope || Scope.default
     ));
-    options.commit && (this.commits[factory.name] = options.commit);
-    if (options.store) {
-      if (
-        !(
-          (metadata.type === "aggregate" &&
-            "read" in options.store &&
-            "upsert" in options.store) ||
-          (metadata.type === "projector" &&
-            "load" in options.store &&
-            "commit" in options.store)
-        )
-      )
-        throw Error(`Invalid store ${options.store.name} for ${factory.name}.`);
-      this.stores[factory.name] = options.store;
+    if (options) {
+      options.commit &&
+        (this.commits[factory.name] = options.commit as CommitPredicate);
+      if (options.store) {
+        if (metadata.type === "aggregate") {
+          if (!("read" in options.store && "upsert" in options.store))
+            throw Error(
+              `Invalid snapshot store ${options.store.name} for aggregate ${factory.name}.`
+            );
+          this.stores[factory.name] = options.store as SnapshotStore;
+        } else if (metadata.type === "projector") {
+          if (!("load" in options.store && "commit" in options.store))
+            throw Error(
+              `Invalid projector store ${options.store.name} for projector ${factory.name}.`
+            );
+          this.stores[factory.name] = options.store as ProjectorStore;
+        }
+      }
     }
     return this;
   }

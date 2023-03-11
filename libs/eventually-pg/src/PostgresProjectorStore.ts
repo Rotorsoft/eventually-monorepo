@@ -5,8 +5,8 @@ import {
   Operator,
   ProjectionQuery,
   ProjectionRecord,
-  ProjectionState,
-  ProjectorStore
+  ProjectorStore,
+  State
 } from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
@@ -32,13 +32,13 @@ const OPS = {
   [Operator.not_in]: "not in"
 };
 
-export const PostgresProjectorStore = <S extends ProjectionState>(
+export const PostgresProjectorStore = <S extends State>(
   table: string,
   schema: ProjectionSchema<S>,
   indexes: string
-): ProjectorStore => {
+): ProjectorStore<S> => {
   const pool = new Pool(config.pg);
-  const store: ProjectorStore = {
+  const store: ProjectorStore<S> = {
     name: `PostgresProjectorStore:${table}`,
     dispose: async () => {
       await pool.end();
@@ -141,7 +141,7 @@ export const PostgresProjectorStore = <S extends ProjectionState>(
       }
     },
 
-    query: async <S extends ProjectionState>(
+    query: async (
       query: ProjectionQuery<S>,
       callback: (record: ProjectionRecord<S>) => void
     ): Promise<number> => {

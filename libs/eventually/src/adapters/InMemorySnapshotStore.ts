@@ -1,12 +1,15 @@
 import { log } from "../ports";
 import { SnapshotStore } from "../interfaces";
+import { Messages, Snapshot, State } from "../types";
 
 /**
  * @category Adapters
  * @remarks In-memory snapshot store
  */
-export const InMemorySnapshotStore = (threshold = 100): SnapshotStore => {
-  let _store: Record<string, any> = {};
+export const InMemorySnapshotStore = <S extends State, E extends Messages>(
+  threshold = 100
+): SnapshotStore<S, E> => {
+  let _store: Record<string, Snapshot<S, E>> = {};
 
   return {
     name: "InMemoryStore",

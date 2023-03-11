@@ -11,7 +11,6 @@ import {
   log,
   ProjectionRecord,
   ProjectionResults,
-  ProjectionState,
   ProjectorFactory,
   ReducibleFactory,
   Snapshot,
@@ -192,7 +191,7 @@ export const projectHandler =
   (factory: ProjectorFactory) =>
   async (
     req: Request<never, any, CommittedEvent[]>,
-    res: Response<ProjectionResults<ProjectionState>>
+    res: Response<ProjectionResults>
   ): Promise<Response | undefined> => {
     res.header("content-type", "application/json");
     res.write("[");

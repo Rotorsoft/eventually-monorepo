@@ -13,7 +13,6 @@ import {
   ReducibleFactory,
   Snapshot,
   State,
-  ProjectionState,
   ProjectionQuery
 } from ".";
 
@@ -95,7 +94,7 @@ export type Client = {
    * @param event the committed event
    * @returns the committed projection
    */
-  project: <S extends ProjectionState, E extends Messages>(
+  project: <S extends State, E extends Messages>(
     factory: ProjectorFactory<S, E>,
     event: CommittedEvent<E>
   ) => Promise<ProjectionResults<S>>;
@@ -107,7 +106,7 @@ export type Client = {
    * @param callback record predicate
    * @returns the number of records matched
    */
-  read: <S extends ProjectionState, E extends Messages>(
+  read: <S extends State, E extends Messages>(
     factory: ProjectorFactory<S, E>,
     query: string | string[] | ProjectionQuery<S>,
     callback: (record: ProjectionRecord<S>) => void

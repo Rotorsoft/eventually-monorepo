@@ -5,7 +5,7 @@ import {
   Command,
   CommittedEvent,
   Projection,
-  ProjectionState
+  StateWithId
 } from "./messages";
 import { EventReducer, CommandHandler, EventHandler } from "./handlers";
 
@@ -146,11 +146,11 @@ export type ProcessManager<
  * Projectors handle events and produce slices of filters/values representing the area being created/merged or deleted
  */
 export type Projector<
-  S extends ProjectionState = ProjectionState,
+  S extends State = State,
   E extends Messages = Messages
 > = WithDescription & {
   schemas: {
-    state: ZodType<S>;
+    state: ZodType<StateWithId<S>>;
     events: { [K in keyof E]: ZodType<E[K]> };
   };
   on: {
@@ -206,4 +206,4 @@ export type Artifact<
   | CommandHandlingArtifact<S, C, E>
   | EventHandlingArtifact<S, C, E>
   | CommandAdapter<S, C>
-  | Projector<S & { id: string }, E>;
+  | Projector<S, E>;

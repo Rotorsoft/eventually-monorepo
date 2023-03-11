@@ -1,16 +1,19 @@
 import { Actor, app, client, dispose, store } from "@rotorsoft/eventually";
 import { Chance } from "chance";
-import { Calculator } from "../calculator.aggregate";
+import { Calculator, CalculatorModel } from "../calculator.aggregate";
 import { Counter } from "../counter.policy";
 import { Forget } from "../forget.system";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 import { InMemorySnapshotStore } from "../../../eventually/src/adapters";
-import { CalculatorCommands } from "../calculator.schemas";
+import { CalculatorCommands, CalculatorEvents } from "../calculator.schemas";
 import { createEvent, pressKey } from "./messages";
 
 // app setup
 const chance = new Chance();
-const inMemorySnapshots = InMemorySnapshotStore(2);
+const inMemorySnapshots = InMemorySnapshotStore<
+  CalculatorModel,
+  CalculatorEvents
+>(2);
 app()
   .with(Forget)
   .with(Calculator, { store: inMemorySnapshots })

@@ -15,7 +15,6 @@ import {
   Disposable,
   ProjectorFactory,
   ProjectionResults,
-  ProjectionState,
   ProjectionRecord,
   ProjectionQuery
 } from "@rotorsoft/eventually";
@@ -163,7 +162,7 @@ export const HttpClient = (
       return data;
     },
 
-    project: async <S extends ProjectionState, E extends Messages>(
+    project: async <S extends State, E extends Messages>(
       factory: ProjectorFactory<S, E>,
       event: CommittedEvent<E>
     ): Promise<ProjectionResults<S>> => {
@@ -174,7 +173,7 @@ export const HttpClient = (
       return data;
     },
 
-    read: async <S extends ProjectionState, E extends Messages>(
+    read: async <S extends State, E extends Messages>(
       factory: ProjectorFactory<S, E>,
       query: string | string[] | ProjectionQuery<S>,
       callback: (record: ProjectionRecord<S>) => void

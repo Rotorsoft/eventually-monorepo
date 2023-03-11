@@ -4,10 +4,11 @@ import {
   ProjectionResults,
   Projection,
   ProjectionRecord,
-  ProjectionState,
   ProjectionQuery,
   Condition,
-  Operator
+  Operator,
+  State,
+  StateWithId
 } from "../types";
 
 // default deepmerge options: arrays are replaced
@@ -19,12 +20,12 @@ const defaultOptions: deepmerge.Options = {
  * @category Adapters
  * @remarks In-memory projector store
  */
-export const InMemoryProjectorStore = (
+export const InMemoryProjectorStore = <S extends State>(
   options = defaultOptions
-): ProjectorStore => {
-  let _projections: Record<string, ProjectionRecord> = {};
+): ProjectorStore<S> => {
+  let _projections: Record<string, ProjectionRecord<S>> = {};
 
-  const select = <S extends ProjectionState>(
+  const select = (
     watermark: number,
     filter?: Partial<S>
   ): ProjectionRecord<S>[] => {
@@ -33,19 +34,17 @@ export const InMemoryProjectorStore = (
           .map(([k, v]) => `${k}=${v}`)
           .join(";")
       : undefined;
-    return (
-      filter
-        ? Object.values(_projections).filter(
-            (p) =>
-              p.watermark < watermark &&
-              key ===
-                Object.entries(p.state)
-                  .filter(([k]) => filter[k])
-                  .map(([k, v]) => `${k}=${v}`)
-                  .join(";")
-          )
-        : []
-    ) as ProjectionRecord<S>[];
+    return filter
+      ? Object.values(_projections).filter(
+          (p) =>
+            p.watermark < watermark &&
+            key ===
+              Object.entries(p.state)
+                .filter(([k]) => filter[k])
+                .map(([k, v]) => `${k}=${v}`)
+                .join(";")
+        )
+      : [];
   };
 
   return {
@@ -57,23 +56,15 @@ export const InMemoryProjectorStore = (
 
     seed: () => Promise.resolve(),
 
-    load: <S extends ProjectionState>(
-      ids: string[]
-    ): Promise<ProjectionRecord<S>[]> =>
-      Promise.resolve(
-        ids.map((id) => _projections[id] as ProjectionRecord<S>).filter(Boolean)
-      ),
+    load: (ids: string[]): Promise<ProjectionRecord<S>[]> =>
+      Promise.resolve(ids.map((id) => _projections[id]).filter(Boolean)),
 
-    commit: async <S extends ProjectionState>(
+    commit: async (
       projection: Projection<S>,
       watermark: number
     ): Promise<ProjectionResults<S>> => {
-      const results: ProjectionResults<S> = {
-        projection,
-        upserted: 0,
-        deleted: 0,
-        watermark
-      };
+      let upserted = 0,
+        deleted = 0;
 
       projection.upserts &&
         projection.upserts.forEach(({ where, values }) => {
@@ -81,7 +72,7 @@ export const InMemoryProjectorStore = (
           id &&
             !_projections[id] &&
             (_projections[id] = {
-              state: { id, ...values },
+              state: { id, ...values } as unknown as StateWithId<S>,
               watermark: -1
             });
 
@@ -89,24 +80,24 @@ export const InMemoryProjectorStore = (
           to_upsert.forEach(
             (p) =>
               (_projections[p.state.id] = {
-                state: deepmerge(p.state, values as Partial<S>, options),
+                state: deepmerge<StateWithId<S>>(p.state, values, options),
                 watermark
               })
           );
-          results.upserted += to_upsert.length;
+          upserted += to_upsert.length;
         });
 
       projection.deletes &&
         projection.deletes.forEach(({ where }) => {
           const to_delete = select(watermark, where).map((p) => p.state.id);
           to_delete.forEach((id) => delete _projections[id]);
-          results.deleted += to_delete.length;
+          deleted += to_delete.length;
         });
 
-      return Promise.resolve(results);
+      return Promise.resolve({ projection, upserted, deleted, watermark });
     },
 
-    query: <S extends ProjectionState>(
+    query: (
       query: ProjectionQuery<S>,
       callback: (record: ProjectionRecord<S>) => void
     ): Promise<number> => {
@@ -116,23 +107,24 @@ export const InMemoryProjectorStore = (
         const match = query.where
           ? Object.entries(query.where).reduce(
               (match, [key, condition]: [string, Condition<any>]) => {
+                const val = record.state[key];
                 switch (condition.operator) {
                   case Operator.eq:
-                    return match && record.state[key] == condition.value;
+                    return match && val == condition.value;
                   case Operator.neq:
-                    return match && record.state[key] != condition.value;
+                    return match && val != condition.value;
                   case Operator.lt:
-                    return match && record.state[key] < condition.value;
+                    return match && val < condition.value;
                   case Operator.lte:
-                    return match && record.state[key] <= condition.value;
+                    return match && val <= condition.value;
                   case Operator.gt:
-                    return match && record.state[key] > condition.value;
+                    return match && val > condition.value;
                   case Operator.gte:
-                    return match && record.state[key] >= condition.value;
+                    return match && val >= condition.value;
                   case Operator.in:
-                    return match && record.state[key] == condition.value;
+                    return match && val == condition.value;
                   case Operator.not_in:
-                    return match && record.state[key] != condition.value;
+                    return match && val != condition.value;
                 }
               },
               true
@@ -141,7 +133,7 @@ export const InMemoryProjectorStore = (
         if (match) {
           count++;
           if (query.limit && count > query.limit) return count;
-          callback(record as ProjectionRecord<S>);
+          callback(record);
         }
       });
       return Promise.resolve(count);

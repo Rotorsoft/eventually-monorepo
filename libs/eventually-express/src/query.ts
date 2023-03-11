@@ -22,37 +22,34 @@ export type ExpressProjectionQuery = {
 
 const OPS = Object.fromEntries(Object.entries(Operator));
 
-const parseWhere = (filters: string[]): ProjectionWhere => {
-  const where: ProjectionWhere = {};
-  filters.forEach((v) => {
+const parseWhere = (filters: string[]): ProjectionWhere =>
+  filters.reduce((result, v) => {
     try {
       const [field, operator, value] = v.split(" ").filter(Boolean);
       if (OPS[operator])
-        where[field] = {
-          operator: OPS[operator],
-          value
-        } as Condition<any>;
+        return Object.assign(result, {
+          [field]: {
+            operator: OPS[operator],
+            value
+          } as Condition<any>
+        });
       else throw Error(`Invalid where clause: ${v}`);
     } catch {
       throw Error(`Invalid where clause: ${v}`);
     }
-  });
-  return where;
-};
+  }, {} as ProjectionWhere);
 
-const parseSort = (sorts: string[]): ProjectionSort => {
-  const sort: ProjectionSort = {};
-  sorts.forEach((v) => {
+const parseSort = (sorts: string[]): ProjectionSort =>
+  sorts.reduce((result, v) => {
     try {
       const [field, order] = v.split(" ").filter(Boolean);
-      if (order === "asc" || order === "desc") sort[field] = order;
+      if (order === "asc" || order === "desc")
+        return Object.assign(result, { [field]: order });
       else throw Error(`Invalid sort clause: ${v}`);
     } catch {
       throw Error(`Invalid sort clause: ${v}`);
     }
-  });
-  return sort;
-};
+  }, {} as ProjectionSort);
 
 export const toProjectionQuery = (
   { ids, select, where, sort, limit }: ExpressProjectionQuery,
