@@ -34,7 +34,6 @@ ${outputs}
 `;
     })
     .join("");
-  console.log(d);
   return d;
 };
 
@@ -77,7 +76,8 @@ export const rapidoc = (
     </style>
   </head>
   <body>
-    <rapi-doc spec-url="/swagger" theme="light" show-header="false" regular-font="monospace" render-style="view">
+  <canvas id="diagram" style="width:100%;background-color:#eeeeee;"></canvas>
+  <rapi-doc spec-url="/swagger" theme="light" show-header="false" regular-font="monospace" render-style="view">
       <div class="header">
         <div>
         ${Object.entries(status)
@@ -90,17 +90,13 @@ export const rapidoc = (
           <div><a href="/_health">health</a></div>
         </div>
       </div>
-
-      <canvas id="diagram"></canvas>
-
-      <script>
-        var canvas = document.getElementById('diagram');
-        var source = \`${directives}${diagram()}\`;
-        nomnoml.draw(canvas, source);
-      </script>
-
     </rapi-doc>
   </body>
+  <script>
+    var canvas = document.getElementById('diagram');
+    var source = \`${directives}${diagram()}\`;
+    nomnoml.draw(canvas, source);
+  </script>
 </html>`;
 
 export const swaggerUI = (
