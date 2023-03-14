@@ -1,5 +1,42 @@
-import { formatTime } from "@rotorsoft/eventually";
+import { app, formatTime } from "@rotorsoft/eventually";
 import { config, OAS_UIS } from "../config";
+
+const directives = `
+#direction: right
+#.aggregate: fill=yellow visual=note
+#.projector: fill=green stroke=white visual=note
+#.policy: fill=magenta stroke=white visual=note
+#.process: fill=magenta stroke=white visual=note
+#.command: fill=blue stroke=white visual=note
+#.event: fill=orange visual=note
+`;
+
+const diagram = (): string => {
+  const artifacts = app().artifacts;
+  const d = Object.values(artifacts)
+    .filter((a) => a.type !== "command-adapter")
+    .map((a) => {
+      const i_t =
+        a.type === "aggregate" || a.type === "system" ? "command" : "event";
+      const o_t =
+        a.type === "aggregate" || a.type === "system" ? "event" : "command";
+
+      const inputs = a.inputs
+        .map(({ name }) => `[<${i_t}>${name}]\n[${name}] - [${a.factory.name}]`)
+        .join("\n");
+      const outputs = a.outputs
+        .map((name) => `[<${o_t}>${name}]\n[${a.factory.name}] - [${name}]`)
+        .join("\n");
+      return `
+[<${a.type.split("-").at(0)}>${a.factory.name}]
+${inputs}
+${outputs}
+`;
+    })
+    .join("");
+  console.log(d);
+  return d;
+};
 
 export const redoc = (title: string): string => `<!DOCTYPE html>
 <html>
@@ -30,6 +67,8 @@ export const rapidoc = (
     <title>${title}</title>
     <meta charset="utf-8">
     <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
+    <script src="https://unpkg.com/graphre/dist/graphre.js"></script>
+    <script src="https://unpkg.com/nomnoml/dist/nomnoml.js"></script>
     <style>
       body { font-size: 12px; }
       .header { display:flex; font-size:12px; color:black; margin: 0; background-color:silver; }
@@ -51,6 +90,15 @@ export const rapidoc = (
           <div><a href="/_health">health</a></div>
         </div>
       </div>
+
+      <canvas id="diagram"></canvas>
+
+      <script>
+        var canvas = document.getElementById('diagram');
+        var source = \`${directives}${diagram()}\`;
+        nomnoml.draw(canvas, source);
+      </script>
+
     </rapi-doc>
   </body>
 </html>`;
