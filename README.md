@@ -457,9 +457,9 @@ The service also provides a default homepage with the OpenAPI spec of the servic
 
 ![Home](./assets/openapi.png)
 
-### Finish Hotel Projection - TODO
+### Hotel Projections
 
-In this first pass, we are using a snapshot store to represent the `Hotel` projection with limited querying capabilities. Future versions of the framework will develop these capabilities and probably provide an app builder interface to define read model projections and queries.
+Room events can be projected into read models that are useful to feed the user interface or make policy decisions. Here you can find a [Hotel](./services/hotel/src/Hotel.projector.ts) projector with the current state of all rooms, and a second [Next30Days](./services/hotel/src/Next30Days.projector.ts) projector keeping track of room sales looking forward 30 days. The sample application exposes a very basic `/home` view, showing how these projections can be used to feed the UI.
 
 ### Testing the API
 
