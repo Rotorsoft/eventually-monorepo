@@ -1,3 +1,5 @@
+#### 2023-03-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.14...@rotorsoft/eventually-express-v5.0.15) @rotorsoft/eventually-express-v5.0.15
+  - PATCH [95d4f897](https://github.com/Rotorsoft/eventually-monorepo/commit/95d4f897c61e1187d41654934eb025026cd07544) fix: style diagram
 #### 2023-03-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.13...@rotorsoft/eventually-express-v5.0.14) @rotorsoft/eventually-express-v5.0.14
   - PATCH [b00222ea](https://github.com/Rotorsoft/eventually-monorepo/commit/b00222eab858ac78af7c71639c62ab85e749750f) fix: make canvas 100 percent width, remove log
 #### 2023-03-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.12...@rotorsoft/eventually-express-v5.0.13) @rotorsoft/eventually-express-v5.0.13
