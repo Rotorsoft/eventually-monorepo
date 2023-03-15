@@ -1,3 +1,5 @@
+#### 2023-03-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.13...@rotorsoft/eventually-express-v5.0.14) @rotorsoft/eventually-express-v5.0.14
+  - PATCH [b00222ea](https://github.com/Rotorsoft/eventually-monorepo/commit/b00222eab858ac78af7c71639c62ab85e749750f) fix: make canvas 100 percent width, remove log
 #### 2023-03-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.0.12...@rotorsoft/eventually-express-v5.0.13) @rotorsoft/eventually-express-v5.0.13
   - PATCH [d9d6f244](https://github.com/Rotorsoft/eventually-monorepo/commit/d9d6f2448cf31d1bc8016b26087c3cdfb4eaccf1) fix: add event storming diagram to the service home page
 #### 2023-03-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.0.8...@rotorsoft/calculator-artifacts-v1.0.9) @rotorsoft/calculator-artifacts-v1.0.9
