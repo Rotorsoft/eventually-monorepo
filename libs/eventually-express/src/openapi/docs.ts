@@ -3,12 +3,14 @@ import { config, OAS_UIS } from "../config";
 
 const directives = `
 #direction: right
-#.aggregate: fill=yellow visual=note
-#.projector: fill=green stroke=white visual=note
-#.policy: fill=magenta stroke=white visual=note
-#.process: fill=magenta stroke=white visual=note
-#.command: fill=blue stroke=white visual=note
-#.event: fill=orange visual=note
+#font: Monospace
+#.aggregate: fill=#F1D244 visual=note
+#.system: fill=#FFAFDF visual=note
+#.projector: fill=#68C40C visual=note
+#.policy: fill=#A208BA visual=note
+#.process: fill=#A208BA visual=note
+#.command: fill=#01BEFE visual=note
+#.event: fill=#F5891D visual=note
 `;
 
 const diagram = (): string => {
@@ -73,12 +75,15 @@ export const rapidoc = (
       .header { display:flex; font-size:12px; color:black; margin: 0; background-color:silver; }
       .header>div { display:flex; }
       .header>div>div { display:flex; padding:12px; }
+      .diagram { width:100%; max-height:400px; background-color:#cccccc; overflow:scroll; }
     </style>
   </head>
   <body>
-  <canvas id="diagram" style="width:100%;background-color:#eeeeee;"></canvas>
   <rapi-doc spec-url="/swagger" theme="light" show-header="false" regular-font="monospace" render-style="view">
-      <div class="header">
+        <div class="diagram">
+          <canvas id="diagram"></canvas>
+        </div>
+        <div class="header">
         <div>
         ${Object.entries(status)
           .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
