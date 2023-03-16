@@ -41,7 +41,7 @@
     "@types/cors": "^2.8.13",
     "@types/cron": "^2.0.0",
     "@types/http-cache-semantics": "^4",
-    "@types/jest": "^29.4.1",
+    "@types/jest": "^29.5.0",
     "@types/minimist": "^1.2.2",
     "@types/node": "^18.15.3",
     "@types/pg": "^8.6.6",
@@ -60,7 +60,7 @@
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.1.2",
-    "typedoc": "^0.23.26",
+    "typedoc": "^0.23.27",
     "typescript": "^4.9.5"
   },
   "dependencies": {
