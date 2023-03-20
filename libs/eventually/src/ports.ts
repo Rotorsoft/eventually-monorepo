@@ -1,14 +1,13 @@
 import {
   InMemoryApp,
-  InMemoryAsyncBroker,
+  InMemoryBroker,
   InMemoryClient,
   InMemoryProjectorStore,
-  InMemoryStore,
-  InMemorySyncBroker
+  InMemoryStore
 } from "./adapters";
 import { Builder } from "./builder";
 import { config as _config } from "./config";
-import { Disposable, Logger, Store } from "./interfaces";
+import { Broker, Disposable, Logger, Store } from "./interfaces";
 import * as loggers from "./loggers";
 import { singleton } from "./singleton";
 import { Client, Environments } from "./types";
@@ -105,13 +104,8 @@ export const client = singleton(function client(client?: Client & Disposable) {
  * @category Ports
  * @remarks Global port to internal broker
  */
-export const broker = singleton(function broker() {
-  switch (config().env) {
-    case Environments.test:
-      return InMemorySyncBroker();
-    default:
-      return InMemoryAsyncBroker();
-  }
+export const broker = singleton(function broker(broker?: Broker) {
+  return broker || InMemoryBroker();
 });
 
 /**

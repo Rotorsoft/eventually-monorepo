@@ -6,6 +6,7 @@ import {
 } from "@rotorsoft/calculator-artifacts";
 import {
   app,
+  broker,
   CommittedEvent,
   dispose,
   InMemorySnapshotStore
@@ -48,6 +49,7 @@ describe("calculator with stateless counter express app", () => {
     await pressKey(http, id, "2");
     await pressKey(http, id, ".");
     await pressKey(http, id, "3");
+    await broker().drain();
 
     const { state } = await http.load(Calculator, id);
     expect(state).toEqual({ result: 0 });

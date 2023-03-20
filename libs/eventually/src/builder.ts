@@ -1,3 +1,4 @@
+import EventEmitter from "node:events";
 import { ZodType } from "zod";
 import { Disposable, ProjectorStore, SnapshotStore } from "./interfaces";
 import {
@@ -5,6 +6,7 @@ import {
   ArtifactFactory,
   ArtifactMetadata,
   Messages,
+  ReducibleFactory,
   Scope,
   Snapshot,
   State
@@ -42,13 +44,28 @@ export type WithOptions<S extends State, E extends Messages> = {
   commit?: CommitPredicate<S, E>;
 };
 
-export abstract class Builder implements Disposable {
-  /**
-   * Concrete adapters should provide disposers and the listening framework
-   */
+type CommitEventArgs = {
+  factory: ReducibleFactory;
+  snapshot?: Snapshot;
+};
+
+export declare interface Builder {
+  on(event: "commit", listener: (args: CommitEventArgs) => void): this;
+}
+
+/**
+ * Abstract application builder
+ *
+ * Concrete adapters should provide disposers and the listening framework
+ */
+export abstract class Builder extends EventEmitter implements Disposable {
   abstract readonly name: string;
-  abstract dispose(): Promise<void>;
   abstract listen(): Promise<void>;
+
+  dispose(): Promise<void> {
+    this.removeAllListeners();
+    return Promise.resolve();
+  }
 
   private _hasStreams = false;
   readonly version;
@@ -58,6 +75,7 @@ export abstract class Builder implements Disposable {
   readonly commits: Record<string, CommitPredicate> = {};
 
   constructor(version: string) {
+    super();
     this.version = version;
   }
 

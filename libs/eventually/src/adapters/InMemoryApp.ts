@@ -15,12 +15,12 @@ export class InMemoryApp extends Builder {
   }
 
   dispose(): Promise<void> {
-    return Promise.resolve();
+    return super.dispose();
   }
 
   listen(): Promise<void> {
     log().info("InMemory app is listening...", undefined, config());
-    void broker().poll();
+    broker().poll();
     return Promise.resolve();
   }
 }

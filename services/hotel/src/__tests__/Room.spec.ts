@@ -1,5 +1,6 @@
 import {
   app,
+  broker,
   client,
   dispose,
   ProjectionRecord,
@@ -41,6 +42,7 @@ describe("Room", () => {
     await openRoom({ number: 102, price: 200, type: schemas.RoomType.DOUBLE });
     await openRoom({ number: 103, price: 300, type: schemas.RoomType.DELUXE });
     await openRoom({ number: 104, price: 400, type: schemas.RoomType.DELUXE });
+    await broker().drain();
   });
 
   afterAll(async () => {
@@ -70,6 +72,8 @@ describe("Room", () => {
       checkout,
       totalPrice: 400
     });
+    await broker().drain();
+
     expect(room[0].state?.reservations?.length).toBe(1);
     expect(room[0].state?.reservations?.at(0)?.totalPrice).toBe(
       room[0].state.price
@@ -94,6 +98,8 @@ describe("Room", () => {
       checkout,
       totalPrice: 800
     });
+    await broker().drain();
+
     const next30: ProjectionRecord<DaySales>[] = [];
     await client().read(Next30Days, [checkin_key, checkout_key], (r) =>
       next30.push(r)

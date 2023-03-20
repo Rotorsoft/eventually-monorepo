@@ -1,17 +1,15 @@
-import { InMemoryAsyncBroker } from "../../adapters";
+import { InMemoryBroker } from "../../adapters";
 import { app, client } from "../../ports";
 import { dispose } from "../../singleton";
-import { sleep } from "../../utils";
 import { MatchProjector } from "./Match.projector";
 import { MatchSystem } from "./Match.system";
 
 describe("async broker", () => {
-  const broker = InMemoryAsyncBroker(5000, 100, 5);
+  const broker = InMemoryBroker(1000, 10);
 
   beforeAll(async () => {
     app().with(MatchSystem).with(MatchProjector).build();
     await app().listen();
-    await broker.poll();
   });
 
   afterAll(async () => {
@@ -29,9 +27,7 @@ describe("async broker", () => {
       name: "changed the name"
     });
     //await client().query({ limit: 5 }, (e) => log().events([e]));
-    await sleep(1000);
-    await broker.poll();
-    await sleep(1000);
+    await broker.drain();
     let p = { watermark: 0 };
     await client().read(MatchProjector, "MatchSystem", (r) => (p = r));
     expect(p).toBeDefined();

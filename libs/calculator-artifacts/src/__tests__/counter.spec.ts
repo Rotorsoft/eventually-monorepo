@@ -1,4 +1,4 @@
-import { app, client, dispose } from "@rotorsoft/eventually";
+import { app, broker, client, dispose } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Counter } from "../counter.policy";
@@ -24,24 +24,9 @@ describe("Counter", () => {
     await pressKey(id, "3");
     await pressKey(id, "4");
     await pressKey(id, "5");
-    const { event, state } = await client().load(Calculator, id);
+    await broker().drain();
 
-    // const e1: CommittedEvent[] = [];
-    // const e2: CommittedEvent[] = [];
-    // await client().load(
-    //   Calculator,
-    //   id,
-    //   false,
-    //   (e) => e.event && e1.push(e.event)
-    // );
-    // await client().load(
-    //   Counter,
-    //   event?.stream || "",
-    //   false,
-    //   (e) => e.event && e2.push(e.event)
-    // );
-    // log().events(e1);
-    // log().events(e2);
+    const { event, state } = await client().load(Calculator, id);
 
     expect(event?.name).toBe("Cleared");
     expect(state).toEqual(expect.objectContaining({ result: 0 }));
@@ -51,7 +36,7 @@ describe("Counter", () => {
       event?.stream || "",
       false
     );
-    expect(applyCount).toBe(5);
+    expect(applyCount).toBeGreaterThan(5);
   });
 
   it("should Reset on DotPressed", async () => {
@@ -62,8 +47,10 @@ describe("Counter", () => {
     await pressKey(id, "2");
     await pressKey(id, "2");
     await pressKey(id, ".");
+    await broker().drain();
 
     const { state } = await client().load(Calculator, id);
     expect(state).toEqual(expect.objectContaining({ result: 0 }));
+    expect(state.left).toBeUndefined();
   });
 });

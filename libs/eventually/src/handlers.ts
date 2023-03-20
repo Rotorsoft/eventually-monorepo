@@ -1,5 +1,5 @@
 import { ProjectorStore, SnapshotStore } from "./interfaces";
-import { app, broker, log, store, _imps } from "./ports";
+import { app, log, store, _imps } from "./ports";
 import {
   AllQuery,
   Artifact,
@@ -131,7 +131,7 @@ const _handleMsg = async <
       metadata.causation.command?.expectedVersion || snapshot.event?.version
     );
     if (reduce) {
-      let state = snapshot.state;
+      let { state, applyCount, stateCount } = snapshot;
       const snapshots = committed.map((event) => {
         log()
           .gray()
@@ -139,23 +139,26 @@ const _handleMsg = async <
             `   ... ${stream} committed ${event.name} @ ${event.version}`,
             event.data
           );
-        state =
-          event.name === STATE_EVENT
-            ? (event.data as S)
-            : reduce[event.name](state, event);
+        if (event.name === STATE_EVENT) {
+          state = event.data as S;
+          stateCount++;
+        } else {
+          state = reduce[event.name](state, event);
+          applyCount++;
+        }
         log()
           .gray()
           .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
-        return { event, state } as Snapshot<S, E>;
+        return { event, state, applyCount, stateCount } as Snapshot<S, E>;
       });
-      const snapStore = app().stores[factory.name || ""] as SnapshotStore;
-      if (snapStore && snapshot.applyCount > snapStore.threshold)
-        void broker().snapshot(snapStore, stream, snapshots.at(-1) as Snapshot);
+      app().emit("commit", { factory, snapshot: snapshots.at(-1) });
       return snapshots;
-    } else
+    } else {
+      app().emit("commit", { factory });
       return committed.map(
         (event) => ({ state: snapshot.state, event } as Snapshot<S, E>)
       );
+    }
   } else return [];
 };
 
@@ -207,7 +210,6 @@ export const command = async <
       }
     }
   );
-  snapshots.length && (await broker().poll());
   return snapshots;
 };
 
@@ -234,9 +236,6 @@ export const event = async <
     factory,
     artifact,
     async (snapshot) => {
-      // ensure process managers are idempotent
-      if (snapshot && snapshot.event && event.id <= snapshot.event.id)
-        return [];
       // command side effects are handled synchronously, thus event handlers can fail
       cmd = await artifact.on[name](event, snapshot.state);
       cmd && (await command<S, C, E>(cmd, metadata));

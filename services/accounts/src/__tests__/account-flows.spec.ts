@@ -1,4 +1,4 @@
-import { app, client, dispose, Snapshot } from "@rotorsoft/eventually";
+import { app, broker, client, dispose, Snapshot } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
@@ -30,7 +30,9 @@ describe("account integration flows", () => {
     const t = trigger(chance.guid());
 
     await client().event(policies.IntegrateAccount1, t);
+    await broker().drain();
     await client().event(policies.IntegrateAccount2, t);
+    await broker().drain();
 
     const snapshots = [] as Snapshot[];
     await client().load(
@@ -39,6 +41,7 @@ describe("account integration flows", () => {
       false,
       (s) => snapshots.push(s)
     );
+
     expect(snapshots.length).toBe(2);
     expect(snapshots[0]?.state?.id).toBe(t?.data?.id);
     expect(snapshots[1]?.state?.id).toBe(t?.data?.id);
@@ -52,7 +55,9 @@ describe("account integration flows", () => {
     const t = trigger(chance.guid());
 
     await client().event(policies.IntegrateAccount2, t);
+    await broker().drain();
     await client().event(policies.IntegrateAccount1, t);
+    await broker().drain();
 
     const snapshots = [] as Snapshot[];
     await client().load(

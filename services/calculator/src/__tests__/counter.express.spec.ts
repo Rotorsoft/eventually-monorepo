@@ -1,4 +1,4 @@
-import { app, dispose } from "@rotorsoft/eventually";
+import { app, broker, dispose } from "@rotorsoft/eventually";
 import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import { Calculator, Counter } from "@rotorsoft/calculator-artifacts";
@@ -28,6 +28,7 @@ describe("calculator with counter in express app", () => {
     await pressKey(http, id, ".");
     await pressKey(http, id, "3");
     await pressKey(http, id, "=");
+    await broker().drain();
 
     const { state } = await http.load(Calculator, id);
     expect(state).toEqual({

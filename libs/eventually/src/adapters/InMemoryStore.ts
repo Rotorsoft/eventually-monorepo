@@ -117,16 +117,15 @@ export const InMemoryStore = (): Store => {
       const subscription = (_subscriptions[consumer] = _subscriptions[
         consumer
       ] || { watermark: -1 });
-      // IMPORTANT! - this is needed with async brokers, but will break synchronous/in-memory unit testing
+
       // block competing consumers while existing lease is valid
-      // if (
-      //   !(
-      //     subscription.lease &&
-      //     subscription.expires &&
-      //     subscription.expires > new Date()
-      //   )
-      // )
-      {
+      if (
+        !(
+          subscription.lease &&
+          subscription.expires &&
+          subscription.expires > new Date()
+        )
+      ) {
         // create a new lease
         subscription.lease = lease;
         subscription.expires = new Date(Date.now() + timeout);
@@ -149,7 +148,7 @@ export const InMemoryStore = (): Store => {
         subscription.expires &&
         subscription.expires > new Date()
       ) {
-        subscription.watermark = watermark;
+        subscription.watermark = Math.max(watermark, subscription.watermark);
         delete subscription.lease;
         delete subscription.expires;
         return Promise.resolve(true);

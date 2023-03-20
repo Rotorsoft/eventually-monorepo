@@ -64,7 +64,7 @@ describe("Calculator", () => {
 
     // with snapshots
     const { applyCount: cnt2 } = await client().load(Calculator, id, true);
-    expect(cnt2).toBe(2);
+    expect(cnt2).toBe(0);
   });
 
   it("should compute correctly and read stream with and without snapshots", async () => {

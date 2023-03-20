@@ -22,7 +22,7 @@ const http = HttpClient(port, {
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(2) })
+  .with(Calculator, { store: InMemorySnapshotStore(4) })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);

@@ -184,7 +184,8 @@ export class ExpressApp extends Builder {
           resolve(server);
         });
       });
-    void broker().poll();
+
+    broker().poll();
   }
 
   get name(): string {
@@ -192,6 +193,7 @@ export class ExpressApp extends Builder {
   }
 
   async dispose(): Promise<void> {
+    await super.dispose();
     if (this._server) {
       await new Promise((resolve, reject) => {
         this._server && this._server.once("close", resolve);

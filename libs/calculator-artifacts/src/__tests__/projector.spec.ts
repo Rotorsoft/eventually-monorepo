@@ -1,4 +1,10 @@
-import { app, client, dispose, ProjectionRecord } from "@rotorsoft/eventually";
+import {
+  app,
+  broker,
+  client,
+  dispose,
+  ProjectionRecord
+} from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { CalculatorTotals, Totals } from "../calculator.projector";
@@ -24,6 +30,7 @@ describe("Projector", () => {
     await pressKey(id, "2");
     await pressKey(id, ".");
     await pressKey(id, "3");
+    await broker().drain();
 
     const pid = "Totals-Calculator-".concat(id);
     let record: ProjectionRecord<Totals> | undefined;

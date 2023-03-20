@@ -248,7 +248,7 @@ export const PostgresStore = (table: string): Store => {
             (
               await client.query(
                 `UPDATE ${table}_subscriptions SET watermark=$2, lease=null, expires=null WHERE ${table}_subscriptions.consumer=$1`,
-                [consumer, watermark]
+                [consumer, Math.max(watermark, subscription.watermark)]
               )
             ).rowCount > 0;
         await client.query("COMMIT");

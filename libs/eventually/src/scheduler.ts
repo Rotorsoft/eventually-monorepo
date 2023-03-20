@@ -45,6 +45,7 @@ export const scheduler = (name: string): Schedule => {
   log().green().trace(`Schedule "${name}" created`);
 
   const schedule = (action: Action): void => {
+    if (status === "stopping") return;
     delayed[action.id] && clearTimeout(delayed[action.id]);
     delayed[action.id] = setTimeout(() => {
       delete delayed[action.id];
@@ -53,49 +54,47 @@ export const scheduler = (name: string): Schedule => {
   };
 
   const enqueue = (action: Action): void => {
+    if (status === "stopping") return;
     queue.push(action);
-    status === "stopped" && setImmediate(dequeue);
+    setImmediate(dequeue);
   };
 
   const dequeue = async (): Promise<void> => {
-    if (status !== "stopping") {
-      status = "running";
-      while (queue.length && status === "running") {
-        const action = queue.shift();
-        if (action) {
-          const result = await action.action();
-          action.callback && action.callback(action.id, result);
-        }
+    if (status === "stopping") return;
+    status = "running";
+    while (queue.length && status === "running") {
+      const action = queue.shift();
+      if (action) {
+        const result = await action.action();
+        action.callback && action.callback(action.id, result);
       }
-      status = "stopped";
     }
+    status = "stopped";
   };
 
   const stop = async (): Promise<void> => {
-    if (status !== "stopping") {
-      status = "stopping";
-      const ids = Object.entries(delayed).map(([id, timeout]) => {
-        clearTimeout(timeout);
-        return id;
-      });
-      ids.forEach((id) => delete delayed[id]);
-      for (let i = 1; queue.length && status === "stopping" && i <= 10; i++) {
-        log()
-          .red()
-          .trace(`Schedule "${name}" - ${status} [${queue.length}] (${i})...`);
-        await sleep(1000);
-      }
-      queue.length = 0;
-      status = "stopped";
+    if (status === "stopping") return;
+    status = "stopping";
+    const ids = Object.entries(delayed).map(([id, timeout]) => {
+      clearTimeout(timeout);
+      return id;
+    });
+    ids.forEach((id) => delete delayed[id]);
+    for (let i = 1; queue.length && status === "stopping" && i <= 10; i++) {
+      log()
+        .red()
+        .trace(`Schedule "${name}" - ${status} [${queue.length}] (${i})...`);
+      await sleep(1000);
     }
+    queue.length = 0;
+    status = "stopped";
   };
 
   return {
     name,
     dispose: stop,
     push: (action: Action): void => {
-      if (status !== "stopping")
-        action.delay ? schedule(action) : enqueue(action);
+      action.delay ? schedule(action) : enqueue(action);
     },
     stop,
     status: () => status,

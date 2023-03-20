@@ -74,8 +74,8 @@ export type CommittedEvent<M extends Messages = Messages> = Message<M> & {
  * Snapshots hold reduced state and last applied event
  * - `state` the current state of the artifact
  * - `event?` the last event applied to the state
- * - `applyCount?` the number of events reduced after last snapshot
- * - `stateCount?` the number of state events after last snapshot
+ * - `applyCount` the number of events reduced after last snapshot
+ * - `stateCount` the number of state events after last snapshot
  */
 export type Snapshot<S extends State = State, E extends Messages = Messages> = {
   readonly state: S;

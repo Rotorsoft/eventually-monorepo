@@ -127,4 +127,5 @@ export type CounterEvents = {
   OperatorPressed: z.infer<typeof OperatorPressed>;
   DotPressed: Empty;
   EqualsPressed: Empty;
+  Cleared: Empty;
 };

@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { event, project } from "../handlers";
 import { Broker, SnapshotStore } from "../interfaces";
 import { app, log, store } from "../ports";
@@ -9,35 +10,27 @@ import {
   EventHandlerFactory,
   Messages,
   PolicyFactory,
-  ProjectorFactory,
-  Snapshot
+  ProjectorFactory
 } from "../types";
-import { randomId } from "../utils";
+import { sleep } from "../utils";
 
 const event_handler_types: Array<ArtifactType> = [
   "policy",
   "process-manager",
   "projector"
 ];
-const consumers = (): ArtifactMetadata[] =>
-  Object.entries(app().artifacts)
-    .filter(([, v]) => event_handler_types.includes(v.type) && v.inputs.length)
-    .map(([k]) => app().artifacts[k]);
 
-/**
- * @returns true to keep polling
- */
-let _polling = false;
-const poll = async <E extends Messages>(
+const _poll = async <E extends Messages>(
+  consumer: ArtifactMetadata,
   timeout: number,
   limit: number
-): Promise<boolean> => {
-  if (_polling) return false;
-  _polling = true;
-  let maxBatch = 0;
-  for (const consumer of consumers()) {
-    let watermark = -1;
-    const lease = randomId();
+): Promise<void> => {
+  const lease = randomUUID();
+  let count = limit;
+  let stop = false;
+  let lastId = -1;
+  // drain the stream
+  while (count === limit && !stop) {
     try {
       const events: Array<CommittedEvent<E>> = [];
       await store().poll<E>(
@@ -48,7 +41,7 @@ const poll = async <E extends Messages>(
         timeout,
         (e) => events.push(e)
       );
-      maxBatch = Math.max(maxBatch, events.length);
+      count = events.length;
       for (const e of events) {
         if (consumer.type === "projector")
           await project(consumer.factory as ProjectorFactory, e);
@@ -57,80 +50,79 @@ const poll = async <E extends Messages>(
         else if (!e.stream.startsWith(consumer.factory.name))
           // process managers skip their own events
           await event(consumer.factory as EventHandlerFactory, e);
-        watermark = e.id;
+        lastId = e.id;
       }
     } catch (error) {
       log().error(error);
+      stop = true;
+    } finally {
+      await store().ack(consumer.factory.name, lease, lastId);
+      //console.log("ack", consumer.factory.name, { count, lastId });
     }
-    watermark > -1 &&
-      (await store().ack(consumer.factory.name, lease, watermark));
   }
-  _polling = false;
-  return maxBatch === limit;
-};
-
-const snapshot = async (
-  store: SnapshotStore,
-  stream: string,
-  snapshot: Snapshot
-): Promise<boolean> => {
-  await store.upsert(stream, snapshot).catch((error) => log().error(error));
-  return true;
 };
 
 /**
  * @category Adapters
- * @remarks In-memory synchronous broker
- * - only used when testing
+ * @remarks In-memory broker
+ * @param timeout lease expiration time (in ms) when polling the store
+ * @param limit max number of events to poll in each try
+ * @param throttle delay (in ms) to enqueue new polls
  */
-export const InMemorySyncBroker = (timeout = 100, limit = 5): Broker => ({
-  name: "InMemorySyncBroker",
-  dispose: () => Promise.resolve(),
-  poll: () => poll(timeout, limit),
-  snapshot
-});
-
-/**
- * @category Adapters
- * @remarks In-memory asynchronous broker
- */
-export const InMemoryAsyncBroker = (
-  pollingFrequency = 60 * 1000,
-  timeout = 5000,
-  limit = 25
+export const InMemoryBroker = (
+  timeout = 1000,
+  limit = 10,
+  throttle = 500
 ): Broker => {
-  const name = "InMemoryAsyncBroker";
+  const name = "InMemoryBroker";
   const schedule = scheduler(name);
 
-  const _poll = async (): Promise<boolean> => {
-    try {
-      log().magenta().trace("async broker polling...");
-      const more = await poll(timeout, limit);
-      schedule.push({
-        id: "poll",
-        action: _poll,
-        delay: more ? 100 : pollingFrequency
-      });
-      return true;
-    } catch (error) {
-      log().error(error);
-      return false;
+  const consumers = Object.entries(app().artifacts)
+    .filter(([, v]) => event_handler_types.includes(v.type) && v.inputs.length)
+    .map(([k]) => app().artifacts[k]);
+
+  const _pollAll = async (): Promise<boolean> => {
+    for (let i = 0; i < consumers.length; i++) {
+      await _poll(consumers[i], timeout, limit);
     }
+    return true;
   };
+
+  const poll = (delay?: number): void => {
+    schedule.push({
+      id: "poll",
+      action: _pollAll,
+      delay
+    });
+  };
+
+  // subscribe broker to commit events
+  app().on("commit", async ({ factory, snapshot }) => {
+    // console.log(
+    //   "commit",
+    //   factory.name,
+    //   snapshot?.event?.name,
+    //   snapshot?.event?.data,
+    //   snapshot?.state
+    // );
+    if (snapshot && snapshot.event) {
+      const snapStore = app().stores[factory.name || ""] as SnapshotStore;
+      if (snapStore && snapshot.applyCount >= snapStore.threshold)
+        await snapStore
+          .upsert(snapshot.event.stream, snapshot)
+          .catch((error) => log().error(error));
+    }
+    poll(throttle);
+  });
 
   return {
     name,
-    dispose: () => schedule.dispose(),
-    poll: () => {
-      consumers().length && schedule.push({ id: "poll", action: _poll });
-      return Promise.resolve(false);
-    },
-    snapshot: (store, stream, snap) => {
-      schedule.push({
-        id: "snapshot",
-        action: async () => await snapshot(store, stream, snap)
-      });
-      return Promise.resolve(true);
+    dispose: () => Promise.resolve(),
+    poll,
+    drain: async () => {
+      poll();
+      await sleep(100);
+      await schedule.stop();
     }
   };
 };

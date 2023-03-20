@@ -17,7 +17,7 @@ const policy = async (
   threshold: number
 ): Promise<Command<schemas.CounterCommands> | undefined> => {
   if (counter) {
-    if (counter.count >= threshold - 1)
+    if (counter.count >= threshold)
       return bind(
         "Reset",
         {},
@@ -50,36 +50,36 @@ export const Counter: ProcessManagerFactory<
       DigitPressed: schemas.DigitPressed,
       DotPressed: ZodEmpty,
       OperatorPressed: schemas.OperatorPressed,
-      EqualsPressed: ZodEmpty
+      EqualsPressed: ZodEmpty,
+      Cleared: ZodEmpty
     }
   },
   init: (): CounterState => ({ count: 0 }),
 
   on: {
-    DigitPressed: (event, state) => policy(state, event, 5),
-    DotPressed: (event, state) => policy(state, event, 5),
+    DigitPressed: (event, state) => policy(state, event, 4),
+    DotPressed: (event, state) => policy(state, event, 4),
     EqualsPressed: () => undefined,
-    OperatorPressed: () => undefined
+    OperatorPressed: () => undefined,
+    Cleared: () => undefined
   },
 
   reduce: {
     DigitPressed: (model) => ({
-      count: model.count >= 4 ? 0 : model.count + 1
+      count: model.count + 1
     }),
     DotPressed: (model) => ({
-      count: model.count >= 4 ? 0 : model.count + 1
+      count: model.count + 1
     }),
     EqualsPressed: () => ({ count: 0 }),
-    OperatorPressed: () => ({ count: 0 })
+    OperatorPressed: () => ({ count: 0 }),
+    Cleared: () => ({ count: 0 })
   }
 });
 
 export const StatelessCounter: PolicyFactory<
   schemas.CalculatorCommands,
-  Pick<
-    schemas.CalculatorEvents,
-    "DigitPressed" | "DotPressed" | "EqualsPressed" | "OperatorPressed"
-  >
+  schemas.CounterEvents
 > = () => ({
   description: "A stateless counter policy",
   schemas: {
@@ -91,14 +91,16 @@ export const StatelessCounter: PolicyFactory<
       DigitPressed: schemas.DigitPressed,
       DotPressed: ZodEmpty,
       EqualsPressed: ZodEmpty,
-      OperatorPressed: schemas.OperatorPressed
+      OperatorPressed: schemas.OperatorPressed,
+      Cleared: ZodEmpty
     }
   },
   on: {
     DigitPressed: (event) => policy(undefined, event, 5),
     DotPressed: (event) => policy(undefined, event, 5),
     EqualsPressed: () => undefined,
-    OperatorPressed: () => undefined
+    OperatorPressed: () => undefined,
+    Cleared: () => undefined
   }
 });
 

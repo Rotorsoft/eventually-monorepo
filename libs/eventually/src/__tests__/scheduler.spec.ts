@@ -18,27 +18,39 @@ describe("scheduler", () => {
 
     schedule.push({
       id: "test1",
-      action: () => Promise.resolve(true),
+      action: () => {
+        //console.log("test1", 1);
+        return Promise.resolve(true);
+      },
       delay: 3000
     });
     expect(schedule.pending()).toBe(1);
 
     schedule.push({
       id: "test1",
-      action: () => Promise.resolve(true),
+      action: () => {
+        //console.log("test1", 2);
+        return Promise.resolve(true);
+      },
       delay: 3000
     });
     expect(schedule.pending()).toBe(1);
 
     schedule.push({
       id: "test2",
-      action: () => Promise.resolve(true),
+      action: () => {
+        //console.log("test2");
+        return Promise.resolve(true);
+      },
       delay: 10,
       callback: callback1
     });
     schedule.push({
       id: "test3",
-      action: () => Promise.resolve(true),
+      action: () => {
+        //console.log("test3");
+        return Promise.resolve(true);
+      },
       delay: 10
     });
     await sleep(100);
@@ -46,13 +58,22 @@ describe("scheduler", () => {
 
     schedule.push({
       id: "test4",
-      action: async () => {
-        await sleep(3000);
-        return true;
+      action: () => {
+        //console.log("test4");
+        return Promise.resolve(true);
       },
+      delay: 2000,
       callback: callback2
     });
-    await sleep(500);
+    schedule.push({
+      id: "test5",
+      action: async () => {
+        //console.log("starting test5");
+        await sleep(1000);
+        return true;
+      }
+    });
+    await sleep(100);
     expect(schedule.status()).toBe("running");
 
     await schedule.stop();
