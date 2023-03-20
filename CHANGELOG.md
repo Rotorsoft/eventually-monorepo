@@ -1,3 +1,5 @@
+#### 2023-03-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.1.0...@rotorsoft/eventually-express-v5.1.1) @rotorsoft/eventually-express-v5.1.1
+  - PATCH [4cb0ab30](https://github.com/Rotorsoft/eventually-monorepo/commit/4cb0ab3008f1ad97b2cdfac1861b7c89c175abdc) fix: refactor projection results, app emits projection events, hotel example reacting and sending sse to client
 #### 2023-03-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.1.0...@rotorsoft/eventually-pg-v5.1.1) @rotorsoft/eventually-pg-v5.1.1
   - PATCH [4cb0ab30](https://github.com/Rotorsoft/eventually-monorepo/commit/4cb0ab3008f1ad97b2cdfac1861b7c89c175abdc) fix: refactor projection results, app emits projection events, hotel example reacting and sending sse to client
 #### 2023-03-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.1.0...@rotorsoft/eventually-v5.1.1) @rotorsoft/eventually-v5.1.1
