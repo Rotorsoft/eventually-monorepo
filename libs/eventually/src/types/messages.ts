@@ -136,16 +136,20 @@ export type Projection<S extends State> = {
 /**
  * Projection results after commit
  *
- * - `projection` the projection slices
- * - `upserted` the number of upserted records
- * - `deleted` the number of deleted records
+ * - `upserted` the upserted counts
+ * - `deleted` the deleted counts
  * - `watermark` the stored watermark
  * - `error?` the error message when project throws
  */
 export type ProjectionResults<S extends State = State> = {
-  readonly projection: Projection<S>;
-  readonly upserted: number;
-  readonly deleted: number;
+  readonly upserted: Array<{
+    where: Partial<StateWithId<S>>;
+    count: number;
+  }>;
+  readonly deleted: Array<{
+    where: Partial<StateWithId<S>>;
+    count: number;
+  }>;
   readonly watermark: number;
   readonly error?: string;
 };

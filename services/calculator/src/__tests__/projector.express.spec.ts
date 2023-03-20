@@ -35,22 +35,19 @@ describe("calculator with projector in express app", () => {
       CalculatorTotals,
       createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 1)
     );
-    const committed = await http.project(
+    const results = await http.project(
       CalculatorTotals,
       createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 2)
     );
-    expect(committed).toEqual([
+    expect(results).toEqual([
       {
-        projection: {
-          upserts: [
-            {
-              where: { id: `Totals-${stream}` },
-              values: { "1": 2 }
-            }
-          ]
-        },
-        upserted: 1,
-        deleted: 0,
+        upserted: [
+          {
+            where: { id: `Totals-${stream}` },
+            count: 1
+          }
+        ],
+        deleted: [],
         watermark: 2
       }
     ]);

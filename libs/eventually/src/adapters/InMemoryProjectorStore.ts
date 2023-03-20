@@ -63,8 +63,11 @@ export const InMemoryProjectorStore = <S extends State>(
       projection: Projection<S>,
       watermark: number
     ): Promise<ProjectionResults<S>> => {
-      let upserted = 0,
-        deleted = 0;
+      const results: ProjectionResults<S> = {
+        upserted: [],
+        deleted: [],
+        watermark
+      };
 
       projection.upserts &&
         projection.upserts.forEach(({ where, values }) => {
@@ -84,17 +87,17 @@ export const InMemoryProjectorStore = <S extends State>(
                 watermark
               })
           );
-          upserted += to_upsert.length;
+          results.upserted.push({ where, count: to_upsert.length });
         });
 
       projection.deletes &&
         projection.deletes.forEach(({ where }) => {
           const to_delete = select(watermark, where).map((p) => p.state.id);
           to_delete.forEach((id) => delete _projections[id]);
-          deleted += to_delete.length;
+          results.deleted.push({ where, count: to_delete.length });
         });
 
-      return Promise.resolve({ projection, upserted, deleted, watermark });
+      return Promise.resolve(results);
     },
 
     query: (

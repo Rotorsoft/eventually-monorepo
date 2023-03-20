@@ -5,8 +5,10 @@ import {
   Operator,
   ProjectionQuery,
   ProjectionRecord,
+  ProjectionResults,
   ProjectorStore,
-  State
+  State,
+  StateWithId
 } from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
@@ -64,12 +66,19 @@ export const PostgresProjectorStore = <S extends State>(
     },
 
     commit: async (projection, watermark) => {
-      const upserts: Array<{ sql: string; vals: any[] }> = [];
-      const deletes: Array<{ sql: string; vals: any[] }> = [];
-      const results = {
-        projection,
-        upserted: 0,
-        deleted: 0,
+      const upserts: Array<{
+        where: Partial<StateWithId<S>>;
+        sql: string;
+        vals: any[];
+      }> = [];
+      const deletes: Array<{
+        where: Partial<StateWithId<S>>;
+        sql: string;
+        vals: any[];
+      }> = [];
+      const results: ProjectionResults<S> = {
+        upserted: [],
+        deleted: [],
         watermark
       };
 
@@ -100,6 +109,7 @@ export const PostgresProjectorStore = <S extends State>(
                 .join(" AND ")}`
             );
             upserts.push({
+              where,
               sql,
               vals: where_entries
                 .map(([, v]) => v)
@@ -115,18 +125,20 @@ export const PostgresProjectorStore = <S extends State>(
             const sql = `DELETE FROM ${table} WHERE ${table}.__watermark < ${watermark} AND ${where_entries
               .map(([k], index) => `${table}."${k}"=$${index + 1}`)
               .join(" AND ")}`;
-            deletes.push({ sql, vals: where_entries.map(([, v]) => v) });
+            deletes.push({ where, sql, vals: where_entries.map(([, v]) => v) });
           }
         });
 
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        for (const { sql, vals } of upserts) {
-          results.upserted += (await client.query(sql, vals)).rowCount;
+        for (const { where, sql, vals } of upserts) {
+          const count = (await client.query(sql, vals)).rowCount;
+          results.upserted.push({ where, count });
         }
-        for (const { sql, vals } of deletes) {
-          results.deleted += (await client.query(sql, vals)).rowCount;
+        for (const { where, sql, vals } of deletes) {
+          const count = (await client.query(sql, vals)).rowCount;
+          results.deleted.push({ where, count });
         }
         await client.query("COMMIT");
         return results;

@@ -189,7 +189,7 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
       { deletes: [{ where: { countryId: 1 } }] },
       loaded[0].watermark + 1
     );
-    expect(result.deleted).toBe(1);
+    expect(result.deleted[0].count).toBe(1);
     loaded = await db.load(["Country-1"]);
     expect(loaded[0]).toBeUndefined();
   });
@@ -209,9 +209,9 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
       { deletes: [{ where: { countryId: 1 } }] },
       0
     );
-    expect(result1.upserted).toBe(0);
-    expect(result2.upserted).toBe(0);
-    expect(result3.deleted).toBe(0);
+    expect(result1.upserted[0].count).toBe(0);
+    expect(result2.upserted[0].count).toBe(0);
+    expect(result3.deleted[0].count).toBe(0);
   });
 
   it("should query all", async () => {

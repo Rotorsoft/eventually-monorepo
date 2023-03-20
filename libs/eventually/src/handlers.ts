@@ -282,15 +282,16 @@ export const project = async <S extends State, E extends Messages>(
   const projection = await artifact.on[event.name](event);
   const projStore =
     (app().stores[factory.name] as ProjectorStore<S>) || _imps();
-  const committed = await projStore.commit(projection, event.id);
+  const results = await projStore.commit(projection, event.id);
+  app().emit("projection", { factory, results });
   log()
     .gray()
     .trace(
       "   ... committed",
       JSON.stringify(projection),
-      JSON.stringify(committed)
+      JSON.stringify(results)
     );
-  return committed;
+  return results;
 };
 
 export const read = async <S extends State, E extends Messages>(

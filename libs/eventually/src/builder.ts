@@ -6,6 +6,8 @@ import {
   ArtifactFactory,
   ArtifactMetadata,
   Messages,
+  ProjectionResults,
+  ProjectorFactory,
   ReducibleFactory,
   Scope,
   Snapshot,
@@ -44,13 +46,18 @@ export type WithOptions<S extends State, E extends Messages> = {
   commit?: CommitPredicate<S, E>;
 };
 
-type CommitEventArgs = {
-  factory: ReducibleFactory;
-  snapshot?: Snapshot;
-};
-
 export declare interface Builder {
-  on(event: "commit", listener: (args: CommitEventArgs) => void): this;
+  on(
+    event: "commit",
+    listener: (args: { factory: ReducibleFactory; snapshot?: Snapshot }) => void
+  ): this;
+  on(
+    event: "projection",
+    listener: (args: {
+      factory: ProjectorFactory;
+      results: ProjectionResults;
+    }) => void
+  ): this;
 }
 
 /**

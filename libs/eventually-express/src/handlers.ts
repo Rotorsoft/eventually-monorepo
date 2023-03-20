@@ -209,9 +209,8 @@ export const projectHandler =
             ? _error
             : `Error found when projecting ${req.body[i].name} at position ${i}.`;
         const results: ProjectionResults = {
-          projection: {},
-          upserted: 0,
-          deleted: 0,
+          upserted: [],
+          deleted: [],
           watermark: -1,
           error
         };

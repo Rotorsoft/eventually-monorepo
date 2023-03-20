@@ -1,4 +1,4 @@
-<form class="border rounded m-3 p-3 bg-light">
+<div class="border rounded m-3 p-3 bg-light">
   <div class="row">
     <div class="form-group col-md-4">
       <label for="number">Room Number</label>
@@ -38,15 +38,15 @@
       <button class="btn btn-primary" id="book">Book it</button>
     </div>
   </div>
-</form>
+</div>
 
 <div class="border rounded bg-dark m-3 p-3">
   <div class="row">
     <div class="text-light col-md-6">
-      <h3>Tomorrow's Sales: ${{this.tomorrow.total}}</h3>
+      <h3>Tomorrow's Sales:</h3><b id="sales">${{this.tomorrow.total}}</b>
     </div>
     <div class="text-white-50 col-md-6">
-      <h4>Rooms: {{this.tomorrow.reserved}}</h4>
+      <h4>Rooms:</h4><b id="rooms">{{this.tomorrow.reserved}}</b>
     </div>
   </div>
 </div>
@@ -67,7 +67,7 @@
           <td>{{this.number}}</td>
           <td>{{this.type}}</td>
           <td class="text-end">${{this.price}}</td>
-          <td class="text-end">{{this.reserved}}</td>
+          <td id="reserved_{{this.number}}" class="text-end">{{this.reserved}}</td>
         </tr>
       {{/each}}
     </tbody>
@@ -99,5 +99,21 @@
       .then((json) => { alert(JSON.stringify(json)); })
       .catch((error) => { alert(JSON.stringify(error)); })
     };
+  });
+
+  const es = new EventSource("/monitor");
+  es.addEventListener("monitor", ({ data }) => {
+    const state = JSON.parse(data);
+    console.log(state);
+
+    const sales = document.getElementById("sales");
+    sales.innerText = "$" + state.tomorrow.total;
+    const rooms = document.getElementById("rooms");
+    rooms.innerText = state.tomorrow.reserved;
+
+    for(let room of state.rooms) {
+      const el = document.getElementById("reserved_" + room.number);
+      el.innerText = "$" + room.reserved;
+    }
   });
 </script>

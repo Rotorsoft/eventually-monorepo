@@ -75,38 +75,29 @@ const toProjectionResultsSchema = (ref: string): SchemaObject => {
   return {
     type: "object",
     properties: {
-      projection: {
-        type: "object",
-        properties: {
-          upserts: {
-            type: "array",
-            items: {
+      upserted: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            where: {
               type: "object",
-              properties: {
-                where: {
-                  type: "object",
-                  $ref: `#/components/schemas/${ref}`
-                },
-                values: {
-                  type: "object",
-                  $ref: `#/components/schemas/${ref}`
-                }
-              }
-            }
-          },
-          deletes: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                where: { type: "object", $ref: `#/components/schemas/${ref}` }
-              }
-            }
+              $ref: `#/components/schemas/${ref}`
+            },
+            count: { type: "number" }
           }
         }
       },
-      upserted: { type: "number" },
-      deleted: { type: "number" },
+      deleted: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            where: { type: "object", $ref: `#/components/schemas/${ref}` },
+            count: { type: "number" }
+          }
+        }
+      },
       watermark: { type: "number" },
       error: { type: "string" }
     }
