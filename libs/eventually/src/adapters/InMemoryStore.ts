@@ -1,4 +1,4 @@
-import { Store, StoreStat } from "../interfaces";
+import { Store, StoreStat, Subscription } from "../interfaces";
 import {
   AllQuery,
   CommittedEvent,
@@ -14,10 +14,7 @@ import {
  */
 export const InMemoryStore = (): Store => {
   const _events: CommittedEvent[] = [];
-  const _subscriptions: Record<
-    string,
-    { watermark: number; lease?: string; expires?: Date }
-  > = {};
+  const _subscriptions: Record<string, Subscription> = {};
 
   const query = async <E extends Messages>(
     callback: (event: CommittedEvent<E>) => void,
@@ -114,9 +111,8 @@ export const InMemoryStore = (): Store => {
       timeout: number,
       callback: (event: CommittedEvent<E>) => void
     ) => {
-      const subscription = (_subscriptions[consumer] = _subscriptions[
-        consumer
-      ] || { watermark: -1 });
+      const subscription: Subscription = (_subscriptions[consumer] =
+        _subscriptions[consumer] || { consumer, watermark: -1 });
 
       // block competing consumers while existing lease is valid
       if (
@@ -154,6 +150,8 @@ export const InMemoryStore = (): Store => {
         return Promise.resolve(true);
       }
       return Promise.resolve(false);
-    }
+    },
+
+    subscriptions: () => Promise.resolve(Object.values(_subscriptions))
   };
 };

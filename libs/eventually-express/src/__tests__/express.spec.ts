@@ -23,7 +23,12 @@ describe("express app", () => {
   });
 
   it("should get store stats", async () => {
-    const stats = await http.get("/stats");
+    const stats = await http.get("/_stats");
+    expect(stats.status).toBe(200);
+  });
+
+  it("should get subscriptions", async () => {
+    const stats = await http.get("/_subscriptions");
     expect(stats.status).toBe(200);
   });
 

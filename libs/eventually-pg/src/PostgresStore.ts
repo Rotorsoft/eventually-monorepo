@@ -8,7 +8,8 @@ import {
   Message,
   Messages,
   Store,
-  StoreStat
+  StoreStat,
+  Subscription
 } from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
@@ -22,13 +23,6 @@ type Event = {
   version: number;
   created: Date;
   metadata: any;
-};
-
-type Subscription = {
-  consumer: string;
-  watermark: number;
-  lease?: string;
-  expires?: Date;
 };
 
 types.setTypeParser(types.builtins.JSON, (val) => JSON.parse(val, dateReviver));
@@ -260,6 +254,13 @@ export const PostgresStore = (table: string): Store => {
         client.release();
       }
       return acked;
+    },
+
+    subscriptions: async () => {
+      const { rows } = await pool.query<Subscription>(
+        `SELECT * FROM ${table}_subscriptions`
+      );
+      return rows;
     }
   };
 };

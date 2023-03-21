@@ -25,7 +25,8 @@ import {
   getStreamHandler,
   invokeHandler,
   projectHandler,
-  statsHandler
+  statsHandler,
+  subscriptionsHandler
 } from "./handlers";
 import { openAPI } from "./openapi";
 import { home } from "./openapi/docs";
@@ -54,8 +55,10 @@ export class ExpressApp extends Builder {
         "GET ",
         "/all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]"
       );
-    this._router.get("/stats", statsHandler);
-    log().green().info("GET ", "/stats");
+    this._router.get("/_stats", statsHandler);
+    log().green().info("GET ", "/_stats");
+    this._router.get("/_subscriptions", subscriptionsHandler);
+    log().green().info("GET ", "/_subscriptions");
   }
 
   private _withGets(factory: ReducibleFactory): void {

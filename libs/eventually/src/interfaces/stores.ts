@@ -13,6 +13,10 @@ import {
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
 
+// TODO: implement as projection of all events (by artifact)
+/**
+ * Basic event store statistics
+ */
 export type StoreStat = {
   name: string;
   count: number;
@@ -20,6 +24,16 @@ export type StoreStat = {
   lastId?: number;
   firstCreated?: Date;
   lastCreated?: Date;
+};
+
+/**
+ * Internal subscriptions managed by in-memory broker
+ */
+export type Subscription = {
+  consumer: string;
+  watermark: number;
+  lease?: string;
+  expires?: Date;
 };
 
 /**
@@ -86,6 +100,11 @@ export interface Store extends Disposable, Seedable {
    * - returns false when ack is rejected due to lease expiration
    * */
   ack: (consumer: string, lease: string, watermark: number) => Promise<boolean>;
+
+  /**
+   * Gets current subscription states
+   */
+  subscriptions: () => Promise<Subscription[]>;
 }
 
 export interface SnapshotStore<

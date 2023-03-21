@@ -267,7 +267,7 @@ LOG_LEVEL="trace" npm run start:dev
  POST  /room/:id/open-room
  POST  /room/:id/book-room
  GET  /all?[stream=...][&names=...][&after=-1][&limit=1][&before=...][&created_after=...][&created_before=...]
- GET  /stats
+ GET  /_stats
 Express app is listening  {
   env: 'development',
   port: 3000,
@@ -547,8 +547,11 @@ GET {{host}}/room/101/stream
 ### Get Rooms
 GET {{host}}/room
 
-### Get API stats
-GET {{host}}/stats
+### Get store stats
+GET {{host}}/_stats
+
+### Get internal subscriptions
+GET {{host}}/_subscriptions
 ```
 
 ## Generic Services

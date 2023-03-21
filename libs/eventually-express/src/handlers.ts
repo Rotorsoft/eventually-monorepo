@@ -40,6 +40,19 @@ export const statsHandler = async (
   }
 };
 
+export const subscriptionsHandler = async (
+  _: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | undefined> => {
+  try {
+    const subscriptions = await store().subscriptions();
+    return res.status(200).send(subscriptions);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const allStreamHandler = async (
   req: Request<never, CommittedEvent[], never, AllQuery>,
   res: Response,

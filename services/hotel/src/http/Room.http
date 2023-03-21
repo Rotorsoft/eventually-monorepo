@@ -71,8 +71,11 @@ GET {{host}}/room/101/stream
 ### Get Rooms
 GET {{host}}/room
 
-### Get API stats
-GET {{host}}/stats
+### Get store stats
+GET {{host}}/_stats
+
+### Get store subscriptions
+GET {{host}}/_subscriptions
 
 ### Get rooms from hotel projection
 GET {{host}}/hotel/Room-101

@@ -9,6 +9,9 @@ const exapp = app(new ExpressApp()).with(Calculator);
 
 jest.spyOn(store(), "query").mockRejectedValue(new Error("store query error"));
 jest.spyOn(store(), "stats").mockRejectedValue(new Error("store stats error"));
+jest
+  .spyOn(store(), "subscriptions")
+  .mockRejectedValue(new Error("store subs error"));
 
 describe("calculator express app with store errors", () => {
   beforeAll(async () => {
@@ -32,7 +35,11 @@ describe("calculator express app with store errors", () => {
   });
 
   it("should throw internal error on stats", async () => {
-    await expect(http.get("/stats")).rejects.toThrow("500");
+    await expect(http.get("/_stats")).rejects.toThrow("500");
+  });
+
+  it("should throw internal error on subscriptions", async () => {
+    await expect(http.get("/_subscriptions")).rejects.toThrow("500");
   });
 
   it("should throw validation error", async () => {

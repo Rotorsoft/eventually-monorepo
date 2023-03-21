@@ -350,7 +350,7 @@ export const swagger = {
     }
   },
   paths: {
-    "/stats": {
+    "/_stats": {
       get: {
         operationId: "getStats",
         summary: "Get Store Stats",

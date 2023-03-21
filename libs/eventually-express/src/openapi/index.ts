@@ -77,6 +77,16 @@ const allStreamSchemas = (allStream: boolean): Record<string, SchemaObject> =>
             })
           )
         ),
+        StoreSubscriptions: toSchema(
+          z.array(
+            z.object({
+              consumer: z.string(),
+              watermark: z.number(),
+              lease: z.string().optional(),
+              expires: z.date().optional()
+            })
+          )
+        ),
         CommittedEvent: toSchema(
           z.object({
             name: z.string(),
@@ -152,7 +162,7 @@ const allStreamParameters: Record<string, ParameterObject> = {
 const allStreamPaths = (allStream: boolean): Record<string, PathItemObject> =>
   allStream
     ? {
-        ["/stats"]: {
+        ["/_stats"]: {
           get: {
             tags: ["All Stream"],
             operationId: "getStats",
@@ -161,7 +171,19 @@ const allStreamPaths = (allStream: boolean): Record<string, PathItemObject> =>
               "200": toResponse("StoreStats", "OK"),
               default: { description: "Internal Server Error" }
             },
-            security: security.operations["stats"] || [{}]
+            security: security.operations["_stats"] || [{}]
+          }
+        },
+        ["/_subscriptions"]: {
+          get: {
+            tags: ["All Stream"],
+            operationId: "getSubscriptions",
+            summary: "Gets internal consumer subscriptions to the all stream",
+            responses: {
+              "200": toResponse("StoreSubscriptions", "OK"),
+              default: { description: "Internal Server Error" }
+            },
+            security: security.operations["_subscriptions"] || [{}]
           }
         },
         ["/all"]: {
