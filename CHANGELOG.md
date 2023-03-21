@@ -1,3 +1,5 @@
+#### 2023-03-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.13...@rotorsoft/eventually-broker-v2.0.14) @rotorsoft/eventually-broker-v2.0.14
+  - PATCH [2a61503b](https://github.com/Rotorsoft/eventually-monorepo/commit/2a61503b6571b36a99a34f9ae453a6d910b6d1e1) fix: open internal subscriptions state as endpoint
 #### 2023-03-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.1.1...@rotorsoft/eventually-express-v5.1.2) @rotorsoft/eventually-express-v5.1.2
   - PATCH [2a61503b](https://github.com/Rotorsoft/eventually-monorepo/commit/2a61503b6571b36a99a34f9ae453a6d910b6d1e1) fix: open internal subscriptions state as endpoint
 #### 2023-03-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.1.1...@rotorsoft/eventually-pg-v5.1.2) @rotorsoft/eventually-pg-v5.1.2
