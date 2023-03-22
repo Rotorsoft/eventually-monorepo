@@ -1,3 +1,5 @@
+#### 2023-03-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.1.2...@rotorsoft/eventually-express-v5.2.0) @rotorsoft/eventually-express-v5.2.0
+  - MINOR [f351c314](https://github.com/Rotorsoft/eventually-monorepo/commit/f351c3142f1ec029144120e019217403212bc4e0) feat: refactor stream as readonly property of streamables, command ids are equivalent to streams
 #### 2023-03-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.1.2...@rotorsoft/eventually-v5.2.0) @rotorsoft/eventually-v5.2.0
   - MINOR [f351c314](https://github.com/Rotorsoft/eventually-monorepo/commit/f351c3142f1ec029144120e019217403212bc4e0) feat: refactor stream as readonly property of streamables, command ids are equivalent to streams
   - MINOR [cba0950e](https://github.com/Rotorsoft/eventually-monorepo/commit/cba0950e17c536f880b0e3d943c9e874983f0408) feat: refactor stream as readonly property of streamables, command ids are equivalent to streams
