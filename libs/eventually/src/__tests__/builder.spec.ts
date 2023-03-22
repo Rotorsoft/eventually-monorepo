@@ -17,7 +17,9 @@ type Events = {
   Event1: Empty;
   Event2: Empty;
 };
-const Factory: AggregateFactory<State, Commands, Events> = (id: string) => ({
+const Factory: AggregateFactory<State, Commands, Events> = (
+  stream: string
+) => ({
   description: "Test Factory",
   schemas: {
     state: ZodEmpty,
@@ -30,7 +32,7 @@ const Factory: AggregateFactory<State, Commands, Events> = (id: string) => ({
       Event2: ZodEmpty
     }
   },
-  stream: () => "TestFactory-".concat(id),
+  stream: "TestFactory-".concat(stream),
   init: () => ({}),
   reduce: {
     Event1: () => ({}),
