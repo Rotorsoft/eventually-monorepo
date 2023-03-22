@@ -9,14 +9,14 @@ import { Builder } from "./builder";
 import { config as _config } from "./config";
 import { Broker, Disposable, Logger, Store } from "./interfaces";
 import * as loggers from "./loggers";
-import { singleton } from "./singleton";
+import { port } from "./port";
 import { Client, Environments } from "./types";
 
 /**
  * @category Ports
  * @remarks Global port to configuration
  */
-export const config = singleton(function config() {
+export const config = port(function config() {
   return { ..._config(), name: "config", dispose: () => Promise.resolve() };
 });
 
@@ -43,7 +43,7 @@ export const config = singleton(function config() {
 });
  ``` 
  */
-export const app = singleton(function app<T extends Builder = InMemoryApp>(
+export const app = port(function app<T extends Builder = InMemoryApp>(
   app?: T
 ): T {
   return app || (new InMemoryApp() as T);
@@ -67,7 +67,7 @@ export const app = singleton(function app<T extends Builder = InMemoryApp>(
 });
  ``` 
  */
-export const store = singleton(function store(store?: Store) {
+export const store = port(function store(store?: Store) {
   return store || InMemoryStore();
 });
 
@@ -75,7 +75,7 @@ export const store = singleton(function store(store?: Store) {
  * @category Ports
  * @remarks Global port to logging
  */
-export const log = singleton(function log(logger?: Logger) {
+export const log = port(function log(logger?: Logger) {
   if (logger) return logger;
   switch (config().env) {
     // case Environments.test: //-- to log when testing
@@ -96,7 +96,7 @@ export const log = singleton(function log(logger?: Logger) {
  });
  ```
  */
-export const client = singleton(function client(client?: Client & Disposable) {
+export const client = port(function client(client?: Client & Disposable) {
   return client || InMemoryClient();
 });
 
@@ -104,7 +104,7 @@ export const client = singleton(function client(client?: Client & Disposable) {
  * @category Ports
  * @remarks Global port to internal broker
  */
-export const broker = singleton(function broker(broker?: Broker) {
+export const broker = port(function broker(broker?: Broker) {
   return broker || InMemoryBroker();
 });
 
@@ -113,6 +113,6 @@ export const broker = singleton(function broker(broker?: Broker) {
  * @remarks Global port to in-memory projection store
  * - this is used only in dev/testing mode
  */
-export const _imps = singleton(function imps() {
+export const _imps = port(function imps() {
   return InMemoryProjectorStore();
 });

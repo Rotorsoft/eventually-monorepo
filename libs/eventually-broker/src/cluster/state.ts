@@ -1,4 +1,4 @@
-import { dispose, log, scheduler, singleton } from "@rotorsoft/eventually";
+import { dispose, log, port, scheduler } from "@rotorsoft/eventually";
 import cluster, { Worker } from "cluster";
 import { cpus } from "os";
 import { Writable } from "stream";
@@ -13,13 +13,13 @@ import { refreshServiceSpec } from "../specs";
 import { toQueryString } from "../utils";
 import { State } from "./interfaces";
 import {
-  WorkerConfig,
-  SubscriptionState,
-  SubscriptionViewModel,
-  WorkerMessage,
+  EventStats,
   ServiceWithWorker,
   StateOptions,
-  EventStats
+  SubscriptionState,
+  SubscriptionViewModel,
+  WorkerConfig,
+  WorkerMessage
 } from "./types";
 
 export const toViewModel = (
@@ -80,7 +80,7 @@ export const toViewModel = (
 const MAX_RUNS = 10;
 const RUN_RETRY_TIMEOUT = 10000;
 
-export const state = singleton(function state(): State {
+export const state = port(function state(): State {
   const operationsLoop = scheduler("operations");
   const _services: Record<string, ServiceWithWorker> = {};
   const _timers: Record<string, NodeJS.Timeout> = {};

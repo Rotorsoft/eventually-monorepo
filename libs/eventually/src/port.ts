@@ -6,20 +6,20 @@ const log = (message: string): void => {
     console.log(`[${process.pid}]`, message);
 };
 
-const instances: Record<string, Disposable> = {};
+const adapters: Record<string, Disposable> = {};
 /**
- * Wraps creation of singletons around factory functions
+ * Wraps creation of adapters around factory functions
  * @param target the factory function
- * @returns the singleton function
+ * @returns the adapter function
  */
-export const singleton =
+export const port =
   <T extends Disposable>(target: (arg?: T) => T) =>
   (arg?: T): T => {
-    if (!instances[target.name]) {
-      instances[target.name] = target(arg);
-      log(`✨ ${instances[target.name].name || target.name}`);
+    if (!adapters[target.name]) {
+      adapters[target.name] = target(arg);
+      log(`✨ ${adapters[target.name].name || target.name}`);
     }
-    return instances[target.name] as T;
+    return adapters[target.name] as T;
   };
 
 const disposers: Disposer[] = [];
@@ -28,10 +28,10 @@ const disposeAndExit = async (
 ): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
   await Promise.all(
-    Object.entries(instances).map(async ([key, instance]) => {
-      log(`♻️ ${instance.name || key}`);
-      await instance.dispose();
-      delete instances[key];
+    Object.entries(adapters).map(async ([key, adapter]) => {
+      log(`♻️ ${adapter.name || key}`);
+      await adapter.dispose();
+      delete adapters[key];
     })
   );
   code !== ExitCodes.UNIT_TEST && process.exit(1);

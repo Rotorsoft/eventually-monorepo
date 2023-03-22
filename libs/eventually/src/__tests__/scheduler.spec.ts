@@ -1,5 +1,5 @@
 import { scheduler } from "../scheduler";
-import { dispose } from "../singleton";
+import { dispose } from "../port";
 import { sleep } from "../utils";
 
 describe("scheduler", () => {

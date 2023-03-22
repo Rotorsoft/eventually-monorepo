@@ -1,6 +1,6 @@
 import { InMemoryBroker } from "../../adapters";
 import { app, client } from "../../ports";
-import { dispose } from "../../singleton";
+import { dispose } from "../../port";
 import { MatchProjector } from "./Match.projector";
 import { MatchSystem } from "./Match.system";
 
