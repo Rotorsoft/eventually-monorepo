@@ -1,3 +1,5 @@
+#### 2023-03-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.1.0...@rotorsoft/calculator-artifacts-v1.2.0) @rotorsoft/calculator-artifacts-v1.2.0
+  - MINOR [f351c314](https://github.com/Rotorsoft/eventually-monorepo/commit/f351c3142f1ec029144120e019217403212bc4e0) feat: refactor stream as readonly property of streamables, command ids are equivalent to streams
 #### 2023-03-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.14...@rotorsoft/eventually-broker-v2.1.0) @rotorsoft/eventually-broker-v2.1.0
   - MINOR [f351c314](https://github.com/Rotorsoft/eventually-monorepo/commit/f351c3142f1ec029144120e019217403212bc4e0) feat: refactor stream as readonly property of streamables, command ids are equivalent to streams
   - PATCH [264b6e57](https://github.com/Rotorsoft/eventually-monorepo/commit/264b6e57bc083ff6f93996c565c5733b0214d167) fix: rename singletons as ports
