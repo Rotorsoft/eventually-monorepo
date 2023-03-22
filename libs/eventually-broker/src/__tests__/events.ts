@@ -19,7 +19,7 @@ export const events: CommittedEvent<Events>[] = [
       causation: {
         command: {
           name: "PressKey",
-          id: "calc1"
+          stream: "calc1"
         } as Command
       }
     }
@@ -38,7 +38,7 @@ export const events: CommittedEvent<Events>[] = [
       causation: {
         command: {
           name: "PressKey",
-          id: "calc1"
+          stream: "calc1"
         } as Command
       }
     }
@@ -57,7 +57,7 @@ export const events: CommittedEvent<Events>[] = [
       causation: {
         command: {
           name: "PressKey",
-          id: "calc1"
+          stream: "calc1"
         } as Command
       }
     }
@@ -136,7 +136,7 @@ export const events: CommittedEvent<Events>[] = [
       causation: {
         command: {
           name: "PressKey",
-          id: "calc1"
+          stream: "calc1"
         } as Command
       }
     }

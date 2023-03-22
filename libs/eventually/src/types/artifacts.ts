@@ -80,7 +80,7 @@ export type WithCommandOutputs<C extends Messages> = {
  * Streamable artifacts commit events to named streams
  */
 export type Streamable = WithDescription & {
-  stream: () => string;
+  readonly stream: string;
 };
 
 /**

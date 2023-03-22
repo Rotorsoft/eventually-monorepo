@@ -35,8 +35,8 @@ const _stream = <S extends State, C extends Messages, E extends Messages>(
   streamable: Streamable
 ): string =>
   app().artifacts[factory.name].type === "process-manager"
-    ? factory.name.concat(":", streamable.stream())
-    : streamable.stream();
+    ? factory.name.concat(":", streamable.stream)
+    : streamable.stream;
 
 /**
  * Loads reducible artifact from store
@@ -185,7 +185,7 @@ export const command = async <
   metadata?: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
   const validated = validateMessage(command);
-  const { name, id, expectedVersion, actor } = command;
+  const { name, stream, expectedVersion, actor } = command;
 
   const msg = app().messages[name];
   if (!msg.handlers.length) throw new RegistrationError(command);
@@ -195,7 +195,7 @@ export const command = async <
 
   log().blue().trace(`\n>>> ${factory.name}`, command, metadata);
 
-  const artifact = factory(id || "");
+  const artifact = factory(stream || "");
   Object.setPrototypeOf(artifact, factory as object);
   const snapshots = await _handleMsg<S, C, E>(
     factory,
@@ -205,7 +205,7 @@ export const command = async <
       correlation: metadata?.correlation || randomId(),
       causation: {
         ...metadata?.causation,
-        command: { name, id, expectedVersion, actor }
+        command: { name, stream, expectedVersion, actor }
         // TODO: flag to include command.data in metadata, not included by default to avoid duplicated payloads
       }
     }
@@ -255,11 +255,11 @@ export const load = async <
   E extends Messages
 >(
   factory: ReducibleFactory<S, C, E>,
-  id: string,
+  stream: string,
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
-  const reducible = factory(id);
+  const reducible = factory(stream);
   Object.setPrototypeOf(reducible, factory as object);
   return _load<S, C, E>(factory, reducible, useSnapshots, callback);
 };

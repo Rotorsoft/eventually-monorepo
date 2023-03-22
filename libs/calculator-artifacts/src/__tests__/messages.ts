@@ -7,11 +7,11 @@ import {
 import { Calculator } from "../calculator.aggregate";
 import { Keys } from "../calculator.schemas";
 
-export const pressKey = (id: string, key: Keys): Promise<Snapshot[]> =>
-  client().command(Calculator, "PressKey", { key }, { id });
+export const pressKey = (stream: string, key: Keys): Promise<Snapshot[]> =>
+  client().command(Calculator, "PressKey", { key }, { stream });
 
-export const reset = (id: string): Promise<Snapshot[]> =>
-  client().command(Calculator, "Reset", {}, { id });
+export const reset = (stream: string): Promise<Snapshot[]> =>
+  client().command(Calculator, "Reset", {}, { stream });
 
 export const createEvent = <E extends Messages>(
   name: keyof E & string,

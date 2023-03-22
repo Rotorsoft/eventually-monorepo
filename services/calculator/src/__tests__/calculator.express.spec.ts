@@ -102,22 +102,22 @@ describe("calculator express app", () => {
   });
 
   it("should throw concurrency error", async () => {
-    const id = chance.guid();
+    const stream = chance.guid();
 
-    await pressKey(http, id, "1");
+    await pressKey(http, stream, "1");
     await expect(
       http.command(
         Calculator,
         "PressKey",
         { key: "1" },
-        { id, expectedVersion: -1 }
+        { stream, expectedVersion: -1 }
       )
     ).rejects.toThrow("Request failed with status code 409");
   });
 
   it("should throw validation error", async () => {
     await expect(
-      http.command(Calculator, "PressKey", {}, { id: chance.guid() })
+      http.command(Calculator, "PressKey", {}, { stream: chance.guid() })
     ).rejects.toThrow("Request failed with status code 400");
   });
 

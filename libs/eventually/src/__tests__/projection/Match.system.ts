@@ -14,7 +14,7 @@ export const MatchSystem = (): System<
   events.CustomerEvents
 > => ({
   description: "Match projector",
-  stream: () => "MatchSystem",
+  stream: "MatchSystem",
   schemas: {
     commands: {
       CreateCustomer: schemas.CustomerCreated,

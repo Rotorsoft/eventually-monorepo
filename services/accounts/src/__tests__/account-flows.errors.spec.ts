@@ -35,13 +35,13 @@ describe("account flow failures", () => {
     // expect(spyCommit).toHaveBeenCalledTimes(2);
 
     const { count: sys2 } = await client().query({
-      stream: systems.ExternalSystem2().stream()
+      stream: systems.ExternalSystem2().stream
     });
     const { count: sys3 } = await client().query({
-      stream: systems.ExternalSystem3().stream()
+      stream: systems.ExternalSystem3().stream
     });
     const { count: sys4 } = await client().query({
-      stream: systems.ExternalSystem4().stream()
+      stream: systems.ExternalSystem4().stream
     });
 
     expect(sys2).toBe(0);

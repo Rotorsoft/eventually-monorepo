@@ -11,7 +11,7 @@ export const ExternalSystem1 = (): System<
     commands: { CreateAccount1: schemas.Account },
     events: { Account1Created: schemas.ExternalAccount }
   },
-  stream: () => "ExternalSystem1",
+  stream: "ExternalSystem1",
   on: {
     CreateAccount1: (data) => {
       // here we create the external account 1
@@ -32,7 +32,7 @@ export const ExternalSystem2 = (): System<
     commands: { CreateAccount2: schemas.Account },
     events: { Account2Created: schemas.ExternalAccount }
   },
-  stream: () => "ExternalSystem2",
+  stream: "ExternalSystem2",
   on: {
     CreateAccount2: (data) => {
       // here we create the external account 2
@@ -53,7 +53,7 @@ export const ExternalSystem3 = (): System<
     commands: { CreateAccount3: schemas.Account },
     events: { Account3Created: schemas.ExternalAccount }
   },
-  stream: () => "ExternalSystem3",
+  stream: "ExternalSystem3",
   on: {
     CreateAccount3: (data) => {
       // here we create the external account 3
@@ -74,7 +74,7 @@ export const ExternalSystem4 = (): System<
     commands: { CompleteIntegration: schemas.WaitForAllState },
     events: { IntegrationCompleted: schemas.Account }
   },
-  stream: () => "ExternalSystem4",
+  stream: "ExternalSystem4",
   on: {
     CompleteIntegration: (data) => {
       if (data.id === "crash-it") throw Error("error completing integration");

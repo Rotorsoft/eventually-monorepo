@@ -80,7 +80,7 @@ describe("account integration flows", () => {
       sys4 = -1;
     await client().query(
       {
-        stream: systems.ExternalSystem2().stream()
+        stream: systems.ExternalSystem2().stream
       },
       (e) => {
         if (e?.data?.id === t?.data?.id) sys2 = e.id;
@@ -88,7 +88,7 @@ describe("account integration flows", () => {
     );
     await client().query(
       {
-        stream: systems.ExternalSystem3().stream()
+        stream: systems.ExternalSystem3().stream
       },
       (e) => {
         if (e?.data?.id === t?.data?.id) sys3 = e.id;
@@ -96,7 +96,7 @@ describe("account integration flows", () => {
     );
     await client().query(
       {
-        stream: systems.ExternalSystem4().stream()
+        stream: systems.ExternalSystem4().stream
       },
       (e) => {
         if (e?.data?.id === t?.data?.id) sys4 = e.id;

@@ -24,12 +24,12 @@ export type Actor = {
 
 /**
  * Commands are messages with optional target arguments
- * - `id?` the target aggregate id
- * - `expectedVersion?` the expected version of the aggregate or a concurrency error is thrown
+ * - `stream?` the target stream
+ * - `expectedVersion?` the expected version of the stream or a concurrency error is thrown
  * - `actor?` the actor invoking the command
  */
 export type CommandTarget = {
-  readonly id?: string;
+  readonly stream?: string;
   readonly expectedVersion?: number;
   readonly actor?: Actor;
 };

@@ -73,7 +73,7 @@ describe("calculator allstream express app", () => {
   it("should read stream by names", async () => {
     const { count } = await http.query(
       {
-        stream: `Calculator-${id}`,
+        stream: id,
         names: ["DigitPressed", "DotPressed"],
         limit: 8
       },
@@ -117,7 +117,7 @@ describe("calculator allstream express app", () => {
 
   it("should read stream with before and after created", async () => {
     const { first, count } = await http.query({
-      stream: Calculator(id).stream(),
+      stream: id,
       created_after,
       created_before,
       limit: 5

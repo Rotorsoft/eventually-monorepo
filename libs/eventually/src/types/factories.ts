@@ -15,7 +15,7 @@ export type AggregateFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = (id: string) => Aggregate<S, C, E>;
+> = (stream: string) => Aggregate<S, C, E>;
 
 /**
  * System factories build systems
@@ -40,7 +40,7 @@ export type ProcessManagerFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = (eventOrId: CommittedEvent<E> | string) => ProcessManager<S, C, E>;
+> = (eventOrStream: CommittedEvent<E> | string) => ProcessManager<S, C, E>;
 
 /**
  * Projector factories build projectors

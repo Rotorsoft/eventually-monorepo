@@ -113,35 +113,35 @@ describe("Calculator", () => {
   });
 
   it("should record metadata with actor", async () => {
-    const id = chance.guid();
+    const stream = chance.guid();
     const actor: Actor = { name: "the-actor", roles: [] };
     await client().command(
       Calculator,
       "PressKey",
       { key: "1" },
-      { id, expectedVersion: -1, actor }
+      { stream, expectedVersion: -1, actor }
     );
-    const { event } = await client().load(Calculator, id);
+    const { event } = await client().load(Calculator, stream);
     expect(event?.metadata?.correlation.length).toEqual(24);
     expect(event?.metadata?.causation.command?.name).toEqual("PressKey");
   });
 
   it("should throw concurrency error", async () => {
-    const id = chance.guid();
-    await pressKey(id, "1");
+    const stream = chance.guid();
+    await pressKey(stream, "1");
     await expect(
       client().command(
         Calculator,
         "PressKey",
         { key: "1" },
-        { id, expectedVersion: -1 }
+        { stream, expectedVersion: -1 }
       )
     ).rejects.toThrow();
   });
 
   it("should throw validation error", async () => {
     await expect(
-      client().command(Calculator, "PressKey", {}, { id: chance.guid() })
+      client().command(Calculator, "PressKey", {}, { stream: chance.guid() })
     ).rejects.toThrow();
   });
 
@@ -156,7 +156,7 @@ describe("Calculator", () => {
     const test8 = Calculator(id);
     await client().event(
       Counter,
-      createEvent("DigitPressed", test8.stream(), { digit: "0" })
+      createEvent("DigitPressed", test8.stream, { digit: "0" })
     );
     const { state } = await client().load(Calculator, id);
     expect(state).toEqual({ result: 0 });

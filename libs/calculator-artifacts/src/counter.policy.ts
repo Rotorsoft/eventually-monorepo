@@ -13,24 +13,18 @@ import * as schemas from "./calculator.schemas";
 
 const policy = async (
   counter: CounterState | undefined,
-  event: CommittedEvent,
+  stream: string,
   threshold: number
 ): Promise<Command<schemas.CounterCommands> | undefined> => {
   if (counter) {
-    if (counter.count >= threshold)
-      return bind(
-        "Reset",
-        {},
-        { id: event.stream.substring("Calculator-".length) }
-      );
+    if (counter.count >= threshold) return bind("Reset", {}, { stream });
   } else {
-    const id = event.stream.substring("Calculator-".length);
-    const { state } = await client().load(Calculator, id);
+    const { state } = await client().load(Calculator, stream);
     if (
       (state?.left || "").length >= threshold ||
       (state?.right || "").length >= threshold
     )
-      return bind("Reset", {}, { id });
+      return bind("Reset", {}, { stream });
   }
 };
 
@@ -40,9 +34,10 @@ export const Counter: ProcessManagerFactory<
   CounterState,
   schemas.CounterCommands,
   schemas.CounterEvents
-> = (eventOrId: CommittedEvent<schemas.CounterEvents> | string) => ({
+> = (eventOrStream: CommittedEvent<schemas.CounterEvents> | string) => ({
   description: "A counter saga",
-  stream: () => (typeof eventOrId === "string" ? eventOrId : eventOrId.stream),
+  stream:
+    typeof eventOrStream === "string" ? eventOrStream : eventOrStream.stream,
   schemas: {
     state: schemas.CounterState,
     commands: { Reset: "After 5 digits or dots in a row" },
@@ -57,8 +52,8 @@ export const Counter: ProcessManagerFactory<
   init: (): CounterState => ({ count: 0 }),
 
   on: {
-    DigitPressed: (event, state) => policy(state, event, 4),
-    DotPressed: (event, state) => policy(state, event, 4),
+    DigitPressed: (event, state) => policy(state, event.stream, 4),
+    DotPressed: (event, state) => policy(state, event.stream, 4),
     EqualsPressed: () => undefined,
     OperatorPressed: () => undefined,
     Cleared: () => undefined
@@ -96,8 +91,8 @@ export const StatelessCounter: PolicyFactory<
     }
   },
   on: {
-    DigitPressed: (event) => policy(undefined, event, 5),
-    DotPressed: (event) => policy(undefined, event, 5),
+    DigitPressed: (event) => policy(undefined, event.stream, 5),
+    DotPressed: (event) => policy(undefined, event.stream, 5),
     EqualsPressed: () => undefined,
     OperatorPressed: () => undefined,
     Cleared: () => undefined

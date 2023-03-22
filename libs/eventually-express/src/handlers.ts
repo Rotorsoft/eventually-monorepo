@@ -156,7 +156,7 @@ export const commandHandler =
       const expectedVersion = withEtag && ifMatch ? +ifMatch : undefined;
       const { actor } = req;
       const snapshots = await client().command(factory, name, req.body, {
-        id,
+        stream: id,
         expectedVersion,
         actor
       });

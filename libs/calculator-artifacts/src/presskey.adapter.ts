@@ -18,5 +18,5 @@ export const PressKeyAdapter: CommandAdapterFactory<
     message: ExternalPayloadSchema,
     commands: { PressKey: "when a key received", Reset: "never invoked" }
   },
-  on: ({ id, key }) => bind("PressKey", { key }, { id })
+  on: ({ id, key }) => bind("PressKey", { key }, { stream: id })
 });

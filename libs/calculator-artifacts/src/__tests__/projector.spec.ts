@@ -32,7 +32,7 @@ describe("Projector", () => {
     await pressKey(id, "3");
     await broker().drain();
 
-    const pid = "Totals-Calculator-".concat(id);
+    const pid = "Totals-".concat(id);
     let record: ProjectionRecord<Totals> | undefined;
     await client().read(CalculatorTotals, pid, (r) => (record = r));
     expect(record?.state).toEqual({
