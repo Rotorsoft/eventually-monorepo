@@ -13,16 +13,16 @@ import {
 
 export const pressKey = (
   http: Client,
-  id: string,
+  stream: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  http.command(Calculator, "PressKey", { key }, { id });
+  http.command(Calculator, "PressKey", { key }, { stream });
 
 export const reset = (
   http: Client,
-  id: string
+  stream: string
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  http.command(Calculator, "Reset", {}, { id });
+  http.command(Calculator, "Reset", {}, { stream });
 
 export const createEvent = <E extends Messages>(
   name: keyof E & string,

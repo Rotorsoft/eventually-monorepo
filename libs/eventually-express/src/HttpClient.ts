@@ -91,7 +91,7 @@ export const HttpClient = (
         name as string
       );
       const { data } = await axios.post<State, AxiosResponse<Snapshot<S, E>[]>>(
-        url(path.replace(":id", target?.id || "")),
+        url(path.replace(":id", target?.stream || "")),
         payload,
         {
           headers: { ...globalHeaders, ...headers }

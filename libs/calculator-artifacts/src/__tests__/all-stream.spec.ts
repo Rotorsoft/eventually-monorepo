@@ -73,7 +73,7 @@ describe("All Stream", () => {
 
   it("should read stream with stream name", async () => {
     const { count } = await client().query({
-      stream: Calculator(id).stream(),
+      stream: id,
       limit: 10
     });
     expect(count).toBe(6);
@@ -96,7 +96,7 @@ describe("All Stream", () => {
 
   it("should read stream with before and after created", async () => {
     const { first, count } = await client().query({
-      stream: Calculator(id).stream(),
+      stream: id,
       created_after,
       created_before,
       limit: 10

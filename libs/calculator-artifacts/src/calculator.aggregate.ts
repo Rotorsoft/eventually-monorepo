@@ -27,9 +27,9 @@ export const Calculator: AggregateFactory<
   CalculatorModel,
   schemas.CalculatorCommands,
   schemas.CalculatorEvents
-> = (id: string) => ({
+> = (stream: string) => ({
   description: "Basic calculator aggregate",
-  stream: () => `Calculator-${id}`,
+  stream,
 
   schemas: {
     state: schemas.CalculatorSchema,

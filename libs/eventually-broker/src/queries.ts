@@ -90,7 +90,7 @@ export const getCorrelation = async (
                   : {
                       name: command?.name || "",
                       type: "command",
-                      aggregateid: command?.id
+                      aggregateid: command?.stream
                     }
               };
               return cm;

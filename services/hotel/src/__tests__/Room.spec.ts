@@ -15,22 +15,22 @@ import { fromToday } from "../utils";
 
 const openRoom = (
   room: models.Room,
-  id?: string
+  stream?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
   client().command(Room, "OpenRoom", room, {
-    id: id || room.number.toString()
+    stream: stream || room.number.toString()
   });
 
 const bookRoom = (
   number: number,
   reservation: models.Reservation,
-  id?: string
+  stream?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
   client().command(
     Room,
     "BookRoom",
     { number, ...reservation },
-    { id: id || number.toString() }
+    { stream: stream || number.toString() }
   );
 
 describe("Room", () => {

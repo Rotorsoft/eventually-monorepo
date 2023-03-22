@@ -17,7 +17,7 @@ export const Forget: SystemFactory<
       Forgotten: ZodEmpty
     }
   },
-  stream: () => "Forget",
+  stream: "Forget",
   on: {
     Whatever: () => Promise.resolve([]),
     Forget: () => Promise.resolve([bind("Forgotten", {})])

@@ -19,7 +19,7 @@ const isBooked = (room: models.Room, from: Date, to: Date): boolean =>
   false;
 
 export const Room = (
-  id: string
+  stream: string
 ): Aggregate<models.Room, models.RoomCommands, models.RoomEvents> => ({
   schemas: {
     state: schemas.Room,
@@ -34,9 +34,9 @@ export const Room = (
   },
 
   description: "A bookable hotel room",
-  stream: () => `Room-${id}`,
+  stream,
   init: (): models.Room => ({
-    number: +id,
+    number: +stream,
     type: schemas.RoomType.SINGLE,
     price: 0
   }),
@@ -52,7 +52,7 @@ export const Room = (
   },
   on: {
     OpenRoom: (data) => {
-      if (data.number.toString() !== id)
+      if (data.number.toString() !== stream)
         throw Error(`Invalid room number ${data.number}`);
 
       return Promise.resolve([bind("RoomOpened", data)]);

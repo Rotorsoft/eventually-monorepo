@@ -59,7 +59,7 @@ export const WaitForAllAndComplete: ProcessManagerFactory<
   z.infer<typeof schemas.WaitForAllState>,
   Pick<schemas.Commands, "CompleteIntegration">,
   Pick<schemas.Events, "Account1Created" | "Account3Created">
-> = (eventOrId) => ({
+> = (eventOrStream) => ({
   description: "Wait for all and complete saga",
   schemas: {
     state: schemas.WaitForAllState,
@@ -69,9 +69,11 @@ export const WaitForAllAndComplete: ProcessManagerFactory<
       Account3Created: schemas.ExternalAccount
     }
   },
-  stream: () => (typeof eventOrId === "string" ? eventOrId : eventOrId.data.id),
+  stream:
+    typeof eventOrStream === "string" ? eventOrStream : eventOrStream.data.id,
   init: () => ({
-    id: typeof eventOrId === "string" ? eventOrId : eventOrId.data.id
+    id:
+      typeof eventOrStream === "string" ? eventOrStream : eventOrStream.data.id
   }),
 
   on: {
