@@ -74,8 +74,13 @@
     "store": "calculator",
     "artifacts": {
       "@rotorsoft/calculator-artifacts": [
-        {"name": "CalculatorTotals", "scope": "public"},
-        {"name":"PressKeyAdapter"}
+        {
+          "name": "CalculatorTotals",
+          "scope": "public"
+        },
+        {
+          "name": "PressKeyAdapter"
+        }
       ]
     }
   }

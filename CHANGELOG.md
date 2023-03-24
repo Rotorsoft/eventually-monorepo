@@ -1,3 +1,6 @@
+#### 2023-03-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.2.0...@rotorsoft/eventually-v5.2.1) @rotorsoft/eventually-v5.2.1
+  - PATCH [574cebd9](https://github.com/Rotorsoft/eventually-monorepo/commit/574cebd9ebc91410e60a0671b5d108350eb42727) fix: add invariant options to aggregates under given group
+  - PATCH [819897fa](https://github.com/Rotorsoft/eventually-monorepo/commit/819897faa733a66fa8b4904c511a6e2b911ac817) fix: in-memory broker connects only private consumers
 #### 2023-03-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.1.0...@rotorsoft/calculator-artifacts-v1.2.0) @rotorsoft/calculator-artifacts-v1.2.0
   - MINOR [f351c314](https://github.com/Rotorsoft/eventually-monorepo/commit/f351c3142f1ec029144120e019217403212bc4e0) feat: refactor stream as readonly property of streamables, command ids are equivalent to streams
 #### 2023-03-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.0.14...@rotorsoft/eventually-broker-v2.1.0) @rotorsoft/eventually-broker-v2.1.0
