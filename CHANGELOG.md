@@ -1,3 +1,6 @@
+#### 2023-03-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.5...@rotorsoft/eventually-service-expg-v1.0.6) @rotorsoft/eventually-service-expg-v1.0.6
+  - PATCH [574cebd9](https://github.com/Rotorsoft/eventually-monorepo/commit/574cebd9ebc91410e60a0671b5d108350eb42727) fix: add invariant options to aggregates under given group
+  - PATCH [819897fa](https://github.com/Rotorsoft/eventually-monorepo/commit/819897faa733a66fa8b4904c511a6e2b911ac817) fix: in-memory broker connects only private consumers
 #### 2023-03-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.1.0...@rotorsoft/eventually-broker-v2.1.1) @rotorsoft/eventually-broker-v2.1.1
   - PATCH [819897fa](https://github.com/Rotorsoft/eventually-monorepo/commit/819897faa733a66fa8b4904c511a6e2b911ac817) fix: in-memory broker connects only private consumers
   - PATCH [cc01fb75](https://github.com/Rotorsoft/eventually-monorepo/commit/cc01fb756341ca6df633b95ca3356b50dfd93876) fix: refactor broker states with Maps
