@@ -58,7 +58,7 @@ export const work = async (
 ): Promise<() => Promise<void>> => {
   const config = JSON.parse(process.env.WORKER_ENV || "") as WorkerConfig;
   const masterLoop = scheduler(config.id);
-  const subs: Record<string, Sub> = {};
+  const subs = new Map<string, Sub>();
   let refreshTimer: NodeJS.Timeout;
 
   const toState = async ({
@@ -126,7 +126,7 @@ export const work = async (
     id: string,
     trigger: TriggerPayload
   ): Promise<boolean | undefined> => {
-    const sub = subs[id];
+    const sub = subs.get(id);
     if (!sub || !sub.state.active) return;
 
     process.send && process.send({ trigger });
@@ -286,7 +286,7 @@ export const work = async (
   };
 
   const retry = (id: string): void => {
-    const sub = subs[id];
+    const sub = subs.get(id);
     if (!sub) return;
     if (sub.retry_count < sub.state.retries) {
       sub.retry_count++;
@@ -300,7 +300,7 @@ export const work = async (
   };
 
   const pumpChannel: TriggerCallback = (trigger) => {
-    Object.values(subs).forEach((sub) => {
+    subs.forEach((sub) => {
       sub.retry_count = 0;
       pump(sub, trigger);
     });
@@ -310,29 +310,33 @@ export const work = async (
     sub,
     operation
   }: MasterMessage): Promise<boolean | undefined> => {
-    const current = subs[sub.id];
+    const current = subs.get(sub.id);
     if (current) {
       await current.loop.stop();
       current.state.active = sub.active;
       current.state.position = sub.position;
       sendState(current.state, false);
       if (!sub.active || operation === "DELETE") {
-        delete subs[sub.id];
-        !Object.keys(subs).length && void exit();
+        subs.delete(sub.id);
+        !subs.size && void exit();
         return;
       }
     }
     try {
       const state = await toState(sub);
       current && Object.assign(state.stats, current.state.stats);
-      const refresh = (subs[sub.id] = subs[sub.id] || {
-        state,
-        loop: scheduler(sub.id),
-        retry_count: 0
-      });
-      refresh.state = state;
-      refresh.retry_count = 0;
-      pump(refresh, { operation, id: sub.id });
+      !subs.has(sub.id) &&
+        subs.set(sub.id, {
+          state,
+          loop: scheduler(sub.id),
+          retry_count: 0
+        });
+      const refresh = subs.get(sub.id);
+      if (refresh) {
+        refresh.state = state;
+        refresh.retry_count = 0;
+        pump(refresh, { operation, id: sub.id });
+      }
     } catch (error) {
       log().error(error);
     }
@@ -346,16 +350,12 @@ export const work = async (
 
   const drain = async (): Promise<void> => {
     clearInterval(refreshTimer);
-    const keys =
-      (Object.keys(subs).length &&
-        (await Promise.all(
-          Object.entries(subs).map(async ([key, sub]) => {
-            await sub.loop.dispose();
-            return key;
-          })
-        ))) ||
-      [];
-    keys.forEach((key) => delete subs[key]);
+    await Promise.all(
+      [...subs.values()].map(async (sub) => {
+        await sub.loop.dispose();
+      })
+    );
+    subs.clear();
     await masterLoop.dispose();
   };
 
@@ -363,7 +363,7 @@ export const work = async (
 
   process.on("message", (msg: MasterMessage) => {
     if (msg.operation === "REFRESH") {
-      const sub = subs[msg.sub.id];
+      const sub = subs.get(msg.sub.id);
       sub && sendState(sub.state, false);
     } else
       masterLoop.push({ id: msg.sub.id, action: () => masterMessage(msg) });
@@ -377,11 +377,12 @@ export const work = async (
     pullchannel(pullFactory(pullUrl, config.id));
     await Promise.all(
       Object.values(config.subscriptions).map(async (sub) => {
-        const s = (subs[sub.id] = {
+        const s = {
           state: await toState(sub),
           loop: scheduler(sub.id),
           retry_count: 0
-        });
+        };
+        subs.set(sub.id, s);
         sendState(s.state, false);
       })
     );

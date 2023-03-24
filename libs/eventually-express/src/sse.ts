@@ -1,5 +1,4 @@
 import { State } from "@rotorsoft/eventually";
-import { randomUUID } from "crypto";
 import { Request, Response } from "express";
 
 export const sse = <S extends State>(
@@ -8,18 +7,15 @@ export const sse = <S extends State>(
   push: (req: Request, res: Response) => boolean;
   send: (data: S) => void;
 } => {
-  const responses: Record<string, Response> = {};
+  const responses = new Set<Response>();
   return {
     push: (req: Request, res: Response): boolean => {
       if (req.headers.accept === "text/event-stream") {
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-store");
         res.setHeader("X-Accel-Buffering", "no");
-        const id = randomUUID();
-        responses[id] = res;
-        req.on("close", () => {
-          delete responses[id];
-        });
+        responses.add(res);
+        req.on("close", () => responses.delete(res));
         return true;
       }
       return false;

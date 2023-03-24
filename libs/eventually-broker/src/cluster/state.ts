@@ -1,7 +1,7 @@
 import { dispose, log, port, scheduler } from "@rotorsoft/eventually";
 import cluster, { Worker } from "cluster";
+import { Request, Response } from "express";
 import { cpus } from "os";
-import { Writable } from "stream";
 import {
   CommittableHttpStatus,
   ErrorMessage,
@@ -24,8 +24,8 @@ import {
 
 export const toViewModel = (
   { id, active, path, position, endpointStatus, stats }: SubscriptionState,
-  producer: Service,
-  consumer: Service
+  producer?: Service,
+  consumer?: Service
 ): SubscriptionViewModel => {
   const emptyEventModel = (name: string, found: boolean): EventsViewModel => ({
     name,
@@ -82,10 +82,10 @@ const RUN_RETRY_TIMEOUT = 10000;
 
 export const state = port(function state(): State {
   const operationsLoop = scheduler("operations");
-  const _services: Record<string, ServiceWithWorker> = {};
-  const _timers: Record<string, NodeJS.Timeout> = {};
-  const _sse: Record<string, { stream: Writable; id?: string }> = {};
-  const _views: Record<string, SubscriptionViewModel> = {};
+  const _services = new Map<string, ServiceWithWorker>();
+  const _timers = new Map<string, NodeJS.Timeout>();
+  const _sse = new Map<Response, Request>();
+  const _views = new Map<string, SubscriptionViewModel>();
   let _options: StateOptions;
   let _disposed = false;
 
@@ -96,7 +96,7 @@ export const state = port(function state(): State {
     channelPosition: number,
     error?: string
   ): SubscriptionViewModel => {
-    const view = (_views[id] = _views[id] || {
+    const view = _views.get(id) || {
       id,
       active,
       position,
@@ -111,7 +111,8 @@ export const state = port(function state(): State {
       },
       total: 0,
       events: []
-    });
+    };
+    _views.set(id, view);
 
     view.active = active;
     view.position = Math.max(view.position, position);
@@ -132,7 +133,7 @@ export const state = port(function state(): State {
   };
 
   const findSubscription = (id: string): ServiceWithWorker | undefined =>
-    Object.values(_services).find(
+    [..._services.values()].find(
       (producer) =>
         producer &&
         producer.config &&
@@ -143,17 +144,18 @@ export const state = port(function state(): State {
 
   const run = async (id: string, runs = 0): Promise<void> => {
     try {
-      if (_timers[id]) {
-        clearTimeout(_timers[id]);
-        delete _timers[id];
+      if (_timers.has(id)) {
+        clearTimeout(_timers.get(id));
+        _timers.delete(id);
       }
-      const activeWorker = _services[id] && _services[id].config;
+      const activeWorker = _services.get(id)?.config;
       if (activeWorker)
         throw Error(`Service ${id} has active worker ${activeWorker.workerId}`);
 
-      const service = (_services[id] = (
-        await subscriptions().loadServices(id)
-      )[0] as ServiceWithWorker);
+      const service = (await subscriptions().loadServices(id)).at(
+        0
+      ) as ServiceWithWorker;
+      _services.set(id, service);
       if (!service) return;
 
       const pullUrl = new URL(encodeURI(service.channel));
@@ -190,27 +192,19 @@ export const state = port(function state(): State {
     }
   };
 
-  const subscribeSSE = (
-    session: string,
-    stream: Writable,
-    id?: string
-  ): void => {
+  const sse = (req: Request, res: Response): void => {
     if (_disposed) return;
-    _sse[session] = { stream, id };
-  };
-
-  const unsubscribeSSE = (session: string): void => {
-    if (_disposed) return;
-    delete _sse[session];
+    _sse.set(res, req);
+    req.on("close", () => _sse.delete(res));
   };
 
   const emitService = (service: Service): void => {
-    const found = Object.values(_sse).filter(({ id }) => !id);
+    const found = [..._sse].filter(([, req]) => !req.params.id);
     if (found.length) {
-      found.forEach(({ stream }) => {
-        stream.write(`id: ${service.id}\n`);
-        stream.write(`event: health\n`);
-        stream.write(`data: ${JSON.stringify(service)}\n\n`);
+      found.forEach(([res]) => {
+        res.write(`id: ${service.id}\n`);
+        res.write(`event: health\n`);
+        res.write(`data: ${JSON.stringify(service)}\n\n`);
       });
     }
   };
@@ -220,21 +214,22 @@ export const state = port(function state(): State {
     view?: SubscriptionViewModel
   ): void => {
     const subid = (state && state.id) || (view && view.id);
-    const found = Object.values(_sse).filter(
-      ({ id }) => subid === (id || subid)
+    const found = [..._sse].filter(
+      ([, req]) => subid === (req.params.id || subid)
     );
     if (found.length && state) {
-      !view &&
-        (view = _views[state.id] =
-          toViewModel(
-            state,
-            _services[state.producer],
-            _services[state.consumer]
-          ));
-      found.forEach(({ stream }) => {
-        stream.write(`id: ${subid}\n`);
-        stream.write(`event: state\n`);
-        stream.write(`data: ${JSON.stringify(view)}\n\n`);
+      if (!view) {
+        view = toViewModel(
+          state,
+          _services.get(state.producer),
+          _services.get(state.consumer)
+        );
+        _views.set(state.id, view);
+      }
+      found.forEach(([res]) => {
+        res.write(`id: ${subid}\n`);
+        res.write(`event: state\n`);
+        res.write(`data: ${JSON.stringify(view)}\n\n`);
       });
     }
   };
@@ -247,7 +242,7 @@ export const state = port(function state(): State {
   };
 
   const _state = (state: SubscriptionState): void => {
-    const producer = _services[state.producer];
+    const producer = _services.get(state.producer);
     if (producer) {
       producer.status = "";
       producer.position = Math.max(producer.position, state.position);
@@ -265,7 +260,7 @@ export const state = port(function state(): State {
   ): void => {
     if (state) _state(state);
     else {
-      const producer = Object.values(_services).find(
+      const producer = [..._services.values()].find(
         (service) => service && service.config?.workerId === workerId
       );
       if (producer) {
@@ -287,7 +282,7 @@ export const state = port(function state(): State {
     }`;
     log().red().info(`[${process.pid}]`, message);
 
-    const producer = Object.values(_services).find(
+    const producer = [..._services.values()].find(
       (service) => service && service.config?.workerId === workerId
     );
     if (!producer) return;
@@ -304,7 +299,10 @@ export const state = port(function state(): State {
     }
     const wait = runs * RUN_RETRY_TIMEOUT;
     log().red().trace(`Retrying worker ${producer.id} in ${wait}ms`);
-    _timers[producer.id] = setTimeout(() => run(producer.id, runs), wait);
+    _timers.set(
+      producer.id,
+      setTimeout(() => run(producer.id, runs), wait)
+    );
   };
 
   cluster.on("message", (worker, message: WorkerMessage) =>
@@ -329,7 +327,7 @@ export const state = port(function state(): State {
 
   // discovery runs every 30s
   const discoverServices = (): void => {
-    Object.values(_services).forEach((s) => void discover(s));
+    _services.forEach((s) => void discover(s));
   };
   const discoveryTimer = setInterval(discoverServices, 30 * 1000);
 
@@ -347,10 +345,10 @@ export const state = port(function state(): State {
     if (_disposed) return;
     log().trace(JSON.stringify({ operation, id }));
     try {
-      const config = _services[id]?.config;
+      const config = _services.get(id)?.config;
       const worker =
         config && cluster.workers && cluster.workers[config.workerId];
-      if (operation === "DELETE") delete _services[id];
+      if (operation === "DELETE") _services.delete(id);
       if (worker) {
         // kill running worker, onExit will restart it at run=0
         // unless deleted
@@ -381,7 +379,7 @@ export const state = port(function state(): State {
           // delete from existing worker when changing producer
           existingWorker.send({ operation: "DELETE", sub });
         }
-        const config = _services[sub.producer]?.config;
+        const config = _services.get(sub.producer)?.config;
         const worker =
           config && cluster.workers && cluster.workers[config.workerId];
         if (worker) {
@@ -398,10 +396,8 @@ export const state = port(function state(): State {
 
   dispose(async () => {
     _disposed = true;
-    Object.entries(_timers).forEach(([id, timer]) => {
-      clearTimeout(timer);
-      delete _timers[id];
-    });
+    _timers.forEach((timer) => clearTimeout(timer));
+    _timers.clear();
     await operationsLoop.dispose();
   });
 
@@ -424,7 +420,7 @@ export const state = port(function state(): State {
         .info(`Cluster started with ${cores} cores`, JSON.stringify(_options));
       await Promise.all(
         services.filter(Boolean).map((service) => {
-          _services[service.id] = service;
+          _services.set(service.id, service);
           return run(service.id);
         })
       );
@@ -450,10 +446,9 @@ export const state = port(function state(): State {
           _options.serviceLogLinkTemplate.replaceAll("<<SERVICE>>", id)
         )) ||
       "",
-    subscribeSSE,
-    unsubscribeSSE,
+    sse,
     viewModel: (sub: Subscription): SubscriptionViewModel => {
-      const service = _services[sub.producer];
+      const service = _services.get(sub.producer);
       const config = service?.config;
       const worker =
         config && cluster.workers && cluster.workers[config.workerId];
