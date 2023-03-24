@@ -409,7 +409,7 @@ export const state = port(function state(): State {
       return Promise.resolve();
     },
     services: () =>
-      Object.values(_services)
+      [..._services.values()]
         .filter(Boolean)
         .sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0)),
     init: async (services: Service[], options: StateOptions): Promise<void> => {

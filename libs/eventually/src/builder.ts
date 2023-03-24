@@ -246,7 +246,6 @@ export abstract class Builder extends EventEmitter implements Disposable {
         .filter((input) => input.scope === Scope.default)
         .forEach((input) => {
           input.scope =
-            process.env.NODE_ENV === "test" || // force public when testing
             md.type === "command-adapter" ||
             !this.messages.get(input.name)?.producer
               ? Scope.public

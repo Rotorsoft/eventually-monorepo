@@ -2,12 +2,12 @@ import {
   app,
   dispose,
   Operator,
-  ProjectionRecord
+  ProjectionRecord,
+  Scope
 } from "@rotorsoft/eventually";
 import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import {
-  Calculator,
   CalculatorTotals,
   Totals,
   TotalsEvents
@@ -17,7 +17,9 @@ import { createEvent } from "./messages";
 const chance = new Chance();
 const port = 4005;
 const http = HttpClient(port);
-const _app = app(new ExpressApp()).with(Calculator).with(CalculatorTotals);
+const _app = app(new ExpressApp()).with(CalculatorTotals, {
+  scope: Scope.public
+});
 
 describe("calculator with projector in express app", () => {
   beforeAll(async () => {

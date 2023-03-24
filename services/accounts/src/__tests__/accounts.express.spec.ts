@@ -1,4 +1,4 @@
-import { app, dispose } from "@rotorsoft/eventually";
+import { app, dispose, Scope } from "@rotorsoft/eventually";
 import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
 import * as policies from "../accounts.policies";
@@ -11,10 +11,10 @@ const expressApp = app(new ExpressApp())
   .with(policies.IntegrateAccount2)
   .with(policies.IntegrateAccount3)
   .with(policies.WaitForAllAndComplete)
-  .with(systems.ExternalSystem2)
-  .with(systems.ExternalSystem3)
-  .with(systems.ExternalSystem4)
-  .with(systems.ExternalSystem1);
+  .with(systems.ExternalSystem2, { scope: Scope.public })
+  .with(systems.ExternalSystem3, { scope: Scope.public })
+  .with(systems.ExternalSystem4, { scope: Scope.public })
+  .with(systems.ExternalSystem1, { scope: Scope.public });
 
 const port = 3005;
 const http = HttpClient(port);

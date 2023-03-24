@@ -29,7 +29,9 @@ export const boot = (): Promise<void> =>
             try {
               const pkg = await import(packname);
               artifacts.forEach((artifact) =>
-                _app.with(pkg[artifact] as ArtifactFactory)
+                _app.with(pkg[artifact.name] as ArtifactFactory, {
+                  scope: artifact.scope
+                })
               );
             } catch (error) {
               log().error(error);

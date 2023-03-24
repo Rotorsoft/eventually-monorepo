@@ -4,14 +4,20 @@ import {
   PressKeyAdapter,
   StatelessCounter
 } from "@rotorsoft/calculator-artifacts";
-import { app, dispose, InMemorySnapshotStore } from "@rotorsoft/eventually";
+import {
+  app,
+  broker,
+  dispose,
+  InMemorySnapshotStore,
+  Scope
+} from "@rotorsoft/eventually";
 import {
   ExpressApp,
   GcpGatewayMiddleware,
   HttpClient
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { pressKey } from "./messages";
+import { pressKey, reset } from "./messages";
 
 const chance = new Chance();
 const port = 4000;
@@ -22,7 +28,7 @@ const http = HttpClient(port, {
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(4) })
+  .with(Calculator, { store: InMemorySnapshotStore(4), scope: Scope.public })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);
@@ -56,6 +62,22 @@ describe("calculator express app", () => {
 
     const calc_snapshots = await http.stream(Calculator, id);
     expect(calc_snapshots.length).toEqual(6);
+  });
+
+  it("should reset on last key pressed", async () => {
+    const id = chance.guid();
+
+    await reset(http, id);
+    await pressKey(http, id, "+");
+    await pressKey(http, id, "1");
+    await pressKey(http, id, "1");
+    await pressKey(http, id, "2");
+    await pressKey(http, id, ".");
+    await pressKey(http, id, "3");
+    await broker().drain();
+
+    const { state } = await http.load(Calculator, id);
+    expect(state).toEqual({ result: 0 });
   });
 
   it("should compute correctly and read stream with and without snapshots", async () => {

@@ -11,7 +11,8 @@ import {
   Messages,
   PolicyFactory,
   ProcessManagerFactory,
-  ProjectorFactory
+  ProjectorFactory,
+  Scope
 } from "../types";
 import { sleep } from "../utils";
 
@@ -68,7 +69,7 @@ const _poll = async <E extends Messages>(
 
 /**
  * @category Adapters
- * @remarks In-memory broker
+ * @remarks In-memory broker connects private event handlers with events being produced in service
  * @param timeout lease expiration time (in ms) when polling the store
  * @param limit max number of events to poll in each try
  * @param throttle delay (in ms) to enqueue new polls
@@ -81,8 +82,12 @@ export const InMemoryBroker = (
   const name = "InMemoryBroker";
   const schedule = scheduler(name);
 
+  // connect private event handlers only, public ones are connected by a broker service
   const consumers = [...app().artifacts.values()].filter(
-    (v) => event_handler_types.includes(v.type) && v.inputs.length
+    (v) =>
+      event_handler_types.includes(v.type) &&
+      v.inputs.length &&
+      v.inputs.at(0)?.scope === Scope.private
   );
 
   const _pollAll = async (): Promise<boolean> => {

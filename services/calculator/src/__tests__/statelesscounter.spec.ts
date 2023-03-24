@@ -6,10 +6,10 @@ import {
 } from "@rotorsoft/calculator-artifacts";
 import {
   app,
-  broker,
   CommittedEvent,
   dispose,
-  InMemorySnapshotStore
+  InMemorySnapshotStore,
+  Scope
 } from "@rotorsoft/eventually";
 import {
   EventResponseEx,
@@ -17,7 +17,7 @@ import {
   HttpClient
 } from "@rotorsoft/eventually-express";
 import { Chance } from "chance";
-import { pressKey, reset } from "./messages";
+import { pressKey } from "./messages";
 
 const chance = new Chance();
 const port = 4007;
@@ -25,8 +25,8 @@ const http = HttpClient(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(2) })
-  .with(StatelessCounter)
+  .with(Calculator, { store: InMemorySnapshotStore(2), scope: Scope.public })
+  .with(StatelessCounter, { scope: Scope.public })
   .with(PressKeyAdapter)
   .build();
 
@@ -37,22 +37,6 @@ describe("calculator with stateless counter express app", () => {
 
   afterAll(async () => {
     await dispose()();
-  });
-
-  it("should reset on last key pressed", async () => {
-    const id = chance.guid();
-
-    await reset(http, id);
-    await pressKey(http, id, "+");
-    await pressKey(http, id, "1");
-    await pressKey(http, id, "1");
-    await pressKey(http, id, "2");
-    await pressKey(http, id, ".");
-    await pressKey(http, id, "3");
-    await broker().drain();
-
-    const { state } = await http.load(Calculator, id);
-    expect(state).toEqual({ result: 0 });
   });
 
   it("should return no command", async () => {

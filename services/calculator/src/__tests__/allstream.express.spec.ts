@@ -7,6 +7,7 @@ import {
   app,
   dispose,
   InMemorySnapshotStore,
+  Scope,
   sleep
 } from "@rotorsoft/eventually";
 import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
@@ -19,7 +20,7 @@ const http = HttpClient(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(2) })
+  .with(Calculator, { store: InMemorySnapshotStore(2), scope: Scope.public })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
   .build();
