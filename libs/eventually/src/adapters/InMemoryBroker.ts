@@ -10,6 +10,7 @@ import {
   EventHandlerFactory,
   Messages,
   PolicyFactory,
+  ProcessManagerFactory,
   ProjectorFactory
 } from "../types";
 import { sleep } from "../utils";
@@ -47,9 +48,12 @@ const _poll = async <E extends Messages>(
           await project(consumer.factory as ProjectorFactory, e);
         else if (consumer.type === "policy")
           await event(consumer.factory as PolicyFactory, e);
-        else if (!e.stream.startsWith(consumer.factory.name))
+        else {
           // process managers skip their own events
-          await event(consumer.factory as EventHandlerFactory, e);
+          const pm = (consumer.factory as ProcessManagerFactory)(e);
+          if (e.stream !== pm.stream)
+            await event(consumer.factory as EventHandlerFactory, e);
+        }
         lastId = e.id;
       }
     } catch (error) {
@@ -77,9 +81,9 @@ export const InMemoryBroker = (
   const name = "InMemoryBroker";
   const schedule = scheduler(name);
 
-  const consumers = Object.entries(app().artifacts)
-    .filter(([, v]) => event_handler_types.includes(v.type) && v.inputs.length)
-    .map(([k]) => app().artifacts[k]);
+  const consumers = [...app().artifacts.values()].filter(
+    (v) => event_handler_types.includes(v.type) && v.inputs.length
+  );
 
   const _pollAll = async (): Promise<boolean> => {
     for (let i = 0; i < consumers.length; i++) {
@@ -106,7 +110,7 @@ export const InMemoryBroker = (
     //   snapshot?.state
     // );
     if (snapshot && snapshot.event) {
-      const snapStore = app().stores[factory.name || ""] as SnapshotStore;
+      const snapStore = app().stores.get(factory.name) as SnapshotStore;
       if (snapStore && snapshot.applyCount >= snapStore.threshold)
         await snapStore
           .upsert(snapshot.event.stream, snapshot)

@@ -38,11 +38,11 @@ const toSnapshotSchema = (name: string, events: string[]): SchemaObject => {
 
 const toPolicyResponseSchema = (commands: string[]): ResponseObject => {
   const reducibles = commands.reduce((p, c) => {
-    const cmd = app().messages[c];
+    const cmd = app().messages.get(c);
     if (cmd && cmd.type === "command")
       cmd.handlers.forEach((h) => {
-        const artifact = app().artifacts[h];
-        artifact.type === "aggregate" && (p[h] = artifact);
+        const artifact = app().artifacts.get(h);
+        artifact && artifact.type === "aggregate" && (p[h] = artifact);
       });
     return p;
   }, {} as Record<string, ArtifactMetadata>);
@@ -229,7 +229,7 @@ export const toSchema = (schema: ZodType): SchemaObject => {
 };
 
 export const getMessageSchemas = (): Record<string, SchemaObject> =>
-  Object.entries(app().messages).reduce((schemas, [name, { schema, type }]) => {
+  [...app().messages].reduce((schemas, [name, { schema, type }]) => {
     schemas[name] =
       type === "command" || type === "message"
         ? toSchema(schema)
@@ -238,13 +238,13 @@ export const getMessageSchemas = (): Record<string, SchemaObject> =>
   }, {} as Record<string, SchemaObject>);
 
 export const getArtifactTags = (): TagObject[] =>
-  Object.values(app().artifacts).map(({ factory }) => ({
+  [...app().artifacts.values()].map(({ factory }) => ({
     name: factory.name,
     description: factory("").description
   }));
 
 export const getReducibleSchemas = (): Record<string, SchemaObject> =>
-  Object.values(app().artifacts)
+  [...app().artifacts.values()]
     .filter((amd) => amd.type === "aggregate" || amd.type === "process-manager")
     .reduce((schemas, { factory, outputs }) => {
       const stateSchema = (factory as ReducibleFactory)("").schemas.state;
@@ -257,7 +257,7 @@ export const getReducibleSchemas = (): Record<string, SchemaObject> =>
     }, {} as Record<string, SchemaObject>);
 
 export const getProjectionSchemas = (): Record<string, SchemaObject> =>
-  Object.values(app().artifacts)
+  [...app().artifacts.values()]
     .filter((amd) => amd.type === "projector")
     .reduce((schemas, { factory }) => {
       const stateSchema = (factory as ReducibleFactory)("").schemas.state;
@@ -272,7 +272,7 @@ export const getProjectionSchemas = (): Record<string, SchemaObject> =>
     }, {} as Record<string, SchemaObject>);
 
 export const getPaths = (security: Security): Record<string, PathsObject> =>
-  Object.values(app().artifacts).reduce(
+  [...app().artifacts.values()].reduce(
     (paths, { type, factory, inputs, outputs }) => {
       const endpoints = inputs
         .filter((input) => input.scope === Scope.public)
@@ -344,7 +344,8 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
               operationId: message,
               tags: [factory.name],
               summary: `Handles ${message}`,
-              description: app().messages[message].schema.description || "",
+              description:
+                app().messages.get(message)?.schema.description || "",
               requestBody: {
                 required: true,
                 content: {

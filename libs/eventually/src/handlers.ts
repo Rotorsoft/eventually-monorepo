@@ -22,21 +22,9 @@ import {
   RegistrationError,
   Snapshot,
   State,
-  Streamable,
-  StreamableFactory
+  Streamable
 } from "./types";
 import { bind, randomId, validate, validateMessage } from "./utils";
-
-/**
- * Process manager streams are prefixed with the factory name
- */
-const _stream = <S extends State, C extends Messages, E extends Messages>(
-  factory: StreamableFactory<S, C, E>,
-  streamable: Streamable
-): string =>
-  app().artifacts[factory.name].type === "process-manager"
-    ? factory.name.concat(":", streamable.stream)
-    : streamable.stream;
 
 /**
  * Loads reducible artifact from store
@@ -53,9 +41,9 @@ const _load = async <S extends State, C extends Messages, E extends Messages>(
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
-  const stream = _stream(factory, reducible);
+  const stream = reducible.stream;
   const snapStore =
-    ((useSnapshots && app().stores[factory.name]) as SnapshotStore<S, E>) ||
+    ((useSnapshots && app().stores.get(factory.name)) as SnapshotStore<S, E>) ||
     undefined;
   const snapshot = (snapStore && (await snapStore.read(stream))) || undefined;
   let state = snapshot?.state || reducible.init();
@@ -67,9 +55,11 @@ const _load = async <S extends State, C extends Messages, E extends Messages>(
     (e) => {
       event = e;
       if (e.name === STATE_EVENT) {
-        state = e.data as S;
-        stateCount++;
-      } else {
+        if (app().artifacts.get(factory.name)?.type === "aggregate") {
+          state = e.data as S;
+          stateCount++;
+        }
+      } else if (reducible.reduce[e.name]) {
         state = reducible.reduce[e.name](state, e);
         applyCount++;
       }
@@ -101,10 +91,7 @@ const _handleMsg = async <
   callback: (snapshot: Snapshot<S>) => Promise<Message<E>[]>,
   metadata: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
-  const stream =
-    "stream" in artifact
-      ? _stream(factory as StreamableFactory<S, C, E>, artifact)
-      : undefined;
+  const stream = "stream" in artifact ? artifact.stream : undefined;
   const reduce = "reduce" in artifact ? artifact.reduce : undefined;
 
   const snapshot =
@@ -116,7 +103,7 @@ const _handleMsg = async <
       : ({ state: {} as S, applyCount: 0, stateCount: 0 } as Snapshot<S, E>);
 
   const events = await callback(snapshot);
-  const commit = reduce && app().commits[factory.name];
+  const commit = reduce && app().commits.get(factory.name);
   if (commit && commit(snapshot)) {
     events.push({
       name: STATE_EVENT,
@@ -187,10 +174,10 @@ export const command = async <
   const validated = validateMessage(command);
   const { name, stream, expectedVersion, actor } = command;
 
-  const msg = app().messages[name];
-  if (!msg.handlers.length) throw new RegistrationError(command);
-  const factory = app().artifacts[msg.handlers[0]]
-    .factory as unknown as CommandHandlerFactory<S, C, E>;
+  const msg = app().messages.get(name);
+  if (!msg?.handlers.length) throw new RegistrationError(command);
+  const factory = app().artifacts.get(msg.handlers[0])
+    ?.factory as unknown as CommandHandlerFactory<S, C, E>;
   if (!factory) throw new RegistrationError(command);
 
   log().blue().trace(`\n>>> ${factory.name}`, command, metadata);
@@ -281,7 +268,7 @@ export const project = async <S extends State, E extends Messages>(
 
   const projection = await artifact.on[event.name](event);
   const projStore =
-    (app().stores[factory.name] as ProjectorStore<S>) || _imps();
+    (app().stores.get(factory.name) as ProjectorStore<S>) || _imps();
   const results = await projStore.commit(projection, event.id);
   app().emit("projection", { factory, results });
   log()
@@ -300,7 +287,7 @@ export const read = async <S extends State, E extends Messages>(
   callback: (record: ProjectionRecord<S>) => void
 ): Promise<number> => {
   const projStore =
-    (app().stores[factory.name] as ProjectorStore<S>) || _imps();
+    (app().stores.get(factory.name) as ProjectorStore<S>) || _imps();
   const ids =
     typeof query === "string"
       ? [query]

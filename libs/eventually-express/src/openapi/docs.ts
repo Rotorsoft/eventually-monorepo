@@ -14,8 +14,7 @@ const directives = `
 `;
 
 const diagram = (): string => {
-  const artifacts = app().artifacts;
-  const d = Object.values(artifacts)
+  const d = [...app().artifacts.values()]
     .filter((a) => a.type !== "command-adapter")
     .map((a) => {
       const i_t =

@@ -36,8 +36,7 @@ export const Counter: ProcessManagerFactory<
   schemas.CounterEvents
 > = (eventOrStream: CommittedEvent<schemas.CounterEvents> | string) => ({
   description: "A counter saga",
-  stream:
-    typeof eventOrStream === "string" ? eventOrStream : eventOrStream.stream,
+  stream: typeof eventOrStream === "string" ? eventOrStream : "Counter",
   schemas: {
     state: schemas.CounterState,
     commands: { Reset: "After 5 digits or dots in a row" },

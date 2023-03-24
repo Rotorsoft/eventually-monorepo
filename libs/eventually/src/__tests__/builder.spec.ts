@@ -81,11 +81,11 @@ describe("Builder", () => {
     process.env.NODE_ENV = "development";
     app().with(Factory).with(Policy1).build();
     const artifacts = app().artifacts;
-    expect(artifacts["Factory"].inputs).toStrictEqual([
+    expect(artifacts.get("Factory")?.inputs).toStrictEqual([
       { name: "Command1", scope: Scope.private },
       { name: "Command2", scope: Scope.public }
     ]);
-    expect(artifacts["Policy1"].inputs).toStrictEqual([
+    expect(artifacts.get("Policy1")?.inputs).toStrictEqual([
       { name: "Event1", scope: Scope.private }
     ]);
     process.env.NODE_ENV = "test";

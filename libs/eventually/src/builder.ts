@@ -76,10 +76,10 @@ export abstract class Builder extends EventEmitter implements Disposable {
 
   private _hasStreams = false;
   readonly version;
-  readonly messages: Record<string, MessageMetadata> = {};
-  readonly artifacts: Record<string, ArtifactMetadata> = {};
-  readonly stores: Record<string, ProjectorStore | SnapshotStore> = {};
-  readonly commits: Record<string, CommitPredicate> = {};
+  readonly messages = new Map<string, MessageMetadata>();
+  readonly artifacts = new Map<string, ArtifactMetadata>();
+  readonly stores = new Map<string, ProjectorStore | SnapshotStore>();
+  readonly commits = new Map<string, CommitPredicate>();
 
   constructor(version: string) {
     super();
@@ -97,19 +97,20 @@ export abstract class Builder extends EventEmitter implements Disposable {
 
     "events" in artifact.schemas &&
       Object.entries(artifact.schemas.events).forEach(([name, schema]) => {
-        this.messages[name] = this.messages[name] || {
-          name,
-          schema,
-          type: "event",
-          handlers: []
-        };
+        !this.messages.has(name) &&
+          this.messages.set(name, {
+            name,
+            schema,
+            type: "event",
+            handlers: []
+          });
       });
 
     if ("on" in artifact) {
       if ("commands" in artifact.schemas) {
         if (typeof artifact.on === "function") {
           "message" in artifact.schemas &&
-            (this.messages[factory.name] = {
+            this.messages.set(factory.name, {
               name: factory.name,
               schema: artifact.schemas.message,
               type: "message",
@@ -127,16 +128,17 @@ export abstract class Builder extends EventEmitter implements Disposable {
           const inputs = Object.keys(artifact.on);
           inputs.forEach((name) => {
             // enforce one command handler per command
-            if (this.messages[name])
+            const found = this.messages.get(name);
+            if (found)
               throw Error(
-                `Duplicate command "${name}" found in "${this.messages[name].handlers[0]}" and "${factory.name}"`
+                `Duplicate command "${name}" found in "${found.handlers[0]}" and "${factory.name}"`
               );
-            this.messages[name] = {
+            this.messages.set(name, {
               name,
               schema: schemas[name],
               type: "command",
               handlers: [factory.name]
-            };
+            });
           });
           return {
             type: reducible ? "aggregate" : "system",
@@ -152,7 +154,7 @@ export abstract class Builder extends EventEmitter implements Disposable {
       if ("events" in artifact.schemas) {
         const inputs = Object.keys(artifact.on);
         inputs.forEach((name) => {
-          this.messages[name].handlers.push(factory.name); // compile event handlers
+          this.messages.get(name)?.handlers.push(factory.name); // compile event handlers
         });
         return {
           type: reducible
@@ -196,28 +198,29 @@ export abstract class Builder extends EventEmitter implements Disposable {
     factory: ArtifactFactory<S, C, E>,
     options?: WithOptions<S, E>
   ): this {
-    if (this.artifacts[factory.name])
+    if (this.artifacts.has(factory.name))
       throw Error(`Duplicate artifact "${factory.name}"`);
-    const metadata = (this.artifacts[factory.name] = this._reflect(
+    const metadata = this._reflect(
       factory as ArtifactFactory,
       options?.scope || Scope.default
-    ));
+    );
+    this.artifacts.set(factory.name, metadata);
     if (options) {
       options.commit &&
-        (this.commits[factory.name] = options.commit as CommitPredicate);
+        this.commits.set(factory.name, options.commit as CommitPredicate);
       if (options.store) {
         if (metadata.type === "aggregate") {
           if (!("read" in options.store && "upsert" in options.store))
             throw Error(
               `Invalid snapshot store ${options.store.name} for aggregate ${factory.name}.`
             );
-          this.stores[factory.name] = options.store as SnapshotStore;
+          this.stores.set(factory.name, options.store as SnapshotStore);
         } else if (metadata.type === "projector") {
           if (!("load" in options.store && "commit" in options.store))
             throw Error(
               `Invalid projector store ${options.store.name} for projector ${factory.name}.`
             );
-          this.stores[factory.name] = options.store as ProjectorStore;
+          this.stores.set(factory.name, options.store as ProjectorStore);
         }
       }
     }
@@ -231,21 +234,21 @@ export abstract class Builder extends EventEmitter implements Disposable {
    */
   build(): unknown | undefined {
     // set producers
-    Object.values(this.artifacts).forEach((md) => {
+    this.artifacts.forEach((md) => {
       md.outputs
-        .map((msg) => this.messages[msg])
+        .map((msg) => this.messages.get(msg))
         .filter(Boolean)
-        .forEach((msg) => (msg.producer = md.factory.name));
+        .forEach((msg) => msg && (msg.producer = md.factory.name));
     });
     // scope default endpoints
-    Object.values(this.artifacts).forEach((md) => {
+    this.artifacts.forEach((md) => {
       md.inputs
         .filter((input) => input.scope === Scope.default)
         .forEach((input) => {
           input.scope =
             process.env.NODE_ENV === "test" || // force public when testing
             md.type === "command-adapter" ||
-            !this.messages[input.name].producer
+            !this.messages.get(input.name)?.producer
               ? Scope.public
               : Scope.private;
         });

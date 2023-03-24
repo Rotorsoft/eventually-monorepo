@@ -72,7 +72,7 @@ export class ExpressApp extends Builder {
   }
 
   private _withPosts(): void {
-    Object.values(this.artifacts).forEach(({ type, factory, inputs }) => {
+    this.artifacts.forEach(({ type, factory, inputs }) => {
       const endpoints = inputs
         .filter((input) => input.scope === Scope.public)
         .map((input) => input.name);

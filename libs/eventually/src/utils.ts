@@ -42,7 +42,7 @@ export const validate = <T>(
 export const validateMessage = <M extends Messages>(
   message: Message<M>
 ): Message<M> => {
-  const metadata = app().messages[message.name];
+  const metadata = app().messages.get(message.name);
   if (!metadata) throw new RegistrationError(message);
   if (!message.data && metadata.schema === ZodEmpty) return message;
   try {
