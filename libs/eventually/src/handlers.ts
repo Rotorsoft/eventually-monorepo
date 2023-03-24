@@ -11,6 +11,7 @@ import {
   CommittedEventMetadata,
   EventHandlerFactory,
   EventResponse,
+  InvariantError,
   Message,
   Messages,
   ProjectionQuery,
@@ -176,6 +177,7 @@ export const command = async <
 
   const msg = app().messages.get(name);
   if (!msg?.handlers.length) throw new RegistrationError(command);
+
   const factory = app().artifacts.get(msg.handlers[0])
     ?.factory as unknown as CommandHandlerFactory<S, C, E>;
   if (!factory) throw new RegistrationError(command);
@@ -184,10 +186,20 @@ export const command = async <
 
   const artifact = factory(stream || "");
   Object.setPrototypeOf(artifact, factory as object);
+
   const snapshots = await _handleMsg<S, C, E>(
     factory,
     artifact,
-    ({ state }) => artifact.on[name](validated.data, state, actor),
+    ({ state }) => {
+      if ("given" in artifact && artifact.given) {
+        const invariants = artifact.given[name] || [];
+        invariants.forEach((invariant) => {
+          if (!invariant.valid(state, actor))
+            throw new InvariantError(command, invariant.description);
+        });
+      }
+      return artifact.on[name](validated.data, state, actor);
+    },
     {
       correlation: metadata?.correlation || randomId(),
       causation: {

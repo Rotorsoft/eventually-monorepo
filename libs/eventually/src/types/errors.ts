@@ -14,6 +14,15 @@ export class ValidationError extends Error {
   }
 }
 
+export class InvariantError extends Error {
+  public readonly details;
+  constructor(command: Message, description: string) {
+    super(`${command.name || ""} failed invariant: ${description}`);
+    this.name = Errors.InvariantError;
+    this.details = { command, description };
+  }
+}
+
 export class ConcurrencyError extends Error {
   constructor(
     public readonly lastVersion: number,

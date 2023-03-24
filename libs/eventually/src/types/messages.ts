@@ -33,6 +33,13 @@ export type CommandTarget = {
   readonly expectedVersion?: number;
   readonly actor?: Actor;
 };
+
+/**
+ * Commands are messages with optional target arguments
+ * - `stream?` the target stream
+ * - `expectedVersion?` the expected version of the stream or a concurrency error is thrown
+ * - `actor?` the actor invoking the command
+ */
 export type Command<M extends Messages = Messages> = Message<M> & CommandTarget;
 
 /**

@@ -1,13 +1,18 @@
 import { z, ZodType } from "zod";
 import {
-  Messages,
-  State,
+  CommandHandler,
+  EventHandler,
+  EventReducer,
+  Invariant
+} from "./handlers";
+import {
   Command,
   CommittedEvent,
+  Messages,
   Projection,
+  State,
   StateWithId
 } from "./messages";
-import { EventReducer, CommandHandler, EventHandler } from "./handlers";
 
 export type ArtifactType =
   | "aggregate"
@@ -110,7 +115,11 @@ export type Aggregate<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Streamable & Reducible<S, E> & WithCommandHandlers<S, C, E>;
+> = Streamable &
+  Reducible<S, E> &
+  WithCommandHandlers<S, C, E> & {
+    given?: { [K in keyof C]?: Array<Invariant<S>> };
+  };
 
 /**
  * Systems handle commands and produce committed events without internal state

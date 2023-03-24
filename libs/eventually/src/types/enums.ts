@@ -18,6 +18,7 @@ export enum ExitCodes {
 
 export enum Errors {
   ValidationError = "ERR_VALIDATION",
+  InvariantError = "ERR_INVARIANT",
   ConcurrencyError = "ERR_CONCURRENCY",
   RegistrationError = "ERR_REGISTRATION"
 }

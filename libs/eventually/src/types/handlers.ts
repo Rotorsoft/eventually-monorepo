@@ -35,6 +35,12 @@ export type CommandHandler<
   actor?: Actor
 ) => Promise<Message<E>[]>;
 
+/** Invariants validate aggregate states before processing commands */
+export type Invariant<S extends State> = {
+  description: string;
+  valid: (state: Readonly<S>, actor?: Actor) => boolean;
+};
+
 /**
  * Event handlers handle events and can produce a command targetting a command handler
  * - `event` the committed event being handled

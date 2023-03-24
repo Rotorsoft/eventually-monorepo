@@ -366,6 +366,7 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
                     : toResponse("", "OK", true),
                 "400": toResponse("ValidationError", "Validation Error"),
                 "409": toResponse("ConcurrencyError", "Concurrency Error"),
+                "500": toResponse("InvariantError", "Invariant Error"),
                 default: { description: "Internal Server Error" }
               },
               security: security.operations[message] || [{}]

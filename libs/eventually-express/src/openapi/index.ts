@@ -32,12 +32,24 @@ const getSecurity = (): Security => {
 };
 const security = getSecurity();
 
+const messageSchema = z.object({ name: z.string(), data: z.object({}) });
+
 const errorSchemas = {
   ValidationError: toSchema(
     z.object({
       name: z.enum([Errors.ValidationError]),
       message: z.string().min(1),
-      details: z.array(z.string())
+      details: z.object({
+        errors: z.array(z.string()),
+        message: messageSchema.optional()
+      })
+    })
+  ),
+  InvariantError: toSchema(
+    z.object({
+      name: z.enum([Errors.InvariantError]),
+      message: z.string().min(1),
+      details: z.object({ command: messageSchema, description: z.string() })
     })
   ),
   RegistrationError: toSchema(

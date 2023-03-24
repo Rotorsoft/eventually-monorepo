@@ -32,6 +32,14 @@ export const Room = (
       RoomBooked: schemas.BookRoom
     }
   },
+  given: {
+    OpenRoom: [
+      { description: "must be closed", valid: (state) => state.price === 0 }
+    ],
+    BookRoom: [
+      { description: "must be open", valid: (state) => state.price > 0 }
+    ]
+  },
 
   description: "A bookable hotel room",
   stream,

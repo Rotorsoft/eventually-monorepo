@@ -159,48 +159,60 @@ describe("Room", () => {
         },
         "201"
       )
-    ).rejects.toThrow("Invalid room number 200");
+    ).rejects.toThrow("BookRoom failed invariant: must be open");
 
     await expect(
       bookRoom(
-        200,
+        201,
         {
           id: "r3",
           checkin: tomorrow,
           checkout: afterTomorrow,
           totalPrice: 0
         },
-        "201"
+        "101"
       )
-    ).rejects.toThrow("Invalid room number 200");
+    ).rejects.toThrow("Invalid room number 201");
 
     await expect(
-      bookRoom(200, {
-        id: "r3",
-        checkin: yesterday,
-        checkout: afterTomorrow,
-        totalPrice: 0
-      })
+      bookRoom(
+        101,
+        {
+          id: "r3",
+          checkin: yesterday,
+          checkout: afterTomorrow,
+          totalPrice: 0
+        },
+        "101"
+      )
     ).rejects.toThrow(
       `Invalid checkin date ${yesterday}. Must be in the future.`
     );
 
     await expect(
-      bookRoom(200, {
-        id: "r3",
-        checkin: tomorrow,
-        checkout: today,
-        totalPrice: 0
-      })
+      bookRoom(
+        101,
+        {
+          id: "r3",
+          checkin: tomorrow,
+          checkout: today,
+          totalPrice: 0
+        },
+        "101"
+      )
     ).rejects.toThrow(`Invalid checkout date ${today}. Must be in the future.`);
 
     await expect(
-      bookRoom(200, {
-        id: "r3",
-        checkin: afterTomorrow,
-        checkout: tomorrow,
-        totalPrice: 0
-      })
+      bookRoom(
+        101,
+        {
+          id: "r3",
+          checkin: afterTomorrow,
+          checkout: tomorrow,
+          totalPrice: 0
+        },
+        "101"
+      )
     ).rejects.toThrow(
       `Invalid reservation ${afterTomorrow} - ${tomorrow}. Checkin must be earlier than checkout.`
     );

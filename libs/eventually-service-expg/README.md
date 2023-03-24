@@ -53,7 +53,11 @@ npm i @rotorsoft/eventually-service-expg @rotorsoft/calculator-artifacts
     "eventually": {
         "store": "calculator",
         "artifacts": {
-            "@rotorsoft/calculator-artifacts": ["Calculator", "Counter", "PressKeyAdapter"]
+            "@rotorsoft/calculator-artifacts": [
+                { "name": "Calculator" }, 
+                { "name": "Counter", "scope": "private" }, 
+                { "name": "PressKeyAdapter" }
+            ]
         }
     }
 }
