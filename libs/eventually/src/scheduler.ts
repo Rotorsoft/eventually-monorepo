@@ -39,18 +39,21 @@ export interface Schedule extends Disposable {
  */
 export const scheduler = (name: string): Schedule => {
   const queue: Array<Action> = [];
-  const delayed: Record<string, NodeJS.Timeout> = {};
+  const delayed = new Map<string, NodeJS.Timeout>();
   let status: Status = "stopped";
 
   log().green().trace(`Schedule "${name}" created`);
 
   const schedule = (action: Action): void => {
     if (status === "stopping") return;
-    delayed[action.id] && clearTimeout(delayed[action.id]);
-    delayed[action.id] = setTimeout(() => {
-      delete delayed[action.id];
-      enqueue(action);
-    }, action.delay);
+    clearTimeout(delayed.get(action.id));
+    delayed.set(
+      action.id,
+      setTimeout(() => {
+        delayed.delete(action.id);
+        enqueue(action);
+      }, action.delay)
+    );
   };
 
   const enqueue = (action: Action): void => {
@@ -75,15 +78,18 @@ export const scheduler = (name: string): Schedule => {
   const stop = async (): Promise<void> => {
     if (status === "stopping") return;
     status = "stopping";
-    const ids = Object.entries(delayed).map(([id, timeout]) => {
-      clearTimeout(timeout);
-      return id;
-    });
-    ids.forEach((id) => delete delayed[id]);
-    for (let i = 1; queue.length && status === "stopping" && i <= 10; i++) {
+    delayed.forEach((timeout) => clearTimeout(timeout));
+    delayed.clear();
+    for (
+      let attempt = 1;
+      queue.length && status === "stopping" && attempt <= 10;
+      attempt++
+    ) {
       log()
         .red()
-        .trace(`Schedule "${name}" - ${status} [${queue.length}] (${i})...`);
+        .trace(
+          `Schedule "${name}" - ${status} [${queue.length}] (${attempt})...`
+        );
       await sleep(1000);
     }
     queue.length = 0;
@@ -98,6 +104,6 @@ export const scheduler = (name: string): Schedule => {
     },
     stop,
     status: () => status,
-    pending: () => Object.keys(delayed).length
+    pending: () => delayed.size
   };
 };

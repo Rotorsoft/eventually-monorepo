@@ -6,7 +6,7 @@ const log = (message: string): void => {
     console.log(`[${process.pid}]`, message);
 };
 
-const adapters: Record<string, Disposable> = {};
+const adapters = new Map<string, Disposable>();
 /**
  * Wraps creation of adapters around factory functions
  * @param target the factory function
@@ -15,11 +15,12 @@ const adapters: Record<string, Disposable> = {};
 export const port =
   <T extends Disposable>(target: (arg?: T) => T) =>
   (arg?: T): T => {
-    if (!adapters[target.name]) {
-      adapters[target.name] = target(arg);
-      log(`✨ ${adapters[target.name].name || target.name}`);
+    if (!adapters.has(target.name)) {
+      const adapter = target(arg);
+      adapters.set(target.name, adapter);
+      log(`✨ ${adapter.name || target.name}`);
     }
-    return adapters[target.name] as T;
+    return adapters.get(target.name) as T;
   };
 
 const disposers: Disposer[] = [];
@@ -28,12 +29,12 @@ const disposeAndExit = async (
 ): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
   await Promise.all(
-    Object.entries(adapters).map(async ([key, adapter]) => {
+    [...adapters].map(async ([key, adapter]) => {
       log(`♻️ ${adapter.name || key}`);
       await adapter.dispose();
-      delete adapters[key];
     })
   );
+  adapters.clear();
   code !== ExitCodes.UNIT_TEST && process.exit(1);
 };
 /**
