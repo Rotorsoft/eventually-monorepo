@@ -21,7 +21,7 @@ export const sse = <S extends State>(
       return false;
     },
     send: (data: S): void => {
-      Object.values(responses).forEach((res) => {
+      responses.forEach((res) => {
         res.write(`event: ${event}\n`);
         res.write(`data: ${JSON.stringify(data)}\n\n`);
       });
