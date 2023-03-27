@@ -1,3 +1,5 @@
+#### 2023-03-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.2...@rotorsoft/eventually-express-v5.2.3) @rotorsoft/eventually-express-v5.2.3
+  - PATCH [ac30bf54](https://github.com/Rotorsoft/eventually-monorepo/commit/ac30bf5426bb9675f3a39b80d55601788ab612e4) fix: sse send
 #### 2023-03-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.2.0...@rotorsoft/calculator-artifacts-v1.2.1) @rotorsoft/calculator-artifacts-v1.2.1
   - PATCH [fed7dfbc](https://github.com/Rotorsoft/eventually-monorepo/commit/fed7dfbc42eb897ce73cb2767e0a1719102d1f1a) fix: add id to actor
 #### 2023-03-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.1...@rotorsoft/eventually-express-v5.2.2) @rotorsoft/eventually-express-v5.2.2
