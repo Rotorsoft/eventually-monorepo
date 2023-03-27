@@ -1,3 +1,5 @@
+#### 2023-03-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.2.1...@rotorsoft/eventually-v5.2.2) @rotorsoft/eventually-v5.2.2
+  - PATCH [fed7dfbc](https://github.com/Rotorsoft/eventually-monorepo/commit/fed7dfbc42eb897ce73cb2767e0a1719102d1f1a) fix: add id to actor
 #### 2023-03-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.5...@rotorsoft/eventually-service-expg-v1.0.6) @rotorsoft/eventually-service-expg-v1.0.6
   - PATCH [574cebd9](https://github.com/Rotorsoft/eventually-monorepo/commit/574cebd9ebc91410e60a0671b5d108350eb42727) fix: add invariant options to aggregates under given group
   - PATCH [819897fa](https://github.com/Rotorsoft/eventually-monorepo/commit/819897faa733a66fa8b4904c511a6e2b911ac817) fix: in-memory broker connects only private consumers
