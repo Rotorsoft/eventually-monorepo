@@ -27,7 +27,8 @@ export const GcpGatewayMiddleware = (
       Buffer.from(encodedUserInfo, "base64").toString("utf-8")
     ) as UserInfo;
     req.actor = {
-      name: userInfo.sub,
+      id: userInfo.sub,
+      name: userInfo.email,
       roles: userInfo.roles
     };
   }

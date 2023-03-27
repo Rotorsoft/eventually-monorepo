@@ -100,7 +100,8 @@ describe("calculator express app", () => {
       result: -1
     });
     expect(event?.metadata?.causation?.command?.actor).toEqual({
-      name: "actor-name",
+      id: "actor-name",
+      name: "actor@email.com",
       roles: ["admin"]
     });
 

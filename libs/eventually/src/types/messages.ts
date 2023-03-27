@@ -13,11 +13,13 @@ export type Message<M extends Messages = Messages> = {
 };
 
 /**
- * Actors invoke commands and have
- * - `name` a name
- * - `roles` some roles
+ * Actors are either humans or policies invoking commands
+ * - `id` actor id (usually a primary key to the users table, extracted from JWT, etc)
+ * - `name` actor name (could be the full name, email, etc ... for log auditing purposes)
+ * - `roles` array of role name for authorization purposes (extracted from JWT and used by validation middleware)
  */
 export type Actor = {
+  readonly id: string;
   readonly name: string;
   readonly roles: string[];
 };
