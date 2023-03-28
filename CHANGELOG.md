@@ -1,3 +1,5 @@
+#### 2023-03-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.2.2...@rotorsoft/eventually-v5.2.3) @rotorsoft/eventually-v5.2.3
+  - PATCH [485dd617](https://github.com/Rotorsoft/eventually-monorepo/commit/485dd61738487d63ca58c8fceb605ea4ba58c120) fix: refactor InvariantError
 #### 2023-03-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.2...@rotorsoft/eventually-express-v5.2.3) @rotorsoft/eventually-express-v5.2.3
   - PATCH [ac30bf54](https://github.com/Rotorsoft/eventually-monorepo/commit/ac30bf5426bb9675f3a39b80d55601788ab612e4) fix: sse send
 #### 2023-03-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.2.0...@rotorsoft/calculator-artifacts-v1.2.1) @rotorsoft/calculator-artifacts-v1.2.1
