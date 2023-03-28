@@ -1,5 +1,5 @@
 import { Errors } from "../types/enums";
-import { Message } from "../types/messages";
+import { CommandTarget, Message, Messages } from "../types/messages";
 
 export class ValidationError extends Error {
   public readonly details;
@@ -14,12 +14,17 @@ export class ValidationError extends Error {
   }
 }
 
-export class InvariantError extends Error {
+export class InvariantError<M extends Messages> extends Error {
   public readonly details;
-  constructor(command: Message, description: string) {
-    super(`${command.name || ""} failed invariant: ${description}`);
+  constructor(
+    name: keyof M & string,
+    data: Readonly<M[keyof M & string]>,
+    target: CommandTarget,
+    description: string
+  ) {
+    super(`${name} failed invariant: ${description}`);
     this.name = Errors.InvariantError;
-    this.details = { command, description };
+    this.details = { name, data, target, description };
   }
 }
 

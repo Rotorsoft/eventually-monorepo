@@ -33,6 +33,17 @@ const getSecurity = (): Security => {
 const security = getSecurity();
 
 const messageSchema = z.object({ name: z.string(), data: z.object({}) });
+const commandTargetSchema = z.object({
+  stream: z.string().optional(),
+  expectedVersion: z.number().optional(),
+  actor: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      roles: z.array(z.string())
+    })
+    .optional()
+});
 
 const errorSchemas = {
   ValidationError: toSchema(
@@ -49,7 +60,12 @@ const errorSchemas = {
     z.object({
       name: z.enum([Errors.InvariantError]),
       message: z.string().min(1),
-      details: z.object({ command: messageSchema, description: z.string() })
+      details: z.object({
+        name: z.string(),
+        data: z.object({}),
+        target: commandTargetSchema,
+        description: z.string()
+      })
     })
   ),
   RegistrationError: toSchema(

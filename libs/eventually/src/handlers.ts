@@ -195,7 +195,12 @@ export const command = async <
         const invariants = artifact.given[name] || [];
         invariants.forEach((invariant) => {
           if (!invariant.valid(state, actor))
-            throw new InvariantError(command, invariant.description);
+            throw new InvariantError<C>(
+              name,
+              command.data,
+              { stream, expectedVersion, actor },
+              invariant.description
+            );
         });
       }
       return artifact.on[name](validated.data, state, actor);

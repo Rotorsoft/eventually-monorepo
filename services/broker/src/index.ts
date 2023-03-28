@@ -31,6 +31,7 @@ const logHandler = (
     Array.isArray(groups) &&
     groups.find((g) => g.endsWith("BrokerAdmin"));
   req.user = {
+    id: req.userContext.userinfo.sub,
     name: req.userContext.userinfo.name,
     roles: admin ? ["admin"] : []
   };

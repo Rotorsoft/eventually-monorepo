@@ -35,7 +35,10 @@ export type CommandHandler<
   actor?: Actor
 ) => Promise<Message<E>[]>;
 
-/** Invariants validate aggregate states before processing commands */
+/**
+ * Invariants validate aggregate preconditions before processing commands,
+ * allowing state and authorization checks in a declarative way
+ */
 export type Invariant<S extends State> = {
   description: string;
   valid: (state: Readonly<S>, actor?: Actor) => boolean;
