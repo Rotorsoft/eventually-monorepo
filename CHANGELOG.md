@@ -1,3 +1,5 @@
+#### 2023-03-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.2.1...@rotorsoft/calculator-artifacts-v1.2.2) @rotorsoft/calculator-artifacts-v1.2.2
+  - PATCH [7fcd9741](https://github.com/Rotorsoft/eventually-monorepo/commit/7fcd9741f1123eff1e2fc5ca1fffd0b47ca9cccd) fix: process managers with fixed schema
 #### 2023-03-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.1.1...@rotorsoft/eventually-broker-v2.1.2) @rotorsoft/eventually-broker-v2.1.2
   - PATCH [7fcd9741](https://github.com/Rotorsoft/eventually-monorepo/commit/7fcd9741f1123eff1e2fc5ca1fffd0b47ca9cccd) fix: process managers with fixed schema
 #### 2023-03-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.4...@rotorsoft/eventually-express-v5.2.5) @rotorsoft/eventually-express-v5.2.5
