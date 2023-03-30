@@ -2,7 +2,6 @@ import {
   bind,
   client,
   Command,
-  CommittedEvent,
   PolicyFactory,
   ProcessManagerFactory,
   ZodEmpty
@@ -34,9 +33,9 @@ export const Counter: ProcessManagerFactory<
   CounterState,
   schemas.CounterCommands,
   schemas.CounterEvents
-> = (eventOrStream: CommittedEvent<schemas.CounterEvents> | string) => ({
+> = () => ({
   description: "A counter saga",
-  stream: typeof eventOrStream === "string" ? eventOrStream : "Counter",
+  stream: "Counter",
   schemas: {
     state: schemas.CounterState,
     commands: { Reset: "After 5 digits or dots in a row" },

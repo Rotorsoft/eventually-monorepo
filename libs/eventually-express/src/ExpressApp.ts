@@ -13,7 +13,7 @@ import {
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
-import { OpenAPIObject } from "openapi3-ts";
+import { oas31 } from "openapi3-ts";
 import { config } from "./config";
 import {
   allStreamHandler,
@@ -41,7 +41,7 @@ export class ExpressApp extends Builder {
   private _app = express();
   private _router = Router();
   private _server: Server | undefined;
-  private _oas: OpenAPIObject | undefined;
+  private _oas: oas31.OpenAPIObject | undefined;
 
   constructor() {
     super(config.version);

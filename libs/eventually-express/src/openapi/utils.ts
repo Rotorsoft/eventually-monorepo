@@ -1,4 +1,4 @@
-import { generateSchema } from "@anatine/zod-openapi";
+import { generateSchema } from "./zod-openapi";
 import {
   app,
   ArtifactMetadata,
@@ -10,18 +10,13 @@ import {
   State,
   ZodEmpty
 } from "@rotorsoft/eventually";
-import {
-  HeadersObject,
-  ParameterObject,
-  PathsObject,
-  ResponseObject,
-  SchemaObject,
-  SecuritySchemeObject,
-  TagObject
-} from "openapi3-ts";
+import { oas31 } from "openapi3-ts";
 import z, { ZodObject, ZodType } from "zod";
 
-const toSnapshotSchema = (name: string, events: string[]): SchemaObject => {
+const toSnapshotSchema = (
+  name: string,
+  events: string[]
+): oas31.SchemaObject => {
   return {
     type: "object",
     properties: {
@@ -36,7 +31,7 @@ const toSnapshotSchema = (name: string, events: string[]): SchemaObject => {
   };
 };
 
-const toPolicyResponseSchema = (commands: string[]): ResponseObject => {
+const toPolicyResponseSchema = (commands: string[]): oas31.ResponseObject => {
   const reducibles = commands.reduce((p, c) => {
     const cmd = app().messages.get(c);
     if (cmd && cmd.type === "command")
@@ -61,7 +56,7 @@ const toPolicyResponseSchema = (commands: string[]): ResponseObject => {
   };
 };
 
-const toProjectionRecordSchema = (ref: string): SchemaObject => {
+const toProjectionRecordSchema = (ref: string): oas31.SchemaObject => {
   return {
     type: "object",
     properties: {
@@ -71,7 +66,7 @@ const toProjectionRecordSchema = (ref: string): SchemaObject => {
   };
 };
 
-const toProjectionResultsSchema = (ref: string): SchemaObject => {
+const toProjectionResultsSchema = (ref: string): oas31.SchemaObject => {
   return {
     type: "object",
     properties: {
@@ -106,7 +101,7 @@ const toProjectionResultsSchema = (ref: string): SchemaObject => {
 
 const toProjectionQueryParameters = (
   factory: ProjectorFactory
-): Array<ParameterObject> => {
+): Array<oas31.ParameterObject> => {
   const keys = (factory().schemas.state as unknown as ZodObject<State>).keyof();
   const schema = toSchema(keys);
   return [
@@ -146,7 +141,7 @@ const toProjectionQueryParameters = (
 const toCommittedEventSchema = (
   name: string,
   schema: ZodType
-): SchemaObject => {
+): oas31.SchemaObject => {
   const committedEventSchema = toSchema(
     z.object({
       name: z.enum([name]),
@@ -163,7 +158,7 @@ const toCommittedEventSchema = (
 };
 
 export type Security = {
-  schemes: Record<string, SecuritySchemeObject>;
+  schemes: Record<string, oas31.SecuritySchemeObject>;
   operations: Record<string, Array<any>>;
 };
 
@@ -189,8 +184,8 @@ export const toResponse = (
   ref: string,
   description: string,
   array = false,
-  headers?: HeadersObject
-): ResponseObject => ({
+  headers?: oas31.HeadersObject
+): oas31.ResponseObject => ({
   description,
   content: {
     "application/json": {
@@ -213,7 +208,7 @@ export const toResponse = (
   headers
 });
 
-const eTag = (): HeadersObject => ({
+const eTag = (): oas31.HeadersObject => ({
   etag: {
     schema: {
       type: "integer",
@@ -222,28 +217,28 @@ const eTag = (): HeadersObject => ({
   }
 });
 
-export const toSchema = (schema: ZodType): SchemaObject => {
+export const toSchema = (schema: ZodType): oas31.SchemaObject => {
   const result = generateSchema(schema);
   result.description = schema.description;
   return result;
 };
 
-export const getMessageSchemas = (): Record<string, SchemaObject> =>
+export const getMessageSchemas = (): Record<string, oas31.SchemaObject> =>
   [...app().messages].reduce((schemas, [name, { schema, type }]) => {
     schemas[name] =
       type === "command" || type === "message"
         ? toSchema(schema)
         : toCommittedEventSchema(name, schema);
     return schemas;
-  }, {} as Record<string, SchemaObject>);
+  }, {} as Record<string, oas31.SchemaObject>);
 
-export const getArtifactTags = (): TagObject[] =>
+export const getArtifactTags = (): oas31.TagObject[] =>
   [...app().artifacts.values()].map(({ factory }) => ({
     name: factory.name,
     description: factory("").description
   }));
 
-export const getReducibleSchemas = (): Record<string, SchemaObject> =>
+export const getReducibleSchemas = (): Record<string, oas31.SchemaObject> =>
   [...app().artifacts.values()]
     .filter((amd) => amd.type === "aggregate" || amd.type === "process-manager")
     .reduce((schemas, { factory, outputs }) => {
@@ -254,9 +249,9 @@ export const getReducibleSchemas = (): Record<string, SchemaObject> =>
         outputs
       );
       return schemas;
-    }, {} as Record<string, SchemaObject>);
+    }, {} as Record<string, oas31.SchemaObject>);
 
-export const getProjectionSchemas = (): Record<string, SchemaObject> =>
+export const getProjectionSchemas = (): Record<string, oas31.SchemaObject> =>
   [...app().artifacts.values()]
     .filter((amd) => amd.type === "projector")
     .reduce((schemas, { factory }) => {
@@ -269,9 +264,11 @@ export const getProjectionSchemas = (): Record<string, SchemaObject> =>
         factory.name
       );
       return schemas;
-    }, {} as Record<string, SchemaObject>);
+    }, {} as Record<string, oas31.SchemaObject>);
 
-export const getPaths = (security: Security): Record<string, PathsObject> =>
+export const getPaths = (
+  security: Security
+): Record<string, oas31.PathsObject> =>
   [...app().artifacts.values()].reduce(
     (paths, { type, factory, inputs, outputs }) => {
       const endpoints = inputs
@@ -441,5 +438,5 @@ export const getPaths = (security: Security): Record<string, PathsObject> =>
       }
       return paths;
     },
-    {} as Record<string, PathsObject>
+    {} as Record<string, oas31.PathsObject>
   );

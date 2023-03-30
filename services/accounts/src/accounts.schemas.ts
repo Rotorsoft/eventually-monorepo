@@ -9,19 +9,20 @@ export const ExternalAccount = z.object({
   externalId: z.string().min(1)
 });
 
-export const WaitForAllState = z.intersection(
-  z.object({
-    account1: z.string().min(1).optional(),
-    account3: z.string().min(1).optional()
-  }),
-  Account
-);
+export const WaitForAllStateSchema = z.object({
+  account1: z.string().min(1).optional(),
+  account3: z.string().min(1).optional()
+});
+export const WaitForAllRecordSchema = z.record(WaitForAllStateSchema);
+
+export type WaitForAllState = z.infer<typeof WaitForAllStateSchema>;
+export type WaitForAllRecord = z.infer<typeof WaitForAllRecordSchema>;
 
 export type Commands = {
   CreateAccount1: z.infer<typeof Account>;
   CreateAccount2: z.infer<typeof Account>;
   CreateAccount3: z.infer<typeof Account>;
-  CompleteIntegration: z.infer<typeof WaitForAllState>;
+  CompleteIntegration: z.infer<typeof Account>;
 };
 
 export type Events = {

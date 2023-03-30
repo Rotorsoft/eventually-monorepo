@@ -1,6 +1,6 @@
 import { log } from "@rotorsoft/eventually";
 import axios from "axios";
-import { OpenAPIObject, SchemaObject } from "openapi3-ts";
+import { oas31 } from "openapi3-ts";
 import { breaker } from "./breaker";
 import { state } from "./cluster";
 import {
@@ -42,7 +42,7 @@ const HTTP_TIMEOUT = 5000;
  */
 const getServiceSwagger = async (
   service: Service
-): Promise<OpenAPIObject | undefined> => {
+): Promise<oas31.OpenAPIObject | undefined> => {
   const url = new URL(service.url);
   if (!url.protocol.startsWith("http")) return undefined;
   const secretsQueryString = state().serviceSecretsQueryString(service.id);
@@ -50,13 +50,13 @@ const getServiceSwagger = async (
     /\/+$/,
     ""
   )}/swagger${secretsQueryString}`;
-  const { data } = await axios.get<OpenAPIObject>(path, {
+  const { data } = await axios.get<oas31.OpenAPIObject>(path, {
     timeout: HTTP_TIMEOUT
   });
   return data;
 };
 
-const getSnapshotEvents = (schema: SchemaObject): string[] => {
+const getSnapshotEvents = (schema: oas31.SchemaObject): string[] => {
   const refs = [] as string[];
   schema?.properties?.state &&
     schema?.properties?.event &&
@@ -65,7 +65,9 @@ const getSnapshotEvents = (schema: SchemaObject): string[] => {
   return refs;
 };
 
-const getEvent = (schema: SchemaObject): ExtendedSchemaObject | undefined =>
+const getEvent = (
+  schema: oas31.SchemaObject
+): ExtendedSchemaObject | undefined =>
   schema?.properties?.name &&
   "enum" in schema.properties.name &&
   schema.properties.name.enum?.length &&
@@ -84,7 +86,7 @@ const getRefs = (object: unknown, refs: string[]): void => {
   }
 };
 
-const getSpec = (document: OpenAPIObject): ServiceSpec => {
+const getSpec = (document: oas31.OpenAPIObject): ServiceSpec => {
   const handlers = Object.entries(document?.paths || {})
     .map(([path, methods]) =>
       Object.entries(methods as object).map(([method, operation]) => {
@@ -110,7 +112,7 @@ const getSpec = (document: OpenAPIObject): ServiceSpec => {
     {},
     ...Object.values(document?.components?.schemas || {})
       .map((schema) => {
-        const event = getEvent(schema as SchemaObject);
+        const event = getEvent(schema as oas31.SchemaObject);
         return event && { ...event, refs: [] };
       })
       .filter(Boolean)
@@ -119,7 +121,7 @@ const getSpec = (document: OpenAPIObject): ServiceSpec => {
 
   // flag snapshot events
   Object.values(document?.components?.schemas || {})
-    .map((schema) => getSnapshotEvents(schema as SchemaObject))
+    .map((schema) => getSnapshotEvents(schema as oas31.SchemaObject))
     .flat()
     .filter(Boolean)
     .map((name) => {
@@ -168,8 +170,8 @@ const getSpec = (document: OpenAPIObject): ServiceSpec => {
 
 // TODO: resolve payload conflicts between producer/consumer schemas
 const reduceConflicts = (
-  producer: SchemaObject,
-  consumer: SchemaObject,
+  producer: oas31.SchemaObject,
+  consumer: oas31.SchemaObject,
   conflicts: string[],
   path: string
 ): void => {
@@ -203,8 +205,8 @@ const reduceConflicts = (
       Object.entries(producer.properties).forEach(([key, value]) => {
         consumer.properties &&
           reduceConflicts(
-            value as SchemaObject,
-            consumer.properties[key] as SchemaObject,
+            value as oas31.SchemaObject,
+            consumer.properties[key] as oas31.SchemaObject,
             conflicts,
             path.concat(key, "/")
           );
@@ -221,8 +223,8 @@ export const getConflicts = (event: EventContract): string[] => {
     Object.values(event.consumers).forEach((consumer) => {
       consumer?.schema?.properties?.data &&
         reduceConflicts(
-          schema as SchemaObject,
-          consumer.schema.properties.data as SchemaObject,
+          schema as oas31.SchemaObject,
+          consumer.schema.properties.data as oas31.SchemaObject,
           conflicts,
           consumer.id
         );
@@ -295,7 +297,7 @@ export const refreshServiceSpec = async (service: Service): Promise<void> => {
       failureThreshold: 2,
       successThreshold: 2
     }));
-  const { data } = await service.breaker.exec<OpenAPIObject>(async () => {
+  const { data } = await service.breaker.exec<oas31.OpenAPIObject>(async () => {
     try {
       const data = await getServiceSwagger(service);
       return { data };

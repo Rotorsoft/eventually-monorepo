@@ -1,5 +1,4 @@
 import { bind, Policy, ProcessManagerFactory } from "@rotorsoft/eventually";
-import { z } from "zod";
 import * as schemas from "./accounts.schemas";
 
 export const IntegrateAccount1 = (): Policy<
@@ -56,49 +55,54 @@ export const IntegrateAccount3 = (): Policy<
 });
 
 export const WaitForAllAndComplete: ProcessManagerFactory<
-  z.infer<typeof schemas.WaitForAllState>,
+  schemas.WaitForAllRecord,
   Pick<schemas.Commands, "CompleteIntegration">,
   Pick<schemas.Events, "Account1Created" | "Account3Created">
-> = (eventOrStream) => ({
+> = () => ({
   description: "Wait for all and complete saga",
   schemas: {
-    state: schemas.WaitForAllState,
+    state: schemas.WaitForAllRecordSchema,
     commands: { CompleteIntegration: "when account 3 is ready" },
     events: {
       Account1Created: schemas.ExternalAccount,
       Account3Created: schemas.ExternalAccount
     }
   },
-  stream:
-    typeof eventOrStream === "string" ? eventOrStream : eventOrStream.data.id,
-  init: () => ({
-    id:
-      typeof eventOrStream === "string" ? eventOrStream : eventOrStream.data.id
-  }),
-
+  stream: "WaitForAllAndComplete",
+  init: () => ({}),
   on: {
     Account1Created: (event, data) => {
       // make sure all accounts are created
-      if (data.account3)
-        return Promise.resolve(bind("CompleteIntegration", data));
+      if (data[event.data.id]?.account3)
+        return Promise.resolve(
+          bind("CompleteIntegration", { id: event.data.id })
+        );
     },
     Account3Created: (event, data) => {
       // make sure all accounts are created
-      if (data.account1)
+      if (data[event.data.id]?.account1)
         return Promise.resolve(
-          bind("CompleteIntegration", { id: event?.data?.id || "" })
+          bind("CompleteIntegration", { id: event?.data?.id })
         );
     }
   },
 
   reduce: {
-    Account1Created: (state, event) => ({
-      ...state,
-      account1: event?.data?.externalId
-    }),
-    Account3Created: (state, event) => ({
-      ...state,
-      account3: event?.data?.externalId
-    })
+    Account1Created: (state, { data }) => {
+      const item = { ...state[data.id] } || {};
+      item.account1 = data.externalId;
+      return {
+        ...state,
+        [data.id]: item
+      };
+    },
+    Account3Created: (state, { data }) => {
+      const item = { ...state[data.id] } || {};
+      item.account3 = data.externalId;
+      return {
+        ...state,
+        [data.id]: item
+      };
+    }
   }
 });

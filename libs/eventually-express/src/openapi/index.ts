@@ -1,12 +1,6 @@
 import { app, config, Errors } from "@rotorsoft/eventually";
 import * as fs from "fs";
-import {
-  OpenAPIObject,
-  ParameterObject,
-  PathItemObject,
-  SchemaObject,
-  TagObject
-} from "openapi3-ts";
+import { oas31 } from "openapi3-ts";
 import z from "zod";
 import {
   getArtifactTags,
@@ -90,7 +84,9 @@ const errorSchemas = {
   )
 };
 
-const allStreamSchemas = (allStream: boolean): Record<string, SchemaObject> =>
+const allStreamSchemas = (
+  allStream: boolean
+): Record<string, oas31.SchemaObject> =>
   allStream
     ? {
         StoreStats: toSchema(
@@ -128,7 +124,7 @@ const allStreamSchemas = (allStream: boolean): Record<string, SchemaObject> =>
       }
     : {};
 
-const allStreamParameters: Record<string, ParameterObject> = {
+const allStreamParameters: Record<string, oas31.ParameterObject> = {
   id: {
     in: "path",
     name: "id",
@@ -187,7 +183,9 @@ const allStreamParameters: Record<string, ParameterObject> = {
   }
 };
 
-const allStreamPaths = (allStream: boolean): Record<string, PathItemObject> =>
+const allStreamPaths = (
+  allStream: boolean
+): Record<string, oas31.PathItemObject> =>
   allStream
     ? {
         ["/_stats"]: {
@@ -238,7 +236,7 @@ const allStreamPaths = (allStream: boolean): Record<string, PathItemObject> =>
       }
     : {};
 
-const allStreamTags = (allStream: boolean): TagObject[] =>
+const allStreamTags = (allStream: boolean): oas31.TagObject[] =>
   allStream
     ? [
         {
@@ -248,7 +246,7 @@ const allStreamTags = (allStream: boolean): TagObject[] =>
       ]
     : [];
 
-export const openAPI = (): OpenAPIObject => {
+export const openAPI = (): oas31.OpenAPIObject => {
   const { service, version, description, author, license } = config();
   const allStream = app().hasStreams;
   return {

@@ -71,7 +71,7 @@ export const ExternalSystem4 = (): System<
 > => ({
   description: "External System 4",
   schemas: {
-    commands: { CompleteIntegration: schemas.WaitForAllState },
+    commands: { CompleteIntegration: schemas.Account },
     events: { IntegrationCompleted: schemas.Account }
   },
   stream: "ExternalSystem4",

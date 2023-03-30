@@ -1,7 +1,8 @@
-import { app, broker, client, dispose, Snapshot } from "@rotorsoft/eventually";
+import { app, broker, client, dispose, Scope } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import * as policies from "../accounts.policies";
 import * as systems from "../accounts.systems";
+import * as schemas from "../accounts.schemas";
 import { trigger } from "./trigger";
 
 const chance = new Chance();
@@ -10,7 +11,7 @@ app()
   .with(policies.IntegrateAccount1)
   .with(policies.IntegrateAccount2)
   .with(policies.IntegrateAccount3)
-  .with(policies.WaitForAllAndComplete)
+  .with(policies.WaitForAllAndComplete, { scope: Scope.private })
   .with(systems.ExternalSystem1)
   .with(systems.ExternalSystem2)
   .with(systems.ExternalSystem3)
@@ -34,21 +35,18 @@ describe("account integration flows", () => {
     await client().event(policies.IntegrateAccount2, t);
     await broker().drain();
 
-    const snapshots = [] as Snapshot[];
+    const states: schemas.WaitForAllState[] = [];
     await client().load(
       policies.WaitForAllAndComplete,
-      t?.data?.id,
+      "WaitForAllAndComplete",
       false,
-      (s) => snapshots.push(s)
+      ({ state }) => state[t.data.id] && states.push(state[t.data.id])
     );
 
-    expect(snapshots.length).toBe(2);
-    expect(snapshots[0]?.state?.id).toBe(t?.data?.id);
-    expect(snapshots[1]?.state?.id).toBe(t?.data?.id);
-    expect(snapshots[0]?.state?.account1).toBeDefined();
-    expect(snapshots[0]?.state?.account3).not.toBeDefined();
-    expect(snapshots[1]?.state?.account1).toBeDefined();
-    expect(snapshots[1]?.state?.account3).toBeDefined();
+    expect(states[0].account1).toBeDefined();
+    expect(states[0].account3).not.toBeDefined();
+    expect(states[1].account1).toBeDefined();
+    expect(states[1].account3).toBeDefined();
   });
 
   it("should complete integration 2-1", async () => {
@@ -59,20 +57,18 @@ describe("account integration flows", () => {
     await client().event(policies.IntegrateAccount1, t);
     await broker().drain();
 
-    const snapshots = [] as Snapshot[];
+    const states: schemas.WaitForAllState[] = [];
     await client().load(
       policies.WaitForAllAndComplete,
-      t?.data?.id,
+      "WaitForAllAndComplete",
       false,
-      (s) => snapshots.push(s)
+      ({ state }) => state[t.data.id] && states.push(state[t.data.id])
     );
-    expect(snapshots.length).toBe(2);
-    expect(snapshots[0]?.state?.id).toBe(t?.data?.id);
-    expect(snapshots[1]?.state?.id).toBe(t?.data?.id);
-    expect(snapshots[0]?.state?.account3).toBeDefined();
-    expect(snapshots[0]?.state?.account1).not.toBeDefined();
-    expect(snapshots[1]?.state?.account1).toBeDefined();
-    expect(snapshots[1]?.state?.account3).toBeDefined();
+
+    expect(states[0].account3).toBeDefined();
+    expect(states[0].account1).not.toBeDefined();
+    expect(states[1].account1).toBeDefined();
+    expect(states[1].account3).toBeDefined();
 
     // expect flow events
     let sys2 = -1,

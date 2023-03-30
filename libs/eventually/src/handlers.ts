@@ -228,7 +228,7 @@ export const event = async <
   const { name, stream, id } = event;
   log().magenta().trace(`\n>>> ${factory.name}`, event);
 
-  const artifact = factory(event);
+  const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
   const { data } = validateMessage(event);
   const metadata: CommittedEventMetadata = {

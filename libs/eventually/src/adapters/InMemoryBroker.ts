@@ -51,8 +51,7 @@ const _poll = async <E extends Messages>(
           await event(consumer.factory as PolicyFactory, e);
         else {
           // process managers skip their own events
-          const pm = (consumer.factory as ProcessManagerFactory)(e);
-          if (e.stream !== pm.stream)
+          if (e.stream !== (consumer.factory as ProcessManagerFactory)().stream)
             await event(consumer.factory as EventHandlerFactory, e);
         }
         lastId = e.id;

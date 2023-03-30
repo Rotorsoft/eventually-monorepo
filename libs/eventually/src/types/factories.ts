@@ -6,7 +6,7 @@ import {
   Projector,
   System
 } from "./artifacts";
-import { CommittedEvent, Messages, State } from "./messages";
+import { Messages, State } from "./messages";
 
 /**
  * Aggregate factories build aggregates
@@ -40,7 +40,7 @@ export type ProcessManagerFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = (eventOrStream: CommittedEvent<E> | string) => ProcessManager<S, C, E>;
+> = () => ProcessManager<S, C, E>;
 
 /**
  * Projector factories build projectors

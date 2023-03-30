@@ -1,16 +1,16 @@
 import { CommittedEvent } from "@rotorsoft/eventually";
 import { RequestHandler } from "express";
-import { PathItemObject, SchemaObject } from "openapi3-ts";
+import { oas31 } from "openapi3-ts";
 import { Breaker } from "./breaker";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
 
-export type ExtendedSchemaObject = SchemaObject & {
+export type ExtendedSchemaObject = oas31.SchemaObject & {
   name: string;
   refs?: string[];
   inSnapshot?: boolean;
 };
 
-export type ExtendedPathItemObject = PathItemObject & {
+export type ExtendedPathItemObject = oas31.PathItemObject & {
   path: string;
   refs?: string[];
 };
