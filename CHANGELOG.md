@@ -1,3 +1,5 @@
+#### 2023-03-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.2.3...@rotorsoft/eventually-v5.2.4) @rotorsoft/eventually-v5.2.4
+  - PATCH [7fcd9741](https://github.com/Rotorsoft/eventually-monorepo/commit/7fcd9741f1123eff1e2fc5ca1fffd0b47ca9cccd) fix: process managers with fixed schema
 #### 2023-03-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.3...@rotorsoft/eventually-express-v5.2.4) @rotorsoft/eventually-express-v5.2.4
   - PATCH [485dd617](https://github.com/Rotorsoft/eventually-monorepo/commit/485dd61738487d63ca58c8fceb605ea4ba58c120) fix: refactor InvariantError
 #### 2023-03-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.2.2...@rotorsoft/eventually-v5.2.3) @rotorsoft/eventually-v5.2.3
