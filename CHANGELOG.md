@@ -1,3 +1,5 @@
+#### 2023-03-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.4...@rotorsoft/eventually-express-v5.2.5) @rotorsoft/eventually-express-v5.2.5
+  - PATCH [7fcd9741](https://github.com/Rotorsoft/eventually-monorepo/commit/7fcd9741f1123eff1e2fc5ca1fffd0b47ca9cccd) fix: process managers with fixed schema
 #### 2023-03-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.2.3...@rotorsoft/eventually-v5.2.4) @rotorsoft/eventually-v5.2.4
   - PATCH [7fcd9741](https://github.com/Rotorsoft/eventually-monorepo/commit/7fcd9741f1123eff1e2fc5ca1fffd0b47ca9cccd) fix: process managers with fixed schema
 #### 2023-03-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.3...@rotorsoft/eventually-express-v5.2.4) @rotorsoft/eventually-express-v5.2.4
