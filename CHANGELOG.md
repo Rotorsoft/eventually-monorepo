@@ -1,3 +1,5 @@
+#### 2023-04-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.1.2...@rotorsoft/eventually-pg-v5.2.0) @rotorsoft/eventually-pg-v5.2.0
+  - MINOR [264dc58f](https://github.com/Rotorsoft/eventually-monorepo/commit/264dc58faae6fa5250b573bc0faecf7bdcaa4ec7) feat: refactor process managers as actors, sharing the streams of the aggregates inside the transaction box, add actor field to event streams
 #### 2023-04-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.2.4...@rotorsoft/eventually-v5.3.0) @rotorsoft/eventually-v5.3.0
   - MINOR [264dc58f](https://github.com/Rotorsoft/eventually-monorepo/commit/264dc58faae6fa5250b573bc0faecf7bdcaa4ec7) feat: refactor process managers as actors, sharing the streams of the aggregates inside the transaction box, add actor field to event streams
 #### 2023-03-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.2.1...@rotorsoft/calculator-artifacts-v1.2.2) @rotorsoft/calculator-artifacts-v1.2.2
