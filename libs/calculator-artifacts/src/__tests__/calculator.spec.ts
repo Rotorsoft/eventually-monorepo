@@ -1,12 +1,11 @@
 import { Actor, app, client, dispose, store } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator, CalculatorModel } from "../calculator.aggregate";
-import { Counter } from "../counter.policy";
 import { Forget } from "../forget.system";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 import { InMemorySnapshotStore } from "../../../eventually/src/adapters";
 import { CalculatorCommands, CalculatorEvents } from "../calculator.schemas";
-import { createEvent, pressKey } from "./messages";
+import { pressKey } from "./messages";
 
 // app setup
 const chance = new Chance();
@@ -17,7 +16,6 @@ const inMemorySnapshots = InMemorySnapshotStore<
 app()
   .with(Forget)
   .with(Calculator, { store: inMemorySnapshots })
-  .with(Counter)
   .with(PressKeyAdapter)
   .build();
 
@@ -149,17 +147,6 @@ describe("Calculator", () => {
     await expect(pressKey(chance.guid(), "=")).rejects.toThrow(
       "Don't have an operator"
     );
-  });
-
-  it("should cover empty calculator", async () => {
-    const id = chance.guid();
-    const test8 = Calculator(id);
-    await client().event(
-      Counter,
-      createEvent("DigitPressed", test8.stream, { digit: "0" })
-    );
-    const { state } = await client().load(Calculator, id);
-    expect(state).toEqual({ result: 0 });
   });
 
   it("should throw invalid command error", async () => {

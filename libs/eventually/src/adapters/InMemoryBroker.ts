@@ -9,8 +9,6 @@ import {
   CommittedEvent,
   EventHandlerFactory,
   Messages,
-  PolicyFactory,
-  ProcessManagerFactory,
   ProjectorFactory,
   Scope
 } from "../types";
@@ -22,6 +20,7 @@ const event_handler_types: Array<ArtifactType> = [
   "projector"
 ];
 
+// TODO: refactor with caching - this is just to get it working
 const _poll = async <E extends Messages>(
   consumer: ArtifactMetadata,
   timeout: number,
@@ -45,15 +44,9 @@ const _poll = async <E extends Messages>(
       );
       count = events.length;
       for (const e of events) {
-        if (consumer.type === "projector")
-          await project(consumer.factory as ProjectorFactory, e);
-        else if (consumer.type === "policy")
-          await event(consumer.factory as PolicyFactory, e);
-        else {
-          // process managers skip their own events
-          if (e.stream !== (consumer.factory as ProcessManagerFactory)().stream)
-            await event(consumer.factory as EventHandlerFactory, e);
-        }
+        consumer.type === "projector"
+          ? await project(consumer.factory as ProjectorFactory, e)
+          : await event(consumer.factory as EventHandlerFactory, e);
         lastId = e.id;
       }
     } catch (error) {

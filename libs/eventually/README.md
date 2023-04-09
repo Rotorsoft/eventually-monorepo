@@ -52,7 +52,7 @@ Message Handler | Consumes | Produces | Streamable | Reducible | DDD Artifact
 --- | :---: | :---: | :---: | :---: | :---:
 Command Handler | ![Command](./assets/command.png) | ![Event](./assets/event.png) | Yes | Yes | ![Aggregate](./assets/aggregate.png)
 Command Handler | ![Command](./assets/command.png) | ![Event](./assets/event.png) | Yes | No | ![External System](./assets/system.png)
-Event Handler | ![Event](./assets/event.png) | ![Command](./assets/command.png) | Yes | Yes | ![Process Manager](./assets/process-manager.png)
+Event Handler | ![Event](./assets/event.png) | ![Command](./assets/command.png) | No | Yes | ![Process Manager](./assets/process-manager.png)
 Event Handler | ![Event](./assets/event.png) | ![Command](./assets/command.png) | No | No | ![Policy](./assets/policy.png)
 Event Handler | ![Event](./assets/event.png) | ![Read Model](./assets/read-model.png) | No | Yes | ![Projector](./assets/projector.png)
 

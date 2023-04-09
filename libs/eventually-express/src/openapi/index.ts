@@ -180,6 +180,12 @@ const allStreamParameters: Record<string, oas31.ParameterObject> = {
     description: "Reducible expected version",
     schema: { type: "number" },
     required: false
+  },
+  actor: {
+    in: "query",
+    name: "actor",
+    description: "Filter by actor name",
+    schema: { type: "string" }
   }
 };
 
@@ -220,7 +226,8 @@ const allStreamPaths = (
             { $ref: "#/components/parameters/limit" },
             { $ref: "#/components/parameters/before" },
             { $ref: "#/components/parameters/created_after" },
-            { $ref: "#/components/parameters/created_before" }
+            { $ref: "#/components/parameters/created_before" },
+            { $ref: "#/components/parameters/actor" }
           ],
           get: {
             tags: ["All Stream"],

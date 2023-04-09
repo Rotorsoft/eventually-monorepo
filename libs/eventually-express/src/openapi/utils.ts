@@ -240,7 +240,7 @@ export const getArtifactTags = (): oas31.TagObject[] =>
 
 export const getReducibleSchemas = (): Record<string, oas31.SchemaObject> =>
   [...app().artifacts.values()]
-    .filter((amd) => amd.type === "aggregate" || amd.type === "process-manager")
+    .filter((amd) => amd.type === "aggregate")
     .reduce((schemas, { factory, outputs }) => {
       const stateSchema = (factory as ReducibleFactory)("").schemas.state;
       schemas[factory.name] = toSchema(stateSchema);
@@ -274,7 +274,7 @@ export const getPaths = (
       const endpoints = inputs
         .filter((input) => input.scope === Scope.public)
         .map((input) => input.name);
-      if (type === "aggregate" || type === "process-manager") {
+      if (type === "aggregate") {
         const path = httpGetPath(factory.name).replace("/:id", "/{id}");
         paths[path] = {
           parameters: [{ $ref: "#/components/parameters/id" }],
@@ -412,7 +412,7 @@ export const getPaths = (
             tags: [factory.name],
             summary: `Handles ${endpoints.join(",")}`,
             description: Object.entries(commands)
-              .map(([command, description]) => `"${command}": ${description}`)
+              .map(([command, schema]) => `"${command}": ${schema.description}`)
               .join("<br/>"),
             requestBody: {
               required: true,

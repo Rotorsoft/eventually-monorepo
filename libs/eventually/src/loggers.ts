@@ -59,7 +59,18 @@ const error = (error: any): void => {
 };
 
 const events = (events: CommittedEvent[]): void => {
-  console.table(events, ["id", "stream", "name", "version", "created", "data"]);
+  console.table(
+    events.map(({ id, stream, name, version, created, data, metadata }) => ({
+      id,
+      stream,
+      name,
+      version,
+      created,
+      actor: `${metadata.causation.command?.actor?.name}:${metadata.causation.command?.actor?.id}`,
+      data: JSON.stringify(data).substring(0, 20)
+    })),
+    ["id", "stream", "name", "version", "created", "actor", "data"]
+  );
 };
 
 export const devLogger = (): Logger => {

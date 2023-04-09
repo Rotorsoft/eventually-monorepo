@@ -58,3 +58,11 @@ export type EventHandler<
   event: CommittedEvent<Pick<E, K>>,
   state: Readonly<S>
 ) => Promise<Command<C> | undefined> | undefined;
+
+/**
+ * Actor handlers extract process manager actor ids from input events
+ * - `event` the committed event being handled
+ */
+export type ActorHandler<E extends Messages, K extends keyof E> = (
+  event: CommittedEvent<Pick<E, K>>
+) => string;

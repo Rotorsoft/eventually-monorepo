@@ -14,9 +14,13 @@ export type Message<M extends Messages = Messages> = {
 
 /**
  * Actors are either humans or policies invoking commands
- * - `id` actor id (usually a primary key to the users table, extracted from JWT, etc)
- * - `name` actor name (could be the full name, email, etc ... for log auditing purposes)
- * - `roles` array of role name for authorization purposes (extracted from JWT and used by validation middleware)
+ * - `id` actor identifier
+ *    - for human actors, this is usually a primary key to the users table, extracted from JWT, etc
+ *    - for process managers, this is the secondary stream used to reduce the state
+ * - `name` actor name
+ *    - for human actors, could be the full name, email, etc ... for log auditing purposes
+ *    - for process managers, the factory name
+ * - `roles` array of role names used for authorization invariants (usually extracted from JWT and used by validation middleware)
  */
 export type Actor = {
   readonly id: string;
@@ -104,6 +108,7 @@ export type Snapshot<S extends State = State, E extends Messages = Messages> = {
  * - `created_after?` filter events created after this date/time
  * - `backward?` order descending when true
  * - `correlation?` filter by correlation
+ * - `actor?` filter by actor id (mainly used to reduce process managers)
  */
 export type AllQuery = {
   readonly stream?: string;
@@ -115,6 +120,7 @@ export type AllQuery = {
   readonly created_after?: Date;
   readonly backward?: boolean;
   readonly correlation?: string;
+  readonly actor?: string;
 };
 
 /**

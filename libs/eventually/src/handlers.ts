@@ -1,6 +1,7 @@
 import { ProjectorStore, SnapshotStore } from "./interfaces";
 import { app, log, store, _imps } from "./ports";
 import {
+  AggregateFactory,
   AllQuery,
   Artifact,
   ArtifactFactory,
@@ -31,22 +32,26 @@ import { bind, randomId, validate, validateMessage } from "./utils";
  * Loads reducible artifact from store
  * @param factory the reducible factory
  * @param reducible the reducible artifact
+ * @param filter the event filter (stream or actor)
  * @param useSnapshots flag to use stored snapshots
  * @param callback optional reduction predicate
  * @returns current model snapshot
  */
 const STATE_EVENT = "__state__";
-const _load = async <S extends State, C extends Messages, E extends Messages>(
+const _reduce = async <S extends State, C extends Messages, E extends Messages>(
   factory: ReducibleFactory<S, C, E>,
-  reducible: Reducible<S, E> & Streamable,
+  reducible: Reducible<S, E>,
+  filter: string,
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
-  const stream = reducible.stream;
+  const type = app().artifacts.get(factory.name)?.type;
   const snapStore =
     ((useSnapshots && app().stores.get(factory.name)) as SnapshotStore<S, E>) ||
     undefined;
-  const snapshot = (snapStore && (await snapStore.read(stream))) || undefined;
+  const snapshot =
+    (type === "aggregate" && snapStore && (await snapStore.read(filter))) ||
+    undefined;
   let state = snapshot?.state || reducible.init();
   let event = snapshot?.event;
   let applyCount = 0;
@@ -56,7 +61,7 @@ const _load = async <S extends State, C extends Messages, E extends Messages>(
     (e) => {
       event = e;
       if (e.name === STATE_EVENT) {
-        if (app().artifacts.get(factory.name)?.type === "aggregate") {
+        if (type === "aggregate") {
           state = e.data as S;
           stateCount++;
         }
@@ -66,10 +71,12 @@ const _load = async <S extends State, C extends Messages, E extends Messages>(
       }
       callback && callback({ event, state, applyCount, stateCount });
     },
-    { stream, after: event?.id }
+    type === "aggregate"
+      ? { stream: filter, after: event?.id }
+      : { actor: filter }
   );
 
-  log().gray().trace(`   ... ${stream} loaded ${applyCount} event(s)`);
+  log().gray().trace(`   ... ${filter} loaded ${applyCount} event(s)`);
 
   return { event, state, applyCount, stateCount };
 };
@@ -78,6 +85,7 @@ const _load = async <S extends State, C extends Messages, E extends Messages>(
  * Generic message handler
  * @param factory the artifact factory
  * @param artifact the message handling artifact
+ * @param filter the event filter (stream or actor)
  * @param callback the message handling callback
  * @param metadata the message metadata
  * @returns reduced snapshots of new events when artifact is reducible
@@ -89,19 +97,20 @@ const _handleMsg = async <
 >(
   factory: ArtifactFactory<S, C, E>,
   artifact: Artifact<S, C, E>,
+  filter: string,
   callback: (snapshot: Snapshot<S>) => Promise<Message<E>[]>,
   metadata: CommittedEventMetadata
 ): Promise<Snapshot<S, E>[]> => {
   const stream = "stream" in artifact ? artifact.stream : undefined;
   const reduce = "reduce" in artifact ? artifact.reduce : undefined;
 
-  const snapshot =
-    stream && reduce
-      ? await _load(
-          factory as ReducibleFactory<S, C, E>,
-          artifact as Reducible<S, E> & Streamable
-        )
-      : ({ state: {} as S, applyCount: 0, stateCount: 0 } as Snapshot<S, E>);
+  const snapshot = reduce
+    ? await _reduce(
+        factory as ReducibleFactory<S, C, E>,
+        artifact as Reducible<S, E> & Streamable,
+        filter
+      )
+    : ({ state: {} as S, applyCount: 0, stateCount: 0 } as Snapshot<S, E>);
 
   const events = await callback(snapshot);
   const commit = reduce && app().commits.get(factory.name);
@@ -174,6 +183,7 @@ export const command = async <
 ): Promise<Snapshot<S, E>[]> => {
   const validated = validateMessage(command);
   const { name, stream, expectedVersion, actor } = command;
+  if (!stream) throw new Error("Missing target stream");
 
   const msg = app().messages.get(name);
   if (!msg?.handlers.length) throw new RegistrationError(command);
@@ -184,12 +194,13 @@ export const command = async <
 
   log().blue().trace(`\n>>> ${factory.name}`, command, metadata);
 
-  const artifact = factory(stream || "");
+  const artifact = factory(stream);
   Object.setPrototypeOf(artifact, factory as object);
 
   const snapshots = await _handleMsg<S, C, E>(
     factory,
     artifact,
+    stream,
     ({ state }) => {
       if ("given" in artifact && artifact.given) {
         const invariants = artifact.given[name] || [];
@@ -236,13 +247,23 @@ export const event = async <
     causation: { event: { name, stream, id } }
   };
   let cmd: Command<C> | undefined;
+  const actor: string = "actor" in artifact ? artifact.actor[name](event) : "";
   const snapshots = await _handleMsg(
     factory,
     artifact,
+    actor,
     async (snapshot) => {
-      // command side effects are handled synchronously, thus event handlers can fail
       cmd = await artifact.on[name](event, snapshot.state);
-      cmd && (await command<S, C, E>(cmd, metadata));
+      if (cmd) {
+        // command side effects are handled synchronously, thus event handlers can fail
+        await command<S, C, E>(
+          {
+            ...cmd,
+            actor: { id: actor || factory.name, name: factory.name, roles: [] }
+          },
+          metadata
+        );
+      }
       return [bind(name, data)];
     },
     metadata
@@ -258,14 +279,14 @@ export const load = async <
   C extends Messages,
   E extends Messages
 >(
-  factory: ReducibleFactory<S, C, E>,
+  factory: AggregateFactory<S, C, E>,
   stream: string,
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
   const reducible = factory(stream);
   Object.setPrototypeOf(reducible, factory as object);
-  return _load<S, C, E>(factory, reducible, useSnapshots, callback);
+  return _reduce<S, C, E>(factory, reducible, stream, useSnapshots, callback);
 };
 
 export const query = async (

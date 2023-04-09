@@ -16,7 +16,8 @@ import {
   ProjectorFactory,
   ProjectionResults,
   ProjectionRecord,
-  ProjectionQuery
+  ProjectionQuery,
+  AggregateFactory
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import { httpGetPath, httpPostPath } from "./openapi/utils";
@@ -112,11 +113,11 @@ export const HttpClient = (
     },
 
     load: async <S extends State, C extends Messages, E extends Messages>(
-      reducible: ReducibleFactory<S, C, E>,
-      id: string
+      reducible: AggregateFactory<S, C, E>,
+      stream: string
     ): Promise<Snapshot<S, E>> => {
       const { data } = await axios.get<any, AxiosResponse<Snapshot<S, E>>>(
-        url(httpGetPath(reducible.name).replace(":id", id))
+        url(httpGetPath(reducible.name).replace(":id", stream))
       );
       return data;
     },

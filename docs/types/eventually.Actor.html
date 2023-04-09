@@ -19,9 +19,17 @@
 <div class="tsd-signature">Actor<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span>roles<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
 <div class="tsd-comment tsd-typography"><p>Actors are either humans or policies invoking commands</p>
 <ul>
-<li><code>id</code> actor id (usually a primary key to the users table, extracted from JWT, etc)</li>
-<li><code>name</code> actor name (could be the full name, email, etc ... for log auditing purposes)</li>
-<li><code>roles</code> array of role name for authorization purposes (extracted from JWT and used by validation middleware)</li>
+<li><code>id</code> actor identifier<ul>
+<li>for human actors, this is usually a primary key to the users table, extracted from JWT, etc</li>
+<li>for process managers, this is the secondary stream used to reduce the state</li>
+</ul>
+</li>
+<li><code>name</code> actor name<ul>
+<li>for human actors, could be the full name, email, etc ... for log auditing purposes</li>
+<li>for process managers, the factory name</li>
+</ul>
+</li>
+<li><code>roles</code> array of role names used for authorization invariants (usually extracted from JWT and used by validation middleware)</li>
 </ul>
 </div>
 <div class="tsd-type-declaration">
@@ -34,7 +42,7 @@
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagReadonly">Readonly</code> roles<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/11755a5/libs/eventually/src/types/messages.ts#L21">libs/eventually/src/types/messages.ts:21</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/a69d5cf/libs/eventually/src/types/messages.ts#L25">libs/eventually/src/types/messages.ts:25</a></li></ul></aside></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -83,6 +91,7 @@
 <li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/eventually.Store.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-256-path"></use><use href="#icon-256-text"></use></svg>Store</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.Action.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-4194304-path"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)" id="icon-4194304-text"></path></svg>Action</a></li>
 <li class="current tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.Actor.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Actor</a></li>
+<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.ActorHandler.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Actor<wbr/>Handler</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.Aggregate.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Aggregate</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.AggregateFactory.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Aggregate<wbr/>Factory</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.AllQuery.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>All<wbr/>Query</a></li>
@@ -109,6 +118,7 @@
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.EventHandlingArtifact.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Event<wbr/>Handling<wbr/>Artifact</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.EventReducer.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Event<wbr/>Reducer</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.EventResponse.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Event<wbr/>Response</a></li>
+<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.Infer.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Infer</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.Invariant.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Invariant</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.Message.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Message</a></li>
 <li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="eventually.MessageMetadata.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-4194304-path"></use><use href="#icon-4194304-text"></use></svg>Message<wbr/>Metadata</a></li>

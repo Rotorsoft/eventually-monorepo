@@ -3,7 +3,6 @@ import {
   CalculatorEvents,
   CalculatorModel,
   //CalculatorTotals,
-  //Counter,
   PressKeyAdapter
   //StatelessCounter
 } from "@rotorsoft/calculator-artifacts";
@@ -23,7 +22,6 @@ void bootstrap(async (): Promise<void> => {
 
   const _app = app(new ExpressApp())
     .with(Calculator, { store: snapshotStore })
-    //.with(Counter)
     //.with(StatelessCounter)
     .with(PressKeyAdapter);
   //.with(CalculatorTotals);

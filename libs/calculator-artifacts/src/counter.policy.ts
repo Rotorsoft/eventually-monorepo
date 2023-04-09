@@ -3,7 +3,6 @@ import {
   client,
   Command,
   PolicyFactory,
-  ProcessManagerFactory,
   ZodEmpty
 } from "@rotorsoft/eventually";
 import { z } from "zod";
@@ -29,47 +28,6 @@ const policy = async (
 
 type CounterState = z.infer<typeof schemas.CounterState>;
 
-export const Counter: ProcessManagerFactory<
-  CounterState,
-  schemas.CounterCommands,
-  schemas.CounterEvents
-> = () => ({
-  description: "A counter saga",
-  stream: "Counter",
-  schemas: {
-    state: schemas.CounterState,
-    commands: { Reset: "After 5 digits or dots in a row" },
-    events: {
-      DigitPressed: schemas.DigitPressed,
-      DotPressed: ZodEmpty,
-      OperatorPressed: schemas.OperatorPressed,
-      EqualsPressed: ZodEmpty,
-      Cleared: ZodEmpty
-    }
-  },
-  init: (): CounterState => ({ count: 0 }),
-
-  on: {
-    DigitPressed: (event, state) => policy(state, event.stream, 4),
-    DotPressed: (event, state) => policy(state, event.stream, 4),
-    EqualsPressed: () => undefined,
-    OperatorPressed: () => undefined,
-    Cleared: () => undefined
-  },
-
-  reduce: {
-    DigitPressed: (model) => ({
-      count: model.count + 1
-    }),
-    DotPressed: (model) => ({
-      count: model.count + 1
-    }),
-    EqualsPressed: () => ({ count: 0 }),
-    OperatorPressed: () => ({ count: 0 }),
-    Cleared: () => ({ count: 0 })
-  }
-});
-
 export const StatelessCounter: PolicyFactory<
   schemas.CalculatorCommands,
   schemas.CounterEvents
@@ -77,8 +35,8 @@ export const StatelessCounter: PolicyFactory<
   description: "A stateless counter policy",
   schemas: {
     commands: {
-      PressKey: "Never invoked",
-      Reset: "After length of left or right greater than 5"
+      PressKey: schemas.PressKey,
+      Reset: ZodEmpty
     },
     events: {
       DigitPressed: schemas.DigitPressed,
@@ -103,7 +61,7 @@ export const IgnoredHandler: PolicyFactory<
 > = () => ({
   description: "Ignoring everything",
   schemas: {
-    commands: { Whatever: "never invoked" },
+    commands: { Whatever: ZodEmpty },
     events: {
       Ignored1: ZodEmpty,
       Ignored2: ZodEmpty
