@@ -28,6 +28,7 @@ export const InMemoryStore = (): Store => {
       limit,
       created_before,
       created_after,
+      actor,
       correlation
     } = query || {};
     let i = after + 1,
@@ -35,6 +36,8 @@ export const InMemoryStore = (): Store => {
     while (i < _events.length) {
       const e = _events[i++] as CommittedEvent<E>;
       if (stream && e.stream !== stream) continue;
+      if (actor && e.metadata?.causation?.command?.actor?.id !== actor)
+        continue;
       if (names && !names.includes(e.name)) continue;
       if (correlation && e.metadata?.correlation !== correlation) continue;
       if (created_after && e.created <= created_after) continue;

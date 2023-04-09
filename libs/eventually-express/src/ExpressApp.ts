@@ -1,4 +1,5 @@
 import {
+  AggregateFactory,
   broker,
   Builder,
   CommandAdapterFactory,
@@ -7,7 +8,6 @@ import {
   EventHandlerFactory,
   log,
   ProjectorFactory,
-  ReducibleFactory,
   Scope
 } from "@rotorsoft/eventually";
 import cors from "cors";
@@ -61,7 +61,7 @@ export class ExpressApp extends Builder {
     log().green().info("GET ", "/_subscriptions");
   }
 
-  private _withGets(factory: ReducibleFactory): void {
+  private _withGets(factory: AggregateFactory): void {
     const path = httpGetPath(factory.name);
     this._router.get(path, getHandler(factory));
     log().green().info("GET ", path);
@@ -76,8 +76,7 @@ export class ExpressApp extends Builder {
       const endpoints = inputs
         .filter((input) => input.scope === Scope.public)
         .map((input) => input.name);
-      (type === "aggregate" || type === "process-manager") &&
-        this._withGets(factory as ReducibleFactory);
+      type === "aggregate" && this._withGets(factory as AggregateFactory);
       if (type === "policy" || type === "process-manager") {
         if (endpoints.length) {
           const path = httpPostPath(factory.name, type);

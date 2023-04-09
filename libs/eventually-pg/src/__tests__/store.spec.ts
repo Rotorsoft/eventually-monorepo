@@ -10,6 +10,7 @@ const chance = new Chance();
 const a1 = chance.guid();
 const a2 = chance.guid();
 const a3 = chance.guid();
+const pm = chance.guid();
 let created_before: Date;
 let created_after: Date;
 
@@ -27,7 +28,9 @@ describe("pg", () => {
 
     await db.commit(a1, [event("test1", { value: "1" })], {
       correlation: "",
-      causation: {}
+      causation: {
+        command: { name: "", actor: { id: pm, name: "", roles: [] } }
+      }
     });
     created_after = new Date();
     await sleep(200);
@@ -38,7 +41,9 @@ describe("pg", () => {
     });
     await db.commit(a2, [event("test2", { value: "3" })], {
       correlation: "",
-      causation: {}
+      causation: {
+        command: { name: "", actor: { id: pm, name: "", roles: [] } }
+      }
     });
     await db.commit(a3, [event("test1", { value: "4" })], {
       correlation: "",
@@ -92,28 +97,31 @@ describe("pg", () => {
     expect(events3.length).toBeGreaterThanOrEqual(3);
     events3.map((evt) => expect(evt.name).toBe("test1"));
 
-    const events4: CommittedEvent[] = [];
-    await db.query((e) => events4.push(e), { after: 2, before: 4 });
-    expect(events4.length).toBe(1);
+    expect(await db.query(() => 0, { after: 2, before: 4 })).toBe(1);
 
-    const events5: CommittedEvent[] = [];
-    await db.query((e) => events5.push(e), {
-      stream: a1,
-      created_after,
-      created_before
-    });
-    expect(events5.length).toBe(2);
+    expect(
+      await db.query(() => 0, {
+        stream: a1,
+        created_after,
+        created_before
+      })
+    ).toBe(2);
 
-    const events6: CommittedEvent[] = [];
-    await db.query((e) => events6.push(e), { limit: 5 });
-    expect(events6.length).toBe(5);
+    expect(await db.query(() => 0, { limit: 5 })).toBe(5);
 
-    const events7: CommittedEvent[] = [];
-    await db.query((e) => events7.push(e), {
-      limit: 10,
-      correlation: query_correlation
-    });
-    expect(events7.length).toBe(4);
+    expect(
+      await db.query(() => 0, {
+        limit: 10,
+        correlation: query_correlation
+      })
+    ).toBe(4);
+
+    expect(
+      await db.query(() => 0, {
+        limit: 10,
+        actor: pm
+      })
+    ).toBe(2);
 
     await expect(
       db.commit(

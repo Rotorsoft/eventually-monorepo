@@ -18,14 +18,24 @@ describe("async broker", () => {
 
   it("should project", async () => {
     const id = 1;
-    await client().command(MatchSystem, "CreateCustomer", {
-      id,
-      name: "testing name"
-    });
-    await client().command(MatchSystem, "ChangeCustomerName", {
-      id,
-      name: "changed the name"
-    });
+    await client().command(
+      MatchSystem,
+      "CreateCustomer",
+      {
+        id,
+        name: "testing name"
+      },
+      { stream: "test" }
+    );
+    await client().command(
+      MatchSystem,
+      "ChangeCustomerName",
+      {
+        id,
+        name: "changed the name"
+      },
+      { stream: "test" }
+    );
     //await client().query({ limit: 5 }, (e) => log().events([e]));
     await broker.drain();
     let p = { watermark: 0 };

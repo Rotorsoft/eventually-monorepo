@@ -1,5 +1,6 @@
 import {
   Actor,
+  AggregateFactory,
   AllQuery,
   client,
   CommandAdapterFactory,
@@ -12,7 +13,6 @@ import {
   ProjectionRecord,
   ProjectionResults,
   ProjectorFactory,
-  ReducibleFactory,
   Snapshot,
   State,
   store
@@ -99,7 +99,7 @@ export const allStreamHandler = async (
 };
 
 export const getHandler =
-  (factory: ReducibleFactory) =>
+  (factory: AggregateFactory) =>
   async (
     req: Request<{ id: string }, Snapshot, never, { useSnapshots?: string }>,
     res: Response,
@@ -117,7 +117,7 @@ export const getHandler =
   };
 
 export const getStreamHandler =
-  (factory: ReducibleFactory) =>
+  (factory: AggregateFactory) =>
   async (
     req: Request<{ id: string }, Snapshot[], never, { useSnapshots?: string }>,
     res: Response,

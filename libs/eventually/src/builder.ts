@@ -194,10 +194,12 @@ export abstract class Builder extends EventEmitter implements Disposable {
    * @param factory the artifact factory
    * @param options the artifact options
    */
-  with<S extends State, C extends Messages, E extends Messages>(
-    factory: ArtifactFactory<S, C, E>,
-    options?: WithOptions<S, E>
-  ): this {
+  with<
+    S extends State,
+    C extends Messages,
+    E extends Messages,
+    O extends Messages
+  >(factory: ArtifactFactory<S, C, E, O>, options?: WithOptions<S, E>): this {
     if (this.artifacts.has(factory.name))
       throw Error(`Duplicate artifact "${factory.name}"`);
     const metadata = this._reflect(

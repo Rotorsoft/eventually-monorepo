@@ -39,8 +39,9 @@ export type PolicyFactory<
 export type ProcessManagerFactory<
   S extends State = State,
   C extends Messages = Messages,
-  E extends Messages = Messages
-> = () => ProcessManager<S, C, E>;
+  E extends Messages = Messages,
+  O extends Messages = Messages
+> = () => ProcessManager<S, C, E, O>;
 
 /**
  * Projector factories build projectors
@@ -65,10 +66,7 @@ export type StreamableFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> =
-  | AggregateFactory<S, C, E>
-  | ProcessManagerFactory<S, C, E>
-  | SystemFactory<C, E>;
+> = AggregateFactory<S, C, E> | SystemFactory<C, E>;
 
 /**
  * All reducible factories
@@ -76,8 +74,9 @@ export type StreamableFactory<
 export type ReducibleFactory<
   S extends State = State,
   C extends Messages = Messages,
-  E extends Messages = Messages
-> = AggregateFactory<S, C, E> | ProcessManagerFactory<S, C, E>;
+  E extends Messages = Messages,
+  O extends Messages = Messages
+> = AggregateFactory<S, C, E> | ProcessManagerFactory<S, C, E, O>;
 
 /**
  * All command handler factories
@@ -94,8 +93,9 @@ export type CommandHandlerFactory<
 export type EventHandlerFactory<
   S extends State = State,
   C extends Messages = Messages,
-  E extends Messages = Messages
-> = ProcessManagerFactory<S, C, E> | PolicyFactory<C, E>;
+  E extends Messages = Messages,
+  O extends Messages = Messages
+> = ProcessManagerFactory<S, C, E, O> | PolicyFactory<C, E>;
 
 /**
  * All message handler factories
@@ -103,9 +103,10 @@ export type EventHandlerFactory<
 export type ArtifactFactory<
   S extends State = State,
   C extends Messages = Messages,
-  E extends Messages = Messages
+  E extends Messages = Messages,
+  O extends Messages = Messages
 > =
   | CommandHandlerFactory<S, C, E>
-  | EventHandlerFactory<S, C, E>
+  | EventHandlerFactory<S, C, E, O>
   | CommandAdapterFactory<S, C>
   | ProjectorFactory<S, E>;

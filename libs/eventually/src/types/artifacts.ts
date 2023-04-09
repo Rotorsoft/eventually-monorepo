@@ -1,5 +1,6 @@
-import { z, ZodType } from "zod";
+import { z, ZodRawShape, ZodType, ZodTypeAny } from "zod";
 import {
+  ActorHandler,
   CommandHandler,
   EventHandler,
   EventReducer,
@@ -26,6 +27,14 @@ export type ArtifactType =
 export type Empty = Record<string, never>;
 /** Empty message payload schema */
 export const ZodEmpty = z.record(z.never());
+/** Infers zod types */
+export type Infer<T> = T extends ZodRawShape
+  ? {
+      [K in keyof T]: z.infer<T[K]>;
+    }
+  : T extends ZodTypeAny
+  ? z.infer<T>
+  : never;
 
 /**
  * All artifacts transferred from models have
@@ -37,8 +46,8 @@ export type WithDescription = {
 
 /**
  * Command handling artifacts have
- * - `commands` schemas for input validation
- * - `events` schemas for output validation
+ * - `schemas.commands` schemas for input validation
+ * - `schemas.events` schemas for output validation
  * - `on` command handlers
  */
 export type WithCommandHandlers<
@@ -55,7 +64,7 @@ export type WithCommandHandlers<
 
 /**
  * Event handling artifacts have
- * - `events` schemas for input validation
+ * - `schemas.events` schemas for input validation
  * - `on` event handlers
  */
 export type WithEventHandlers<
@@ -73,11 +82,11 @@ export type WithEventHandlers<
 
 /**
  * Command producing artifacts have
- * - `commands` produced command names to help with documentation
+ * - `schemas.commands` produced command names to help with documentation
  */
 export type WithCommandOutputs<C extends Messages> = {
   schemas: {
-    commands: { [K in keyof C]: string };
+    commands: { [K in keyof C]: ZodType<C[K]> };
   };
 };
 
@@ -90,8 +99,7 @@ export type Streamable = WithDescription & {
 
 /**
  * Reducible artifacts reduce state from event streams
- * - `state` schema to help with documentation
- * - `events` schemas for commit validation
+ * - `schemas.state` schema to help with documentation
  * - `init` state initializer
  * - `reduce` event reducers
  */
@@ -101,7 +109,6 @@ export type Reducible<
 > = WithDescription & {
   schemas: {
     state: ZodType<S>;
-    events: { [K in keyof E]: ZodType<E[K]> };
   };
   init: () => Readonly<S>;
   reduce: { [K in keyof E]: EventReducer<S, E, K> };
@@ -110,6 +117,8 @@ export type Reducible<
 /**
  * Aggregates handle commands and produce committed events while holding internal reducible state
  * - Provide consistency boundaries in a business model
+ * - `schemas.events` schemas for commit validation
+ * - `given?` array of invariant handlers
  */
 export type Aggregate<
   S extends State = State,
@@ -118,6 +127,9 @@ export type Aggregate<
 > = Streamable &
   Reducible<S, E> &
   WithCommandHandlers<S, C, E> & {
+    schemas: {
+      events: { [K in keyof E]: ZodType<E[K]> };
+    };
     given?: { [K in keyof C]?: Array<Invariant<S>> };
   };
 
@@ -138,20 +150,27 @@ export type Policy<
 > = WithDescription & WithEventHandlers<State, C, E> & WithCommandOutputs<C>;
 
 /**
- * Process managers are policies with reducible state
- * - Expands consistency boundaries by reducing events from different sources into local state machines
+ * Process managers are policies with reducible state, used to expand a consistency boundary around aggregates
+ * - Generates actor ids to reduce its state from events with actor = id
+ * - Invokes commands on the expanded aggregates, appending the actor id to the committed events
+ * - `actor` actor id resolvers from input events
  */
 export type ProcessManager<
   S extends State = State,
   C extends Messages = Messages,
-  E extends Messages = Messages
-> = Streamable &
-  Reducible<S, E> &
+  E extends Messages = Messages,
+  O extends Messages = Messages
+> = Reducible<S, O> &
   WithEventHandlers<S, C, E> &
-  WithCommandOutputs<C>;
+  WithCommandOutputs<C> & {
+    actor: { [K in keyof E]: ActorHandler<E, K> };
+  };
 
 /**
  * Projectors handle events and produce slices of filters/values representing the area being created/merged or deleted
+ * - `schemas.state` state schema to help with documentation
+ * - `schemas.events` event schemas for input validation
+ * - `on` projection handlers
  */
 export type Projector<
   S extends State = State,
@@ -171,7 +190,7 @@ export type Projector<
 /**
  * Command adapters map any message payload to commands
  * - These are policies with generic inputs (not committed events)
- * - `message` schema for input validation
+ * - `schemas.message` message schema for input validation
  * - `on` command adapter
  */
 export type CommandAdapter<
@@ -200,8 +219,9 @@ export type CommandHandlingArtifact<
 export type EventHandlingArtifact<
   S extends State = State,
   C extends Messages = Messages,
-  E extends Messages = Messages
-> = ProcessManager<S, C, E> | Policy<C, E>;
+  E extends Messages = Messages,
+  O extends Messages = Messages
+> = ProcessManager<S, C, E, O> | Policy<C, E>;
 
 /**
  * All message handling artifacts
@@ -209,9 +229,10 @@ export type EventHandlingArtifact<
 export type Artifact<
   S extends State = State,
   C extends Messages = Messages,
-  E extends Messages = Messages
+  E extends Messages = Messages,
+  O extends Messages = Messages
 > =
   | CommandHandlingArtifact<S, C, E>
-  | EventHandlingArtifact<S, C, E>
+  | EventHandlingArtifact<S, C, E, O>
   | CommandAdapter<S, C>
   | Projector<S, E>;

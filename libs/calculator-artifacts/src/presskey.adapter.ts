@@ -1,4 +1,4 @@
-import { bind, CommandAdapterFactory } from "@rotorsoft/eventually";
+import { bind, CommandAdapterFactory, ZodEmpty } from "@rotorsoft/eventually";
 import z from "zod";
 import * as schemas from "./calculator.schemas";
 
@@ -16,7 +16,7 @@ export const PressKeyAdapter: CommandAdapterFactory<
   description: "PressKey adapter",
   schemas: {
     message: ExternalPayloadSchema,
-    commands: { PressKey: "when a key received", Reset: "never invoked" }
+    commands: { PressKey: schemas.PressKey, Reset: ZodEmpty }
   },
   on: ({ id, key }) => bind("PressKey", { key }, { stream: id })
 });

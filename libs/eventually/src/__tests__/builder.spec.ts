@@ -53,7 +53,7 @@ const Policy1: PolicyFactory<
   description: "Policy",
   schemas: {
     events: { Event1: ZodEmpty },
-    commands: { Command1: "" }
+    commands: { Command1: ZodEmpty }
   },
   on: {
     Event1: () => Promise.resolve(undefined)

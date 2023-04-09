@@ -4,11 +4,12 @@ export const stream = (table: string): string => `
 CREATE TABLE IF NOT EXISTS public.${table}
 (
 	id serial PRIMARY KEY,
-  name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+  name varchar(100) COLLATE pg_catalog."default" NOT NULL,
   data json,
-  stream character varying(100) COLLATE pg_catalog."default" NOT NULL,
+  stream varchar(100) COLLATE pg_catalog."default" NOT NULL,
   version int NOT NULL,
   created timestamptz NOT NULL DEFAULT now(),
+  actor varchar(100) COLLATE pg_catalog."default",
   metadata json
 ) TABLESPACE pg_default;
 
@@ -30,26 +31,29 @@ END
 $$;
 
 ALTER TABLE public.${table}
+ADD COLUMN IF NOT EXISTS actor varchar(100) COLLATE pg_catalog."default";
+
+ALTER TABLE public.${table}
 ADD COLUMN IF NOT EXISTS metadata json;
 
 CREATE UNIQUE INDEX IF NOT EXISTS ${table}_stream_ix
-  ON public.${table} USING btree
-  (stream COLLATE pg_catalog."default" ASC, version ASC)
+  ON public.${table} USING btree (stream COLLATE pg_catalog."default" ASC, version ASC)
   TABLESPACE pg_default;
 	
 CREATE INDEX IF NOT EXISTS ${table}_name_ix
-  ON public.${table} USING btree
-  (name COLLATE pg_catalog."default" ASC)
+  ON public.${table} USING btree (name COLLATE pg_catalog."default" ASC)
   TABLESPACE pg_default;
     
 CREATE INDEX IF NOT EXISTS ${table}_created_id_ix
-  ON public.${table} USING btree
-  (created ASC, id ASC)
+  ON public.${table} USING btree (created ASC, id ASC)
+  TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS ${table}_actor_ix
+  ON public.${table} USING btree (actor COLLATE pg_catalog."default" ASC NULLS LAST)
   TABLESPACE pg_default;
 
 CREATE INDEX IF NOT EXISTS ${table}_correlation_ix
-  ON public.${table} USING btree
-  ((metadata ->> 'correlation'::text) COLLATE pg_catalog."default" ASC NULLS LAST)
+  ON public.${table} USING btree ((metadata ->> 'correlation'::text) COLLATE pg_catalog."default" ASC NULLS LAST)
   TABLESPACE pg_default;
     
 DROP INDEX IF EXISTS stream_ix;

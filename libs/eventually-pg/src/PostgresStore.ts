@@ -22,6 +22,7 @@ type Event = {
   stream: string;
   version: number;
   created: Date;
+  actor: string;
   metadata: any;
 };
 
@@ -43,6 +44,7 @@ export const PostgresStore = (table: string): Store => {
       created_before,
       created_after,
       backward,
+      actor,
       correlation
     } = query || {};
 
@@ -67,6 +69,10 @@ export const PostgresStore = (table: string): Store => {
     if (created_before) {
       values.push(created_before.toISOString());
       sql = sql.concat(` AND created<$${values.length}`);
+    }
+    if (actor) {
+      values.push(actor);
+      sql = sql.concat(` AND actor=$${values.length}`);
     }
     if (correlation) {
       values.push(correlation);
@@ -118,9 +124,16 @@ export const PostgresStore = (table: string): Store => {
           events.map(async ({ name, data }) => {
             version++;
             const committed = await client.query<Event>(
-              `INSERT INTO ${table}(name, data, stream, version, metadata)
-          VALUES($1, $2, $3, $4, $5) RETURNING *`,
-              [name, data, stream, version, metadata]
+              `INSERT INTO ${table}(name, data, stream, version, actor, metadata)
+          VALUES($1, $2, $3, $4, $5, $6) RETURNING *`,
+              [
+                name,
+                data,
+                stream,
+                version,
+                metadata?.causation?.command?.actor?.id,
+                metadata
+              ]
             );
             return committed.rows[0] as CommittedEvent<E>;
           })

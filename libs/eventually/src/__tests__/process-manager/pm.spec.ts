@@ -9,21 +9,21 @@ import {
   Scope,
   sleep,
   Snapshot
-} from "../../../";
-import { Day, DayState, Events } from "./day.aggregate";
-import { Month } from "./month.policy";
+} from "../../index";
+import { Room } from "./room.aggregate";
+import { MonthlyBookings } from "./monthly-bookings.policy";
 
-const target = (day: string): CommandTarget => ({
-  stream: day,
+const target = (stream: string): CommandTarget => ({
+  stream: stream,
   actor: { id: "actor-id", name: "actor", roles: [] }
 });
 
-const requestBooking = (day: string): Promise<Snapshot<DayState, Events>[]> =>
-  client().command(Day, "RequestBooking", {}, target(day));
+const requestBooking = (room: string): Promise<Snapshot[]> =>
+  client().command(Room, "RequestBooking", {}, target(room));
 
 describe("pm", () => {
   beforeAll(() => {
-    app().with(Day).with(Month, { scope: Scope.private }).build();
+    app().with(Room).with(MonthlyBookings, { scope: Scope.private }).build();
   });
 
   afterAll(async () => {
@@ -31,22 +31,11 @@ describe("pm", () => {
   });
 
   it("should book only 3 days", async () => {
-    const days = [
-      "20230301",
-      "20230302",
-      "20230303",
-      "20230304",
-      "20230305",
-      "20230401",
-      "20230502",
-      "20230603",
-      "20230704",
-      "20230705"
-    ];
+    const rooms = ["301", "302", "303", "304", "305", "401"];
 
     await Promise.all(
-      days.map((day) =>
-        sleep(Math.random() * 10).then(() => requestBooking(day))
+      rooms.map((room) =>
+        sleep(Math.random() * 10).then(() => requestBooking(room))
       )
     );
     await broker().drain();
@@ -56,16 +45,23 @@ describe("pm", () => {
     await client().query({}, (e) => events.push(e));
     log().events(events);
 
-    const month = await client().load(Month, "Month");
-    console.log(month);
+    const month: CommittedEvent[] = [];
+    await client().query(
+      {
+        limit: 10,
+        actor: new Date().getMonth().toString()
+      },
+      (e) => month.push(e)
+    );
+    log().events(month);
 
     const statuses = { open: 0, waiting: 0, booked: 0 };
     await Promise.all(
-      days.map(async (day) => {
-        const snap = await client().load(Day, day);
+      rooms.map(async (room) => {
+        const snap = await client().load(Room, room);
         statuses[snap.state.status] = statuses[snap.state.status] + 1;
       })
     );
-    expect(statuses).toEqual({ open: 0, waiting: 2, booked: 8 });
+    expect(statuses).toEqual({ open: 3, waiting: 0, booked: 3 });
   });
 });
