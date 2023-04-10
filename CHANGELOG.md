@@ -1,3 +1,5 @@
+#### 2023-04-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.3.0...@rotorsoft/eventually-v5.3.1) @rotorsoft/eventually-v5.3.1
+  - PATCH [afcddbb1](https://github.com/Rotorsoft/eventually-monorepo/commit/afcddbb1935956c71fd5b0231185b6177c65b2ac) fix: add inference helpers
 #### 2023-04-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.2.2...@rotorsoft/calculator-artifacts-v1.3.0) @rotorsoft/calculator-artifacts-v1.3.0
   - MINOR [264dc58f](https://github.com/Rotorsoft/eventually-monorepo/commit/264dc58faae6fa5250b573bc0faecf7bdcaa4ec7) feat: refactor process managers as actors, sharing the streams of the aggregates inside the transaction box, add actor field to event streams
 #### 2023-04-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.2.5...@rotorsoft/eventually-express-v5.3.0) @rotorsoft/eventually-express-v5.3.0
