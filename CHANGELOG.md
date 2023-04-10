@@ -1,3 +1,5 @@
+#### 2023-04-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.1.2...@rotorsoft/eventually-broker-v2.1.3) @rotorsoft/eventually-broker-v2.1.3
+  - PATCH [afcddbb1](https://github.com/Rotorsoft/eventually-monorepo/commit/afcddbb1935956c71fd5b0231185b6177c65b2ac) fix: add inference helpers
 #### 2023-04-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.3.0...@rotorsoft/eventually-express-v5.3.1) @rotorsoft/eventually-express-v5.3.1
   - PATCH [afcddbb1](https://github.com/Rotorsoft/eventually-monorepo/commit/afcddbb1935956c71fd5b0231185b6177c65b2ac) fix: add inference helpers
 #### 2023-04-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.3.0...@rotorsoft/eventually-v5.3.1) @rotorsoft/eventually-v5.3.1
