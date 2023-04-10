@@ -1,10 +1,8 @@
-import { bind, Infer, ProcessManager } from "../..";
+import { bind, Infer, InferProcessManager } from "../..";
 import { RoomSchemas, MonthSchemas } from "./schemas";
 
-export const MonthlyBookings = (): ProcessManager<
-  Infer<typeof MonthSchemas.state>,
-  Infer<typeof MonthSchemas.commands>,
-  Infer<typeof MonthSchemas.events>,
+export const MonthlyBookings = (): InferProcessManager<
+  typeof MonthSchemas,
   Pick<Infer<typeof RoomSchemas.events>, "Booked" | "BookingRejected">
 > => ({
   description: "Only allows 3 bookings in any given month",

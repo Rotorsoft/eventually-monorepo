@@ -268,7 +268,7 @@ export const getProjectionSchemas = (): Record<string, oas31.SchemaObject> =>
 
 export const getPaths = (
   security: Security
-): Record<string, oas31.PathsObject> =>
+): Record<string, oas31.PathItemObject> =>
   [...app().artifacts.values()].reduce(
     (paths, { type, factory, inputs, outputs }) => {
       const endpoints = inputs
@@ -438,5 +438,5 @@ export const getPaths = (
       }
       return paths;
     },
-    {} as Record<string, oas31.PathsObject>
+    {} as Record<string, oas31.PathItemObject>
   );

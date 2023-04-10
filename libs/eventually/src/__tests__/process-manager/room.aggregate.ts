@@ -1,14 +1,8 @@
-import { Aggregate, Infer, bind } from "../..";
+import { InferAggregate, bind } from "../..";
 import { RoomSchemas } from "./schemas";
 
 // Room aggregates compete for 3 bookings in a Month
-export const Room = (
-  stream: string
-): Aggregate<
-  Infer<typeof RoomSchemas.state>,
-  Infer<typeof RoomSchemas.commands>,
-  Infer<typeof RoomSchemas.events>
-> => ({
+export const Room = (stream: string): InferAggregate<typeof RoomSchemas> => ({
   description: "A room aggregate",
   stream,
   schemas: RoomSchemas,
