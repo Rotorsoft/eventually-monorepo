@@ -1,3 +1,5 @@
+#### 2023-04-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.3.0...@rotorsoft/calculator-artifacts-v1.3.1) @rotorsoft/calculator-artifacts-v1.3.1
+  - PATCH [6e643bdf](https://github.com/Rotorsoft/eventually-monorepo/commit/6e643bdf64745dc86c7ff97c759e6cb37a1bf137) fix: implement optimistic concurrency check for process managers as actors
 #### 2023-04-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.3.1...@rotorsoft/eventually-express-v5.3.2) @rotorsoft/eventually-express-v5.3.2
   - PATCH [6e643bdf](https://github.com/Rotorsoft/eventually-monorepo/commit/6e643bdf64745dc86c7ff97c759e6cb37a1bf137) fix: implement optimistic concurrency check for process managers as actors
 #### 2023-04-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.2.0...@rotorsoft/eventually-pg-v5.2.1) @rotorsoft/eventually-pg-v5.2.1
