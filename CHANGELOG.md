@@ -1,3 +1,5 @@
+#### 2023-04-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.3.1...@rotorsoft/eventually-v5.3.2) @rotorsoft/eventually-v5.3.2
+  - PATCH [6e643bdf](https://github.com/Rotorsoft/eventually-monorepo/commit/6e643bdf64745dc86c7ff97c759e6cb37a1bf137) fix: implement optimistic concurrency check for process managers as actors
 #### 2023-04-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.1.2...@rotorsoft/eventually-broker-v2.1.3) @rotorsoft/eventually-broker-v2.1.3
   - PATCH [afcddbb1](https://github.com/Rotorsoft/eventually-monorepo/commit/afcddbb1935956c71fd5b0231185b6177c65b2ac) fix: add inference helpers
 #### 2023-04-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.3.0...@rotorsoft/eventually-express-v5.3.1) @rotorsoft/eventually-express-v5.3.1
