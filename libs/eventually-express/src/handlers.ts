@@ -280,6 +280,9 @@ export const errorHandler = (
     case Errors.ConcurrencyError:
       res.status(409).send({ name, message, ...other });
       break;
+    case Errors.ActorConcurrencyError:
+      res.status(409).send({ name, message, ...other });
+      break;
     default:
       res.status(500).send({
         name,

@@ -29,7 +29,7 @@ describe("pg", () => {
     await db.commit(a1, [event("test1", { value: "1" })], {
       correlation: "",
       causation: {
-        command: { name: "", actor: { id: pm, name: "", roles: [] } }
+        command: { name: "", actor: { id: pm, name: "" } }
       }
     });
     created_after = new Date();
@@ -42,7 +42,7 @@ describe("pg", () => {
     await db.commit(a2, [event("test2", { value: "3" })], {
       correlation: "",
       causation: {
-        command: { name: "", actor: { id: pm, name: "", roles: [] } }
+        command: { name: "", actor: { id: pm, name: "" } }
       }
     });
     await db.commit(a3, [event("test1", { value: "4" })], {

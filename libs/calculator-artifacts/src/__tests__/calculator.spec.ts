@@ -112,7 +112,7 @@ describe("Calculator", () => {
 
   it("should record metadata with actor", async () => {
     const stream = chance.guid();
-    const actor: Actor = { id: "the-actor", name: "the-actor", roles: [] };
+    const actor: Actor = { id: "the-actor", name: "the-actor" };
     await client().command(
       Calculator,
       "PressKey",

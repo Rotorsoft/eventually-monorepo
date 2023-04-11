@@ -259,7 +259,11 @@ export const event = async <
         await command<S, C, E>(
           {
             ...cmd,
-            actor: { id: actor || factory.name, name: factory.name, roles: [] }
+            actor: {
+              id: actor || factory.name,
+              name: factory.name,
+              expectedCount: actor ? snapshot.applyCount : undefined
+            }
           },
           metadata
         );

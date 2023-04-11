@@ -43,6 +43,20 @@ export class ConcurrencyError extends Error {
   }
 }
 
+export class ActorConcurrencyError extends Error {
+  constructor(
+    public readonly actor: string,
+    public readonly event: Message,
+    public readonly count: number,
+    public readonly expectedCount: number
+  ) {
+    super(
+      `Actor ${actor} concurrency error committing event "${event.name}". Expected event count ${expectedCount} did not match ${count}.`
+    );
+    this.name = Errors.ActorConcurrencyError;
+  }
+}
+
 export class RegistrationError extends Error {
   constructor(message: Message) {
     super(`Message "${message.name}" not registered with app builder!`);

@@ -1,4 +1,4 @@
-import { bind, Infer, InferProcessManager } from "../..";
+import { bind, Infer, InferProcessManager } from "@rotorsoft/eventually";
 import { RoomSchemas, MonthSchemas } from "./schemas";
 
 export const MonthlyBookings = (): InferProcessManager<
