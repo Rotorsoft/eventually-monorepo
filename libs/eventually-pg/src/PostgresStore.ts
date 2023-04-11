@@ -7,6 +7,7 @@ import {
   log,
   Message,
   Messages,
+  ActorConcurrencyError,
   Store,
   StoreStat,
   Subscription
@@ -112,6 +113,8 @@ export const PostgresStore = (table: string): Store => {
       let version = -1;
       try {
         await client.query("BEGIN");
+
+        // stream concurrency
         const last = await client.query<Event>(
           `SELECT version FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
           [stream]
@@ -120,20 +123,38 @@ export const PostgresStore = (table: string): Store => {
         if (expectedVersion && version !== expectedVersion)
           throw new ConcurrencyError(version, events, expectedVersion);
 
+        // actor concurrency
+        const {
+          id: actorId,
+          name: actorName,
+          expectedCount
+        } = metadata.causation.command?.actor || {
+          id: undefined,
+          name: ""
+        };
+        if (expectedCount && actorId) {
+          const count = (
+            await client.query<{ count: number }>(
+              `SELECT COUNT(id) FROM ${table} WHERE actor=$1`,
+              [actorId]
+            )
+          ).rows[0].count;
+          if (count !== expectedCount)
+            throw new ActorConcurrencyError(
+              `${actorName}:${actorId}`,
+              events.at(0) as Message,
+              count,
+              expectedCount
+            );
+        }
+
         const committed = await Promise.all(
           events.map(async ({ name, data }) => {
             version++;
             const committed = await client.query<Event>(
               `INSERT INTO ${table}(name, data, stream, version, actor, metadata)
           VALUES($1, $2, $3, $4, $5, $6) RETURNING *`,
-              [
-                name,
-                data,
-                stream,
-                version,
-                metadata?.causation?.command?.actor?.id,
-                metadata
-              ]
+              [name, data, stream, version, actorId, metadata]
             );
             return committed.rows[0] as CommittedEvent<E>;
           })
@@ -162,6 +183,10 @@ export const PostgresStore = (table: string): Store => {
       } finally {
         client.release();
       }
+    },
+
+    reset: async (): Promise<void> => {
+      await pool.query(`TRUNCATE TABLE ${table}`);
     },
 
     stats: async (): Promise<StoreStat[]> => {

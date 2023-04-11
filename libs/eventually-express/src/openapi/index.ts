@@ -81,6 +81,19 @@ const errorSchemas = {
       ),
       expectedVersion: z.number().int()
     })
+  ),
+  ActorConcurrencyError: toSchema(
+    z.object({
+      name: z.enum([Errors.ActorConcurrencyError]),
+      message: z.string().min(1),
+      actor: z.string(),
+      event: z.object({
+        name: z.string(),
+        data: z.object({})
+      }),
+      count: z.number().int(),
+      expectedCount: z.number().int()
+    })
   )
 };
 

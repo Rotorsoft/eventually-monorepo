@@ -2,24 +2,15 @@ import {
   app,
   broker,
   client,
-  CommandTarget,
   CommittedEvent,
   dispose,
   log,
   Scope,
-  sleep,
-  Snapshot
-} from "../../index";
+  sleep
+} from "@rotorsoft/eventually";
 import { Room } from "./room.aggregate";
 import { MonthlyBookings } from "./monthly-bookings.policy";
-
-const target = (stream: string): CommandTarget => ({
-  stream: stream,
-  actor: { id: "actor-id", name: "actor", roles: [] }
-});
-
-const requestBooking = (room: string): Promise<Snapshot[]> =>
-  client().command(Room, "RequestBooking", {}, target(room));
+import { requestBooking } from "./utils";
 
 describe("pm", () => {
   beforeAll(() => {
@@ -35,10 +26,12 @@ describe("pm", () => {
 
     await Promise.all(
       rooms.map((room) =>
-        sleep(Math.random() * 10).then(() => requestBooking(room))
+        sleep(Math.random() * 100).then(() => requestBooking(room))
       )
     );
+    await sleep(100);
     await broker().drain();
+    await sleep(100);
     await broker().drain();
 
     const events: CommittedEvent[] = [];

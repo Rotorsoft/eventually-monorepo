@@ -20,5 +20,6 @@ export enum Errors {
   ValidationError = "ERR_VALIDATION",
   InvariantError = "ERR_INVARIANT",
   ConcurrencyError = "ERR_CONCURRENCY",
+  ActorConcurrencyError = "ERR_ACTOR_CONCURRENCY",
   RegistrationError = "ERR_REGISTRATION"
 }

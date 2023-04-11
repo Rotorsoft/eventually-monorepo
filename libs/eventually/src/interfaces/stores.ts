@@ -67,10 +67,17 @@ export interface Store extends Disposable, Seedable {
   ) => Promise<CommittedEvent<E>[]>;
 
   /**
+   * Resets the store - TODO: add options to "close the books"
+   */
+  reset: () => Promise<void>;
+
+  // TODO: refactor stats using async projections
+  /**
    * Gets store stats
    */
   stats: () => Promise<StoreStat[]>;
 
+  // TODO: refactor lease interface, no need to be part of the store, optimized for caches
   /**
    * Polls for new events after stored consumer watermark
    * - Creates an expiring consumer lease to serialize competing consumers

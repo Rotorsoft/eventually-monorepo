@@ -5,7 +5,8 @@ import {
   CommittedEventMetadata,
   ConcurrencyError,
   Message,
-  Messages
+  Messages,
+  ActorConcurrencyError
 } from "../types";
 
 /**
@@ -64,6 +65,7 @@ export const InMemoryStore = (): Store => {
       metadata: CommittedEventMetadata,
       expectedVersion?: number
     ): Promise<CommittedEvent<E>[]> => {
+      // stream concurrency
       const aggregate = _events.filter((e) => e.stream === stream);
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
         throw new ConcurrencyError(
@@ -71,6 +73,22 @@ export const InMemoryStore = (): Store => {
           events,
           expectedVersion
         );
+
+      // actor concurrency - this should never happen in memory
+      const expectedCount = metadata.causation.command?.actor?.expectedCount;
+      if (expectedCount) {
+        const actor = metadata.causation.command?.actor;
+        const count = _events.filter(
+          (e) => e.metadata.causation.command?.actor?.id === actor?.id
+        ).length;
+        if (count !== expectedCount)
+          throw new ActorConcurrencyError(
+            `${actor.name}:${actor.id}`,
+            events.at(0) as Message,
+            count,
+            expectedCount
+          );
+      }
 
       let version = aggregate.length;
       const committed = events.map(({ name, data }) => {
@@ -88,6 +106,11 @@ export const InMemoryStore = (): Store => {
         return committed;
       });
       return Promise.resolve(committed);
+    },
+
+    reset: (): Promise<void> => {
+      _events.length = 0;
+      return Promise.resolve();
     },
 
     stats: (): Promise<StoreStat[]> => {

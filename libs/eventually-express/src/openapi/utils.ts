@@ -342,7 +342,8 @@ export const getPaths = (
               tags: [factory.name],
               summary: `Handles ${message}`,
               description:
-                app().messages.get(message)?.schema.description || "",
+                app().messages.get(message)?.schema.description ||
+                "Missing description",
               requestBody: {
                 required: true,
                 content: {
@@ -412,7 +413,10 @@ export const getPaths = (
             tags: [factory.name],
             summary: `Handles ${endpoints.join(",")}`,
             description: Object.entries(commands)
-              .map(([command, schema]) => `"${command}": ${schema.description}`)
+              .map(
+                ([command, schema]) =>
+                  `"${command}": ${schema.description || "Missing description"}`
+              )
               .join("<br/>"),
             requestBody: {
               required: true,
@@ -426,12 +430,22 @@ export const getPaths = (
                 }
               }
             },
-            responses: {
-              "200": toPolicyResponseSchema(outputs),
-              "400": toResponse("ValidationError", "Validation Error"),
-              "404": toResponse("RegistrationError", "Registration Error"),
-              default: { description: "Internal Server Error" }
-            },
+            responses: Object.assign(
+              {
+                "200": toPolicyResponseSchema(outputs),
+                "400": toResponse("ValidationError", "Validation Error"),
+                "404": toResponse("RegistrationError", "Registration Error"),
+                default: { description: "Internal Server Error" }
+              },
+              type === "process-manager"
+                ? {
+                    "409": toResponse(
+                      "ActorConcurrencyError",
+                      "Actor Concurrency Error"
+                    )
+                  }
+                : {}
+            ),
             security: security.operations[factory.name] || [{}]
           }
         };

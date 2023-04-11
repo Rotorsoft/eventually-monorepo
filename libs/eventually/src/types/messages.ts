@@ -20,12 +20,14 @@ export type Message<M extends Messages = Messages> = {
  * - `name` actor name
  *    - for human actors, could be the full name, email, etc ... for log auditing purposes
  *    - for process managers, the factory name
- * - `roles` array of role names used for authorization invariants (usually extracted from JWT and used by validation middleware)
+ * - `roles?` array of role names used for authorization invariants (usually extracted from JWT and used by validation middleware)
+ * - `expectedCount?` expected count of actor events when process managers are enforcing transaction integrity
  */
 export type Actor = {
   readonly id: string;
   readonly name: string;
-  readonly roles: string[];
+  readonly roles?: string[];
+  readonly expectedCount?: number;
 };
 
 /**
