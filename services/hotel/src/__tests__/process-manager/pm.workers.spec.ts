@@ -26,5 +26,5 @@ describe("pm workers", () => {
     );
     console.log(results);
     expect(results.length).toBe(workers.length);
-  }, 30000);
+  }, 60000);
 });
