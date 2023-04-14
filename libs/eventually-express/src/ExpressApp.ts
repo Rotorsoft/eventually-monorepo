@@ -21,16 +21,16 @@ import {
   errorHandler,
   eventHandler,
   getHandler,
-  readHandler,
   getStreamHandler,
   invokeHandler,
   projectHandler,
+  readHandler,
   statsHandler,
   subscriptionsHandler
 } from "./handlers";
 import { openAPI } from "./openapi";
 import { home } from "./openapi/docs";
-import { httpGetPath, httpPostPath } from "./openapi/utils";
+import { httpGetPath, httpPostPath, toSchema } from "./openapi/utils";
 
 /**
  * Eventually express app builder
@@ -119,8 +119,6 @@ export class ExpressApp extends Builder {
   }
 
   build(middleware?: RequestHandler[]): express.Express {
-    const { service, version, dependencies } = config;
-
     super.build();
     this._oas = openAPI();
     this._withPosts();
@@ -131,33 +129,21 @@ export class ExpressApp extends Builder {
     this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json({ reviver: dateReviver }));
     middleware && this._app.use(middleware);
-    this._app.use(this._router);
-
     this._app.get("/swagger", (_, res) => res.json(this._oas));
-    this._app.get("/_config", (_, res) =>
-      res.json({
-        service,
-        version,
-        dependencies,
-        artifacts: this.artifacts,
-        messages: Object.values(this.messages).map(
-          ({ name, type, schema, handlers, producer }) => ({
-            name,
-            type,
-            description: schema.description || "",
-            handlers,
-            producer
-          })
-        )
-      })
-    );
     this._app.get("/_health", (_, res) =>
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
     );
+    this._app.get("/_commands/:name", (req, res) => {
+      const name = req.params.name;
+      const command = this.messages.get(name);
+      if (command) res.json(toSchema(command.schema));
+      else res.status(404).send(`Command ${name} not found!`);
+    });
     this._app.get("/__killme", () => {
       log().red().bold().info("KILLME");
       process.exit(0);
     });
+    this._app.use(this._router);
 
     return this._app;
   }

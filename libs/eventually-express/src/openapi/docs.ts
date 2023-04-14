@@ -1,51 +1,12 @@
-import { app, formatTime, Scope } from "@rotorsoft/eventually";
+import { formatTime } from "@rotorsoft/eventually";
 import { config, OAS_UIS } from "../config";
-
-const directives = `
-#direction: right
-#font: Monospace
-#.aggregate: fill=#F1D244 visual=note
-#.system: fill=#FFAFDF visual=note
-#.projector: fill=#68C40C visual=note
-#.policy: fill=#A208BA visual=note
-#.process: fill=#A208BA visual=note
-#.command: fill=#01BEFE visual=note
-#.event: fill=#F5891D visual=note
-`;
-
-const diagram = (): string => {
-  const d = [...app().artifacts.values()]
-    .filter((a) => a.type !== "command-adapter")
-    .map((a) => {
-      const i_t =
-        a.type === "aggregate" || a.type === "system" ? "command" : "event";
-      const o_t =
-        a.type === "aggregate" || a.type === "system" ? "event" : "command";
-
-      const inputs = a.inputs
-        .map(
-          ({ name, scope }) =>
-            `[<${i_t}>${name}]\n[${name}] ${
-              scope === Scope.private ? "🔒" : ""
-            } - [${a.factory.name}]`
-        )
-        .join("\n");
-      const outputs = a.outputs
-        .map((name) => `[<${o_t}>${name}]\n[${a.factory.name}] - [${name}]`)
-        .join("\n");
-      return `
-[<${a.type.split("-").at(0)}>${a.factory.name}]
-${inputs}
-${outputs}
-`;
-    })
-    .join("");
-  return d;
-};
+import { artifacts } from "./artifacts";
+import { diagram, directives } from "./diagram";
 
 export const doc = (
   title: string,
   version: string,
+  dependencies: Record<string, string>,
   ui: OAS_UIS,
   status: Record<string, string>
 ): string => `<!DOCTYPE html>
@@ -70,9 +31,6 @@ export const doc = (
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="/_config">Config</a>
-            </li>
-            <li class="nav-item">
               <a class="nav-link" href="/swagger">Swagger</a>
             </li>
             <li class="nav-item">
@@ -82,32 +40,73 @@ export const doc = (
         </div>
       </div>
     </nav>
-
     <div class="accordion id="accordion">
       <div class="accordion-item">
         <h2 class="accordion-header" id="ahOne">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acOne" aria-expanded="false" aria-controls="acOne">
-            Status
+            Service
           </button>
         </h2>
         <div id="acOne" class="accordion-collapse collapse" aria-labelledby="ahOne">
           <div class="accordion-body">
-            <div class="card" style="width: 18rem;">
-              <table class="table">
-                <tbody>
-                  ${Object.entries(status)
-                    .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`)
-                    .join("")}
-                </tbody>
-              </table>
+            <div class="row row-cols-2">
+              <div class="col">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">Status</h5>
+                    <ul class="list-group list-group-flush">
+                        ${Object.entries(status)
+                          .map(
+                            ([k, v]) =>
+                              `<li class="list-group-item"><b>${k}</b>: ${v}</li>`
+                          )
+                          .join("")}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">Dependencies</h5>
+                    <ul class="list-group list-group-flush">
+                        ${Object.entries(dependencies)
+                          .map(
+                            ([k, v]) =>
+                              `<li class="list-group-item"><b>${k}</b>: ${v}</li>`
+                          )
+                          .join("")}
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="ahThree">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acThree" aria-expanded="false" aria-controls="acThree">
+            Model
+          </button>
+        </h2>
+        <div id="acThree" class="accordion-collapse collapse" aria-labelledby="ahThree">
+          <div class="accordion-body">
+            <canvas id="diagram"></canvas>
+          </div>
+          <div class="accordion-body">
+            <div class="row row-cols-3">
+              ${artifacts()}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="accordion-item">
         <h2 class="accordion-header" id="ahTwo">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acTwo" aria-expanded="false" aria-controls="acTwo">
-            Open API
+            API
           </button>
         </h2>
         <div id="acTwo" class="accordion-collapse collapse" aria-labelledby="ahTwo">
@@ -144,18 +143,6 @@ export const doc = (
           </div>
         </div>
       </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="ahThree">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acThree" aria-expanded="false" aria-controls="acThree">
-            Model
-          </button>
-        </h2>
-        <div id="acThree" class="accordion-collapse collapse" aria-labelledby="ahThree">
-          <div class="accordion-body">
-            <canvas id="diagram"></canvas>
-          </div>
-        </div>
-      </div>
     </div>
   </body>
   <script>
@@ -166,7 +153,7 @@ export const doc = (
 </html>`;
 
 export const home = (): string => {
-  const { service, env, logLevel, oas_ui, version } = config;
+  const { service, env, logLevel, oas_ui, version, dependencies } = config;
   const status = {
     env,
     logLevel,
@@ -178,5 +165,5 @@ export const home = (): string => {
       .reduce((p, c) => Object.assign(p, c))
   };
 
-  return doc(service, version, oas_ui as OAS_UIS, status);
+  return doc(service, version, dependencies, oas_ui as OAS_UIS, status);
 };

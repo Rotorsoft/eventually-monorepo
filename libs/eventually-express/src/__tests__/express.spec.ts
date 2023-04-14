@@ -37,11 +37,6 @@ describe("express app", () => {
     expect(swagger.status).toBe(200);
   });
 
-  it("should get _config", async () => {
-    const swagger = await http.get("/_config");
-    expect(swagger.status).toBe(200);
-  });
-
   it("should get home - default", async () => {
     config.oas_ui = "SwaggerUI";
     const swagger = await http.get("/");
