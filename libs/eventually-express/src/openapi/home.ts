@@ -96,7 +96,7 @@ export const doc = (
             <canvas id="diagram"></canvas>
           </div>
           <div class="accordion-body">
-            <div class="row row-cols-3">
+            <div class="row row-cols-auto g-4">
               ${artifacts()}
             </div>
           </div>

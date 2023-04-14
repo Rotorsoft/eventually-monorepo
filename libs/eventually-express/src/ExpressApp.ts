@@ -28,9 +28,7 @@ import {
   statsHandler,
   subscriptionsHandler
 } from "./handlers";
-import { openAPI } from "./openapi";
-import { home } from "./openapi/docs";
-import { httpGetPath, httpPostPath, toSchema } from "./openapi/utils";
+import { home, httpGetPath, httpPostPath, openAPI, toSchema } from "./openapi";
 
 /**
  * Eventually express app builder

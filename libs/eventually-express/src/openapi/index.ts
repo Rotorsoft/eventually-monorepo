@@ -13,6 +13,9 @@ import {
   toSchema
 } from "./utils";
 
+export * from "./utils";
+export * from "./home";
+
 const getSecurity = (): Security => {
   try {
     const sec = fs.readFileSync("security.json");

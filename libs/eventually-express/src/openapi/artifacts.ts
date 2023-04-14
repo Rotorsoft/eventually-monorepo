@@ -1,4 +1,4 @@
-import { Scope, app } from "@rotorsoft/eventually";
+import { ArtifactType, Scope, app } from "@rotorsoft/eventually";
 
 const _inputs = (
   link: boolean,
@@ -22,13 +22,31 @@ const _outputs = (outputs: string[]): string =>
         .join("")}</ul>`
     : "";
 
+const _color = (type: ArtifactType): string => {
+  switch (type) {
+    case "aggregate":
+      return "warning";
+    case "command-adapter":
+      return "primary";
+    case "projector":
+      return "success";
+    case "system":
+      return "secondary";
+    default:
+      return "danger";
+  }
+};
+
 export const artifacts = (): string =>
   [...app().artifacts.values()]
     .map(
       ({ type, factory, inputs, outputs }) => `
-        <div class="col"><div class="card h-100 text-dark bg-light mb-3">
-        <div class="card-header">${factory.name}  <small>[${type}]</small></div>
-        <div class="card-body">
+        <div class="col"><div class="card h-100 bg-light} mb-3">
+        <div class="card-header bg-${_color(type)}">${factory.name}  </div>
+        <div class="card-body p-2">
+        <p class="m-0 fw-lighter fst-italic" style="font-size:75%">${
+          factory("").description
+        }</p>
         ${_inputs(type === "aggregate" || type === "system", inputs)}
         <hr />
         ${_outputs(outputs)}
