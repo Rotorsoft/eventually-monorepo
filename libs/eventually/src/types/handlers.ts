@@ -16,7 +16,10 @@ export type EventReducer<
   S extends State,
   E extends Messages,
   K extends keyof E
-> = (state: Readonly<S>, event: CommittedEvent<Pick<E, K>>) => Readonly<S>;
+> = (
+  state: Readonly<S>,
+  event: CommittedEvent<Pick<E, K>>
+) => Readonly<Partial<S>>;
 
 /**
  * Command handlers handle commands and emit events

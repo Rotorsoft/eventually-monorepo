@@ -1,27 +1,27 @@
 import {
   Calculator,
-  CalculatorEvents,
-  CalculatorModel,
+  //CalculatorEvents,
+  //CalculatorModel,
   //CalculatorTotals,
   PressKeyAdapter
   //StatelessCounter
 } from "@rotorsoft/calculator-artifacts";
-import { app, bootstrap, store } from "@rotorsoft/eventually";
+import { Scope, app, bootstrap, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
-import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
+//import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
 
 void bootstrap(async (): Promise<void> => {
-  const snapshotStore = PostgresSnapshotStore<
-    CalculatorModel,
-    CalculatorEvents
-  >("calculators", 0);
-  await snapshotStore.seed();
+  // const snapshotStore = PostgresSnapshotStore<
+  //   CalculatorModel,
+  //   CalculatorEvents
+  // >("calculators", 0);
+  // await snapshotStore.seed();
 
-  store(PostgresStore("calculator"));
+  // store(PostgresStore("calculator"));
   await store().seed();
 
   const _app = app(new ExpressApp())
-    .with(Calculator, { store: snapshotStore })
+    .with(Calculator, { scope: Scope.public }) //, store: snapshotStore })
     //.with(StatelessCounter)
     .with(PressKeyAdapter);
   //.with(CalculatorTotals);

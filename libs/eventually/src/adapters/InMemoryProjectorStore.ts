@@ -1,28 +1,23 @@
-import deepmerge from "deepmerge";
 import { ProjectorStore } from "../interfaces";
 import {
-  ProjectionResults,
-  Projection,
-  ProjectionRecord,
-  ProjectionQuery,
   Condition,
   Operator,
+  Projection,
+  ProjectionQuery,
+  ProjectionRecord,
+  ProjectionResults,
   State,
   StateWithId
 } from "../types";
-
-// default deepmerge options: arrays are replaced
-const defaultOptions: deepmerge.Options = {
-  arrayMerge: (target, source) => source
-};
+import { clone } from "../utils";
 
 /**
  * @category Adapters
  * @remarks In-memory projector store
  */
-export const InMemoryProjectorStore = <S extends State>(
-  options = defaultOptions
-): ProjectorStore<S> => {
+export const InMemoryProjectorStore = <
+  S extends State
+>(): ProjectorStore<S> => {
   let _projections: Record<string, ProjectionRecord<S>> = {};
 
   const select = (
@@ -83,7 +78,7 @@ export const InMemoryProjectorStore = <S extends State>(
           to_upsert.forEach(
             (p) =>
               (_projections[p.state.id] = {
-                state: deepmerge<StateWithId<S>>(p.state, values, options),
+                state: clone<StateWithId<S>>(p.state, values),
                 watermark
               })
           );

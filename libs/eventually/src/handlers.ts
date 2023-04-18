@@ -1,5 +1,5 @@
 import { ProjectorStore, SnapshotStore } from "./interfaces";
-import { app, log, store, _imps } from "./ports";
+import { _imps, app, log, store } from "./ports";
 import {
   AggregateFactory,
   AllQuery,
@@ -26,7 +26,7 @@ import {
   State,
   Streamable
 } from "./types";
-import { bind, randomId, validate, validateMessage } from "./utils";
+import { bind, clone, randomId, validate, validateMessage } from "./utils";
 
 /**
  * Loads reducible artifact from store
@@ -66,7 +66,7 @@ const _reduce = async <S extends State, C extends Messages, E extends Messages>(
           stateCount++;
         }
       } else if (reducible.reduce[e.name]) {
-        state = reducible.reduce[e.name](state, e);
+        state = clone(state, reducible.reduce[e.name](state, e));
         applyCount++;
       }
       callback && callback({ event, state, applyCount, stateCount });
@@ -140,7 +140,7 @@ const _handleMsg = async <
           state = event.data as S;
           stateCount++;
         } else {
-          state = reduce[event.name](state, event);
+          state = clone(state, reduce[event.name](state, event));
           applyCount++;
         }
         log()

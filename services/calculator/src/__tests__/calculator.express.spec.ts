@@ -56,7 +56,6 @@ describe("calculator express app", () => {
     const { state } = await http.load(Calculator, id);
     expect(state).toEqual({
       left: "3.3",
-      operator: "+",
       result: 3.3
     });
 
@@ -96,7 +95,6 @@ describe("calculator express app", () => {
     const { state, event } = await http.load(Calculator, id);
     expect(state).toEqual({
       left: "-1",
-      operator: "/",
       result: -1
     });
     expect(event?.metadata?.causation?.command?.actor).toEqual({

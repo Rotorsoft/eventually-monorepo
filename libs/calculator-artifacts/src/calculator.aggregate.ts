@@ -12,15 +12,30 @@ const Operations = {
 
 export type CalculatorModel = z.infer<typeof schemas.CalculatorSchema>;
 
-const compute = (model: CalculatorModel): CalculatorModel => {
+const append = (
+  { operator, left, right }: CalculatorModel,
+  key: schemas.Digits | "."
+): Partial<CalculatorModel> =>
+  operator
+    ? {
+        right: (right || "").concat(key)
+      }
+    : { left: (left || "").concat(key) };
+
+const compute = (
+  model: CalculatorModel,
+  operator?: schemas.Operators
+): Partial<CalculatorModel> => {
   if (model.operator && model.left && model.right) {
     const l = Number.parseFloat(model.left);
     const r = Number.parseFloat(model.right);
     const result = Operations[model.operator](l, r);
     const left = result.toString();
-    return { result, left, operator: model.operator };
+    return { result, left, right: undefined, operator };
   }
-  return model;
+  if (model.left && model.left !== "-") return { operator };
+  if (operator === "-") return { left: "-" };
+  return {};
 };
 
 export const Calculator: AggregateFactory<
@@ -52,39 +67,17 @@ export const Calculator: AggregateFactory<
   }),
 
   reduce: {
-    DigitPressed: (model, { data }) => {
-      if (model.operator) {
-        const right = (model.right || "").concat(data.digit || "");
-        return { ...model, right };
-      }
-      const left = (model.left || "").concat(data.digit || "");
-      return { ...model, left };
-    },
-
-    OperatorPressed: (model, { data }) => {
-      if (model.left) {
-        const newmodel = compute(model);
-        return { ...newmodel, operator: data.operator };
-      }
-      return { ...model };
-    },
-
-    DotPressed: (model) => {
-      if (model.operator) {
-        const right = (model.right || "").concat(".");
-        return { ...model, right };
-      }
-      const left = (model.left || "").concat(".");
-      return { ...model, left };
-    },
-
+    DigitPressed: (model, { data }) => append(model, data.digit),
+    OperatorPressed: (model, { data }) => compute(model, data.operator),
+    DotPressed: (model) => append(model, "."),
     EqualsPressed: (model) => compute(model),
-
     Cleared: () => ({
-      result: 0
+      result: 0,
+      left: undefined,
+      right: undefined,
+      operator: undefined
     }),
-
-    Ignored3: (model) => model
+    Ignored3: () => ({})
   },
   on: {
     PressKey: async ({ key }, state) => {

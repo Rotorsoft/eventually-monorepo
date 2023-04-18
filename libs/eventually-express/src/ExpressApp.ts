@@ -132,8 +132,8 @@ export class ExpressApp extends Builder {
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
     );
     this._app.get("/_commands/:name", (req, res) => {
-      const name = req.params.name;
-      const command = this.messages.get(name);
+      const name = req.params.name.match(/^[a-zA-Z][a-zA-Z0-9]*$/)?.[0];
+      const command = name && this.messages.get(name);
       if (command) res.json(toSchema(command.schema));
       else res.status(404).send(`Command ${name} not found!`);
     });

@@ -52,7 +52,6 @@ describe("Calculator", () => {
     const { state } = await client().load(Calculator, id);
     expect(state).toEqual({
       left: "3.3",
-      operator: "+",
       result: 3.3
     });
 
@@ -80,7 +79,6 @@ describe("Calculator", () => {
     const { state } = await client().load(Calculator, id);
     expect(state).toEqual({
       left: "-1",
-      operator: "/",
       result: -1
     });
 
@@ -105,7 +103,6 @@ describe("Calculator", () => {
     const { state } = await client().load(Calculator, id);
     expect(state).toEqual({
       left: "0.3",
-      operator: "+",
       result: 0.3
     });
   });

@@ -4,11 +4,12 @@ import { app } from "./ports";
 import {
   Command,
   CommandTarget,
-  ZodEmpty,
   Message,
   Messages,
   RegistrationError,
-  ValidationError
+  State,
+  ValidationError,
+  ZodEmpty
 } from "./types";
 
 /**
@@ -158,3 +159,52 @@ const ISO_8601 =
   /^(\d{4}|\+\d{6})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})\.(\d{1,})(Z|([-+])(\d{2}):(\d{2}))?)?)?)?$/;
 export const dateReviver = (key: string, value: string): string | Date =>
   typeof value === "string" && ISO_8601.test(value) ? new Date(value) : value;
+
+/** These objects are copied instead of deep merged */
+const UNMERGEABLES = [
+  RegExp,
+  Date,
+  Array,
+  Map,
+  Set,
+  WeakMap,
+  WeakSet,
+  ArrayBuffer,
+  SharedArrayBuffer,
+  DataView,
+  Int8Array,
+  Uint8Array,
+  Uint8ClampedArray,
+  Int16Array,
+  Uint16Array,
+  Int32Array,
+  Uint32Array,
+  Float32Array,
+  Float64Array
+];
+
+const mergeable = (value: any): boolean =>
+  !!value &&
+  typeof value === "object" &&
+  !UNMERGEABLES.some((t) => value instanceof t);
+
+/**
+ * Clones state with patches recursively. Keys with `undefined` values in patch are deleted.
+ * @param state original state
+ * @param patch patches to merge
+ * @returns a new patched state
+ */
+export const clone = <S extends State>(
+  state: Readonly<S>,
+  patch: Readonly<Partial<S>> | undefined
+): Readonly<S> => {
+  const cloned: State = {};
+  Object.keys({ ...state, ...patch }).forEach((key) => {
+    const patched = patch && key in patch;
+    const deleted = patched && patch[key] === "undefined";
+    const value = patched && !deleted ? patch[key] : state[key];
+    if (mergeable(value)) cloned[key] = clone(state[key], patch && patch[key]);
+    else if (!deleted) cloned[key] = value;
+  });
+  return cloned as Readonly<S>;
+};
