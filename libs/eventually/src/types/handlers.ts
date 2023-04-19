@@ -8,6 +8,18 @@ import {
 } from "./messages";
 
 /**
+ * State reducers apply partial state patches to a state, resulting in a new state
+ * - `state` the original state
+ * - `patch` the patches to apply, considering rules like:
+ *    - using `undefined` values to delete fields from the original state
+ *    - recursively merging vs copying objects (like arrays)
+ */
+export type StateReducer<S extends State> = (
+  state: Readonly<S>,
+  patch: Readonly<Partial<S>> | undefined
+) => Readonly<S>;
+
+/**
  * Event reducers apply events to a reduced state, resulting in a new state
  * - `state` the current reduced state
  * - `event` the event to be applied

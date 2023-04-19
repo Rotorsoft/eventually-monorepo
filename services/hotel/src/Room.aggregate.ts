@@ -58,6 +58,7 @@ export const Room = (
       })
     })
   },
+  reducer: (state, patch) => Object.assign(state, patch),
   on: {
     OpenRoom: (data) => {
       if (data.number.toString() !== stream)

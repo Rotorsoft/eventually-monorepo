@@ -11,7 +11,7 @@ import { DaySales, Next30Days } from "../Next30Days.projector";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
-import { fromToday } from "../utils";
+import { fromToday, readHomeView } from "../utils";
 
 const openRoom = (
   room: models.Room,
@@ -114,6 +114,9 @@ describe("Room", () => {
         watermark: 5
       }
     ]);
+
+    const { rooms } = await readHomeView();
+    expect(rooms.length).toBeGreaterThan(0);
   });
 
   it("should fail booking", async () => {

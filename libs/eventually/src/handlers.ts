@@ -45,6 +45,7 @@ const _reduce = async <S extends State, C extends Messages, E extends Messages>(
   useSnapshots = true,
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> => {
+  const reducer = reducible.reducer || clone;
   const type = app().artifacts.get(factory.name)?.type;
   const snapStore =
     ((useSnapshots && app().stores.get(factory.name)) as SnapshotStore<S, E>) ||
@@ -66,7 +67,7 @@ const _reduce = async <S extends State, C extends Messages, E extends Messages>(
           stateCount++;
         }
       } else if (reducible.reduce[e.name]) {
-        state = clone(state, reducible.reduce[e.name](state, e));
+        state = reducer(state, reducible.reduce[e.name](state, e));
         applyCount++;
       }
       callback && callback({ event, state, applyCount, stateCount });
@@ -103,6 +104,7 @@ const _handleMsg = async <
 ): Promise<Snapshot<S, E>[]> => {
   const stream = "stream" in artifact ? artifact.stream : undefined;
   const reduce = "reduce" in artifact ? artifact.reduce : undefined;
+  const reducer = ("reducer" in artifact && artifact.reducer) || clone;
 
   const snapshot = reduce
     ? await _reduce(
@@ -140,7 +142,7 @@ const _handleMsg = async <
           state = event.data as S;
           stateCount++;
         } else {
-          state = clone(state, reduce[event.name](state, event));
+          state = reducer(state, reduce[event.name](state, event));
           applyCount++;
         }
         log()

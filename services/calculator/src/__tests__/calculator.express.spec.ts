@@ -153,4 +153,9 @@ describe("calculator express app", () => {
       "Request failed with status code 500"
     );
   });
+
+  it("should load service home page", async () => {
+    const home = await http.get("/");
+    expect(home.status).toBe(200);
+  });
 });

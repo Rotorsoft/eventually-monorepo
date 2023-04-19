@@ -4,7 +4,8 @@ import {
   CommandHandler,
   EventHandler,
   EventReducer,
-  Invariant
+  Invariant,
+  StateReducer
 } from "./handlers";
 import {
   Command,
@@ -118,6 +119,8 @@ export type Streamable = WithDescription & { readonly stream: string };
  * Reducible artifacts reduce their state from event streams
  * - `init` state initializer
  * - `reduce` event reducers
+ * - `reducer?` state reducer
+ * @see `utils.clone` for default state reducer behavior
  */
 export type Reducible<
   S extends State = State,
@@ -125,6 +128,7 @@ export type Reducible<
 > = WithDescription & {
   init: () => Readonly<S>;
   reduce: { [K in keyof E]: EventReducer<S, E, K> };
+  reducer?: StateReducer<S>;
 };
 
 /**
