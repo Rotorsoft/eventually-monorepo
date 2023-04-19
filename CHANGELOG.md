@@ -1,3 +1,5 @@
+#### 2023-04-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.3.3...@rotorsoft/eventually-v5.3.4) @rotorsoft/eventually-v5.3.4
+  - PATCH [1d0b606a](https://github.com/Rotorsoft/eventually-monorepo/commit/1d0b606ad3cfb71dab91fd113547a51d405542a5) fix: add optional custom state reducers as a property of reducer artifacts
 #### 2023-04-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.3.1...@rotorsoft/calculator-artifacts-v1.3.2) @rotorsoft/calculator-artifacts-v1.3.2
   - PATCH [7d30e4ac](https://github.com/Rotorsoft/eventually-monorepo/commit/7d30e4ac145626081168945cbd77099276de0d68) fix: refactor reducibles to return partial state patch to be  merged in new clone utility for simpler immutability
 #### 2023-04-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.3.4...@rotorsoft/eventually-express-v5.3.5) @rotorsoft/eventually-express-v5.3.5
