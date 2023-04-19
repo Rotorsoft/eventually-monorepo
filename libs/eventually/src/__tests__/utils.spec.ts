@@ -1,4 +1,4 @@
-import { camelize, decamelize, formatTime } from "../utils";
+import { camelize, dateReviver, decamelize, formatTime } from "../utils";
 
 describe("utils", () => {
   it("should camelize", () => {
@@ -20,5 +20,29 @@ describe("utils", () => {
     expect(et2.length).toBe(8);
     const et3 = formatTime(process.uptime() + 25 * 60 * 60);
     expect(et3.length).toBeGreaterThan(8);
+  });
+
+  it.each([
+    "2020-03-01T00:00:00.000Z",
+    "2020-03-01T12:00:00.000Z",
+    "2020-03-23T23:59:59.000Z",
+    "2020-03-01T12:00:00.00Z",
+    "2020-03-01T00:00:00.000",
+    "2020-03-23T23:59:59.000+00:00",
+    "2020-03-23T23:59:59.000-05:00"
+  ])("should revive %s", (value: string) => {
+    const result = dateReviver("", value);
+    expect(result instanceof Date).toBeTruthy();
+  });
+
+  it.each([
+    "1234",
+    "abcd",
+    "2020-03-23T23:59:60.000Z",
+    "2020-03-23T23:59:59.000+",
+    "2020-03-23T23:59:59.000-"
+  ])("should not revive %s", (value: string) => {
+    const result = dateReviver("", value);
+    expect(result instanceof Date).toBeFalsy();
   });
 });

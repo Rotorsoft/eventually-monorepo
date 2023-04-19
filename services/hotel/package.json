@@ -17,12 +17,12 @@
         "@rotorsoft/eventually-express": "workspace:^5",
         "@rotorsoft/eventually-pg": "workspace:^5",
         "express": "^4.18.2",
-        "express-handlebars": "^7.0.4",
+        "express-handlebars": "^7.0.7",
         "zod": "^3.21.4"
     },
     "devDependencies": {
         "@types/express": "^4.17.17",
-        "@types/jest": "^29.5.0",
+        "@types/jest": "^29.5.1",
         "jest": "^29.5.0",
         "ts-node-dev": "^2.0.0"
     }
