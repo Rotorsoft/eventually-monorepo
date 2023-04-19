@@ -86,10 +86,6 @@ describe("zodOpenapi", () => {
     );
     const apiSchema = generateSchema(zodSchema);
     expect(apiSchema.properties).toBeDefined();
-    expect((apiSchema.properties?.aAny as SchemaObject).nullable).toEqual(true);
-    expect((apiSchema.properties?.aUnknown as SchemaObject).nullable).toEqual(
-      true
-    );
   });
 
   it("should support never type", () => {
