@@ -1,3 +1,5 @@
+#### 2023-04-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.3.5...@rotorsoft/eventually-v5.3.6) @rotorsoft/eventually-v5.3.6
+  - PATCH [69740321](https://github.com/Rotorsoft/eventually-monorepo/commit/69740321a48da5e23e3902fcd22915b216ad4781) fix: refactor openapi utilities into new library
 #### 2023-04-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.1.3...@rotorsoft/eventually-broker-v2.1.4) @rotorsoft/eventually-broker-v2.1.4
   - PATCH [e2215c07](https://github.com/Rotorsoft/eventually-monorepo/commit/e2215c07f052055656b26a4bea58517003a67a59) fix: fix date reviver, gen docs
 #### 2023-04-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.3.5...@rotorsoft/eventually-express-v5.3.6) @rotorsoft/eventually-express-v5.3.6
