@@ -1,5 +1,6 @@
 /** @module eventually */
 export * from "./adapters";
+export * from "./breaker";
 export * from "./builder";
 export * from "./interfaces";
 export * from "./port";

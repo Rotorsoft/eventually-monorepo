@@ -1,5 +1,6 @@
+import { EventContract } from "@rotorsoft/eventually-openapi";
 import { Response, Router } from "express";
-import { EventContract, getEventContracts } from "../specs";
+import { getEventContracts } from "../specs";
 
 export const router = Router();
 

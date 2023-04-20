@@ -1,35 +1,30 @@
-import { generateSchema } from "./zod-openapi";
 import {
   app,
   ArtifactMetadata,
   ArtifactType,
   decamelize,
   ProjectorFactory,
-  ReducibleFactory,
   Scope,
-  State,
-  ZodEmpty
+  State
 } from "@rotorsoft/eventually";
+import * as fs from "fs";
 import { oas31 } from "openapi3-ts";
-import z, { ZodObject, ZodType } from "zod";
+import { ZodObject } from "zod";
+import { schemas, toSchema } from "./schemas";
 
-const toSnapshotSchema = (
-  name: string,
-  events: string[]
-): oas31.SchemaObject => {
-  return {
-    type: "object",
-    properties: {
-      event: {
-        anyOf: events.map((event) => ({
-          $ref: `#/components/schemas/${event}`
-        }))
-      },
-      state: { $ref: `#/components/schemas/${name}` },
-      applyCount: { type: "number" }
-    }
-  };
+type Security = {
+  schemes: Record<string, oas31.SecuritySchemeObject>;
+  operations: Record<string, Array<any>>;
 };
+
+const eTag = (): oas31.HeadersObject => ({
+  etag: {
+    schema: {
+      type: "integer",
+      description: "Reducible version number"
+    }
+  }
+});
 
 const toPolicyResponseSchema = (commands: string[]): oas31.ResponseObject => {
   const reducibles = commands.reduce((p, c) => {
@@ -53,49 +48,6 @@ const toPolicyResponseSchema = (commands: string[]): oas31.ResponseObject => {
       }
     },
     headers: eTag()
-  };
-};
-
-const toProjectionRecordSchema = (ref: string): oas31.SchemaObject => {
-  return {
-    type: "object",
-    properties: {
-      state: { type: "object", $ref: `#/components/schemas/${ref}` },
-      watermark: { type: "number" }
-    }
-  };
-};
-
-const toProjectionResultsSchema = (ref: string): oas31.SchemaObject => {
-  return {
-    type: "object",
-    properties: {
-      upserted: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            where: {
-              type: "object",
-              $ref: `#/components/schemas/${ref}`
-            },
-            count: { type: "number" }
-          }
-        }
-      },
-      deleted: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            where: { type: "object", $ref: `#/components/schemas/${ref}` },
-            count: { type: "number" }
-          }
-        }
-      },
-      watermark: { type: "number" },
-      error: { type: "string" }
-    }
   };
 };
 
@@ -138,49 +90,7 @@ const toProjectionQueryParameters = (
   ];
 };
 
-const toCommittedEventSchema = (
-  name: string,
-  schema: ZodType
-): oas31.SchemaObject => {
-  const committedEventSchema = toSchema(
-    z.object({
-      name: z.enum([name]),
-      id: z.number().int(),
-      stream: z.string(),
-      version: z.number().int(),
-      created: z.date()
-    })
-  );
-  schema !== ZodEmpty &&
-    committedEventSchema.properties &&
-    (committedEventSchema.properties["data"] = toSchema(schema));
-  return committedEventSchema;
-};
-
-export type Security = {
-  schemes: Record<string, oas31.SecuritySchemeObject>;
-  operations: Record<string, Array<any>>;
-};
-
-export const httpGetPath = (name: string): string =>
-  "/".concat(decamelize(name), "/:id");
-
-export const httpPostPath = (
-  name: string,
-  type: ArtifactType,
-  message = ""
-): string => {
-  switch (type) {
-    case "aggregate":
-      return "/".concat(decamelize(name), "/:id/", decamelize(message));
-    case "system":
-      return "/".concat(decamelize(name), "/", decamelize(message));
-    default:
-      return "/".concat(decamelize(name));
-  }
-};
-
-export const toResponse = (
+const toResponse = (
   ref: string,
   description: string,
   array = false,
@@ -208,65 +118,143 @@ export const toResponse = (
   headers
 });
 
-const eTag = (): oas31.HeadersObject => ({
-  etag: {
-    schema: {
-      type: "integer",
-      description: "Reducible version number"
-    }
-  }
-});
+const allStreamTags = (allStream: boolean): oas31.TagObject[] =>
+  allStream
+    ? [
+        {
+          name: "All Stream",
+          description: "Stream of all events produced by this service"
+        }
+      ]
+    : [];
 
-export const toSchema = (schema: ZodType): oas31.SchemaObject => {
-  const result = generateSchema(schema);
-  result.description = schema.description;
-  return result;
-};
-
-export const getMessageSchemas = (): Record<string, oas31.SchemaObject> =>
-  [...app().messages].reduce((schemas, [name, { schema, type }]) => {
-    schemas[name] =
-      type === "command" || type === "message"
-        ? toSchema(schema)
-        : toCommittedEventSchema(name, schema);
-    return schemas;
-  }, {} as Record<string, oas31.SchemaObject>);
-
-export const getArtifactTags = (): oas31.TagObject[] =>
+const getArtifactTags = (): oas31.TagObject[] =>
   [...app().artifacts.values()].map(({ factory }) => ({
     name: factory.name,
     description: factory("").description
   }));
 
-export const getReducibleSchemas = (): Record<string, oas31.SchemaObject> =>
-  [...app().artifacts.values()]
-    .filter((amd) => amd.type === "aggregate")
-    .reduce((schemas, { factory, outputs }) => {
-      const stateSchema = (factory as ReducibleFactory)("").schemas.state;
-      schemas[factory.name] = toSchema(stateSchema);
-      schemas[factory.name.concat("Snapshot")] = toSnapshotSchema(
-        factory.name,
-        outputs
-      );
-      return schemas;
-    }, {} as Record<string, oas31.SchemaObject>);
+const allStreamParameters: Record<string, oas31.ParameterObject> = {
+  id: {
+    in: "path",
+    name: "id",
+    description: "Reducible Id",
+    schema: { type: "string" },
+    required: true
+  },
+  stream: {
+    in: "query",
+    name: "stream",
+    description: "Filter by stream name",
+    schema: { type: "string" }
+  },
+  names: {
+    in: "query",
+    name: "names",
+    description: "Filter by event names",
+    schema: { type: "array", items: { type: "string" } }
+  },
+  after: {
+    in: "query",
+    name: "after",
+    description: "Get all stream after this event id",
+    schema: { type: "integer", default: -1 }
+  },
+  limit: {
+    in: "query",
+    name: "limit",
+    description: "Max number of events to query",
+    schema: { type: "integer", default: 1 }
+  },
+  before: {
+    in: "query",
+    name: "before",
+    description: "Get all stream before this event id",
+    schema: { type: "integer" }
+  },
+  created_after: {
+    in: "query",
+    name: "created_after",
+    description: "Get all stream created after this date/time",
+    schema: { type: "string", format: "date-time" }
+  },
+  created_before: {
+    in: "query",
+    name: "created_before",
+    description: "Get all stream created before this date/time",
+    schema: { type: "string", format: "date-time" }
+  },
+  expected_version: {
+    in: "header",
+    name: "if-match",
+    description: "Reducible expected version",
+    schema: { type: "number" },
+    required: false
+  },
+  actor: {
+    in: "query",
+    name: "actor",
+    description: "Filter by actor name",
+    schema: { type: "string" }
+  }
+};
 
-export const getProjectionSchemas = (): Record<string, oas31.SchemaObject> =>
-  [...app().artifacts.values()]
-    .filter((amd) => amd.type === "projector")
-    .reduce((schemas, { factory }) => {
-      const stateSchema = (factory as ReducibleFactory)("").schemas.state;
-      schemas[factory.name] = toSchema(stateSchema);
-      schemas[factory.name.concat("Record")] = toProjectionRecordSchema(
-        factory.name
-      );
-      schemas[factory.name.concat("Results")] = toProjectionResultsSchema(
-        factory.name
-      );
-      return schemas;
-    }, {} as Record<string, oas31.SchemaObject>);
+const allStreamPaths = (
+  allStream: boolean,
+  security: Security
+): Record<string, oas31.PathItemObject> =>
+  allStream
+    ? {
+        ["/_stats"]: {
+          get: {
+            tags: ["All Stream"],
+            operationId: "getStats",
+            summary: "Gets store stats",
+            responses: {
+              "200": toResponse("StoreStats", "OK"),
+              default: { description: "Internal Server Error" }
+            },
+            security: security.operations["_stats"] || [{}]
+          }
+        },
+        ["/_subscriptions"]: {
+          get: {
+            tags: ["All Stream"],
+            operationId: "getSubscriptions",
+            summary: "Gets internal consumer subscriptions to the all stream",
+            responses: {
+              "200": toResponse("StoreSubscriptions", "OK"),
+              default: { description: "Internal Server Error" }
+            },
+            security: security.operations["_subscriptions"] || [{}]
+          }
+        },
+        ["/all"]: {
+          parameters: [
+            { $ref: "#/components/parameters/stream" },
+            { $ref: "#/components/parameters/names" },
+            { $ref: "#/components/parameters/after" },
+            { $ref: "#/components/parameters/limit" },
+            { $ref: "#/components/parameters/before" },
+            { $ref: "#/components/parameters/created_after" },
+            { $ref: "#/components/parameters/created_before" },
+            { $ref: "#/components/parameters/actor" }
+          ],
+          get: {
+            tags: ["All Stream"],
+            operationId: "getAll",
+            summary: "Queries all stream",
+            responses: {
+              "200": toResponse("CommittedEvent", "OK", true),
+              default: { description: "Internal Server Error" }
+            },
+            security: security.operations["all"] || [{}]
+          }
+        }
+      }
+    : {};
 
-export const getPaths = (
+const getArtifactPaths = (
   security: Security
 ): Record<string, oas31.PathItemObject> =>
   [...app().artifacts.values()].reduce(
@@ -454,3 +442,57 @@ export const getPaths = (
     },
     {} as Record<string, oas31.PathItemObject>
   );
+
+export const getSecurity = (): Security => {
+  try {
+    const sec = fs.readFileSync("security.json");
+    return JSON.parse(sec.toString()) as Security;
+  } catch {
+    return {
+      schemes: {},
+      operations: {}
+    };
+  }
+};
+
+export const getPahts = (
+  allStream: boolean,
+  security: Security
+): oas31.PathsObject => ({
+  ...getArtifactPaths(security),
+  ...allStreamPaths(allStream, security)
+});
+
+export const getTags = (allStream: boolean): oas31.TagObject[] => [
+  ...getArtifactTags(),
+  ...allStreamTags(allStream)
+];
+
+export const getComponents = (
+  allStream: boolean,
+  security: Security
+): oas31.ComponentsObject => ({
+  parameters: allStream ? allStreamParameters : {},
+  securitySchemes: security.schemes,
+  schemas: schemas(allStream)
+});
+
+export const httpGetPath = (name: string): string =>
+  "/".concat(decamelize(name), "/:id");
+
+export const httpPostPath = (
+  name: string,
+  type: ArtifactType,
+  message = ""
+): string => {
+  switch (type) {
+    case "aggregate":
+      return "/".concat(decamelize(name), "/:id/", decamelize(message));
+    case "system":
+      return "/".concat(decamelize(name), "/", decamelize(message));
+    default:
+      return "/".concat(decamelize(name));
+  }
+};
+
+export const toJsonSchema = toSchema;

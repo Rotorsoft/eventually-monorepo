@@ -1,6 +1,7 @@
 import { dispose, store } from "@rotorsoft/eventually";
+import { getConflicts } from "@rotorsoft/eventually-openapi";
 import axios from "axios";
-import { getConflicts, getEventContract, refreshServiceSpec } from "../specs";
+import { getEventContract, refreshServiceSpec } from "../specs";
 import { swagger } from "./swagger.doc";
 import { serviceBody } from "./utils";
 

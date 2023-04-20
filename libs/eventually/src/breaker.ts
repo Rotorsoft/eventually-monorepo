@@ -1,4 +1,4 @@
-import { log } from "@rotorsoft/eventually";
+import { log } from "./ports";
 
 /**
  * Circuit breaker response
