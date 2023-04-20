@@ -10,10 +10,15 @@ import {
   ProjectorFactory,
   Scope
 } from "@rotorsoft/eventually";
+import {
+  httpGetPath,
+  httpPostPath,
+  openAPI,
+  toJsonSchema
+} from "@rotorsoft/eventually-openapi";
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
-import { oas31 } from "openapi3-ts";
 import { config } from "./config";
 import {
   allStreamHandler,
@@ -28,7 +33,7 @@ import {
   statsHandler,
   subscriptionsHandler
 } from "./handlers";
-import { home, httpGetPath, httpPostPath, openAPI, toSchema } from "./openapi";
+import { home } from "./home";
 
 /**
  * Eventually express app builder
@@ -39,7 +44,6 @@ export class ExpressApp extends Builder {
   private _app = express();
   private _router = Router();
   private _server: Server | undefined;
-  private _oas: oas31.OpenAPIObject | undefined;
 
   constructor() {
     super(config.version);
@@ -118,7 +122,6 @@ export class ExpressApp extends Builder {
 
   build(middleware?: RequestHandler[]): express.Express {
     super.build();
-    this._oas = openAPI();
     this._withPosts();
     this.hasStreams && this._withStreams();
 
@@ -127,14 +130,16 @@ export class ExpressApp extends Builder {
     this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json({ reviver: dateReviver }));
     middleware && this._app.use(middleware);
-    this._app.get("/swagger", (_, res) => res.json(this._oas));
+
+    const oas = openAPI();
+    this._app.get("/swagger", (_, res) => res.json(oas));
     this._app.get("/_health", (_, res) =>
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
     );
     this._app.get("/_commands/:name", (req, res) => {
       const name = req.params.name.match(/^[a-zA-Z][a-zA-Z0-9]*$/)?.[0];
       const command = name && this.messages.get(name);
-      if (command) res.json(toSchema(command.schema));
+      if (command) res.json(toJsonSchema(command.schema));
       else res.status(404).send(`Command ${name} not found!`);
     });
     this._app.get("/__killme", () => {

@@ -3,7 +3,7 @@ import { config, OAS_UIS } from "../config";
 import { artifacts } from "./artifacts";
 import { diagram, directives } from "./diagram";
 
-export const doc = (
+const doc = (
   title: string,
   version: string,
   dependencies: Record<string, string>,

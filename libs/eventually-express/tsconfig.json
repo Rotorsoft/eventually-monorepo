@@ -6,5 +6,8 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "composite": true
   },
-  "references": [{ "path": "../eventually" }]
+  "references": [
+    { "path": "../eventually" },
+    { "path": "../eventually-openapi" }
+  ]
 }

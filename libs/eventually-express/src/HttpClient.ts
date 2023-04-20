@@ -1,26 +1,26 @@
 import {
+  AggregateFactory,
   AllQuery,
   Client,
   CommandAdapterFactory,
   CommandHandlerFactory,
   CommandTarget,
   CommittedEvent,
-  decamelize,
+  Disposable,
   EventHandlerFactory,
+  EventResponse,
   Messages,
-  State,
+  ProjectionQuery,
+  ProjectionRecord,
+  ProjectionResults,
+  ProjectorFactory,
   ReducibleFactory,
   Snapshot,
-  EventResponse,
-  Disposable,
-  ProjectorFactory,
-  ProjectionResults,
-  ProjectionRecord,
-  ProjectionQuery,
-  AggregateFactory
+  State,
+  decamelize
 } from "@rotorsoft/eventually";
+import { httpGetPath, httpPostPath } from "@rotorsoft/eventually-openapi";
 import axios, { AxiosResponse } from "axios";
-import { httpGetPath, httpPostPath } from "./openapi/utils";
 import { toExpressProjectionQuery } from "./query";
 
 /**
