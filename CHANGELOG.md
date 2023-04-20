@@ -1,3 +1,5 @@
+#### 2023-04-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.1.0...@rotorsoft/eventually-openapi-v0.1.1) @rotorsoft/eventually-openapi-v0.1.1
+  - PATCH [69740321](https://github.com/Rotorsoft/eventually-monorepo/commit/69740321a48da5e23e3902fcd22915b216ad4781) fix: refactor openapi utilities into new library
 #### 2023-04-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.3.6...@rotorsoft/eventually-express-v5.3.7) @rotorsoft/eventually-express-v5.3.7
   - PATCH [69740321](https://github.com/Rotorsoft/eventually-monorepo/commit/69740321a48da5e23e3902fcd22915b216ad4781) fix: refactor openapi utilities into new library
 #### 2023-04-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.3.5...@rotorsoft/eventually-v5.3.6) @rotorsoft/eventually-v5.3.6
