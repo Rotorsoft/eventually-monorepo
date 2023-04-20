@@ -1,0 +1,30 @@
+{
+  "name": "@rotorsoft/eventually-openapi",
+  "version": "0.1.0",
+  "description": "Eventually OpenAPI Utilities",
+  "author": "rotorsoft",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "libs/eventually-openapi"
+  },
+  "main": "dist/index",
+  "types": "dist/index",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npx tsc --build"
+  },
+  "dependencies": {
+    "@rotorsoft/eventually": "workspace:^5",
+    "openapi3-ts": "^4.1.1",
+    "ts-deepmerge": "^6.0.3",
+    "validator": "^13.9.0",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/validator": "^13"
+  }
+}

@@ -9,7 +9,6 @@ export * from "./interfaces";
 export * from "./types";
 export * from "./channels";
 export * from "./stores";
-export * from "./breaker";
 
 export const subscriptions = port(function subscriptions(
   store?: SubscriptionStore

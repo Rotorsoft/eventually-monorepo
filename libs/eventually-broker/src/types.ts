@@ -1,29 +1,7 @@
 import { CommittedEvent } from "@rotorsoft/eventually";
+import { ServiceSpec } from "@rotorsoft/eventually-openapi";
 import { RequestHandler } from "express";
-import { oas31 } from "openapi3-ts";
-import { Breaker } from "./breaker";
 import { ChannelResolvers, SubscriptionStore } from "./interfaces";
-
-export type ExtendedSchemaObject = oas31.SchemaObject & {
-  name: string;
-  refs?: string[];
-  inSnapshot?: boolean;
-};
-
-export type ExtendedPathItemObject = oas31.PathItemObject & {
-  path: string;
-  refs?: string[];
-};
-
-export type ServiceSpec = {
-  breaker?: Breaker;
-  discovered?: Date;
-  version?: string;
-  eventHandlers?: Record<string, ExtendedPathItemObject>;
-  commandHandlers?: Record<string, ExtendedPathItemObject>;
-  schemas?: Record<string, ExtendedSchemaObject>;
-  allPath?: string;
-};
 
 /**
  * Services

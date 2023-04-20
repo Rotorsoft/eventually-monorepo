@@ -1,247 +1,14 @@
-import { log } from "@rotorsoft/eventually";
-import axios from "axios";
-import { oas31 } from "openapi3-ts";
-import { breaker } from "./breaker";
-import { state } from "./cluster";
+import { breaker, log } from "@rotorsoft/eventually";
 import {
-  ExtendedPathItemObject,
-  ExtendedSchemaObject,
-  Service,
-  ServiceSpec
-} from "./types";
+  EventContract,
+  OpenAPIObject,
+  getConflicts,
+  getSpec
+} from "@rotorsoft/eventually-openapi";
+import axios from "axios";
+import { state } from "./cluster";
+import { Service } from "./types";
 
-const HTTP_TIMEOUT = 5000;
-
-// /**
-//  * Loads service endpoints metadata
-//  *
-//  * @param service The service
-//  * @returns The endpoints payload
-//  */
-// export const getServiceEndpoints = async (
-//   service: Service
-// ): Promise<Endpoints | undefined> => {
-//   try {
-//     const url = new URL(service.url);
-//     if (!url.protocol.startsWith("http")) return undefined;
-//     const { data } = await axios.get<Endpoints>(`${url.origin}/_endpoints`, {
-//       timeout: HTTP_TIMEOUT
-//     });
-//     return data;
-//   } catch (err) {
-//     log().error(err);
-//     return undefined;
-//   }
-// };
-
-/**
- * Loads service swagger metadata
- *
- * @param service The service
- * @returns The swagger json document spec
- */
-const getServiceSwagger = async (
-  service: Service
-): Promise<oas31.OpenAPIObject | undefined> => {
-  const url = new URL(service.url);
-  if (!url.protocol.startsWith("http")) return undefined;
-  const secretsQueryString = state().serviceSecretsQueryString(service.id);
-  const path = `${service.url.replace(
-    /\/+$/,
-    ""
-  )}/swagger${secretsQueryString}`;
-  const { data } = await axios.get<oas31.OpenAPIObject>(path, {
-    timeout: HTTP_TIMEOUT
-  });
-  return data;
-};
-
-const getSnapshotEvents = (schema: oas31.SchemaObject): string[] => {
-  const refs = [] as string[];
-  schema?.properties?.state &&
-    schema?.properties?.event &&
-    "anyOf" in schema.properties.event &&
-    getRefs(schema.properties.event, refs);
-  return refs;
-};
-
-const getEvent = (
-  schema: oas31.SchemaObject
-): ExtendedSchemaObject | undefined =>
-  schema?.properties?.name &&
-  "enum" in schema.properties.name &&
-  schema.properties.name.enum?.length &&
-  schema?.properties?.created
-    ? { ...schema, name: schema.properties.name.enum[0] }
-    : undefined;
-
-const SCHEMA = "#/components/schemas/";
-const getRefs = (object: unknown, refs: string[]): void => {
-  if (typeof object === "object") {
-    Object.entries(object as object).forEach(([key, value]) => {
-      if (key !== "$ref") getRefs(value, refs);
-      else if (typeof value === "string" && value.startsWith(SCHEMA))
-        refs.push(value.substring(SCHEMA.length));
-    });
-  }
-};
-
-const getSpec = (document: oas31.OpenAPIObject): ServiceSpec => {
-  const handlers = Object.entries(document?.paths || {})
-    .map(([path, methods]) =>
-      Object.entries(methods as object).map(([method, operation]) => {
-        if (
-          method === "post" &&
-          typeof operation === "object" &&
-          "requestBody" in operation
-        ) {
-          const handler: ExtendedPathItemObject = {
-            ...operation,
-            path,
-            refs: [] as string[]
-          };
-          handler.refs && getRefs(operation.requestBody, handler.refs);
-          return handler;
-        }
-      })
-    )
-    .flat()
-    .filter(Boolean);
-
-  const eventSchemas = Object.assign(
-    {},
-    ...Object.values(document?.components?.schemas || {})
-      .map((schema) => {
-        const event = getEvent(schema as oas31.SchemaObject);
-        return event && { ...event, refs: [] };
-      })
-      .filter(Boolean)
-      .map((event) => (event ? { [event.name]: event } : {}))
-  ) as Record<string, ExtendedSchemaObject>;
-
-  // flag snapshot events
-  Object.values(document?.components?.schemas || {})
-    .map((schema) => getSnapshotEvents(schema as oas31.SchemaObject))
-    .flat()
-    .filter(Boolean)
-    .map((name) => {
-      const schema = eventSchemas[name];
-      schema && (schema.inSnapshot = true);
-    });
-
-  const { commandHandlers, eventHandlers } = handlers.reduce(
-    (map, handler) => {
-      const found = handler?.refs?.filter((ref) => {
-        const schema = eventSchemas[ref];
-        schema && schema.refs?.push(handler.path);
-        return schema;
-      });
-      handler &&
-        (found?.length
-          ? map.eventHandlers.push(handler)
-          : map.commandHandlers.push(handler));
-      return map;
-    },
-    {
-      commandHandlers: [] as ExtendedPathItemObject[],
-      eventHandlers: [] as ExtendedPathItemObject[]
-    }
-  );
-
-  const allPath = Object.keys(document?.paths || {}).find(
-    (path) => path === "/all"
-  );
-
-  return {
-    discovered: new Date(),
-    version: document.info.version,
-    commandHandlers: Object.assign(
-      {},
-      ...commandHandlers.map((handler) => ({ [handler.path]: handler }))
-    ),
-    eventHandlers: Object.assign(
-      {},
-      ...eventHandlers.map((handler) => ({ [handler.path]: handler }))
-    ),
-    schemas: eventSchemas,
-    allPath
-  };
-};
-
-// TODO: resolve payload conflicts between producer/consumer schemas
-const reduceConflicts = (
-  producer: oas31.SchemaObject,
-  consumer: oas31.SchemaObject,
-  conflicts: string[],
-  path: string
-): void => {
-  /*
-    payload field names and types are compatible 
-    - consuming services can define only a subset of the producer contract 
-    - ignoring unused fields in producer
-
-    - matching fields must following rules
-      required
-      format (specific type like guid or date-time)
-      patterns (regex)
-      nullable
-      default values
-      enum constraints 
-      min, max lengths 
-  */
-  if (!producer || !consumer) return;
-
-  if (producer.type !== consumer.type) {
-    conflicts.push(`${path} => type: ${producer.type} !== ${consumer.type}`);
-    return;
-  }
-
-  if (Array.isArray(producer.type)) {
-    // TODO: compare arrays
-  } else if (producer.type === "array") {
-    // TODO: compare arrays
-  } else if (producer.type === "object") {
-    producer.properties &&
-      Object.entries(producer.properties).forEach(([key, value]) => {
-        consumer.properties &&
-          reduceConflicts(
-            value as oas31.SchemaObject,
-            consumer.properties[key] as oas31.SchemaObject,
-            conflicts,
-            path.concat(key, "/")
-          );
-      });
-  } else {
-    // TODO: check primitive rules
-  }
-};
-
-export const getConflicts = (event: EventContract): string[] => {
-  const conflicts = [] as string[];
-  const schema = event?.schema?.properties?.data;
-  schema &&
-    Object.values(event.consumers).forEach((consumer) => {
-      consumer?.schema?.properties?.data &&
-        reduceConflicts(
-          schema as oas31.SchemaObject,
-          consumer.schema.properties.data as oas31.SchemaObject,
-          conflicts,
-          consumer.id
-        );
-    });
-  return conflicts;
-};
-
-export type EventContract = {
-  name: string;
-  schema?: ExtendedSchemaObject;
-  producers: Record<string, string>;
-  consumers: Record<
-    string,
-    { id: string; path: string; schema: ExtendedSchemaObject }
-  >;
-  conflicts?: string[];
-};
 const consumers: Record<string, Service> = {};
 const events: Record<string, EventContract> = {};
 
@@ -290,6 +57,12 @@ export const getEventContracts = (): EventContract[] => {
   );
 };
 
+const HTTP_TIMEOUT = 5000;
+
+/**
+ * Refreshes OpenAPI specs of a service to keep version and contracts updated
+ * @param service the service
+ */
 export const refreshServiceSpec = async (service: Service): Promise<void> => {
   !service.breaker &&
     (service.breaker = breaker(service.id, {
@@ -297,23 +70,32 @@ export const refreshServiceSpec = async (service: Service): Promise<void> => {
       failureThreshold: 2,
       successThreshold: 2
     }));
-  const { data } = await service.breaker.exec<oas31.OpenAPIObject>(async () => {
+  const response = await service.breaker.exec<OpenAPIObject>(async () => {
     try {
-      const data = await getServiceSwagger(service);
-      return { data };
+      const url = new URL(service.url);
+      if (!url.protocol.startsWith("http"))
+        return { error: `Invalid protocol ${url.protocol}` };
+      const secretsQueryString = state().serviceSecretsQueryString(service.id);
+      const path = `${service.url.replace(
+        /\/+$/,
+        ""
+      )}/swagger${secretsQueryString}`;
+      const response = await axios.get<OpenAPIObject>(path, {
+        timeout: HTTP_TIMEOUT
+      });
+      return { data: response.data };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        log().info(`${service.url}/swagger`, err.message);
         err.code === "ENOTFOUND" && service.breaker && service.breaker.pause();
         return { error: err.message };
       }
-      const msg = `Oops! Request to ${service.url}/swagger failed, but we don't have details!`;
-      log().info(msg);
-      return { error: msg };
+      return { error: "Oops! We don't have details!" };
     }
   });
-  if (data) {
-    data.info && Object.assign(service, getSpec(data));
+  if (response.data) {
+    response.data.info && Object.assign(service, getSpec(response.data));
     refreshServiceEventContracts(service);
+  } else if (response.error) {
+    log().info(`Refresh ${service.url}/swagger`, response.error);
   }
 };

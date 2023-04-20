@@ -1,7 +1,7 @@
 import { oas31 } from "openapi3-ts";
 import validator from "validator";
 import { z } from "zod";
-import { generateSchema, extendApi } from "../openapi/zod-openapi";
+import { generateSchema, extendApi } from "../zod-openapi";
 
 type SchemaObject = oas31.SchemaObject;
 
