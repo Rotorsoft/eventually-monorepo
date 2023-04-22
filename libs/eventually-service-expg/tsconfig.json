@@ -8,6 +8,7 @@
   },
   "references": [
     { "path": "../eventually" },
+    { "path": "../eventually-openapi" },
     { "path": "../eventually-express" },
     { "path": "../eventually-pg" }
   ]

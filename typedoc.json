@@ -2,6 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "./libs/eventually/src/index.ts",
+    "./libs/eventually-openapi/src/index.ts",
     "./libs/eventually-express/src/index.ts",
     "./libs/eventually-pg/src/index.ts",
     "./libs/eventually-broker/src/index.ts"

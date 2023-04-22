@@ -17,12 +17,12 @@ import {
   store
 } from "@rotorsoft/eventually";
 import {
+  config,
   RestProjectionQuery,
   toProjectionQuery
 } from "@rotorsoft/eventually-openapi";
 import { NextFunction, Request, Response } from "express";
 import { ZodObject, ZodType } from "zod";
-import { config } from "../../eventually-openapi/src/config";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
   const etag = snapshot?.event?.version;
