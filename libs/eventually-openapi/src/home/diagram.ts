@@ -1,4 +1,4 @@
-import { Scope, app } from "@rotorsoft/eventually";
+import { app } from "@rotorsoft/eventually";
 
 export const directives = `
 #direction: right
@@ -25,7 +25,7 @@ export const diagram = (): string => {
         .map(
           ({ name, scope }) =>
             `[<${i_t}>${name}]\n[${name}] ${
-              scope === Scope.private ? "🔒" : ""
+              scope === "private" ? "🔒" : ""
             } - [${a.factory.name}]`
         )
         .join("\n");

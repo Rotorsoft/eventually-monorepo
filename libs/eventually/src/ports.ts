@@ -10,7 +10,7 @@ import { config as _config } from "./config";
 import { Broker, Disposable, Logger, Store } from "./interfaces";
 import * as loggers from "./loggers";
 import { port } from "./port";
-import { Client, Environments } from "./types";
+import { Client } from "./types";
 
 /**
  * @category Ports
@@ -78,8 +78,8 @@ export const store = port(function store(store?: Store) {
 export const log = port(function log(logger?: Logger) {
   if (logger) return logger;
   switch (config().env) {
-    // case Environments.test: //-- to log when testing
-    case Environments.development:
+    // case "test": //-- to log when testing
+    case "development":
       return loggers.devLogger();
     default:
       return loggers.plainLogger();

@@ -1,6 +1,5 @@
 import {
   dispose,
-  Operator,
   Projection,
   ProjectionRecord,
   ProjectorStore
@@ -224,7 +223,7 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
     const r = await db.query(
       {
         select: ["id", "name", "age", "countryName"],
-        where: { age: { operator: Operator.gte, value: 40 } },
+        where: { age: { operator: "gte", value: 40 } },
         limit: 5,
         sort: { age: "desc" }
       },

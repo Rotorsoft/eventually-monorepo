@@ -1,38 +1,37 @@
 import { config } from "./config";
 import { Logger } from "./interfaces";
 import { CommittedEvent } from "./types";
-import { Environments, LogLevels } from "./types/enums";
 
-enum Color {
-  red = 31,
-  green = 32,
-  yellow = 33,
-  blue = 34,
-  magenta = 35,
-  cyan = 36,
-  silver = 37,
-  gray = 90,
-  white = 97
-}
+const Color = {
+  red: 31,
+  green: 32,
+  yellow: 33,
+  blue: 34,
+  magenta: 35,
+  cyan: 36,
+  silver: 37,
+  gray: 90,
+  white: 97
+};
 
-enum Effect {
-  reset = 0,
-  bold = 1,
-  dimmed = 2,
-  italic = 3,
-  underlined = 4
-}
+const Effect = {
+  reset: 0,
+  bold: 1,
+  dimmed: 2,
+  italic: 3,
+  underlined: 4
+};
 
-const code = (...code: Array<Color | Effect>): string =>
+const code = (...code: Array<number>): string =>
   code.map((c) => `\x1b[${c}m`).join("");
 
-const color = (logger: Logger, color: Color): Logger => {
-  process.stdout.write(code(color));
+const color = (logger: Logger, color: keyof typeof Color): Logger => {
+  process.stdout.write(code(Color[color]));
   return logger;
 };
 
-const effect = (logger: Logger, effect: Effect): Logger => {
-  process.stdout.write(code(effect));
+const effect = (logger: Logger, effect: keyof typeof Effect): Logger => {
+  process.stdout.write(code(Effect[effect]));
   return logger;
 };
 
@@ -77,21 +76,21 @@ export const devLogger = (): Logger => {
   const logger: Logger = {
     name: "dev-logger",
     dispose: () => Promise.resolve(),
-    red: () => color(logger, Color.red),
-    green: () => color(logger, Color.green),
-    yellow: () => color(logger, Color.yellow),
-    blue: () => color(logger, Color.blue),
-    magenta: () => color(logger, Color.magenta),
-    cyan: () => color(logger, Color.cyan),
-    silver: () => color(logger, Color.silver),
-    gray: () => color(logger, Color.gray),
-    white: () => color(logger, Color.white),
-    bold: () => effect(logger, Effect.bold),
-    dimmed: () => effect(logger, Effect.dimmed),
-    italic: () => effect(logger, Effect.italic),
-    underlined: () => effect(logger, Effect.underlined),
+    red: () => color(logger, "red"),
+    green: () => color(logger, "green"),
+    yellow: () => color(logger, "yellow"),
+    blue: () => color(logger, "blue"),
+    magenta: () => color(logger, "magenta"),
+    cyan: () => color(logger, "cyan"),
+    silver: () => color(logger, "silver"),
+    gray: () => color(logger, "gray"),
+    white: () => color(logger, "white"),
+    bold: () => effect(logger, "bold"),
+    dimmed: () => effect(logger, "dimmed"),
+    italic: () => effect(logger, "italic"),
+    underlined: () => effect(logger, "underlined"),
     trace: (message: string, details?: unknown, ...params: unknown[]) =>
-      config().logLevel === LogLevels.trace &&
+      config().logLevel === "trace" &&
       console.log(
         message,
         code(Effect.reset, Color.gray),
@@ -100,7 +99,7 @@ export const devLogger = (): Logger => {
         code(Effect.reset)
       ),
     info: (message: string, details?: unknown, ...params: unknown[]) =>
-      config().logLevel !== LogLevels.error &&
+      config().logLevel !== "error" &&
       console.info(
         message,
         code(Effect.reset, Color.gray),
@@ -134,16 +133,12 @@ export const plainLogger = (): Logger => {
     italic: () => logger,
     underlined: () => logger,
     trace:
-      (config().env !== Environments.test &&
-        config().logLevel === LogLevels.trace &&
-        plain) ||
+      (config().env !== "test" && config().logLevel === "trace" && plain) ||
       nop,
     info:
-      (config().env !== Environments.test &&
-        config().logLevel !== LogLevels.error &&
-        plain) ||
+      (config().env !== "test" && config().logLevel !== "error" && plain) ||
       nop,
-    error: (config().env !== Environments.test && error) || nop,
+    error: (config().env !== "test" && error) || nop,
     events
   };
   return logger;

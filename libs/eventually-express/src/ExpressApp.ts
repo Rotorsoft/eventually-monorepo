@@ -7,10 +7,11 @@ import {
   dateReviver,
   EventHandlerFactory,
   log,
-  ProjectorFactory,
-  Scope
+  ProjectorFactory
 } from "@rotorsoft/eventually";
 import {
+  config,
+  home,
   httpGetPath,
   httpPostPath,
   openAPI,
@@ -19,7 +20,6 @@ import {
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
-import { config } from "./config";
 import {
   allStreamHandler,
   commandHandler,
@@ -33,7 +33,6 @@ import {
   statsHandler,
   subscriptionsHandler
 } from "./handlers";
-import { home } from "./home";
 
 /**
  * Eventually express app builder
@@ -76,7 +75,7 @@ export class ExpressApp extends Builder {
   private _withPosts(): void {
     this.artifacts.forEach(({ type, factory, inputs }) => {
       const endpoints = inputs
-        .filter((input) => input.scope === Scope.public)
+        .filter((input) => input.scope === "public")
         .map((input) => input.name);
       type === "aggregate" && this._withGets(factory as AggregateFactory);
       if (type === "policy" || type === "process-manager") {

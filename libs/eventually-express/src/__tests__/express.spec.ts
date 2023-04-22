@@ -1,6 +1,6 @@
 import { app, dispose } from "@rotorsoft/eventually";
-import { config } from "../config";
-import { ExpressApp, HttpClient } from "..";
+import { ExpressApp } from "..";
+import { HttpClient, config } from "@rotorsoft/eventually-openapi";
 
 const port = 4009;
 const http = HttpClient(port);

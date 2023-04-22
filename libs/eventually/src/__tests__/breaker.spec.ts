@@ -1,10 +1,10 @@
-import { breaker, States } from "../breaker";
+import { breaker } from "../breaker";
 
 describe("breaker", () => {
   it("should green light", async () => {
     const good = breaker("good");
     await good.exec<boolean>(() => Promise.resolve({ data: true }));
-    expect(good.state()).toBe(States.Green);
+    expect(good.state()).toBe("green");
   });
 
   it("should red light", async () => {
@@ -12,9 +12,9 @@ describe("breaker", () => {
     await bad.exec<boolean>(() => Promise.resolve({ error: "error" }));
     await bad.exec<boolean>(() => Promise.resolve({ error: "error" }));
     await bad.exec<boolean>(() => Promise.resolve({ error: "error" }));
-    expect(bad.state()).toBe(States.Red);
+    expect(bad.state()).toBe("red");
     await bad.exec<boolean>(() => Promise.resolve({ error: "error" }));
-    expect(bad.state()).toBe(States.Red);
+    expect(bad.state()).toBe("red");
   });
 
   it("should red light 2", async () => {
@@ -28,7 +28,7 @@ describe("breaker", () => {
     await bad.exec<boolean>(() => {
       throw Error("error");
     });
-    expect(bad.state()).toBe(States.Red);
+    expect(bad.state()).toBe("red");
   });
 
   it("should yellow light", async () => {
@@ -43,17 +43,17 @@ describe("breaker", () => {
     await recovered.exec<boolean>(() => Promise.resolve({ data: true }));
     await recovered.exec<boolean>(() => Promise.resolve({ data: true }));
     await recovered.exec<boolean>(() => Promise.resolve({ data: true }));
-    expect(recovered.state()).toBe(States.Yellow);
+    expect(recovered.state()).toBe("yellow");
     await recovered.exec<boolean>(() => Promise.resolve({ data: true }));
-    expect(recovered.state()).toBe(States.Green);
+    expect(recovered.state()).toBe("green");
   });
 
   it("should pause", async () => {
     const good = breaker("good");
     await good.exec<boolean>(() => Promise.resolve({ data: true }));
     good.pause();
-    expect(good.state()).toBe(States.Paused);
+    expect(good.state()).toBe("paused");
     await good.exec<boolean>(() => Promise.resolve({ data: true }));
-    expect(good.state()).toBe(States.Paused);
+    expect(good.state()).toBe("paused");
   });
 });

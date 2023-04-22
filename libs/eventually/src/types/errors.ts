@@ -1,5 +1,20 @@
-import { Errors } from "../types/enums";
 import { CommandTarget, Message, Messages } from "../types/messages";
+
+/**
+ * Application error types
+ * - `ERR_VALIDATION` schema validation error
+ * - `ERR_INVARIANT` invariant validation error
+ * - `ERR_CONCURRENCY` optimistic concurrency validation error on aggregate commits
+ * - `ERR_ACTOR_CONCURRENCY` optimistic concurrency validation error on actor (process manager) commits
+ * - `ERR_REGISTRATION` schema registration error
+ */
+export const Errors = {
+  ValidationError: "ERR_VALIDATION",
+  InvariantError: "ERR_INVARIANT",
+  ConcurrencyError: "ERR_CONCURRENCY",
+  ActorConcurrencyError: "ERR_ACTOR_CONCURRENCY",
+  RegistrationError: "ERR_REGISTRATION"
+} as const;
 
 export class ValidationError extends Error {
   public readonly details;

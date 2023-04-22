@@ -6,7 +6,7 @@ import {
   PressKeyAdapter
   //StatelessCounter
 } from "@rotorsoft/calculator-artifacts";
-import { Scope, app, bootstrap, store } from "@rotorsoft/eventually";
+import { app, bootstrap, store } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 //import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
 
@@ -21,7 +21,7 @@ void bootstrap(async (): Promise<void> => {
   await store().seed();
 
   const _app = app(new ExpressApp())
-    .with(Calculator, { scope: Scope.public }) //, store: snapshotStore })
+    .with(Calculator, { scope: "public" }) //, store: snapshotStore })
     //.with(StatelessCounter)
     .with(PressKeyAdapter);
   //.with(CalculatorTotals);

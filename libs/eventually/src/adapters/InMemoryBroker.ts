@@ -9,8 +9,7 @@ import {
   CommittedEvent,
   EventHandlerFactory,
   Messages,
-  ProjectorFactory,
-  Scope
+  ProjectorFactory
 } from "../types";
 import { sleep } from "../utils";
 
@@ -79,7 +78,7 @@ export const InMemoryBroker = (
     (v) =>
       event_handler_types.includes(v.type) &&
       v.inputs.length &&
-      v.inputs.at(0)?.scope === Scope.private
+      v.inputs.at(0)?.scope === "private"
   );
 
   const _pollAll = async (): Promise<boolean> => {

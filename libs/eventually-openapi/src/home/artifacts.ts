@@ -10,7 +10,7 @@ const _inputs = (
           ({ name, scope }) =>
             `<li class="list-group-item">${
               link ? `<a href="./_commands/${name}">${name}</a>` : name
-            } ${scope === Scope.private ? "🔒" : ""}</li>`
+            } ${scope === "private" ? "🔒" : ""}</li>`
         )
         .join("")}</ul>`
     : "";

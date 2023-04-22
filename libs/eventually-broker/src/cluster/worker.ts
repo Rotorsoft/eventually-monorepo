@@ -1,7 +1,6 @@
 import {
   CommittedEvent,
   dispose,
-  ExitCodes,
   log,
   scheduler,
   Schedule
@@ -343,9 +342,7 @@ export const work = async (
   };
 
   const exit = async (): Promise<void> => {
-    await dispose()(
-      process.env.NODE_ENV === "test" ? ExitCodes.UNIT_TEST : ExitCodes.ERROR
-    );
+    await dispose()(process.env.NODE_ENV === "test" ? "UNIT_TEST" : "ERROR");
   };
 
   const drain = async (): Promise<void> => {

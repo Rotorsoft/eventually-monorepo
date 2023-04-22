@@ -1,6 +1,7 @@
 import {
   Condition,
   Operator,
+  Operators,
   ProjectionQuery,
   ProjectionSort,
   ProjectionWhere,
@@ -10,9 +11,9 @@ import {
 import { z, ZodObject } from "zod";
 
 /**
- * Projection query options
+ * REST projection query options
  */
-export type ExpressProjectionQuery = {
+export type RestProjectionQuery = {
   ids?: string[];
   select?: string[];
   where?: string[];
@@ -20,18 +21,30 @@ export type ExpressProjectionQuery = {
   limit?: number;
 };
 
-const OPS = Object.fromEntries(Object.entries(Operator));
+/**
+ * Converts a projection query to a REST query
+ */
+export const toRestProjectionQuery = ({
+  select,
+  where,
+  sort,
+  limit
+}: ProjectionQuery): RestProjectionQuery => ({
+  select,
+  where:
+    where &&
+    Object.entries(where).map(([k, v]) => `${k} ${v?.operator} ${v?.value}`),
+  sort: sort && Object.entries(sort).map(([k, v]) => `${k} ${v}`),
+  limit
+});
 
 const parseWhere = (filters: string[]): ProjectionWhere =>
   filters.reduce((result, v) => {
     try {
       const [field, operator, value] = v.split(" ").filter(Boolean);
-      if (OPS[operator])
+      if (Operators.includes(operator as Operator))
         return Object.assign(result, {
-          [field]: {
-            operator: OPS[operator],
-            value
-          } as Condition<any>
+          [field]: { operator, value } as Condition<any>
         });
       else throw Error(`Invalid where clause: ${v}`);
     } catch {
@@ -51,8 +64,11 @@ const parseSort = (sorts: string[]): ProjectionSort =>
     }
   }, {} as ProjectionSort);
 
+/**
+ * Converts a REST projection query with zod object schema to a projection query
+ */
 export const toProjectionQuery = (
-  { ids, select, where, sort, limit }: ExpressProjectionQuery,
+  { ids, select, where, sort, limit }: RestProjectionQuery,
   schema: ZodObject<State>
 ): string[] | ProjectionQuery => {
   if (ids && ids.length) return ids;
@@ -78,7 +94,7 @@ export const toProjectionQuery = (
       where: z
         .record(
           keys,
-          z.object({ operator: z.nativeEnum(Operator), value: z.string() })
+          z.object({ operator: z.enum(Operators), value: z.string() })
         )
         .optional(),
       sort: z.record(keys, z.enum(["asc", "desc"])).optional(),
@@ -86,20 +102,4 @@ export const toProjectionQuery = (
     })
   );
   return query;
-};
-
-export const toExpressProjectionQuery = ({
-  select,
-  where,
-  sort,
-  limit
-}: ProjectionQuery): ExpressProjectionQuery => {
-  return {
-    select,
-    where:
-      where &&
-      Object.entries(where).map(([k, v]) => `${k} ${v?.operator} ${v?.value}`),
-    sort: sort && Object.entries(sort).map(([k, v]) => `${k} ${v}`),
-    limit
-  };
 };

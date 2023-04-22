@@ -1,6 +1,6 @@
+import { Scopes, extend, config as target } from "@rotorsoft/eventually";
 import * as fs from "node:fs";
 import z from "zod";
-import { config as target, extend, Scope } from "@rotorsoft/eventually";
 
 const Artifacts = z.object({
   eventually: z.object({
@@ -9,7 +9,7 @@ const Artifacts = z.object({
       z.array(
         z.object({
           name: z.string().min(1),
-          scope: z.nativeEnum(Scope).default(Scope.default)
+          scope: z.enum(Scopes).default("default")
         })
       )
     )

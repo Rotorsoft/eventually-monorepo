@@ -31,12 +31,7 @@ export type BreakerOptions = {
 /**
  * Circuit breaker states
  */
-export enum States {
-  Green = "green",
-  Yellow = "yellow",
-  Red = "red",
-  Paused = "paused"
-}
+export type States = "green" | "yellow" | "red" | "paused";
 
 /**
  * Circuit breaker utility
@@ -53,18 +48,18 @@ export const breaker = (
     timeout: 5000
   }
 ): Breaker => {
-  let state: States = States.Green;
+  let state: States = "green";
   let failureCount = 0;
   let successCount = 0;
   let nextAttempt = Date.now();
 
   const success = <T>(data?: T): BreakerResponse<T> => {
     failureCount = 0;
-    if (state === States.Yellow) {
+    if (state === "yellow") {
       successCount++;
       if (successCount > opts.successThreshold) {
         successCount = 0;
-        state = States.Green;
+        state = "green";
         log().green().trace(`Circuit breaker [${name}] fully restored.`);
       }
     }
@@ -74,7 +69,7 @@ export const breaker = (
   const failure = <T>(error: string): BreakerResponse<T> => {
     failureCount++;
     if (failureCount >= opts.failureThreshold) {
-      state = States.Red;
+      state = "red";
       nextAttempt = Date.now() + opts.timeout;
     }
     return { error };
@@ -84,11 +79,11 @@ export const breaker = (
     exec: async <T>(
       promise: () => Promise<BreakerResponse<T>>
     ): Promise<BreakerResponse<T>> => {
-      if (state === States.Paused) return {};
-      if (state === States.Red) {
+      if (state === "paused") return {};
+      if (state === "red") {
         if (nextAttempt > Date.now())
           return { error: `Circuit breaker [${name}] is open!` };
-        state = States.Yellow;
+        state = "yellow";
         log().yellow().trace(`Circuit breaker [${name}] partially restored.`);
       }
       try {
@@ -99,7 +94,7 @@ export const breaker = (
       }
     },
     pause: () => {
-      state = States.Paused;
+      state = "paused";
       log().red().trace(`Circuit breaker [${name}] paused.`);
     },
     state: () => state

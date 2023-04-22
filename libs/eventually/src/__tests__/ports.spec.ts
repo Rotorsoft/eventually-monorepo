@@ -7,8 +7,8 @@ jest.spyOn(console, "error").mockImplementation();
 
 describe("ports", () => {
   it("should initialize in dev mode and fail validation", async () => {
-    const { config, Environments } = await import("@rotorsoft/eventually");
-    expect(config().env).toEqual(Environments.development);
+    const { config } = await import("@rotorsoft/eventually");
+    expect(config().env).toEqual("development");
     await expect(import("@rotorsoft/eventually-pg")).rejects.toThrow();
   });
 

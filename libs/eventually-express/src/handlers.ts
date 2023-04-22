@@ -6,7 +6,6 @@ import {
   CommandAdapterFactory,
   CommandHandlerFactory,
   CommittedEvent,
-  Environments,
   Errors,
   EventHandlerFactory,
   log,
@@ -17,10 +16,13 @@ import {
   State,
   store
 } from "@rotorsoft/eventually";
+import {
+  RestProjectionQuery,
+  toProjectionQuery
+} from "@rotorsoft/eventually-openapi";
 import { NextFunction, Request, Response } from "express";
 import { ZodObject, ZodType } from "zod";
-import { config } from "./config";
-import { ExpressProjectionQuery, toProjectionQuery } from "./query";
+import { config } from "../../eventually-openapi/src/config";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
   const etag = snapshot?.event?.version;
@@ -238,7 +240,7 @@ export const projectHandler =
 export const readHandler =
   (factory: ProjectorFactory, schema: ZodType) =>
   async (
-    req: Request<never, ProjectionRecord[], never, ExpressProjectionQuery>,
+    req: Request<never, ProjectionRecord[], never, RestProjectionQuery>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
@@ -287,7 +289,7 @@ export const errorHandler = (
       res.status(500).send({
         name,
         message,
-        stack: config.env !== Environments.production && stack
+        stack: config.env !== "production" && stack
       });
   }
 };

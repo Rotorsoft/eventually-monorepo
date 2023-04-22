@@ -16,22 +16,17 @@ import { projector, ProjectionSchema } from "./seed";
 
 types.setTypeParser(types.builtins.INT8, (val) => parseInt(val, 10));
 
-const EQUALS: Operator[] = [
-  Operator.eq,
-  Operator.lte,
-  Operator.gte,
-  Operator.in
-];
+const EQUALS: Operator[] = ["eq", "lte", "gte", "in"];
 
-const OPS = {
-  [Operator.eq]: "=",
-  [Operator.neq]: "<>",
-  [Operator.lt]: "<",
-  [Operator.gt]: ">",
-  [Operator.lte]: "<=",
-  [Operator.gte]: ">=",
-  [Operator.in]: "in",
-  [Operator.not_in]: "not in"
+const OPS: Record<Operator, string> = {
+  eq: "=",
+  neq: "<>",
+  lt: "<",
+  gt: ">",
+  lte: "<=",
+  gte: ">=",
+  in: "in",
+  nin: "not in"
 };
 
 export const PostgresProjectorStore = <S extends State>(

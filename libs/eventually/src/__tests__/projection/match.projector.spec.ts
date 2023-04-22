@@ -1,4 +1,4 @@
-import { client, app, dispose, ProjectionRecord, Operator } from "../../.";
+import { client, app, dispose, ProjectionRecord } from "../../.";
 import { MatchProjection, MatchProjector } from "./Match.projector";
 import { steps, trace } from "./steps";
 
@@ -37,7 +37,7 @@ describe("match projection", () => {
       {
         select: ["customerId"],
         where: {
-          manager: { operator: Operator.eq, value: "New manager for 1" }
+          manager: { operator: "eq", value: "New manager for 1" }
         },
         limit: 5,
         sort: { id: "asc" }
@@ -78,7 +78,7 @@ describe("match projection", () => {
       MatchProjector,
       {
         where: {
-          manager: { operator: Operator.neq, value: "New manager for 1" }
+          manager: { operator: "neq", value: "New manager for 1" }
         }
       },
       (r) => r
@@ -91,8 +91,8 @@ describe("match projection", () => {
       MatchProjector,
       {
         where: {
-          jobId: { operator: Operator.gt, value: 20 },
-          customerId: { operator: Operator.lt, value: 20 }
+          jobId: { operator: "gt", value: 20 },
+          customerId: { operator: "lt", value: 20 }
         }
       },
       (r) => r
@@ -105,8 +105,8 @@ describe("match projection", () => {
       MatchProjector,
       {
         where: {
-          jobId: { operator: Operator.gte, value: 20 },
-          customerId: { operator: Operator.lte, value: 20 }
+          jobId: { operator: "gte", value: 20 },
+          customerId: { operator: "lte", value: 20 }
         }
       },
       (r) => r
@@ -119,8 +119,8 @@ describe("match projection", () => {
       MatchProjector,
       {
         where: {
-          jobId: { operator: Operator.in, value: 1 },
-          customerId: { operator: Operator.not_in, value: 2 }
+          jobId: { operator: "in", value: 1 },
+          customerId: { operator: "nin", value: 2 }
         }
       },
       (r) => r

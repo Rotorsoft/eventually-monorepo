@@ -1,5 +1,5 @@
 import { Disposable, Disposer } from "./interfaces";
-import { ExitCodes } from "./types/enums";
+import { ExitCode } from "./types/enums";
 
 const log = (message: string): void => {
   (process.env.NODE_ENV || "development") === "development" &&
@@ -24,9 +24,7 @@ export const port =
   };
 
 const disposers: Disposer[] = [];
-const disposeAndExit = async (
-  code: ExitCodes = ExitCodes.UNIT_TEST
-): Promise<void> => {
+const disposeAndExit = async (code: ExitCode = "UNIT_TEST"): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
   await Promise.all(
     [...adapters].map(async ([key, adapter]) => {
@@ -35,7 +33,7 @@ const disposeAndExit = async (
     })
   );
   adapters.clear();
-  code !== ExitCodes.UNIT_TEST && process.exit(1);
+  code !== "UNIT_TEST" && process.exit(1);
 };
 /**
  * Registers resource disposers that are triggered on process exit
@@ -44,7 +42,7 @@ const disposeAndExit = async (
  */
 export const dispose = (
   disposer?: Disposer
-): ((code?: ExitCodes) => Promise<void>) => {
+): ((code?: ExitCode) => Promise<void>) => {
   disposer && disposers.push(disposer);
   return disposeAndExit;
 };
@@ -52,7 +50,7 @@ export const dispose = (
 ["SIGINT", "SIGTERM", "uncaughtException", "unhandledRejection"].map((e) => {
   process.once(e, async (arg?: any) => {
     log(`${e} ${arg !== e ? arg : ""}`);
-    await disposeAndExit(ExitCodes.ERROR);
+    await disposeAndExit("ERROR");
   });
 });
 

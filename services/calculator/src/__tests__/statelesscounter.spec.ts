@@ -8,14 +8,10 @@ import {
   app,
   CommittedEvent,
   dispose,
-  InMemorySnapshotStore,
-  Scope
+  InMemorySnapshotStore
 } from "@rotorsoft/eventually";
-import {
-  EventResponseEx,
-  ExpressApp,
-  HttpClient
-} from "@rotorsoft/eventually-express";
+import { ExpressApp } from "@rotorsoft/eventually-express";
+import { EventResponseEx, HttpClient } from "@rotorsoft/eventually-openapi";
 import { Chance } from "chance";
 import { pressKey } from "./messages";
 
@@ -25,8 +21,8 @@ const http = HttpClient(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(2), scope: Scope.public })
-  .with(StatelessCounter, { scope: Scope.public })
+  .with(Calculator, { store: InMemorySnapshotStore(2), scope: "public" })
+  .with(StatelessCounter, { scope: "public" })
   .with(PressKeyAdapter)
   .build();
 

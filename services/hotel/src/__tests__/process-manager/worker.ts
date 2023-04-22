@@ -1,4 +1,4 @@
-import { app, bootstrap, client, store, Scope } from "@rotorsoft/eventually";
+import { app, bootstrap, client, store } from "@rotorsoft/eventually";
 import { MonthlyBookings } from "./monthly-bookings.policy";
 import { Room } from "./room.aggregate";
 import { requestBooking } from "./utils";
@@ -15,7 +15,7 @@ const log = async (tries: number, stream: string): Promise<void> => {
 void bootstrap(async () => {
   const stream = `Room-${process.argv.at(-1)}`;
   await store(PostgresStore("pm")).seed();
-  app().with(Room).with(MonthlyBookings, { scope: Scope.private }).build();
+  app().with(Room).with(MonthlyBookings, { scope: "private" }).build();
   let tries = 1;
   const [snap] = await requestBooking(stream);
   while (tries < 4) {

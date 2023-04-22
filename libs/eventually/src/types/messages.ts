@@ -1,3 +1,5 @@
+import { Operator } from "./enums";
+
 export type State = Record<string, any>;
 export type StateWithId<S extends State> = S & { id: string };
 export type Messages = Record<string, Record<string, any>>;
@@ -185,16 +187,6 @@ export type ProjectionRecord<S extends State = State> = {
 /**
  * Filter condition
  */
-export enum Operator {
-  eq = "eq",
-  neq = "neq",
-  lt = "lt",
-  gt = "gt",
-  lte = "lte",
-  gte = "gte",
-  in = "in",
-  not_in = "not_in"
-}
 export type Condition<T> = {
   readonly operator: Operator;
   readonly value: T;

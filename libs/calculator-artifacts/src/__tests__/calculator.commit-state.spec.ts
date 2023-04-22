@@ -1,4 +1,4 @@
-import { app, client, dispose, Scope, store } from "@rotorsoft/eventually";
+import { app, client, dispose, store } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { pressKey } from "./messages";
@@ -7,7 +7,7 @@ import { pressKey } from "./messages";
 const chance = new Chance();
 app()
   .with(Calculator, {
-    scope: Scope.default,
+    scope: "default",
     commit: (snapshot) => snapshot.stateCount === 0
   })
   .build();

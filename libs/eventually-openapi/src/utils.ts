@@ -4,7 +4,6 @@ import {
   ArtifactType,
   decamelize,
   ProjectorFactory,
-  Scope,
   State
 } from "@rotorsoft/eventually";
 import * as fs from "fs";
@@ -260,7 +259,7 @@ const getArtifactPaths = (
   [...app().artifacts.values()].reduce(
     (paths, { type, factory, inputs, outputs }) => {
       const endpoints = inputs
-        .filter((input) => input.scope === Scope.public)
+        .filter((input) => input.scope === "public")
         .map((input) => input.name);
       if (type === "aggregate") {
         const path = httpGetPath(factory.name).replace("/:id", "/{id}");

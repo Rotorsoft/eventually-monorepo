@@ -204,7 +204,7 @@ export abstract class Builder extends EventEmitter implements Disposable {
       throw Error(`Duplicate artifact "${factory.name}"`);
     const metadata = this._reflect(
       factory as ArtifactFactory,
-      options?.scope || Scope.default
+      options?.scope || "default"
     );
     this.artifacts.set(factory.name, metadata);
     if (options) {
@@ -245,13 +245,13 @@ export abstract class Builder extends EventEmitter implements Disposable {
     // scope default endpoints
     this.artifacts.forEach((md) => {
       md.inputs
-        .filter((input) => input.scope === Scope.default)
+        .filter((input) => input.scope === "default")
         .forEach((input) => {
           input.scope =
             md.type === "command-adapter" ||
             !this.messages.get(input.name)?.producer
-              ? Scope.public
-              : Scope.private;
+              ? "public"
+              : "private";
         });
     });
     return;

@@ -1,7 +1,6 @@
 import { ProjectorStore } from "../interfaces";
 import {
   Condition,
-  Operator,
   Projection,
   ProjectionQuery,
   ProjectionRecord,
@@ -107,21 +106,21 @@ export const InMemoryProjectorStore = <
               (match, [key, condition]: [string, Condition<any>]) => {
                 const val = record.state[key];
                 switch (condition.operator) {
-                  case Operator.eq:
+                  case "eq":
                     return match && val == condition.value;
-                  case Operator.neq:
+                  case "neq":
                     return match && val != condition.value;
-                  case Operator.lt:
+                  case "lt":
                     return match && val < condition.value;
-                  case Operator.lte:
+                  case "lte":
                     return match && val <= condition.value;
-                  case Operator.gt:
+                  case "gt":
                     return match && val > condition.value;
-                  case Operator.gte:
+                  case "gte":
                     return match && val >= condition.value;
-                  case Operator.in:
+                  case "in":
                     return match && val == condition.value;
-                  case Operator.not_in:
+                  case "nin":
                     return match && val != condition.value;
                 }
               },

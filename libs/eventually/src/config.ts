@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import z from "zod";
-import { Environments, LogLevels } from "./types/enums";
+import { Environment, Environments, LogLevel, LogLevels } from "./types/enums";
 import { extend } from "./utils";
 
 dotenv.config();
@@ -24,8 +24,8 @@ const getPackage = (): Package => {
 };
 
 const Schema = z.object({
-  env: z.nativeEnum(Environments),
-  logLevel: z.nativeEnum(LogLevels),
+  env: z.enum(Environments),
+  logLevel: z.enum(LogLevels),
   service: z.string().min(1),
   version: z.string().min(1),
   description: z.string().min(1),
@@ -43,8 +43,8 @@ export const config = (): Config => {
   const service = parts.at(-1) || "";
   return extend(
     {
-      env: (NODE_ENV as Environments) || Environments.development,
-      logLevel: (LOG_LEVEL as LogLevels) || LogLevels.error,
+      env: (NODE_ENV as Environment) || "development",
+      logLevel: (LOG_LEVEL as LogLevel) || "error",
       service,
       version: pkg.version,
       description: pkg.description,

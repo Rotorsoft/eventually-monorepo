@@ -1,11 +1,13 @@
 import {
   Aggregate,
+  ArtifactType,
   CommandAdapter,
   Policy,
   ProcessManager,
   Projector,
   System
 } from "./artifacts";
+import { Scope } from "./enums";
 import { Messages, State } from "./messages";
 
 /**
@@ -110,3 +112,17 @@ export type ArtifactFactory<
   | EventHandlerFactory<S, C, E, O>
   | CommandAdapterFactory<S, C>
   | ProjectorFactory<S, E>;
+
+/**
+ * Artifact reflected metadata
+ */
+export type ArtifactMetadata<
+  S extends State = State,
+  C extends Messages = Messages,
+  E extends Messages = Messages
+> = {
+  type: ArtifactType;
+  factory: ArtifactFactory<S, C, E>;
+  inputs: Array<{ name: string; scope: Scope }>; // input messages = endpoints
+  outputs: string[]; // output messages = side effects
+};

@@ -1,5 +1,5 @@
 import { formatTime } from "@rotorsoft/eventually";
-import { config, OAS_UIS } from "../config";
+import { config, OAS_UI } from "../config";
 import { artifacts } from "./artifacts";
 import { diagram, directives } from "./diagram";
 
@@ -7,7 +7,7 @@ const doc = (
   title: string,
   version: string,
   dependencies: Record<string, string>,
-  ui: OAS_UIS,
+  ui: OAS_UI,
   status: Record<string, string>
 ): string => `<!DOCTYPE html>
 <html>
@@ -112,11 +112,11 @@ const doc = (
         <div id="acTwo" class="accordion-collapse collapse" aria-labelledby="ahTwo">
           <div class="accordion-body">
             ${
-              ui === OAS_UIS.Redoc
+              ui === "Redoc"
                 ? `
             <redoc spec-url='/swagger'></redoc>
             <script src="https://unpkg.com/redoc@latest/bundles/redoc.standalone.js"></script>`
-                : ui === OAS_UIS.Rapidoc
+                : ui === "Rapidoc"
                 ? `
             <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
             <rapi-doc spec-url="/swagger" theme="light" show-header="false" regular-font="monospace" render-style="view"></rapi-doc>`
@@ -165,5 +165,5 @@ export const home = (): string => {
       .reduce((p, c) => Object.assign(p, c))
   };
 
-  return doc(service, version, dependencies, oas_ui as OAS_UIS, status);
+  return doc(service, version, dependencies, oas_ui, status);
 };

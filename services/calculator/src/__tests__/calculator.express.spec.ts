@@ -8,14 +8,13 @@ import {
   app,
   broker,
   dispose,
-  InMemorySnapshotStore,
-  Scope
+  InMemorySnapshotStore
 } from "@rotorsoft/eventually";
 import {
   ExpressApp,
-  GcpGatewayMiddleware,
-  HttpClient
+  GcpGatewayMiddleware
 } from "@rotorsoft/eventually-express";
+import { HttpClient } from "@rotorsoft/eventually-openapi";
 import { Chance } from "chance";
 import { pressKey, reset } from "./messages";
 
@@ -28,7 +27,7 @@ const http = HttpClient(port, {
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(4), scope: Scope.public })
+  .with(Calculator, { store: InMemorySnapshotStore(4), scope: "public" })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);

@@ -1,11 +1,6 @@
-import {
-  app,
-  dispose,
-  Operator,
-  ProjectionRecord,
-  Scope
-} from "@rotorsoft/eventually";
-import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
+import { app, dispose, ProjectionRecord } from "@rotorsoft/eventually";
+import { ExpressApp } from "@rotorsoft/eventually-express";
+import { HttpClient } from "@rotorsoft/eventually-openapi";
 import { Chance } from "chance";
 import {
   CalculatorTotals,
@@ -18,7 +13,7 @@ const chance = new Chance();
 const port = 4005;
 const http = HttpClient(port);
 const _app = app(new ExpressApp()).with(CalculatorTotals, {
-  scope: Scope.public
+  scope: "public"
 });
 
 describe("calculator with projector in express app", () => {
@@ -97,8 +92,8 @@ describe("calculator with projector in express app", () => {
       {
         select: ["id"],
         where: {
-          id: { operator: Operator.eq, value: `Totals-${stream2}` },
-          ["3"]: { operator: Operator.gt, value: 1 }
+          id: { operator: "eq", value: `Totals-${stream2}` },
+          ["3"]: { operator: "gt", value: 1 }
         },
         sort: { id: "asc" },
         limit: 10

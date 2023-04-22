@@ -5,7 +5,6 @@ import {
   CommittedEvent,
   dispose,
   log,
-  Scope,
   sleep
 } from "@rotorsoft/eventually";
 import { Room } from "./room.aggregate";
@@ -14,7 +13,7 @@ import { requestBooking } from "./utils";
 
 describe("pm", () => {
   beforeAll(() => {
-    app().with(Room).with(MonthlyBookings, { scope: Scope.private }).build();
+    app().with(Room).with(MonthlyBookings, { scope: "private" }).build();
   });
 
   afterAll(async () => {

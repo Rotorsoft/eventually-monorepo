@@ -8,6 +8,7 @@
   },
   "references": [
     { "path": "../../libs/eventually" },
+    { "path": "../../libs/eventually-openapi" },
     { "path": "../../libs/eventually-express" },
     { "path": "../../libs/eventually-pg" },
     { "path": "../../libs/calculator-artifacts" }

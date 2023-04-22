@@ -1,5 +1,6 @@
 import { app, dispose, store, ValidationError } from "@rotorsoft/eventually";
-import { ExpressApp, HttpClient } from "@rotorsoft/eventually-express";
+import { ExpressApp } from "@rotorsoft/eventually-express";
+import { HttpClient } from "@rotorsoft/eventually-openapi";
 import { Calculator } from "@rotorsoft/calculator-artifacts";
 
 const port = 4002;

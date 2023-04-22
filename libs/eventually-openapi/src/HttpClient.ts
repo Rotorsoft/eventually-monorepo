@@ -19,9 +19,9 @@ import {
   State,
   decamelize
 } from "@rotorsoft/eventually";
-import { httpGetPath, httpPostPath } from "@rotorsoft/eventually-openapi";
 import axios, { AxiosResponse } from "axios";
-import { toExpressProjectionQuery } from "./query";
+import { toRestProjectionQuery } from "./query";
+import { httpGetPath, httpPostPath } from "./utils";
 
 /**
  * Http client extended response
@@ -189,9 +189,7 @@ export const HttpClient = (
         State,
         AxiosResponse<ProjectionRecord<S>[]>
       >(url("/".concat(decamelize(factory.name))), {
-        params: ids
-          ? { ids }
-          : toExpressProjectionQuery(query as ProjectionQuery)
+        params: ids ? { ids } : toRestProjectionQuery(query as ProjectionQuery)
       });
       // WARNING: to be used only in unit tests with small query responses - entire response buffer in data
       data.forEach((record) => callback(record));
