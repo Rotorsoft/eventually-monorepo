@@ -1,3 +1,5 @@
+#### 2023-04-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.0.6...@rotorsoft/eventually-service-expg-v1.1.0) @rotorsoft/eventually-service-expg-v1.1.0
+  - MINOR [4443bb88](https://github.com/Rotorsoft/eventually-monorepo/commit/4443bb88ae8eee7008f6a4d1b6251445a77b978b) feat: refactor ts enums with constants, move remaining rest utilities to new openapi lib
 #### 2023-04-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.1.5...@rotorsoft/eventually-broker-v2.2.0) @rotorsoft/eventually-broker-v2.2.0
   - MINOR [4443bb88](https://github.com/Rotorsoft/eventually-monorepo/commit/4443bb88ae8eee7008f6a4d1b6251445a77b978b) feat: refactor ts enums with constants, move remaining rest utilities to new openapi lib
 #### 2023-04-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.3.7...@rotorsoft/eventually-express-v5.4.0) @rotorsoft/eventually-express-v5.4.0
