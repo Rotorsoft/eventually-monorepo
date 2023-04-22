@@ -1,3 +1,5 @@
+#### 2023-04-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.4.0...@rotorsoft/eventually-express-v5.4.1) @rotorsoft/eventually-express-v5.4.1
+  - PATCH [12a3e8c2](https://github.com/Rotorsoft/eventually-monorepo/commit/12a3e8c25e1fb857708d8efb1811e20e05b3736d) fix: express handler import, openapi docs
 #### 2023-04-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.0...@rotorsoft/eventually-broker-v2.2.1) @rotorsoft/eventually-broker-v2.2.1
   - PATCH [02176e23](https://github.com/Rotorsoft/eventually-monorepo/commit/02176e23200b40d48f8f8088611800ad27e6639e) fix: refactor utils in openapi lib, gen docs
 #### 2023-04-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.0...@rotorsoft/eventually-openapi-v0.2.1) @rotorsoft/eventually-openapi-v0.2.1
