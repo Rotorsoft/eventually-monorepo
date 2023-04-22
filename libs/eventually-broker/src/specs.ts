@@ -3,7 +3,7 @@ import {
   EventContract,
   OpenAPIObject,
   getConflicts,
-  getSpec
+  getServiceSpec
 } from "@rotorsoft/eventually-openapi";
 import axios from "axios";
 import { state } from "./cluster";
@@ -93,7 +93,7 @@ export const refreshServiceSpec = async (service: Service): Promise<void> => {
     }
   });
   if (response.data) {
-    response.data.info && Object.assign(service, getSpec(response.data));
+    response.data.info && Object.assign(service, getServiceSpec(response.data));
     refreshServiceEventContracts(service);
   } else if (response.error) {
     log().info(`Refresh ${service.url}/swagger`, response.error);

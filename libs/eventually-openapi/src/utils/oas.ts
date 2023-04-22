@@ -1,7 +1,6 @@
 import {
   app,
   ArtifactMetadata,
-  ArtifactType,
   decamelize,
   ProjectorFactory,
   State
@@ -10,6 +9,7 @@ import * as fs from "fs";
 import { oas31 } from "openapi3-ts";
 import { ZodObject } from "zod";
 import { schemas, toSchema } from "./schemas";
+import { httpGetPath, httpPostPath } from "./utils";
 
 type Security = {
   schemes: Record<string, oas31.SecuritySchemeObject>;
@@ -475,23 +475,3 @@ export const getComponents = (
   securitySchemes: security.schemes,
   schemas: schemas(allStream)
 });
-
-export const httpGetPath = (name: string): string =>
-  "/".concat(decamelize(name), "/:id");
-
-export const httpPostPath = (
-  name: string,
-  type: ArtifactType,
-  message = ""
-): string => {
-  switch (type) {
-    case "aggregate":
-      return "/".concat(decamelize(name), "/:id/", decamelize(message));
-    case "system":
-      return "/".concat(decamelize(name), "/", decamelize(message));
-    default:
-      return "/".concat(decamelize(name));
-  }
-};
-
-export const toJsonSchema = toSchema;
