@@ -1,3 +1,5 @@
+#### 2023-04-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.1...@rotorsoft/eventually-broker-v2.2.2) @rotorsoft/eventually-broker-v2.2.2
+  - PATCH [d79cad08](https://github.com/Rotorsoft/eventually-monorepo/commit/d79cad081243ab205101cd76fbc48e8bc35f4d5c) fix: upgrade node packages
 #### 2023-04-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.1...@rotorsoft/eventually-openapi-v0.2.2) @rotorsoft/eventually-openapi-v0.2.2
   - PATCH [d79cad08](https://github.com/Rotorsoft/eventually-monorepo/commit/d79cad081243ab205101cd76fbc48e8bc35f4d5c) fix: upgrade node packages
 #### 2023-04-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.0...@rotorsoft/eventually-service-expg-v1.1.1) @rotorsoft/eventually-service-expg-v1.1.1
