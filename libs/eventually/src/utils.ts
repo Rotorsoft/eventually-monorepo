@@ -214,7 +214,8 @@ export const clone = <S extends State>(
     const patched = patch && key in patch;
     const deleted = patched && patch[key] === "undefined";
     const value = patched && !deleted ? patch[key] : state[key];
-    if (mergeable(value)) cloned[key] = clone(state[key], patch && patch[key]);
+    if (mergeable(value))
+      cloned[key] = clone(state[key] || {}, patch && patch[key]);
     else if (!deleted) cloned[key] = value;
   });
   return cloned as Readonly<S>;
