@@ -1,7 +1,7 @@
 import { formatTime } from "@rotorsoft/eventually";
 import { config, OAS_UI } from "../config";
 import { artifacts } from "./artifacts";
-import { diagram, directives } from "./diagram";
+import { diagram } from "./diagram";
 
 const doc = (
   title: string,
@@ -18,8 +18,6 @@ const doc = (
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/graphre/dist/graphre.js"></script>
-    <script src="https://unpkg.com/nomnoml/dist/nomnoml.js"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -93,7 +91,9 @@ const doc = (
         </h2>
         <div id="acThree" class="accordion-collapse collapse" aria-labelledby="ahThree">
           <div class="accordion-body">
-            <canvas id="diagram"></canvas>
+            <div id="esml">
+            ${diagram()}
+            </div>
           </div>
           <div class="accordion-body">
             <div class="row row-cols-auto g-4">
@@ -145,13 +145,9 @@ const doc = (
       </div>
     </div>
   </body>
-  <script>
-    var canvas = document.getElementById('diagram');
-    var source = \`${directives}${diagram()}\`;
-    nomnoml.draw(canvas, source);
-  </script>
 </html>`;
 
+let html = "";
 export const home = (): string => {
   const { service, env, logLevel, oas_ui, version, dependencies } = config;
   const status = {
@@ -164,6 +160,6 @@ export const home = (): string => {
       }))
       .reduce((p, c) => Object.assign(p, c))
   };
-
-  return doc(service, version, dependencies, oas_ui, status);
+  !html && (html = doc(service, version, dependencies, oas_ui, status));
+  return html;
 };

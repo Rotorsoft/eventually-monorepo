@@ -274,6 +274,7 @@ export const errorHandler = (
   const { name, message, stack, ...other } = error;
   switch (name) {
     case Errors.ValidationError:
+    case Errors.InvariantError:
       res.status(400).send({ name, message, ...other });
       break;
     case Errors.RegistrationError:
