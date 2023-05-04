@@ -1,3 +1,5 @@
+#### 2023-05-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.2...@rotorsoft/eventually-openapi-v0.2.3) @rotorsoft/eventually-openapi-v0.2.3
+  - PATCH [b0192204](https://github.com/Rotorsoft/eventually-monorepo/commit/b019220423c1e7bdc04dc00112f2b3197ff93a2a) fix: adopt esml
 #### 2023-04-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.4.0...@rotorsoft/eventually-v5.4.1) @rotorsoft/eventually-v5.4.1
   - PATCH [7acdb127](https://github.com/Rotorsoft/eventually-monorepo/commit/7acdb127555678e869bf0d9cad4343a890139ac5) fix: bug in clone utility
 #### 2023-04-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.1...@rotorsoft/eventually-broker-v2.2.2) @rotorsoft/eventually-broker-v2.2.2
