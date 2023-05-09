@@ -1,3 +1,5 @@
+#### 2023-05-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.3...@rotorsoft/eventually-openapi-v0.2.4) @rotorsoft/eventually-openapi-v0.2.4
+  - PATCH [2aa4f51d](https://github.com/Rotorsoft/eventually-monorepo/commit/2aa4f51da2a259469b8787570986a32205987e74) fix: use esml cdn
 #### 2023-05-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.2...@rotorsoft/eventually-broker-v2.2.3) @rotorsoft/eventually-broker-v2.2.3
   - PATCH [b0192204](https://github.com/Rotorsoft/eventually-monorepo/commit/b019220423c1e7bdc04dc00112f2b3197ff93a2a) fix: adopt esml
 #### 2023-05-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.4.1...@rotorsoft/eventually-express-v5.4.2) @rotorsoft/eventually-express-v5.4.2
