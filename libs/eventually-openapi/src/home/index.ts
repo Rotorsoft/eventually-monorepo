@@ -1,7 +1,6 @@
-import { formatTime } from "@rotorsoft/eventually";
+import { app, camelize, formatTime } from "@rotorsoft/eventually";
 import { config, OAS_UI } from "../config";
 import { artifacts } from "./artifacts";
-import { diagram } from "./diagram";
 
 const doc = (
   title: string,
@@ -15,9 +14,22 @@ const doc = (
     <title>${title}</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+      integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat&family=Handlee&family=Inconsolata:wght@300&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -91,9 +103,7 @@ const doc = (
         </h2>
         <div id="acThree" class="accordion-collapse collapse" aria-labelledby="ahThree">
           <div class="accordion-body">
-            <div id="esml">
-            ${diagram()}
-            </div>
+            <div class="overflow-hidden" style="max-height:400px" id="esml-container"></div>
           </div>
           <div class="accordion-body">
             <div class="row row-cols-auto g-4">
@@ -144,8 +154,46 @@ const doc = (
         </div>
       </div>
     </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/graphre/dist/graphre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@rotorsoft/esml/docs/esml.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {        
+        const container = document.getElementById('esml-container');
+        const code = \`${esml()}\`;
+        const canvas = new esml.Canvas(document, container);
+        canvas.render({ code });
+        canvas.fitToContainer();
+        onresize = esml.debounce(()=>canvas.fitToContainer(), 1000);
+      });
+    </script>
   </body>
 </html>`;
+
+const esml = (): string => {
+  const artifacts = [...app().artifacts.values()].filter(
+    (a) => a.type !== "command-adapter"
+  );
+  return artifacts
+    .map((a) => {
+      const outs =
+        a.type === "aggregate" || a.type === "system" ? "emits" : "invokes";
+      const inputs = a.inputs.map(({ name }) => name).join(",");
+      const outputs = a.outputs.map((name) => name).join(",");
+      return `${a.type} ${a.factory.name} ${
+        inputs ? `handles ${inputs}` : ""
+      } ${outputs ? `${outs} ${outputs}` : ""}`;
+    })
+    .join("\n")
+    .concat(
+      `context ${camelize(config.service)} includes `,
+      artifacts.map((a) => a.factory.name).join(",")
+    );
+};
 
 let html = "";
 export const home = (): string => {
