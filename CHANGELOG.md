@@ -1,3 +1,5 @@
+#### 2023-05-10 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.4...@rotorsoft/eventually-openapi-v0.2.5) @rotorsoft/eventually-openapi-v0.2.5
+  - PATCH [81d1645b](https://github.com/Rotorsoft/eventually-monorepo/commit/81d1645b8174250e83d60b6ebc1bd23e996f4928) fix: add EventuallyService to service name when rendering
 #### 2023-05-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.3...@rotorsoft/eventually-openapi-v0.2.4) @rotorsoft/eventually-openapi-v0.2.4
   - PATCH [2aa4f51d](https://github.com/Rotorsoft/eventually-monorepo/commit/2aa4f51da2a259469b8787570986a32205987e74) fix: use esml cdn
 #### 2023-05-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.2...@rotorsoft/eventually-broker-v2.2.3) @rotorsoft/eventually-broker-v2.2.3
