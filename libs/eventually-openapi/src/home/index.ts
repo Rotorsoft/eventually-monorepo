@@ -190,7 +190,7 @@ const esml = (): string => {
     })
     .join("\n")
     .concat(
-      `context ${camelize(config.service)} includes `,
+      `\ncontext ${camelize(config.service)}EventuallyService includes `,
       artifacts.map((a) => a.factory.name).join(",")
     );
 };
