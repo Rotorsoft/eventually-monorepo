@@ -103,7 +103,7 @@ const doc = (
         </h2>
         <div id="acThree" class="accordion-collapse collapse" aria-labelledby="ahThree">
           <div class="accordion-body">
-            <div class="overflow-hidden" style="max-height:400px" id="esml-container"></div>
+            <div class="overflow-hidden" style="max-height:600px" id="esml-container"></div>
           </div>
           <div class="accordion-body">
             <div class="row row-cols-auto g-4">
@@ -159,8 +159,7 @@ const doc = (
       integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/graphre/dist/graphre.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@rotorsoft/esml/docs/esml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@rotorsoft/esml@0.1.21/docs/esml.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {        
         const container = document.getElementById('esml-container');
@@ -178,21 +177,31 @@ const esml = (): string => {
   const artifacts = [...app().artifacts.values()].filter(
     (a) => a.type !== "command-adapter"
   );
-  return artifacts
+  const public_commands: string[] = [];
+  const code = artifacts
     .map((a) => {
-      const outs =
-        a.type === "aggregate" || a.type === "system" ? "emits" : "invokes";
+      const sys = a.type === "aggregate" || a.type === "system";
+      const outs = sys ? "emits" : "invokes";
       const inputs = a.inputs.map(({ name }) => name).join(",");
       const outputs = a.outputs.map((name) => name).join(",");
+      const pub = sys
+        ? a.inputs
+            .filter(({ scope }) => scope === "public")
+            .map(({ name }) => name)
+        : [];
+      public_commands.push(...pub);
       return `${a.type} ${a.factory.name} ${
         inputs ? `handles ${inputs}` : ""
       } ${outputs ? `${outs} ${outputs}` : ""}`;
     })
-    .join("\n")
-    .concat(
-      `\ncontext ${camelize(config.service)}EventuallyService includes `,
-      artifacts.map((a) => a.factory.name).join(",")
-    );
+    .join("\n");
+  return code.concat(
+    `\ncontext ${camelize(config.service)}EventuallyService includes Actor,`,
+    artifacts.map((a) => a.factory.name).join(","),
+    public_commands.length
+      ? `\nactor Actor invokes ${public_commands.join(",")}`
+      : ""
+  );
 };
 
 let html = "";
