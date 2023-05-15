@@ -1,3 +1,5 @@
+#### 2023-05-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.7...@rotorsoft/eventually-openapi-v0.2.8) @rotorsoft/eventually-openapi-v0.2.8
+  - PATCH [017dffa3](https://github.com/Rotorsoft/eventually-monorepo/commit/017dffa3a41697f4f2aa8ebb47bd3519625b022b) fix: add esml ref to latest
 #### 2023-05-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.6...@rotorsoft/eventually-openapi-v0.2.7) @rotorsoft/eventually-openapi-v0.2.7
   - PATCH [2eab7f9f](https://github.com/Rotorsoft/eventually-monorepo/commit/2eab7f9feb0f408f68d43ab3ed7753e57c1ab5c6) fix: remove dependency to esml
 #### 2023-05-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.5...@rotorsoft/eventually-openapi-v0.2.6) @rotorsoft/eventually-openapi-v0.2.6
