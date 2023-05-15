@@ -159,7 +159,7 @@ const doc = (
       integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/@rotorsoft/esml@0.1.21/docs/esml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@rotorsoft/esml@latest/docs/esml.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {        
         const container = document.getElementById('esml-container');
