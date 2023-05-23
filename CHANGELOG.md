@@ -1,3 +1,5 @@
+#### 2023-05-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.8...@rotorsoft/eventually-openapi-v0.2.9) @rotorsoft/eventually-openapi-v0.2.9
+  - PATCH [73e5b2f6](https://github.com/Rotorsoft/eventually-monorepo/commit/73e5b2f66ee72eee9e69278de4494b70c65dd608) fix: eventually-openapi config so that it does not error when running in firebase emulator.
 #### 2023-05-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.7...@rotorsoft/eventually-openapi-v0.2.8) @rotorsoft/eventually-openapi-v0.2.8
   - PATCH [017dffa3](https://github.com/Rotorsoft/eventually-monorepo/commit/017dffa3a41697f4f2aa8ebb47bd3519625b022b) fix: add esml ref to latest
 #### 2023-05-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.6...@rotorsoft/eventually-openapi-v0.2.7) @rotorsoft/eventually-openapi-v0.2.7
