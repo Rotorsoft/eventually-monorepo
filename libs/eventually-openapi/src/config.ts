@@ -23,7 +23,7 @@ const { PORT, OAS_UI } = process.env;
  */
 export const config = extend(
   {
-    port: Number.parseInt(PORT || "3000"),
+    port: parseInt(PORT || "3000") || 3000,
     oas_ui: (OAS_UI as OAS_UI) || "SwaggerUI"
   },
   Schema,
