@@ -1,5 +1,9 @@
-import z from "zod";
+import z, { any } from "zod";
 import { config as target, extend } from "@rotorsoft/eventually";
+
+function fallback<T>(value: T) {
+  return any().transform(() => value);
+}
 
 /**
  * OpenAPI spec options
@@ -12,7 +16,7 @@ export type OAS_UI = (typeof OAS_UIS)[number];
  * Configuration zod schema
  */
 const Schema = z.object({
-  port: z.number().int().min(1000).max(65535),
+  port: z.number().int().min(1000).max(65535).or(fallback('test')),
   oas_ui: z.enum(OAS_UIS)
 });
 
@@ -23,7 +27,7 @@ const { PORT, OAS_UI } = process.env;
  */
 export const config = extend(
   {
-    port: parseInt(PORT || "3000") || 3000,
+    port: parseInt(PORT || "3000"),
     oas_ui: (OAS_UI as OAS_UI) || "SwaggerUI"
   },
   Schema,
