@@ -18,9 +18,14 @@ type Package = {
   dependencies: Record<string, string>;
 };
 
+let parsedPkg: Package;
+
 const getPackage = (): Package => {
-  const pkg = fs.readFileSync("package.json");
-  return JSON.parse(pkg.toString()) as unknown as Package;
+  if(!parsedPkg){
+    const pkg = fs.readFileSync("package.json");
+    parsedPkg = JSON.parse(pkg.toString()) as unknown as Package;
+  }
+  return parsedPkg
 };
 
 const Schema = z.object({
