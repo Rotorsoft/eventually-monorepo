@@ -1,3 +1,5 @@
+#### 2023-05-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.4.1...@rotorsoft/eventually-v5.4.2) @rotorsoft/eventually-v5.4.2
+  - PATCH [376eea33](https://github.com/Rotorsoft/eventually-monorepo/commit/376eea33bcc3576b0e51cafd9406d06a6ef759d6) fix: remove config calls from logger
 #### 2023-05-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.8...@rotorsoft/eventually-openapi-v0.2.9) @rotorsoft/eventually-openapi-v0.2.9
   - PATCH [73e5b2f6](https://github.com/Rotorsoft/eventually-monorepo/commit/73e5b2f66ee72eee9e69278de4494b70c65dd608) fix: eventually-openapi config so that it does not error when running in firebase emulator.
 #### 2023-05-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.7...@rotorsoft/eventually-openapi-v0.2.8) @rotorsoft/eventually-openapi-v0.2.8
