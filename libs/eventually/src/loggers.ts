@@ -1,6 +1,7 @@
-import { config } from "./config";
 import { Logger } from "./interfaces";
 import { CommittedEvent } from "./types";
+
+const { NODE_ENV, LOG_LEVEL } = process.env;
 
 const Color = {
   red: 31,
@@ -90,7 +91,7 @@ export const devLogger = (): Logger => {
     italic: () => effect(logger, "italic"),
     underlined: () => effect(logger, "underlined"),
     trace: (message: string, details?: unknown, ...params: unknown[]) =>
-      config().logLevel === "trace" &&
+      LOG_LEVEL === "trace" &&
       console.log(
         message,
         code(Effect.reset, Color.gray),
@@ -99,7 +100,7 @@ export const devLogger = (): Logger => {
         code(Effect.reset)
       ),
     info: (message: string, details?: unknown, ...params: unknown[]) =>
-      config().logLevel !== "error" &&
+      LOG_LEVEL !== "error" &&
       console.info(
         message,
         code(Effect.reset, Color.gray),
@@ -132,13 +133,9 @@ export const plainLogger = (): Logger => {
     dimmed: () => logger,
     italic: () => logger,
     underlined: () => logger,
-    trace:
-      (config().env !== "test" && config().logLevel === "trace" && plain) ||
-      nop,
-    info:
-      (config().env !== "test" && config().logLevel !== "error" && plain) ||
-      nop,
-    error: (config().env !== "test" && error) || nop,
+    trace: (NODE_ENV !== "test" && LOG_LEVEL === "trace" && plain) || nop,
+    info: (NODE_ENV !== "test" && LOG_LEVEL !== "error" && plain) || nop,
+    error: (NODE_ENV !== "test" && error) || nop,
     events
   };
   return logger;
