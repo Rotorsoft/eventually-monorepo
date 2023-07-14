@@ -1,3 +1,5 @@
+#### 2023-07-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.4.2...@rotorsoft/eventually-v5.4.3) @rotorsoft/eventually-v5.4.3
+  - PATCH [a6bb0e50](https://github.com/Rotorsoft/eventually-monorepo/commit/a6bb0e5093a2fe18d2d7163b8c69eaf3e6d14e41) fix: up pks and fix zod errors
 #### 2023-05-24 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.4.1...@rotorsoft/eventually-v5.4.2) @rotorsoft/eventually-v5.4.2
   - PATCH [376eea33](https://github.com/Rotorsoft/eventually-monorepo/commit/376eea33bcc3576b0e51cafd9406d06a6ef759d6) fix: remove config calls from logger
 #### 2023-05-23 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.8...@rotorsoft/eventually-openapi-v0.2.9) @rotorsoft/eventually-openapi-v0.2.9
