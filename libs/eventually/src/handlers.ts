@@ -155,7 +155,7 @@ const _handleMsg = async <
     } else {
       app().emit("commit", { factory });
       return committed.map(
-        (event) => ({ state: snapshot.state, event } as Snapshot<S, E>)
+        (event) => ({ state: snapshot.state, event }) as Snapshot<S, E>
       );
     }
   } else return [];

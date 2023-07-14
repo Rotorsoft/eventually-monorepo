@@ -26,10 +26,12 @@ export const validate = <T>(
   try {
     return schema.parse(payload);
   } catch (error) {
-    if (error instanceof ZodError)
-      throw new ValidationError(
-        error.errors.map(({ path, message }) => `${path.join(".")}: ${message}`)
+    if (error instanceof Error && error.name === "ZodError") {
+      const issues = (error as ZodError).issues.map(
+        ({ path, message }) => `${path.join(".")}: ${message}`
       );
+      throw new ValidationError(issues);
+    }
     throw new ValidationError(["zod validation error"]);
   }
 };
@@ -72,7 +74,7 @@ export const bind = <M extends Messages>(
   data: Readonly<M[keyof M]>,
   target?: CommandTarget
 ): Message<M> | Command<M> =>
-  ({ name, data, ...target } as Message<M> | Command<M>);
+  ({ name, data, ...target }) as Message<M> | Command<M>;
 
 /**
  * Extends target payload with source payload after validating source

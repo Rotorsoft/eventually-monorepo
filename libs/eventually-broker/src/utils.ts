@@ -43,7 +43,7 @@ export const formatDateLocal = (date: Date): string => {
  * @param anyOrArray The argument
  * @returns The ensured array
  */
-export const ensureArray = (anyOrArray: any | any[]): any[] =>
+export const ensureArray = (anyOrArray: any): any[] =>
   Array.isArray(anyOrArray) ? anyOrArray : [anyOrArray];
 
 /**
