@@ -139,10 +139,9 @@ describe("pg", () => {
   });
 
   it("should poll", async () => {
-    let cnt = 0;
-    await db.poll("test", ["test1"], 5, "lease", 5000, () => cnt++);
-    expect(cnt).toBeGreaterThanOrEqual(3);
-    const acked = await db.ack("test", "lease", 5);
+    const lease = await db.poll("test", ["test1"], 5, 5000);
+    expect(lease?.events.length).toBeGreaterThanOrEqual(3);
+    const acked = await db.ack(lease!, 5);
     expect(acked).toBeTruthy();
   });
 });

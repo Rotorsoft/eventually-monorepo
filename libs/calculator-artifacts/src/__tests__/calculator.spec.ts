@@ -117,7 +117,7 @@ describe("Calculator", () => {
       { stream, expectedVersion: -1, actor }
     );
     const { event } = await client().load(Calculator, stream);
-    expect(event?.metadata?.correlation.length).toEqual(24);
+    expect(event?.metadata?.correlation.length).toEqual(36);
     expect(event?.metadata?.causation.command?.name).toEqual("PressKey");
   });
 

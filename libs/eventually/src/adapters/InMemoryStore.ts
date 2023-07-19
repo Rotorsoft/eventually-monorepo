@@ -1,13 +1,13 @@
-import { Store, StoreStat, Subscription } from "../interfaces";
-import {
+import { randomUUID } from "crypto";
+import type { Store, StoreStat, Lease, Subscription } from "../interfaces";
+import type {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
-  ConcurrencyError,
   Message,
-  Messages,
-  ActorConcurrencyError
+  Messages
 } from "../types";
+import { ConcurrencyError, ActorConcurrencyError } from "../types";
 
 /**
  * @category Adapters
@@ -133,14 +133,12 @@ export const InMemoryStore = (): Store => {
       consumer: string,
       names: string[],
       limit: number,
-      lease: string,
-      timeout: number,
-      callback: (event: CommittedEvent<E>) => void
-    ) => {
+      timeout: number
+    ): Promise<Lease<E> | undefined> => {
       const subscription: Subscription = (_subscriptions[consumer] =
         _subscriptions[consumer] || { consumer, watermark: -1 });
 
-      // block competing consumers while existing lease is valid
+      // blocks competing consumers while existing lease is valid
       if (
         !(
           subscription.lease &&
@@ -148,31 +146,42 @@ export const InMemoryStore = (): Store => {
           subscription.expires > new Date()
         )
       ) {
-        // create a new lease
-        subscription.lease = lease;
-        subscription.expires = new Date(Date.now() + timeout);
         // get events after watermark
-        await query<E>((e) => callback(e), {
+        const events: Array<CommittedEvent<E>> = [];
+        await query<E>((e) => events.push(e), {
           after: subscription.watermark,
           limit,
           names
         });
+
+        // create a new lease when events found
+        if (events.length) {
+          const renew: Subscription = {
+            consumer,
+            watermark: subscription.watermark,
+            lease: randomUUID(),
+            expires: new Date(Date.now() + timeout)
+          };
+          _subscriptions[consumer] = renew;
+          return { ...renew, events } as Lease<E>;
+        }
       }
     },
 
-    ack: (consumer: string, lease: string, watermark: number) => {
-      const subscription = _subscriptions[consumer];
-      // update watermark while lease is still valid
+    ack: <E extends Messages>(lease: Lease<E>, watermark?: number) => {
+      const subscription = _subscriptions[lease.consumer];
+      // updates subscription while lease is still valid
       if (
         subscription &&
         subscription.lease &&
-        subscription.lease === lease &&
+        subscription.lease === lease.lease &&
         subscription.expires &&
         subscription.expires > new Date()
       ) {
-        subscription.watermark = Math.max(watermark, subscription.watermark);
-        delete subscription.lease;
-        delete subscription.expires;
+        _subscriptions[lease.consumer] = {
+          consumer: lease.consumer,
+          watermark: Math.max(watermark || -1, subscription.watermark)
+        };
         return Promise.resolve(true);
       }
       return Promise.resolve(false);

@@ -1,0 +1,74 @@
+import { randomUUID } from "crypto";
+import { app, log } from "../ports";
+import type {
+  Command,
+  CommandHandlerFactory,
+  CommittedEventMetadata,
+  Messages,
+  Snapshot,
+  State
+} from "../types";
+import { InvariantError, RegistrationError } from "../types/errors";
+import { validateMessage } from "../utils";
+import message from "./message";
+
+/**
+ * Validates and handles command message
+ * @param command the command message
+ * @param metadata the optional metadata of the event that triggered this command
+ * @returns array of resulting snapshots
+ */
+export default async function command<
+  S extends State,
+  C extends Messages,
+  E extends Messages
+>(
+  command: Command<C>,
+  metadata?: CommittedEventMetadata
+): Promise<Snapshot<S, E>[]> {
+  const validated = validateMessage(command);
+  const { name, stream, expectedVersion, actor } = command;
+  if (!stream) throw new Error("Missing target stream");
+
+  const msg = app().messages.get(name);
+  if (!msg?.handlers.length) throw new RegistrationError(command);
+
+  const factory = app().artifacts.get(msg.handlers[0])
+    ?.factory as unknown as CommandHandlerFactory<S, C, E>;
+  if (!factory) throw new RegistrationError(command);
+
+  log().blue().trace(`\n>>> ${factory.name}`, command, metadata);
+
+  const artifact = factory(stream);
+  Object.setPrototypeOf(artifact, factory as object);
+
+  const snapshots = await message<S, C, E>(
+    factory,
+    artifact,
+    stream,
+    ({ state }) => {
+      if ("given" in artifact && artifact.given) {
+        const invariants = artifact.given[name] || [];
+        invariants.forEach((invariant) => {
+          if (!invariant.valid(state, actor))
+            throw new InvariantError<C>(
+              name,
+              command.data,
+              { stream, expectedVersion, actor },
+              invariant.description
+            );
+        });
+      }
+      return artifact.on[name](validated.data, state, actor);
+    },
+    {
+      correlation: metadata?.correlation || randomUUID(),
+      causation: {
+        ...metadata?.causation,
+        command: { name, stream, expectedVersion, actor }
+        // TODO: flag to include command.data in metadata, not included by default to avoid duplicated payloads
+      }
+    }
+  );
+  return snapshots;
+}

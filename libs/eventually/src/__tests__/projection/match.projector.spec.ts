@@ -14,7 +14,7 @@ describe("match projection", () => {
   it("should work", async () => {
     for (const step of steps) {
       let record: ProjectionRecord = { state: { id: "" }, watermark: -1 };
-      await client().project(MatchProjector, step.event);
+      await client().event(MatchProjector, step.event);
       await client().read(
         MatchProjector,
         step.event.stream,

@@ -1,4 +1,4 @@
-import {
+import type {
   AllQuery,
   CommandAdapterFactory,
   CommandHandlerFactory,
@@ -9,7 +9,6 @@ import {
   Messages,
   ProjectorFactory,
   ProjectionRecord,
-  ProjectionResults,
   Snapshot,
   State,
   ProjectionQuery,
@@ -48,10 +47,10 @@ export type Client = {
   ) => Promise<Snapshot<S, E>[]>;
 
   /**
-   * Handles event and optionally invokes command on target - side effect
-   * @param factory the event handler factory
-   * @param event the committed event
-   * @returns optional command response and reducible state
+   * Validates and handles event message
+   * @param factory the event handler factory (policy, process manager, or projector)
+   * @param events the committed event to be handled
+   * @returns response, including command or projection side effects
    */
   event: <S extends State, C extends Messages, E extends Messages>(
     factory: EventHandlerFactory<S, C, E>,
@@ -87,17 +86,6 @@ export type Client = {
     last?: CommittedEvent;
     count: number;
   }>;
-
-  /**
-   * Projects event into projector store
-   * @param factory the projector factory
-   * @param event the committed event
-   * @returns the committed projection
-   */
-  project: <S extends State, E extends Messages>(
-    factory: ProjectorFactory<S, E>,
-    event: CommittedEvent<E>
-  ) => Promise<ProjectionResults<S>>;
 
   /**
    * Reads projection records by id or query

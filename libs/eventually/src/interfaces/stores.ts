@@ -27,13 +27,22 @@ export type StoreStat = {
 };
 
 /**
- * Internal subscriptions managed by in-memory broker
+ * Consumer subscription
  */
 export type Subscription = {
-  consumer: string;
-  watermark: number;
-  lease?: string;
-  expires?: Date;
+  readonly consumer: string;
+  readonly watermark: number;
+  readonly lease?: string;
+  readonly expires?: Date;
+};
+
+/**
+ * Consumer lease
+ */
+export type Lease<E extends Messages> = Subscription & {
+  readonly lease: string;
+  readonly expires: Date;
+  readonly events: CommittedEvent<E>[];
 };
 
 /**
@@ -77,39 +86,39 @@ export interface Store extends Disposable, Seedable {
    */
   stats: () => Promise<StoreStat[]>;
 
-  // TODO: refactor lease interface, no need to be part of the store, optimized for caches
   /**
-   * Polls for new events after stored consumer watermark
-   * - Creates an expiring consumer lease to serialize competing consumers
-   * - Commits the new watermark after the `ack` response is received within lease time
-   * - Rejects `ack` and allows new consumers after lease expires
+   * Polls for events after stored consumer watermark
+   *
+   * > Creates an expiring consumer lease when events are found
+   *
+   * > This strategy must commit a new watermark with `ack` within the lease time, or new consumer requests will be allowed after lease expires
+   *
    * - `consumer` the consumer name
    * - `names` the event names to poll
    * - `limit` the max number of events to poll
-   * - `lease` the unique lease id
    * - `timeout` the lease timeout in ms
-   * - `callback` the callback with events after consumer stored watermark
+   * @returns a new lease when events are found
    */
   poll: <E extends Messages>(
     consumer: string,
     names: string[],
     limit: number,
-    lease: string,
-    timeout: number,
-    callback: (event: CommittedEvent<E>) => void
-  ) => Promise<void>;
+    timeout: number
+  ) => Promise<Lease<E> | undefined>;
 
   /**
-   * Acknowledges when a consumer handled polled events succesfully
-   * - `consumer` the consumer name
-   * - `lease` the unique lease id to ack
-   * - `watermark` the new watermark of consumed events
-   * - returns false when ack is rejected due to lease expiration
+   * Acknowledges when the consumer finishes handling events
+   * - `lease` the lease
+   * - `watermark?` the new watermark of consumed events
+   * - returns false when lease expired
    * */
-  ack: (consumer: string, lease: string, watermark: number) => Promise<boolean>;
+  ack: <E extends Messages>(
+    lease: Lease<E>,
+    watermark?: number
+  ) => Promise<boolean>;
 
   /**
-   * Gets current subscription states
+   * Gets subscriptions
    */
   subscriptions: () => Promise<Subscription[]>;
 }

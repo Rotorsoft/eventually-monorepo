@@ -2,6 +2,7 @@
 export * from "./adapters";
 export * from "./breaker";
 export * from "./builder";
+export * from "./handlers";
 export * from "./interfaces";
 export * from "./port";
 export * from "./ports";

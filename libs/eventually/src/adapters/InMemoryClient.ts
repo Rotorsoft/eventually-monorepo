@@ -1,14 +1,7 @@
-import {
-  command,
-  event,
-  invoke,
-  load,
-  project,
-  query,
-  read
-} from "../handlers";
-import { Disposable } from "../interfaces";
-import {
+import { command, event, invoke, load, read } from "../handlers";
+import type { Disposable } from "../interfaces";
+import { store } from "../ports";
+import type {
   AllQuery,
   Client,
   CommandHandlerFactory,
@@ -46,13 +39,12 @@ export const InMemoryClient = (): Client & Disposable => ({
   }> => {
     let first: CommittedEvent | undefined = undefined,
       last: CommittedEvent | undefined = undefined;
-    const count = await query(allQuery, (e) => {
+    const count = await store().query((e) => {
       !first && (first = e);
       last = e;
       callback && callback(e);
-    });
+    }, allQuery);
     return { first, last, count };
   },
-  project,
   read
 });

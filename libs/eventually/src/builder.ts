@@ -1,10 +1,11 @@
 import EventEmitter from "node:events";
 import { ZodType } from "zod";
-import { Disposable, ProjectorStore, SnapshotStore } from "./interfaces";
-import {
+import type { Disposable, ProjectorStore, SnapshotStore } from "./interfaces";
+import type {
   Artifact,
   ArtifactFactory,
   ArtifactMetadata,
+  EventHandlingArtifact,
   Messages,
   ProjectionResults,
   ProjectorFactory,
@@ -13,6 +14,7 @@ import {
   Snapshot,
   State
 } from "./types";
+import { isProjector } from "./utils";
 
 /**
  * Internal message details used as main drivers of public interfaces and documentation
@@ -159,9 +161,9 @@ export abstract class Builder extends EventEmitter implements Disposable {
         return {
           type: reducible
             ? "process-manager"
-            : "commands" in artifact.schemas
-            ? "policy"
-            : "projector",
+            : isProjector(artifact as EventHandlingArtifact)
+            ? "projector"
+            : "policy",
           factory,
           inputs: inputs.map((name) => ({ name, scope })),
           outputs:

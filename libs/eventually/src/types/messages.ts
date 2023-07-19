@@ -128,17 +128,6 @@ export type AllQuery = {
 };
 
 /**
- * Response from event handlers
- *
- * - `command?` the command triggered by the event handler
- * - `state?` the reducible state affected
- */
-export type EventResponse<S extends State, C extends Messages> = {
-  readonly command?: Command<C>;
-  readonly state?: S;
-};
-
-/**
  * Projection slices
  *
  * - `upserts?` the array of key=value expressions used to upsert slices of records
@@ -210,4 +199,21 @@ export type ProjectionQuery<S extends State = State> = {
   readonly where?: ProjectionWhere<S>;
   readonly sort?: ProjectionSort<S>;
   readonly limit?: number;
+};
+
+/**
+ * Response from event handlers
+ *
+ * - `id`: the event id
+ * - `error?`: error message when failed
+ * - `command?` the command triggered by the event handler when handled by policies
+ * - `state?` the reducible state when handled by process managers
+ * - `projection?` the projection results when handled by a projector
+ */
+export type EventResponse<S extends State, C extends Messages> = {
+  readonly id: number;
+  readonly error?: string;
+  readonly command?: Command<C>;
+  readonly state?: S;
+  readonly projection?: ProjectionResults<S>;
 };

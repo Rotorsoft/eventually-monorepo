@@ -202,7 +202,7 @@ export const eventHandler =
     }
   };
 
-export const projectHandler =
+export const eventsHandler =
   (factory: ProjectorFactory) =>
   async (
     req: Request<never, any, CommittedEvent[]>,
@@ -212,9 +212,10 @@ export const projectHandler =
     res.write("[");
     for (let i = 0; i < req.body.length; i++) {
       i && res.write(",");
+      const event = req.body[i];
       try {
-        const results = await client().project(factory, req.body[i]);
-        res.write(JSON.stringify(results));
+        const response = await client().event(factory, event);
+        res.write(JSON.stringify(response));
       } catch (_error: unknown) {
         log().error(_error);
         const error =
@@ -222,14 +223,8 @@ export const projectHandler =
             ? _error.message
             : typeof _error === "string"
             ? _error
-            : `Error found when projecting ${req.body[i].name} at position ${i}.`;
-        const results: ProjectionResults = {
-          upserted: [],
-          deleted: [],
-          watermark: -1,
-          error
-        };
-        res.write(JSON.stringify(results));
+            : `Error found when handling ${req.body[i].name} at position ${i}.`;
+        res.write(JSON.stringify({ id: event.id, error }));
         break;
       }
     }

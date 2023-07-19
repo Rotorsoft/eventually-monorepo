@@ -1,20 +1,24 @@
-import {
+import type {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
-  ConcurrencyError,
-  dateReviver,
-  log,
+  Lease,
   Message,
   Messages,
-  ActorConcurrencyError,
   Store,
   StoreStat,
   Subscription
 } from "@rotorsoft/eventually";
+import {
+  ActorConcurrencyError,
+  ConcurrencyError,
+  dateReviver,
+  log
+} from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
 import { stream } from "./seed";
+import { randomUUID } from "crypto";
 
 type Event = {
   id: number;
@@ -211,18 +215,20 @@ export const PostgresStore = (table: string): Store => {
       consumer: string,
       names: string[],
       limit: number,
-      lease: string,
-      timeout: number,
-      callback: (event: CommittedEvent<E>) => void
-    ) => {
+      timeout: number
+    ): Promise<Lease<E> | undefined> => {
       const client = await pool.connect();
       try {
+        const events: CommittedEvent<E>[] = [];
+        let lease, expires;
+
         await client.query("BEGIN");
         const { rows } = await pool.query<Subscription>(
           `SELECT * FROM ${table}_subscriptions WHERE consumer=$1`,
           [consumer]
         );
-        const subscription = rows.at(0) || ({ watermark: -1 } as Subscription);
+        const subscription =
+          rows.at(0) || ({ consumer, watermark: -1 } as Subscription);
         // block competing consumers while existing lease is valid
         if (
           !(
@@ -231,25 +237,34 @@ export const PostgresStore = (table: string): Store => {
             subscription.expires > new Date()
           )
         ) {
-          // create a new lease
-          await client.query(
-            `INSERT INTO ${table}_subscriptions VALUES($1, $2, $3, $4)
-            ON CONFLICT (consumer) DO UPDATE SET lease=$3, expires=$4 WHERE ${table}_subscriptions.consumer=$1`,
-            [
-              consumer,
-              subscription.watermark,
-              lease,
-              new Date(Date.now() + timeout)
-            ]
-          );
           // get events after watermark
-          await query<E>((e) => callback(e), {
+          await query<E>((e) => events.push(e), {
             after: subscription.watermark,
             limit,
             names
           });
+
+          // create a new lease when events found
+          if (events.length) {
+            lease = randomUUID();
+            expires = new Date(Date.now() + timeout);
+            await client.query(
+              `INSERT INTO ${table}_subscriptions VALUES($1, $2, $3, $4)
+            ON CONFLICT (consumer) DO UPDATE SET lease=$3, expires=$4 WHERE ${table}_subscriptions.consumer=$1`,
+              [consumer, subscription.watermark, lease, expires]
+            );
+          }
         }
         await client.query("COMMIT");
+        return events.length
+          ? ({
+              consumer,
+              watermark: subscription.watermark,
+              lease,
+              expires,
+              events
+            } as Lease<E>)
+          : undefined;
       } catch (error) {
         log().error(error);
         await client.query("ROLLBACK");
@@ -259,20 +274,22 @@ export const PostgresStore = (table: string): Store => {
       }
     },
 
-    ack: async (consumer: string, lease: string, watermark: number) => {
+    ack: async <E extends Messages>(lease: Lease<E>, watermark?: number) => {
       let acked = false;
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
         const { rows } = await pool.query<Subscription>(
           `SELECT * FROM ${table}_subscriptions WHERE consumer=$1`,
-          [consumer]
+          [lease.consumer]
         );
-        const subscription = rows.at(0) || ({ watermark: -1 } as Subscription);
+        const subscription =
+          rows.at(0) ||
+          ({ consumer: lease.consumer, watermark: -1 } as Subscription);
         // update watermark while lease is still valid
         if (
           subscription.lease &&
-          subscription.lease === lease &&
+          subscription.lease === lease.lease &&
           subscription.expires &&
           subscription.expires > new Date()
         )
@@ -280,7 +297,10 @@ export const PostgresStore = (table: string): Store => {
             (
               await client.query(
                 `UPDATE ${table}_subscriptions SET watermark=$2, lease=null, expires=null WHERE ${table}_subscriptions.consumer=$1`,
-                [consumer, Math.max(watermark, subscription.watermark)]
+                [
+                  lease.consumer,
+                  Math.max(watermark || -1, subscription.watermark)
+                ]
               )
             ).rowCount > 0;
         await client.query("COMMIT");

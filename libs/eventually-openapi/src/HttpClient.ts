@@ -12,7 +12,6 @@ import {
   Messages,
   ProjectionQuery,
   ProjectionRecord,
-  ProjectionResults,
   ProjectorFactory,
   ReducibleFactory,
   Snapshot,
@@ -44,6 +43,10 @@ export type HttpClientExt = Client &
         useSnapshots?: boolean;
       }
     ) => Promise<Snapshot<S, E>[]>;
+    events: <S extends State, E extends Messages>(
+      factory: ProjectorFactory<S, E>,
+      events: CommittedEvent<E>[]
+    ) => Promise<EventResponseEx<S>[]>;
   };
 
 /**
@@ -112,6 +115,17 @@ export const HttpClient = (
       return { status, ...data };
     },
 
+    events: async <S extends State, E extends Messages>(
+      factory: ProjectorFactory<S, E>,
+      events: CommittedEvent<E>[]
+    ): Promise<EventResponseEx<S>[]> => {
+      const { data } = await axios.post<
+        State,
+        AxiosResponse<EventResponseEx<S>[]>
+      >(url(httpPostPath(factory.name, "projector")), events);
+      return data;
+    },
+
     load: async <S extends State, C extends Messages, E extends Messages>(
       reducible: AggregateFactory<S, C, E>,
       stream: string
@@ -160,17 +174,6 @@ export const HttpClient = (
             )
         )
       );
-      return data;
-    },
-
-    project: async <S extends State, E extends Messages>(
-      factory: ProjectorFactory<S, E>,
-      event: CommittedEvent<E>
-    ): Promise<ProjectionResults<S>> => {
-      const { data } = await axios.post<
-        State,
-        AxiosResponse<ProjectionResults<S>>
-      >(url(httpPostPath(factory.name, "projector")), [event]);
       return data;
     },
 

@@ -237,7 +237,7 @@ export type EventHandlingArtifact<
   C extends Messages = Messages,
   E extends Messages = Messages,
   O extends Messages = Messages
-> = ProcessManager<S, C, E, O> | Policy<C, E>;
+> = ProcessManager<S, C, E, O> | Policy<C, E> | Projector<S, E>;
 
 /** All message handling artifacts */
 export type Artifact<
@@ -248,8 +248,7 @@ export type Artifact<
 > =
   | CommandHandlingArtifact<S, C, E>
   | EventHandlingArtifact<S, C, E, O>
-  | CommandAdapter<S, C>
-  | Projector<S, E>;
+  | CommandAdapter<S, C>;
 
 /** Helper to infer zod types */
 export type Infer<T> = T extends ZodRawShape

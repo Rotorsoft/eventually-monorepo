@@ -25,10 +25,10 @@ import {
   commandHandler,
   errorHandler,
   eventHandler,
+  eventsHandler,
   getHandler,
   getStreamHandler,
   invokeHandler,
-  projectHandler,
   readHandler,
   statsHandler,
   subscriptionsHandler
@@ -89,7 +89,8 @@ export class ExpressApp extends Builder {
         const projector = projector_factory();
         const path = httpPostPath(factory.name, type);
         if (endpoints.length) {
-          this._router.post(path, projectHandler(projector_factory));
+          // projectors expose a route to handle an array of events
+          this._router.post(path, eventsHandler(projector_factory));
           log().magenta().info("POST", path, inputs);
         }
         this._router.get(

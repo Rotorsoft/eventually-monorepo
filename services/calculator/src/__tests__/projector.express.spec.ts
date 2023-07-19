@@ -28,24 +28,25 @@ describe("calculator with projector in express app", () => {
 
   it("should project", async () => {
     const stream = "Calculator-".concat(chance.guid());
-    await http.project(
-      CalculatorTotals,
+    await http.events(CalculatorTotals, [
       createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 1)
-    );
-    const results = await http.project(
-      CalculatorTotals,
+    ]);
+    const results = await http.events(CalculatorTotals, [
       createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 2)
-    );
+    ]);
     expect(results).toEqual([
       {
-        upserted: [
-          {
-            where: { id: `Totals-${stream}` },
-            count: 1
-          }
-        ],
-        deleted: [],
-        watermark: 2
+        id: 2,
+        projection: {
+          upserted: [
+            {
+              where: { id: `Totals-${stream}` },
+              count: 1
+            }
+          ],
+          deleted: [],
+          watermark: 2
+        }
       }
     ]);
 
@@ -62,26 +63,13 @@ describe("calculator with projector in express app", () => {
   it("should query", async () => {
     const stream1 = "Calculator-".concat(chance.guid());
     const stream2 = "Calculator-".concat(chance.guid());
-    await http.project(
-      CalculatorTotals,
-      createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "1" }, 1)
-    );
-    await http.project(
-      CalculatorTotals,
-      createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "2" }, 2)
-    );
-    await http.project(
-      CalculatorTotals,
-      createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 3)
-    );
-    await http.project(
-      CalculatorTotals,
-      createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 4)
-    );
-    await http.project(
-      CalculatorTotals,
+    await http.events(CalculatorTotals, [
+      createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "1" }, 1),
+      createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "2" }, 2),
+      createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 3),
+      createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 4),
       createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 5)
-    );
+    ]);
 
     let rec: ProjectionRecord<Totals> | undefined;
     await http.read(CalculatorTotals, `Totals-${stream2}`, (r) => (rec = r));

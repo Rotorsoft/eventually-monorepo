@@ -1,15 +1,11 @@
-import { randomUUID } from "crypto";
-import { event, project } from "../handlers";
-import { Broker, SnapshotStore } from "../interfaces";
-import { app, log, store } from "../ports";
+import { poll } from "../handlers";
+import type { Broker, SnapshotStore } from "../interfaces";
+import { app, log } from "../ports";
 import { scheduler } from "../scheduler";
-import {
+import type {
   ArtifactMetadata,
   ArtifactType,
-  CommittedEvent,
-  EventHandlerFactory,
-  Messages,
-  ProjectorFactory
+  EventHandlerFactory
 } from "../types";
 import { sleep } from "../utils";
 
@@ -19,42 +15,21 @@ const event_handler_types: Array<ArtifactType> = [
   "projector"
 ];
 
-// TODO: refactor with caching - this is just to get it working
-const _poll = async <E extends Messages>(
+const drainConsumer = async (
   consumer: ArtifactMetadata,
   timeout: number,
   limit: number
 ): Promise<void> => {
-  const lease = randomUUID();
-  let count = limit;
-  let stop = false;
-  let lastId = -1;
-  // drain the stream
-  while (count === limit && !stop) {
-    try {
-      const events: Array<CommittedEvent<E>> = [];
-      await store().poll<E>(
-        consumer.factory.name,
-        consumer.inputs.map((input) => input.name),
-        limit,
-        lease,
-        timeout,
-        (e) => events.push(e)
-      );
-      count = events.length;
-      for (const e of events) {
-        consumer.type === "projector"
-          ? await project(consumer.factory as ProjectorFactory, e)
-          : await event(consumer.factory as EventHandlerFactory, e);
-        lastId = e.id;
-      }
-    } catch (error) {
-      log().error(error);
-      stop = true;
-    } finally {
-      await store().ack(consumer.factory.name, lease, lastId);
-      //console.log("ack", consumer.factory.name, { count, lastId });
-    }
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const responses = await poll(
+      consumer.factory as EventHandlerFactory,
+      consumer.inputs.map((input) => input.name),
+      limit,
+      timeout
+    );
+    if (responses.length < limit) break;
+    if (responses.at(-1)?.error) break;
   }
 };
 
@@ -81,46 +56,37 @@ export const InMemoryBroker = (
       v.inputs.at(0)?.scope === "private"
   );
 
-  const _pollAll = async (): Promise<boolean> => {
-    for (let i = 0; i < consumers.length; i++) {
-      await _poll(consumers[i], timeout, limit);
-    }
-    return true;
-  };
-
-  const poll = (delay?: number): void => {
+  const drain = (delay?: number): void => {
     schedule.push({
-      id: "poll",
-      action: _pollAll,
+      id: "drain",
+      action: async (): Promise<boolean> => {
+        for (let i = 0; i < consumers.length; i++) {
+          await drainConsumer(consumers[i], timeout, limit);
+        }
+        return true;
+      },
       delay
     });
   };
 
   // subscribe broker to commit events
   app().on("commit", async ({ factory, snapshot }) => {
-    // console.log(
-    //   "commit",
-    //   factory.name,
-    //   snapshot?.event?.name,
-    //   snapshot?.event?.data,
-    //   snapshot?.state
-    // );
     if (snapshot && snapshot.event) {
-      const snapStore = app().stores.get(factory.name) as SnapshotStore;
-      if (snapStore && snapshot.applyCount >= snapStore.threshold)
-        await snapStore
+      const ss = app().stores.get(factory.name) as SnapshotStore;
+      if (ss && snapshot.applyCount >= ss.threshold)
+        await ss
           .upsert(snapshot.event.stream, snapshot)
           .catch((error) => log().error(error));
     }
-    poll(throttle);
+    drain(throttle);
   });
 
   return {
     name,
     dispose: () => Promise.resolve(),
-    poll,
+    poll: drain,
     drain: async () => {
-      poll();
+      drain();
       await sleep(100);
       await schedule.stop();
     }

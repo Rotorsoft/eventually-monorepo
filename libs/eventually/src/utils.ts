@@ -1,16 +1,15 @@
-import * as crypto from "crypto";
 import { ZodError, ZodType } from "zod";
 import { app } from "./ports";
-import {
+import type {
   Command,
   CommandTarget,
+  EventHandlingArtifact,
   Message,
   Messages,
-  RegistrationError,
-  State,
-  ValidationError,
-  ZodEmpty
+  Projector,
+  State
 } from "./types";
+import { RegistrationError, ValidationError, ZodEmpty } from "./types";
 
 /**
  * Validates payloads using `zod` schemas
@@ -122,21 +121,6 @@ export const decamelize = (value: string): string =>
     )
     .toLowerCase();
 
-/**
- * Generates a random id
- * @returns random id
- */
-const ALPHABET =
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
-const ID_SIZE = 24;
-const cryptoBuffer = Buffer.allocUnsafe(ID_SIZE * 128);
-export const randomId = (): string => {
-  crypto.randomFillSync(cryptoBuffer);
-  let id = "";
-  for (let i = 0; i < ID_SIZE; i++) id += ALPHABET[cryptoBuffer[i] & 63];
-  return id;
-};
-
 const HOUR_SECS = 60 * 60;
 const DAY_SECS = 24 * HOUR_SECS;
 /** Formats seconds into elapsed time string */
@@ -222,3 +206,15 @@ export const clone = <S extends State>(
   });
   return cloned as Readonly<S>;
 };
+
+/**
+ * Projector type guard
+ */
+export const isProjector = <
+  S extends State,
+  C extends Messages,
+  E extends Messages,
+  O extends Messages
+>(
+  artifact: EventHandlingArtifact<S, C, E, O>
+): artifact is Projector<S, E> => !("commands" in artifact.schemas);
