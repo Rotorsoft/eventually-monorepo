@@ -1,3 +1,5 @@
+#### 2023-07-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.4.3...@rotorsoft/eventually-v5.5.0) @rotorsoft/eventually-v5.5.0
+  - MINOR [e38854f0](https://github.com/Rotorsoft/eventually-monorepo/commit/e38854f0c9091cf9bd1c06415d86b17989745183) feat: refactored handlers, including new exposed poll function to coordinate event handlers
 #### 2023-07-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.3...@rotorsoft/eventually-broker-v2.2.4) @rotorsoft/eventually-broker-v2.2.4
   - PATCH [a6bb0e50](https://github.com/Rotorsoft/eventually-monorepo/commit/a6bb0e5093a2fe18d2d7163b8c69eaf3e6d14e41) fix: up pks and fix zod errors
 #### 2023-07-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.3.0...@rotorsoft/eventually-pg-v5.3.1) @rotorsoft/eventually-pg-v5.3.1
