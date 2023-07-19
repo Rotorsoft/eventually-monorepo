@@ -1,3 +1,5 @@
+#### 2023-07-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.2.10...@rotorsoft/eventually-openapi-v0.3.0) @rotorsoft/eventually-openapi-v0.3.0
+  - MINOR [e38854f0](https://github.com/Rotorsoft/eventually-monorepo/commit/e38854f0c9091cf9bd1c06415d86b17989745183) feat: refactored handlers, including new exposed poll function to coordinate event handlers
 #### 2023-07-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.4.3...@rotorsoft/eventually-v5.5.0) @rotorsoft/eventually-v5.5.0
   - MINOR [e38854f0](https://github.com/Rotorsoft/eventually-monorepo/commit/e38854f0c9091cf9bd1c06415d86b17989745183) feat: refactored handlers, including new exposed poll function to coordinate event handlers
 #### 2023-07-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.3...@rotorsoft/eventually-broker-v2.2.4) @rotorsoft/eventually-broker-v2.2.4
