@@ -1,3 +1,5 @@
+#### 2023-07-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.4.0...@rotorsoft/calculator-artifacts-v1.5.0) @rotorsoft/calculator-artifacts-v1.5.0
+  - MINOR [e38854f0](https://github.com/Rotorsoft/eventually-monorepo/commit/e38854f0c9091cf9bd1c06415d86b17989745183) feat: refactored handlers, including new exposed poll function to coordinate event handlers
 #### 2023-07-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.4.2...@rotorsoft/eventually-express-v5.5.0) @rotorsoft/eventually-express-v5.5.0
   - MINOR [e38854f0](https://github.com/Rotorsoft/eventually-monorepo/commit/e38854f0c9091cf9bd1c06415d86b17989745183) feat: refactored handlers, including new exposed poll function to coordinate event handlers
 #### 2023-07-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.3.1...@rotorsoft/eventually-pg-v5.4.0) @rotorsoft/eventually-pg-v5.4.0
