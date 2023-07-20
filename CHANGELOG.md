@@ -1,3 +1,5 @@
+#### 2023-07-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.5.0...@rotorsoft/calculator-artifacts-v1.5.1) @rotorsoft/calculator-artifacts-v1.5.1
+  - PATCH [60785ca5](https://github.com/Rotorsoft/eventually-monorepo/commit/60785ca59793b1a1239d2ac5b85993fea880b89e) fix: deprecate snapshot stores, using STATE_EVENT events instead
 #### 2023-07-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.5.0...@rotorsoft/eventually-express-v5.5.1) @rotorsoft/eventually-express-v5.5.1
   - PATCH [60785ca5](https://github.com/Rotorsoft/eventually-monorepo/commit/60785ca59793b1a1239d2ac5b85993fea880b89e) fix: deprecate snapshot stores, using STATE_EVENT events instead
 #### 2023-07-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.4.0...@rotorsoft/eventually-pg-v5.4.1) @rotorsoft/eventually-pg-v5.4.1
