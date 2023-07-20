@@ -1,3 +1,4 @@
+import { STATE_EVENT } from "../interfaces";
 import { app, log, store } from "../ports";
 import type {
   Artifact,
@@ -12,7 +13,7 @@ import type {
   Streamable
 } from "../types";
 import { clone, validateMessage } from "../utils";
-import { STATE_EVENT, loadReducible } from "./load";
+import { loadReducible } from "./load";
 
 /**
  * Generic message handler
@@ -47,13 +48,6 @@ export default async function message<
     : ({ state: {} as S, applyCount: 0, stateCount: 0 } as Snapshot<S, E>);
 
   const events = await callback(snapshot);
-  const commit = reduce && app().commits.get(factory.name);
-  if (commit && commit(snapshot)) {
-    events.push({
-      name: STATE_EVENT,
-      data: snapshot.state as Readonly<E[keyof E & string]>
-    });
-  }
   if (stream && events.length) {
     const committed = await store().commit(
       stream,
@@ -62,7 +56,7 @@ export default async function message<
       metadata.causation.command?.expectedVersion || snapshot.event?.version
     );
     if (reduce) {
-      let { state, applyCount, stateCount } = snapshot;
+      let { state, applyCount } = snapshot;
       const snapshots = committed.map((event) => {
         log()
           .gray()
@@ -70,17 +64,17 @@ export default async function message<
             `   ... ${stream} committed ${event.name} @ ${event.version}`,
             event.data
           );
-        if (event.name === STATE_EVENT) {
-          state = event.data as S;
-          stateCount++;
-        } else {
-          state = reducer(state, reduce[event.name](state, event));
-          applyCount++;
-        }
+        state = reducer(state, reduce[event.name](state, event));
+        applyCount++;
         log()
           .gray()
           .trace(`   === ${JSON.stringify(state)}`, ` @ ${event.version}`);
-        return { event, state, applyCount, stateCount } as Snapshot<S, E>;
+        return {
+          event,
+          state,
+          applyCount,
+          stateCount: snapshot.stateCount
+        } as Snapshot<S, E>;
       });
       app().emit("commit", { factory, snapshot: snapshots.at(-1) });
       return snapshots;

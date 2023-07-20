@@ -103,14 +103,13 @@ export const allStreamHandler = async (
 export const getHandler =
   (factory: AggregateFactory) =>
   async (
-    req: Request<{ id: string }, Snapshot, never, { useSnapshots?: string }>,
+    req: Request<{ id: string }, Snapshot, never, never>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
       const { id } = req.params;
-      const snap = ["true", "1"].includes(req.query.useSnapshots || "");
-      const snapshot = await client().load(factory, id, snap);
+      const snapshot = await client().load(factory, id);
       eTag(res, snapshot);
       return res.status(200).send(snapshot);
     } catch (error) {
@@ -121,17 +120,16 @@ export const getHandler =
 export const getStreamHandler =
   (factory: AggregateFactory) =>
   async (
-    req: Request<{ id: string }, Snapshot[], never, { useSnapshots?: string }>,
+    req: Request<{ id: string }, Snapshot[], never, never>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
       const { id } = req.params;
-      const snap = ["true", "1"].includes(req.query.useSnapshots || "");
       res.header("content-type", "application/json");
       res.write("[");
       let i = 0;
-      await client().load(factory, id, snap, (s) => {
+      await client().load(factory, id, (s) => {
         i && res.write(",");
         res.write(JSON.stringify(s));
         i++;

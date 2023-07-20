@@ -60,15 +60,18 @@ const error = (error: any): void => {
 
 const events = (events: CommittedEvent[]): void => {
   console.table(
-    events.map(({ id, stream, name, version, created, data, metadata }) => ({
-      id,
-      stream,
-      name,
-      version,
-      created,
-      actor: `${metadata.causation.command?.actor?.name}:${metadata.causation.command?.actor?.id}`,
-      data: JSON.stringify(data).substring(0, 20)
-    })),
+    events.map(({ id, stream, name, version, created, data, metadata }) => {
+      const { actor } = metadata.causation.command || {};
+      return {
+        id,
+        stream,
+        name,
+        version,
+        created,
+        actor: actor ? `${actor.id}:${actor.name}` : "",
+        data: JSON.stringify(data).substring(0, 20)
+      };
+    }),
     ["id", "stream", "name", "version", "created", "actor", "data"]
   );
 };

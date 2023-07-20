@@ -1,4 +1,4 @@
-import { CommittedEvent } from "@rotorsoft/eventually";
+import { CommittedEvent, STATE_EVENT } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";
@@ -10,6 +10,8 @@ const chance = new Chance();
 const a1 = chance.guid();
 const a2 = chance.guid();
 const a3 = chance.guid();
+const a4 = chance.guid();
+const a5 = chance.guid();
 const pm = chance.guid();
 let created_before: Date;
 let created_after: Date;
@@ -131,6 +133,49 @@ describe("pg", () => {
         1
       )
     ).rejects.toThrow();
+  });
+
+  it("should commit and load with state", async () => {
+    await db.commit(
+      a4,
+      [
+        event("test3", { value: "1" }),
+        event("test3", { value: "2" }),
+        event("test3", { value: "3" })
+      ],
+      { correlation: "", causation: {} }
+    );
+    await db.commit(
+      a5,
+      [event("test2", { value: "333" }), event("test2", { value: "334" })],
+      {
+        correlation: "",
+        causation: {}
+      }
+    );
+    await db.commit(
+      a4,
+      [
+        event(STATE_EVENT, { value: "1" }),
+        event("test3", { value: "2" }),
+        event("test3", { value: "3" })
+      ],
+      {
+        correlation: "",
+        causation: {}
+      }
+    );
+
+    const count = await db.query(() => {}, {
+      stream: a4,
+      loading: true
+    });
+    expect(count).toBe(3);
+    const count2 = await db.query(() => {}, {
+      stream: a5,
+      loading: true
+    });
+    expect(count2).toBe(2);
   });
 
   it("should get store stats", async () => {

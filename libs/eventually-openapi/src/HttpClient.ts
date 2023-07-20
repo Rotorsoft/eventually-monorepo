@@ -38,10 +38,7 @@ export type HttpClientExt = Client &
     get: (path: string) => Promise<AxiosResponse<any>>;
     stream: <S extends State, C extends Messages, E extends Messages>(
       reducible: ReducibleFactory<S, C, E>,
-      id: string,
-      options?: {
-        useSnapshots?: boolean;
-      }
+      id: string
     ) => Promise<Snapshot<S, E>[]>;
     events: <S extends State, E extends Messages>(
       factory: ProjectorFactory<S, E>,
@@ -160,19 +157,10 @@ export const HttpClient = (
 
     stream: async <S extends State, C extends Messages, E extends Messages>(
       reducible: ReducibleFactory<S, C, E>,
-      id: string,
-      options: {
-        useSnapshots?: boolean;
-      } = { useSnapshots: false }
+      id: string
     ): Promise<Snapshot<S, E>[]> => {
       const { data } = await axios.get<any, AxiosResponse<Snapshot<S, E>[]>>(
-        url(
-          httpGetPath(reducible.name)
-            .replace(":id", id)
-            .concat(
-              `/stream${options.useSnapshots ? "?useSnapshots=true" : ""}`
-            )
-        )
+        url(httpGetPath(reducible.name).replace(":id", id).concat("/stream"))
       );
       return data;
     },

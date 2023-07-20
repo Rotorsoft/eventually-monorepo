@@ -6,12 +6,13 @@ import {
   Messages,
   ProjectionResults,
   Projection,
-  Snapshot,
   State,
   ProjectionRecord,
   ProjectionQuery
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
+
+export const STATE_EVENT = "__state__";
 
 // TODO: implement as projection of all events (by artifact)
 /**
@@ -46,7 +47,7 @@ export type Lease<E extends Messages> = Subscription & {
 };
 
 /**
- * Stores events in streams
+ * Stores events in streams and consumer subscriptions/leases
  */
 export interface Store extends Disposable, Seedable {
   /**
@@ -123,28 +124,9 @@ export interface Store extends Disposable, Seedable {
   subscriptions: () => Promise<Subscription[]>;
 }
 
-export interface SnapshotStore<
-  S extends State = State,
-  E extends Messages = Messages
-> extends Disposable,
-    Seedable {
-  /**
-   * Snapshot threshold
-   */
-  threshold: number;
-
-  /**
-   * Reads snapshot from store for stream
-   */
-  read: (stream: string) => Promise<Snapshot<S, E>>;
-
-  /**
-   * Commits a snapshot into stream for stream
-   * @param data the current state to be sotred
-   */
-  upsert: (stream: string, state: Snapshot<S, E>) => Promise<void>;
-}
-
+/**
+ * Stores projections
+ */
 export interface ProjectorStore<S extends State = State>
   extends Disposable,
     Seedable {

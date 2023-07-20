@@ -1,29 +1,19 @@
 import { Actor, app, client, dispose, store } from "@rotorsoft/eventually";
 import { Chance } from "chance";
-import { Calculator, CalculatorModel } from "../calculator.aggregate";
+import { Calculator } from "../calculator.aggregate";
 import { Forget } from "../forget.system";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
-import { InMemorySnapshotStore } from "../../../eventually/src/adapters";
-import { CalculatorCommands, CalculatorEvents } from "../calculator.schemas";
+import { CalculatorCommands } from "../calculator.schemas";
 import { pressKey } from "./messages";
 
 // app setup
 const chance = new Chance();
-const inMemorySnapshots = InMemorySnapshotStore<
-  CalculatorModel,
-  CalculatorEvents
->(2);
-app()
-  .with(Forget)
-  .with(Calculator, { store: inMemorySnapshots })
-  .with(PressKeyAdapter)
-  .build();
+app().with(Forget).with(Calculator).with(PressKeyAdapter).build();
 
 describe("Calculator", () => {
   beforeAll(async () => {
     // just to cover seeds
     await store().seed();
-    await inMemorySnapshots.seed();
     jest.clearAllMocks();
     await app().listen();
   });
@@ -55,13 +45,8 @@ describe("Calculator", () => {
       result: 3.3
     });
 
-    // without snapshots
-    const { applyCount: cnt1 } = await client().load(Calculator, id, false);
+    const { applyCount: cnt1 } = await client().load(Calculator, id);
     expect(cnt1).toBe(6);
-
-    // with snapshots
-    const { applyCount: cnt2 } = await client().load(Calculator, id, true);
-    expect(cnt2).toBe(0);
   });
 
   it("should compute correctly and read stream with and without snapshots", async () => {
@@ -82,13 +67,8 @@ describe("Calculator", () => {
       result: -1
     });
 
-    // stream without snapshots
-    const { applyCount: c1 } = await client().load(Calculator, id, false);
+    const { applyCount: c1 } = await client().load(Calculator, id);
     expect(c1).toBe(9);
-
-    // stream with snapshots
-    const { applyCount: c2 } = await client().load(Calculator, id, true);
-    expect(c2).toBe(1);
   });
 
   it("should compute correctly 3", async () => {

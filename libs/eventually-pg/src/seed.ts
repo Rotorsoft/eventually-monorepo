@@ -69,13 +69,6 @@ CREATE TABLE IF NOT EXISTS public.${table}_subscriptions
 ) TABLESPACE pg_default;
 `;
 
-export const snapshot = (table: string): string => `
-CREATE TABLE IF NOT EXISTS public.${table}
-(
-  stream varchar(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY,
-  data json
-) TABLESPACE pg_default;`;
-
 // TODO: infer pg schema types from projection state (zod?)
 export type ProjectionSchema<S extends State> = {
   [K in keyof StateWithId<S>]: string;

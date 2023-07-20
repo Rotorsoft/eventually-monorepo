@@ -1,6 +1,6 @@
 import { poll } from "../handlers";
-import type { Broker, SnapshotStore } from "../interfaces";
-import { app, log } from "../ports";
+import { STATE_EVENT, type Broker } from "../interfaces";
+import { app, store } from "../ports";
 import { scheduler } from "../scheduler";
 import type {
   ArtifactMetadata,
@@ -71,12 +71,25 @@ export const InMemoryBroker = (
 
   // subscribe broker to commit events
   app().on("commit", async ({ factory, snapshot }) => {
-    if (snapshot && snapshot.event) {
-      const ss = app().stores.get(factory.name) as SnapshotStore;
-      if (ss && snapshot.applyCount >= ss.threshold)
-        await ss
-          .upsert(snapshot.event.stream, snapshot)
-          .catch((error) => log().error(error));
+    // commits STATE_EVENT - artifact must be configured in app builder
+    if (snapshot) {
+      const commit = app().commits.get(factory.name);
+      if (commit && commit(snapshot)) {
+        const { id, stream, name, metadata } = snapshot.event!;
+        return await store().commit(
+          stream,
+          [
+            {
+              name: STATE_EVENT,
+              data: snapshot.state
+            }
+          ],
+          {
+            correlation: metadata.correlation,
+            causation: { event: { id, name, stream } }
+          }
+        );
+      }
     }
     drain(throttle);
   });

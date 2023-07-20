@@ -61,14 +61,12 @@ export type Client = {
    * Loads current aggregate snapshot
    * @param factory the aggregate factory
    * @param stream the aggregate stream id
-   * @param useSnapshots flag to use stored snapshots
    * @param callback optional reduction predicate to act on each snapshot
    * @returns current model state
    */
   load: <S extends State, C extends Messages, E extends Messages>(
     reducible: AggregateFactory<S, C, E>,
     stream: string,
-    useSnapshots?: boolean,
     callback?: (snapshot: Snapshot<S, E>) => void
   ) => Promise<Snapshot<S, E>>;
 

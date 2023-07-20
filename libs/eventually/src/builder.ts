@@ -1,6 +1,6 @@
 import EventEmitter from "node:events";
 import { ZodType } from "zod";
-import type { Disposable, ProjectorStore, SnapshotStore } from "./interfaces";
+import type { Disposable, ProjectorStore } from "./interfaces";
 import type {
   Artifact,
   ArtifactFactory,
@@ -39,12 +39,12 @@ export type CommitPredicate<
 /**
  * Registration options
  * - `scope?` the scope used to publish message handlers
- * - `store?` a snapshot store associated with aggregates, or a projector store associated with projectors
+ * - `store?` a projector store associated with projectors
  * - `commit?` flags when to store state snapshots in the aggregate stream
  */
 export type WithOptions<S extends State, E extends Messages> = {
   scope?: Scope;
-  store?: SnapshotStore<S, E> | ProjectorStore<S>;
+  store?: ProjectorStore<S>;
   commit?: CommitPredicate<S, E>;
 };
 
@@ -80,7 +80,7 @@ export abstract class Builder extends EventEmitter implements Disposable {
   readonly version;
   readonly messages = new Map<string, MessageMetadata>();
   readonly artifacts = new Map<string, ArtifactMetadata>();
-  readonly stores = new Map<string, ProjectorStore | SnapshotStore>();
+  readonly stores = new Map<string, ProjectorStore>();
   readonly commits = new Map<string, CommitPredicate>();
 
   constructor(version: string) {
@@ -213,19 +213,11 @@ export abstract class Builder extends EventEmitter implements Disposable {
       options.commit &&
         this.commits.set(factory.name, options.commit as CommitPredicate);
       if (options.store) {
-        if (metadata.type === "aggregate") {
-          if (!("read" in options.store && "upsert" in options.store))
-            throw Error(
-              `Invalid snapshot store ${options.store.name} for aggregate ${factory.name}.`
-            );
-          this.stores.set(factory.name, options.store as SnapshotStore);
-        } else if (metadata.type === "projector") {
-          if (!("load" in options.store && "commit" in options.store))
-            throw Error(
-              `Invalid projector store ${options.store.name} for projector ${factory.name}.`
-            );
-          this.stores.set(factory.name, options.store as ProjectorStore);
-        }
+        if (metadata.type !== "projector")
+          throw Error(
+            `Invalid store ${options.store.name} for ${factory.name}.`
+          );
+        this.stores.set(factory.name, options.store as ProjectorStore);
       }
     }
     return this;

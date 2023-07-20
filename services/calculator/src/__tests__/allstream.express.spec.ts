@@ -3,12 +3,7 @@ import {
   PressKeyAdapter,
   StatelessCounter
 } from "@rotorsoft/calculator-artifacts";
-import {
-  app,
-  dispose,
-  InMemorySnapshotStore,
-  sleep
-} from "@rotorsoft/eventually";
+import { app, dispose, sleep } from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { HttpClient } from "@rotorsoft/eventually-openapi";
 import { Chance } from "chance";
@@ -20,7 +15,7 @@ const http = HttpClient(port);
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(2), scope: "public" })
+  .with(Calculator, { scope: "public" })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
   .build();

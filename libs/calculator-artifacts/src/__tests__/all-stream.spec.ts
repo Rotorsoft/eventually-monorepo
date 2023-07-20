@@ -1,17 +1,11 @@
 import { app, client, dispose, sleep } from "@rotorsoft/eventually";
 import { Chance } from "chance";
-import { Calculator, CalculatorModel } from "../calculator.aggregate";
-import { InMemorySnapshotStore } from "../../../eventually/src/adapters";
+import { Calculator } from "../calculator.aggregate";
 import { pressKey } from "./messages";
-import { CalculatorEvents } from "../calculator.schemas";
 
 // app setup
 const chance = new Chance();
-const inMemorySnapshots = InMemorySnapshotStore<
-  CalculatorModel,
-  CalculatorEvents
->(2);
-app().with(Calculator, { store: inMemorySnapshots }).build();
+app().with(Calculator).build();
 
 describe("All Stream", () => {
   const id = chance.guid();

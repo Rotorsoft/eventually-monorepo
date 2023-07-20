@@ -9,22 +9,29 @@ export const MonthlyBookings = (): InferProcessManager<
   schemas: MonthSchemas,
   init: () => ({ booked: 0, rejected: 0 }),
   reduce: {
-    Booked: ({ booked, rejected }) => ({
-      booked: booked + 1,
-      rejected
-    }),
-    BookingRejected: ({ booked, rejected }) => ({
-      booked,
-      rejected: rejected + 1
-    })
+    Booked: (state) => {
+      //console.log(state, event);
+      return {
+        booked: state.booked + 1,
+        rejected: state.rejected
+      };
+    },
+    BookingRejected: (state) => {
+      //console.log(state, event);
+      return {
+        booked: state.booked,
+        rejected: state.rejected + 1
+      };
+    }
   },
   actor: {
     BookingRequested: ({ created }) => created.getMonth().toString()
   },
   on: {
-    BookingRequested: ({ stream }, state) =>
-      Promise.resolve(
-        bind(state.booked < 3 ? "Book" : "Reject", {}, { stream })
-      )
+    BookingRequested: (event, state) => {
+      return Promise.resolve(
+        bind(state.booked < 3 ? "Book" : "Reject", {}, { stream: event.stream })
+      );
+    }
   }
 });

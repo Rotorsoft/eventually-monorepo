@@ -12,13 +12,14 @@ import type {
 import {
   ActorConcurrencyError,
   ConcurrencyError,
+  STATE_EVENT,
   dateReviver,
   log
 } from "@rotorsoft/eventually";
+import { randomUUID } from "crypto";
 import { Pool, types } from "pg";
 import { config } from "./config";
 import { stream } from "./seed";
-import { randomUUID } from "crypto";
 
 type Event = {
   id: number;
@@ -44,44 +45,61 @@ export const PostgresStore = (table: string): Store => {
       stream,
       names,
       before,
-      after = -1,
+      after,
       limit,
       created_before,
       created_after,
       backward,
       actor,
-      correlation
+      correlation,
+      loading
     } = query || {};
 
-    const values: any[] = [after];
-    let sql = `SELECT * FROM ${table} WHERE id>$1`;
-    if (stream) {
-      values.push(stream);
-      sql = sql.concat(` AND stream=$${values.length}`);
-    }
-    if (names && names.length) {
-      values.push(names);
-      sql = sql.concat(` AND name = ANY($${values.length})`);
-    }
-    if (before) {
-      values.push(before);
-      sql = sql.concat(` AND id<$${values.length}`);
-    }
-    if (created_after) {
-      values.push(created_after.toISOString());
-      sql = sql.concat(` AND created>$${values.length}`);
-    }
-    if (created_before) {
-      values.push(created_before.toISOString());
-      sql = sql.concat(` AND created<$${values.length}`);
-    }
-    if (actor) {
-      values.push(actor);
-      sql = sql.concat(` AND actor=$${values.length}`);
-    }
-    if (correlation) {
-      values.push(correlation);
-      sql = sql.concat(` AND metadata->>'correlation'=$${values.length}`);
+    let sql = `SELECT * FROM ${table} WHERE`;
+    const values: any[] = [];
+
+    if (loading) {
+      // optimize aggregate loading after last state event
+      sql = sql.concat(
+        ` id>=COALESCE((SELECT id
+          FROM ${table}
+          WHERE stream='${stream}' AND name='${STATE_EVENT}'
+          ORDER BY id DESC LIMIT 1), 0)
+          AND stream='${stream}'`
+      );
+    } else {
+      if (typeof after !== "undefined") {
+        values.push(after);
+        sql = sql.concat(" id>$1");
+      } else sql = sql.concat(" id>-1");
+      if (stream) {
+        values.push(stream);
+        sql = sql.concat(` AND stream=$${values.length}`);
+      }
+      if (actor) {
+        values.push(actor);
+        sql = sql.concat(` AND actor=$${values.length}`);
+      }
+      if (names && names.length) {
+        values.push(names);
+        sql = sql.concat(` AND name = ANY($${values.length})`);
+      }
+      if (before) {
+        values.push(before);
+        sql = sql.concat(` AND id<$${values.length}`);
+      }
+      if (created_after) {
+        values.push(created_after.toISOString());
+        sql = sql.concat(` AND created>$${values.length}`);
+      }
+      if (created_before) {
+        values.push(created_before.toISOString());
+        sql = sql.concat(` AND created<$${values.length}`);
+      }
+      if (correlation) {
+        values.push(correlation);
+        sql = sql.concat(` AND metadata->>'correlation'=$${values.length}`);
+      }
     }
     sql = sql.concat(` ORDER BY id ${backward ? "DESC" : "ASC"}`);
     if (limit) {

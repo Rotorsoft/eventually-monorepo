@@ -12,11 +12,9 @@ import command from "./command";
  *
  * **Note:** Can be used as webhooks and anti-corruption layers
  *
- * @param factory the aggregate factory
- * @param stream the aggregate id (stream)
- * @param useSnapshots flag to use stored snapshots
- * @param callback optional reduction predicate
- * @returns current snapshot
+ * @param factory the command adapter factory
+ * @param payload the message payload
+ * @returns snapshots side effects
  */
 export default async function invoke<
   P extends State,

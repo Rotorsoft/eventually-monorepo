@@ -113,6 +113,7 @@ export type Snapshot<S extends State = State, E extends Messages = Messages> = {
  * - `backward?` order descending when true
  * - `correlation?` filter by correlation
  * - `actor?` filter by actor id (mainly used to reduce process managers)
+ * - `loading?` flag when loading to optimize queries
  */
 export type AllQuery = {
   readonly stream?: string;
@@ -125,6 +126,7 @@ export type AllQuery = {
   readonly backward?: boolean;
   readonly correlation?: string;
   readonly actor?: string;
+  readonly loading?: boolean;
 };
 
 /**

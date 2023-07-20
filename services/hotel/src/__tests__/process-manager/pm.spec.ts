@@ -13,7 +13,15 @@ import { requestBooking } from "./utils";
 
 describe("pm", () => {
   beforeAll(() => {
-    app().with(Room).with(MonthlyBookings, { scope: "private" }).build();
+    app()
+      .with(Room, {
+        commit: (snap) => {
+          //console.log(snap);
+          return snap.applyCount > 1;
+        }
+      })
+      .with(MonthlyBookings, { scope: "private" })
+      .build();
   });
 
   afterAll(async () => {

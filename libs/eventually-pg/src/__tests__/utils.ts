@@ -1,9 +1,10 @@
-import { bind, Message } from "@rotorsoft/eventually";
+import { bind, Message, STATE_EVENT } from "@rotorsoft/eventually";
 
 export type E = {
   test1: { value: string };
   test2: { value: string };
   test3: { value: string };
+  [STATE_EVENT]: { value: string };
 };
 
 export const event = (name: keyof E, data: E[keyof E]): Message =>

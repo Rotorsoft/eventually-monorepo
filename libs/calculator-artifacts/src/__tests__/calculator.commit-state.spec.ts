@@ -34,8 +34,7 @@ describe("Calculator with commit state", () => {
 
     const { applyCount: cnt1, stateCount } = await client().load(
       Calculator,
-      id,
-      false
+      id
     );
     expect(cnt1).toBe(5);
     expect(stateCount).toBe(1);

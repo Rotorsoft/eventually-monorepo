@@ -4,12 +4,7 @@ import {
   PressKeyAdapter,
   StatelessCounter
 } from "@rotorsoft/calculator-artifacts";
-import {
-  app,
-  broker,
-  dispose,
-  InMemorySnapshotStore
-} from "@rotorsoft/eventually";
+import { app, broker, dispose } from "@rotorsoft/eventually";
 import {
   ExpressApp,
   GcpGatewayMiddleware
@@ -27,7 +22,7 @@ const http = HttpClient(port, {
 
 const expressApp = new ExpressApp();
 app(expressApp)
-  .with(Calculator, { store: InMemorySnapshotStore(4), scope: "public" })
+  .with(Calculator, { scope: "public" })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
   .build([GcpGatewayMiddleware]);
@@ -104,11 +99,6 @@ describe("calculator express app", () => {
 
     const snapshots1 = await http.stream(Calculator, id);
     expect(snapshots1.length).toBe(9);
-
-    const snapshots2 = await http.stream(Calculator, id, {
-      useSnapshots: true
-    });
-    expect(snapshots2.length).toBe(1);
   });
 
   it("should not load events", async () => {
