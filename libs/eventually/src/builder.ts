@@ -77,15 +77,13 @@ export abstract class Builder extends EventEmitter implements Disposable {
   }
 
   private _hasStreams = false;
-  readonly version;
   readonly messages = new Map<string, MessageMetadata>();
   readonly artifacts = new Map<string, ArtifactMetadata>();
   readonly stores = new Map<string, ProjectorStore>();
   readonly commits = new Map<string, CommitPredicate>();
 
-  constructor(version: string) {
+  constructor() {
     super();
-    this.version = version;
   }
 
   private _reflect = (

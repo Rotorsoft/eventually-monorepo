@@ -1,5 +1,5 @@
 import { app, camelize, formatTime } from "@rotorsoft/eventually";
-import { config, OAS_UI } from "../config";
+import { OAS_UI, config } from "../config";
 import { artifacts } from "./artifacts";
 
 const doc = (

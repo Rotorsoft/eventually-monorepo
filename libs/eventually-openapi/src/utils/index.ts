@@ -1,4 +1,4 @@
-import { app, config } from "@rotorsoft/eventually";
+import { app } from "@rotorsoft/eventually";
 import { oas31 } from "openapi3-ts";
 import { getComponents, getPahts, getSecurity, getTags } from "./oas";
 import { toSchema } from "./schemas";
@@ -10,6 +10,7 @@ import {
   ServiceSpec
 } from "./types";
 import { getEvent, getRefs, getSnapshotEvents, reduceConflicts } from "./specs";
+import { config } from "../config";
 
 const security = getSecurity();
 
@@ -18,7 +19,7 @@ const security = getSecurity();
  * @returns the OpenAPI spec
  */
 export const openAPI = (): oas31.OpenAPIObject => {
-  const { service, version, description, author, license } = config();
+  const { service, version, description, author, license } = config;
   const allStream = app().hasStreams;
   return {
     openapi: "3.1.0",

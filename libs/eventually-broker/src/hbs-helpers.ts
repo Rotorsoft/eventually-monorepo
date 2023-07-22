@@ -1,11 +1,8 @@
-import { config } from "@rotorsoft/eventually";
 import { UnknownObject } from "express-handlebars/types";
 import { formatDate, formatDateLocal, formatInt } from "./utils";
 
 export const hbsHelpers: UnknownObject = {
   json: (context: any) => JSON.stringify(context),
-  title: () => config().service,
-  version: () => config().version,
   dateFormat: (date: Date) => formatDate(date),
   toDateFormat: (date: string) => formatDate(new Date(date)),
   fromISOToLocal: (date: Date) => formatDateLocal(date),

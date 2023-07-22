@@ -7,7 +7,7 @@ import { broker, config, log } from "../ports";
  */
 export class InMemoryApp extends Builder {
   constructor() {
-    super(config().version);
+    super();
   }
 
   get name(): string {

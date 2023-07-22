@@ -45,7 +45,7 @@ export class ExpressApp extends Builder {
   private _server: Server | undefined;
 
   constructor() {
-    super(config.version);
+    super();
   }
 
   private _withStreams(): void {

@@ -1,5 +1,4 @@
 import { hbsHelpers } from "../hbs-helpers";
-import { config } from "@rotorsoft/eventually";
 import { formatDate, formatDateLocal, formatInt } from "../utils";
 
 describe("hbs-helpers", () => {
@@ -23,8 +22,6 @@ describe("hbs-helpers", () => {
     };
 
     expect(h.json(obj)).toEqual(JSON.stringify(obj));
-    expect(h.title()).toEqual(config().service);
-    expect(h.version()).toEqual(config().version);
     expect(h.dateFormat(dt)).toEqual(formatDate(dt));
     expect(h.toDateFormat(dt.toISOString())).toEqual(formatDate(dt));
     expect(h.fromISOToLocal(dt)).toEqual(formatDateLocal(dt));
