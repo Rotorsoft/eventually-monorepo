@@ -1,3 +1,5 @@
+#### 2023-07-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.1...@rotorsoft/eventually-v5.5.2) @rotorsoft/eventually-v5.5.2
+  - PATCH [dba15756](https://github.com/Rotorsoft/eventually-monorepo/commit/dba1575646865730ad3f2580d29549c75d005d32) fix: moved package config from core lib to openapi lib to avoid fs dependency in core
 #### 2023-07-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.5.0...@rotorsoft/calculator-artifacts-v1.5.1) @rotorsoft/calculator-artifacts-v1.5.1
   - PATCH [60785ca5](https://github.com/Rotorsoft/eventually-monorepo/commit/60785ca59793b1a1239d2ac5b85993fea880b89e) fix: deprecate snapshot stores, using STATE_EVENT events instead
 #### 2023-07-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.5.0...@rotorsoft/eventually-express-v5.5.1) @rotorsoft/eventually-express-v5.5.1
