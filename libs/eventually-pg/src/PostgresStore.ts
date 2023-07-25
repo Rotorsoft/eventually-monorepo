@@ -5,6 +5,7 @@ import type {
   Lease,
   Message,
   Messages,
+  PollOptions,
   Store,
   StoreStat,
   Subscription
@@ -231,9 +232,7 @@ export const PostgresStore = (table: string): Store => {
 
     poll: async <E extends Messages>(
       consumer: string,
-      names: string[],
-      limit: number,
-      timeout: number
+      { names, timeout, limit }: PollOptions
     ): Promise<Lease<E> | undefined> => {
       const client = await pool.connect();
       try {

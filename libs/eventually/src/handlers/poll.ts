@@ -6,7 +6,7 @@ import type {
   State
 } from "../types";
 import event from "./event";
-import type { Lease } from "../interfaces";
+import type { Lease, PollOptions } from "../interfaces";
 
 /**
  * Polls the `store` for committed events after the factory's `watermark`. This should be the entry
@@ -21,8 +21,8 @@ import type { Lease } from "../interfaces";
  *
  * @param factory the event handler factory (policy, process manager, or projector)
  * @param names the event names to poll
- * @param limit the max number of events to poll
  * @param timeout the lease timeout in ms
+ * @param limit the max number of events to poll
  * @returns responses (including command or projection side effects), and error message when something failed
  */
 export async function poll<
@@ -31,9 +31,7 @@ export async function poll<
   E extends Messages
 >(
   factory: EventHandlerFactory<S, C, E>,
-  names: string[],
-  limit = 10,
-  timeout = 5000
+  options: PollOptions
 ): Promise<EventResponse<S, C>[]> {
   let lease: Lease<E> | undefined;
   const responses: EventResponse<S, C>[] = [];
@@ -41,7 +39,7 @@ export async function poll<
     error = undefined;
 
   try {
-    lease = await store().poll<E>(factory.name, names, limit, timeout);
+    lease = await store().poll<E>(factory.name, options);
     if (lease)
       for (const e of lease.events) {
         id = e.id;
@@ -75,8 +73,8 @@ export async function poll<
  * Drains consumer subscription by polling events until the end of the stream is reached or an error occurs
  * @param factory the event handler factory (policy, process manager, or projector)
  * @param names the event names to poll
- * @param limit the max number of events to poll
  * @param timeout the lease timeout in ms
+ * @param limit the max number of events to poll
  * @returns number of handled events, and error message when something failed
  */
 export async function drain<
@@ -85,18 +83,16 @@ export async function drain<
   E extends Messages
 >(
   factory: EventHandlerFactory<S, C, E>,
-  names: string[],
-  limit = 10,
-  timeout = 5000
+  options: PollOptions
 ): Promise<{ count: number; error?: string }> {
   let count = 0;
   let error: string | undefined = undefined;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const responses = await poll(factory, names, limit, timeout);
+    const responses = await poll(factory, options);
     count += responses.length;
-    if (responses.length < limit) break;
+    if (responses.length < options.limit) break;
     error = responses.at(-1)?.error;
     if (error) break;
   }

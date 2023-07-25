@@ -5,7 +5,7 @@ import { MatchProjector } from "./Match.projector";
 import { MatchSystem } from "./Match.system";
 
 describe("async broker", () => {
-  const broker = InMemoryBroker(1000, 10);
+  const broker = InMemoryBroker({ timeout: 1000, limit: 10, throttle: 500 });
 
   beforeAll(async () => {
     app().with(MatchSystem).with(MatchProjector).build();

@@ -45,6 +45,18 @@ export type Lease<E extends Messages> = Subscription & {
 };
 
 /**
+ * Poll options
+ * - `names` the event names to poll
+ * - `timeout` the lease timeout in ms
+ * - `limit` the max number of events to poll
+ */
+export type PollOptions = {
+  readonly names: string[];
+  readonly timeout: number;
+  readonly limit: number;
+};
+
+/**
  * Stores events in streams and consumer subscriptions/leases
  */
 export interface Store extends Disposable, Seedable {
@@ -93,16 +105,12 @@ export interface Store extends Disposable, Seedable {
    * > This strategy must commit a new watermark with `ack` within the lease time, or new consumer requests will be allowed after lease expires
    *
    * - `consumer` the consumer name
-   * - `names` the event names to poll
-   * - `limit` the max number of events to poll
-   * - `timeout` the lease timeout in ms
+   * - `options` the poll options
    * @returns a new lease when events are found
    */
   poll: <E extends Messages>(
     consumer: string,
-    names: string[],
-    limit: number,
-    timeout: number
+    options: PollOptions
   ) => Promise<Lease<E> | undefined>;
 
   /**

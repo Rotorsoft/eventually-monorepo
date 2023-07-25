@@ -105,7 +105,7 @@ export const client = port(function client(client?: Client & Disposable) {
  * @remarks Global port to internal broker
  */
 export const broker = port(function broker(broker?: Broker) {
-  return broker || InMemoryBroker();
+  return broker || InMemoryBroker({ timeout: 5000, limit: 10, throttle: 500 });
 });
 
 /**

@@ -18,22 +18,31 @@ const event_handler_types: Array<ArtifactType> = [
  * @param limit max number of events to poll in each try
  * @param throttle delay (in ms) to enqueue new polls
  */
-export const InMemoryBroker = (
-  timeout = 1000,
-  limit = 10,
-  throttle = 500
-): Broker => {
+export const InMemoryBroker = ({
+  timeout,
+  limit,
+  throttle
+}: {
+  timeout: number;
+  limit: number;
+  throttle: number;
+}): Broker => {
   const name = "InMemoryBroker";
   const schedule = scheduler(name);
 
   // connect private event handlers only
   // NOTE: public consumers should be connected by an external broker service
-  const consumers = [...app().artifacts.values()].filter(
-    (v) =>
-      event_handler_types.includes(v.type) &&
-      v.inputs.length &&
-      v.inputs.at(0)?.scope === "private"
-  );
+  const consumers = [...app().artifacts.values()]
+    .filter(
+      (v) =>
+        event_handler_types.includes(v.type) &&
+        v.inputs.length &&
+        v.inputs.at(0)?.scope === "private"
+    )
+    .map((md) => ({
+      factory: md.factory as EventHandlerFactory,
+      names: md.inputs.map((input) => input.name)
+    }));
 
   const _drain = (delay?: number): void => {
     schedule.push({
@@ -41,12 +50,11 @@ export const InMemoryBroker = (
       action: async (): Promise<boolean> => {
         for (let i = 0; i < consumers.length; i++) {
           const c = consumers[i];
-          const { count, error } = await drain(
-            c.factory as EventHandlerFactory,
-            c.inputs.map((input) => input.name),
+          const { count, error } = await drain(c.factory, {
+            names: c.names,
             timeout,
             limit
-          );
+          });
           count &&
             log()
               .gray()

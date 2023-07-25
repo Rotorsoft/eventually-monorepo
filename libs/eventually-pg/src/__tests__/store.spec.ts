@@ -184,7 +184,11 @@ describe("pg", () => {
   });
 
   it("should poll", async () => {
-    const lease = await db.poll("test", ["test1"], 5, 5000);
+    const lease = await db.poll("test", {
+      names: ["test1"],
+      timeout: 5000,
+      limit: 5
+    });
     expect(lease?.events.length).toBeGreaterThanOrEqual(3);
     const acked = await db.ack(lease!, 5);
     expect(acked).toBeTruthy();

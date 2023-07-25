@@ -1,5 +1,11 @@
 import { randomUUID } from "crypto";
-import type { Lease, Store, StoreStat, Subscription } from "../interfaces";
+import type {
+  Lease,
+  PollOptions,
+  Store,
+  StoreStat,
+  Subscription
+} from "../interfaces";
 import {
   ActorConcurrencyError,
   ConcurrencyError,
@@ -132,9 +138,7 @@ export const InMemoryStore = (): Store => {
 
     poll: async <E extends Messages>(
       consumer: string,
-      names: string[],
-      limit: number,
-      timeout: number
+      { names, timeout, limit }: PollOptions
     ): Promise<Lease<E> | undefined> => {
       const subscription: Subscription = (_subscriptions[consumer] =
         _subscriptions[consumer] || { consumer, watermark: -1 });
