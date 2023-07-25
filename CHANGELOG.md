@@ -1,3 +1,5 @@
+#### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.2...@rotorsoft/eventually-v5.5.3) @rotorsoft/eventually-v5.5.3
+  - PATCH [5d1c5e29](https://github.com/Rotorsoft/eventually-monorepo/commit/5d1c5e29c241879b68dec403c7c46de522953cbd) fix: refactor handlers, ensure state events are committed in the right order
 #### 2023-07-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.4...@rotorsoft/eventually-broker-v2.2.5) @rotorsoft/eventually-broker-v2.2.5
   - PATCH [dba15756](https://github.com/Rotorsoft/eventually-monorepo/commit/dba1575646865730ad3f2580d29549c75d005d32) fix: moved package config from core lib to openapi lib to avoid fs dependency in core
 #### 2023-07-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.5.1...@rotorsoft/eventually-express-v5.5.2) @rotorsoft/eventually-express-v5.5.2
