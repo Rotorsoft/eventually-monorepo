@@ -20,7 +20,7 @@ export class InMemoryApp extends Builder {
 
   listen(): Promise<void> {
     log().info("InMemory app is listening...", undefined, config());
-    broker().poll();
+    void broker().drain();
     return Promise.resolve();
   }
 }

@@ -25,15 +25,15 @@ import type { Lease } from "../interfaces";
  * @param timeout the lease timeout in ms
  * @returns responses (including command or projection side effects), and error message when something failed
  */
-export default async function poll<
+export async function poll<
   S extends State,
   C extends Messages,
   E extends Messages
 >(
   factory: EventHandlerFactory<S, C, E>,
   names: string[],
-  limit: number,
-  timeout: number
+  limit = 10,
+  timeout = 5000
 ): Promise<EventResponse<S, C>[]> {
   let lease: Lease<E> | undefined;
   const responses: EventResponse<S, C>[] = [];
@@ -69,4 +69,36 @@ export default async function poll<
       error
     });
   return responses;
+}
+
+/**
+ * Drains consumer subscription by polling events until the end of the stream is reached or an error occurs
+ * @param factory the event handler factory (policy, process manager, or projector)
+ * @param names the event names to poll
+ * @param limit the max number of events to poll
+ * @param timeout the lease timeout in ms
+ * @returns number of handled events, and error message when something failed
+ */
+export async function drain<
+  S extends State,
+  C extends Messages,
+  E extends Messages
+>(
+  factory: EventHandlerFactory<S, C, E>,
+  names: string[],
+  limit = 10,
+  timeout = 5000
+): Promise<{ count: number; error?: string }> {
+  let count = 0;
+  let error: string | undefined = undefined;
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const responses = await poll(factory, names, limit, timeout);
+    count += responses.length;
+    if (responses.length < limit) break;
+    error = responses.at(-1)?.error;
+    if (error) break;
+  }
+  return { count, error };
 }
