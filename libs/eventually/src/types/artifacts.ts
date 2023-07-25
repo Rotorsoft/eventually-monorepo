@@ -28,9 +28,6 @@ export type ArtifactType =
 /** Empty message payload */
 export type Empty = Record<string, never>;
 
-/** Empty message payload schema */
-export const ZodEmpty = z.record(z.never());
-
 /**
  * All artifacts must have
  * - `description` to help with documentation

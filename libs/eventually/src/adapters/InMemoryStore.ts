@@ -1,13 +1,14 @@
 import { randomUUID } from "crypto";
-import type { Store, StoreStat, Lease, Subscription } from "../interfaces";
-import type {
-  AllQuery,
-  CommittedEvent,
-  CommittedEventMetadata,
-  Message,
-  Messages
+import type { Lease, Store, StoreStat, Subscription } from "../interfaces";
+import {
+  ActorConcurrencyError,
+  ConcurrencyError,
+  type AllQuery,
+  type CommittedEvent,
+  type CommittedEventMetadata,
+  type Message,
+  type Messages
 } from "../types";
-import { ConcurrencyError, ActorConcurrencyError } from "../types";
 
 /**
  * @category Adapters
@@ -66,7 +67,7 @@ export const InMemoryStore = (): Store => {
       expectedVersion?: number
     ): Promise<CommittedEvent<E>[]> => {
       // stream concurrency
-      const aggregate = _events.filter((e) => e.stream === stream);
+      const aggregate = _events.filter((e) => e.stream === stream); // ignore state events, this is a production optimization
       if (expectedVersion && aggregate.length - 1 !== expectedVersion)
         throw new ConcurrencyError(
           aggregate.length - 1,

@@ -1,45 +1,40 @@
 import { STATE_EVENT } from "../interfaces";
-import { app, log, store } from "../ports";
+import { log, store } from "../ports";
 import type {
   AggregateFactory,
   CommittedEvent,
   Messages,
   Reducible,
-  ReducibleFactory,
   Snapshot,
   State
 } from "../types";
 import { clone } from "../utils";
 
 /**
- * Loads reducible artifact from store
- * @param factory the reducible factory
+ * Reduces artifact from store
  * @param reducible the reducible artifact
- * @param filter the event filter (stream or actor)
+ * @param id the reducible id (aggregate:stream or processmanager:actor)
  * @param callback optional reduction predicate
- * @returns current model snapshot
+ * @returns a snapshot
  */
-export async function loadReducible<
-  S extends State,
-  C extends Messages,
-  E extends Messages
->(
-  factory: ReducibleFactory<S, C, E>,
+export async function reduce<S extends State, E extends Messages>(
   reducible: Reducible<S, E>,
-  filter: string,
+  id: { stream?: string; actor?: string },
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> {
   const reducer = reducible.reducer || clone;
-  const type = app().artifacts.get(factory.name)?.type;
+
   let state = reducible.init();
   let applyCount = 0;
   let stateCount = 0;
   let event: CommittedEvent<E> | undefined;
+
   await store().query<E>(
     (e) => {
       event = e;
       if (e.name === STATE_EVENT) {
-        if (type === "aggregate") {
+        if (id.stream) {
+          // only aggregates can reduce state events
           state = e.data as S;
           stateCount++;
         }
@@ -49,10 +44,12 @@ export async function loadReducible<
       }
       callback && callback({ event, state, applyCount, stateCount });
     },
-    type === "aggregate" ? { stream: filter, loading: true } : { actor: filter }
+    { ...id, loading: !!id.stream }
   );
 
-  log().gray().trace(`   ... ${filter} loaded ${applyCount} event(s)`);
+  log()
+    .gray()
+    .trace(`   ... ${id.stream ?? id.actor} loaded ${applyCount} event(s)`);
 
   return { event, state, applyCount, stateCount };
 }
@@ -75,5 +72,5 @@ export async function load<
 ): Promise<Snapshot<S, E>> {
   const reducible = factory(stream);
   Object.setPrototypeOf(reducible, factory as object);
-  return loadReducible<S, C, E>(factory, reducible, stream, callback);
+  return reduce<S, E>(reducible, { stream }, callback);
 }

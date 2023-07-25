@@ -24,7 +24,7 @@ describe("Calculator with commit state", () => {
     await store().dispose();
   });
 
-  it("should compute correctly", async () => {
+  it("should consider state events", async () => {
     const id = chance.guid();
     await pressKey(id, "1");
     await pressKey(id, "+");

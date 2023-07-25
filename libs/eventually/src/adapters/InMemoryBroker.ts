@@ -1,6 +1,6 @@
 import { poll } from "../handlers";
 import { STATE_EVENT, type Broker } from "../interfaces";
-import { app, store } from "../ports";
+import { app, log, store } from "../ports";
 import { scheduler } from "../scheduler";
 import type {
   ArtifactMetadata,
@@ -35,7 +35,7 @@ const drainConsumer = async (
 
 /**
  * @category Adapters
- * @remarks In-memory broker connects private event handlers with events being produced in service
+ * @remarks In-memory broker connects private event handlers with events being produced locally
  * @param timeout lease expiration time (in ms) when polling the store
  * @param limit max number of events to poll in each try
  * @param throttle delay (in ms) to enqueue new polls
@@ -48,7 +48,8 @@ export const InMemoryBroker = (
   const name = "InMemoryBroker";
   const schedule = scheduler(name);
 
-  // connect private event handlers only, public ones are connected by a broker service
+  // connect private event handlers only
+  // NOTE: public consumers should be connected by an external broker service
   const consumers = [...app().artifacts.values()].filter(
     (v) =>
       event_handler_types.includes(v.type) &&
@@ -75,20 +76,25 @@ export const InMemoryBroker = (
     if (snapshot) {
       const commit = app().commits.get(factory.name);
       if (commit && commit(snapshot)) {
-        const { id, stream, name, metadata } = snapshot.event!;
-        return await store().commit(
-          stream,
-          [
+        try {
+          const { id, stream, name, metadata, version } = snapshot.event!;
+          return await store().commit(
+            stream,
+            [
+              {
+                name: STATE_EVENT,
+                data: snapshot.state
+              }
+            ],
             {
-              name: STATE_EVENT,
-              data: snapshot.state
-            }
-          ],
-          {
-            correlation: metadata.correlation,
-            causation: { event: { id, name, stream } }
-          }
-        );
+              correlation: metadata.correlation,
+              causation: { event: { id, name, stream } }
+            },
+            version // IMPORTANT! - state events should be committed right after the snapshot's event
+          );
+        } catch (error) {
+          log().error(error);
+        }
       }
     }
     drain(throttle);

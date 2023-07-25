@@ -12,8 +12,6 @@ import {
 } from "../types/messages";
 import { Disposable, Seedable } from "./generic";
 
-export const STATE_EVENT = "__state__";
-
 // TODO: implement as projection of all events (by artifact)
 /**
  * Basic event store statistics

@@ -1,15 +1,19 @@
-import { ZodError, ZodType } from "zod";
+import z, { ZodError, ZodType } from "zod";
 import { app } from "./ports";
-import type {
-  Command,
-  CommandTarget,
-  EventHandlingArtifact,
-  Message,
-  Messages,
-  Projector,
-  State
+import {
+  RegistrationError,
+  ValidationError,
+  type Command,
+  type CommandTarget,
+  type EventHandlingArtifact,
+  type Message,
+  type Messages,
+  type Projector,
+  type State
 } from "./types";
-import { RegistrationError, ValidationError, ZodEmpty } from "./types";
+
+/** Empty message payload schema */
+export const ZodEmpty = z.record(z.never());
 
 /**
  * Validates payloads using `zod` schemas

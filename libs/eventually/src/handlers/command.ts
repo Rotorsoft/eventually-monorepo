@@ -1,14 +1,15 @@
 import { randomUUID } from "crypto";
 import { app, log } from "../ports";
-import type {
-  Command,
-  CommandHandlerFactory,
-  CommittedEventMetadata,
-  Messages,
-  Snapshot,
-  State
+import {
+  InvariantError,
+  RegistrationError,
+  type Command,
+  type CommandHandlerFactory,
+  type CommittedEventMetadata,
+  type Messages,
+  type Snapshot,
+  type State
 } from "../types";
-import { InvariantError, RegistrationError } from "../types/errors";
 import { validateMessage } from "../utils";
 import message from "./message";
 
@@ -45,7 +46,7 @@ export default async function command<
   const snapshots = await message<S, C, E>(
     factory,
     artifact,
-    stream,
+    { stream },
     ({ state }) => {
       if ("given" in artifact && artifact.given) {
         const invariants = artifact.given[name] || [];

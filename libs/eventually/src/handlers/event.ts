@@ -67,7 +67,7 @@ export default async function event<
   const snapshots = await message(
     factory,
     artifact,
-    actor,
+    { actor },
     async (snapshot) => {
       cmd = await policy.on[name](event, snapshot.state);
       if (cmd) {
