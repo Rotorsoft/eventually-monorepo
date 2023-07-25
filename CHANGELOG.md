@@ -1,3 +1,5 @@
+#### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.4.1...@rotorsoft/eventually-pg-v5.4.2) @rotorsoft/eventually-pg-v5.4.2
+  - PATCH [e6adbd1b](https://github.com/Rotorsoft/eventually-monorepo/commit/e6adbd1be9dd0fcde66d46adfb952895f9a27ed8) fix: create PollOptions type
 #### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.5...@rotorsoft/eventually-v5.5.6) @rotorsoft/eventually-v5.5.6
   - PATCH [e6adbd1b](https://github.com/Rotorsoft/eventually-monorepo/commit/e6adbd1be9dd0fcde66d46adfb952895f9a27ed8) fix: create PollOptions type
 #### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.4...@rotorsoft/eventually-v5.5.5) @rotorsoft/eventually-v5.5.5
