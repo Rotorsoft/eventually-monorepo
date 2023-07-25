@@ -1,3 +1,5 @@
+#### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.4...@rotorsoft/eventually-v5.5.5) @rotorsoft/eventually-v5.5.5
+  - PATCH [8e788ac5](https://github.com/Rotorsoft/eventually-monorepo/commit/8e788ac59b6c6a4048e1ebae1e00b741a182a59f) fix: add some traces
 #### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.5.2...@rotorsoft/eventually-express-v5.5.3) @rotorsoft/eventually-express-v5.5.3
   - PATCH [8ec32805](https://github.com/Rotorsoft/eventually-monorepo/commit/8ec32805222c1f0ac47df1d0debbe46e2147d070) fix: expose drain handler
 #### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.3...@rotorsoft/eventually-v5.5.4) @rotorsoft/eventually-v5.5.4
