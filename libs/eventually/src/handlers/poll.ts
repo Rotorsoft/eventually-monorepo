@@ -57,7 +57,7 @@ export async function poll<
       log().gray().trace(`\n>>> POLL-ACK ${factory.name}`, watermark, lease);
       const ok = await store().ack(lease, watermark);
       if (!ok) {
-        const msg = `!!! POLL-ACK ${factory.name} failed on lease ${lease.lease} setting watermark ${watermark} - lease expired before ack?`;
+        const msg = `!!! POLL-ACK ${factory.name} failed on lease ${lease.lease} setting watermark ${watermark}. Might need to increase lease timeout`;
         log().info(msg);
         error = (error ?? "").concat(msg);
       }
