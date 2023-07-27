@@ -1,13 +1,13 @@
 import {
-  AggregateFactory,
-  broker,
   Builder,
-  CommandAdapterFactory,
   CommandHandlerFactory,
+  broker,
   dateReviver,
-  EventHandlerFactory,
   log,
-  ProjectorFactory
+  type AggregateFactory,
+  type CommandAdapterFactory,
+  type EventHandlerFactory,
+  type ProjectorFactory
 } from "@rotorsoft/eventually";
 import {
   config,
@@ -25,10 +25,10 @@ import {
   commandHandler,
   errorHandler,
   eventHandler,
-  eventsHandler,
   getHandler,
   getStreamHandler,
   invokeHandler,
+  projectHandler,
   readHandler,
   statsHandler,
   subscriptionsHandler
@@ -90,7 +90,7 @@ export class ExpressApp extends Builder {
         const path = httpPostPath(factory.name, type);
         if (endpoints.length) {
           // projectors expose a route to handle an array of events
-          this._router.post(path, eventsHandler(projector_factory));
+          this._router.post(path, projectHandler(projector_factory));
           log().magenta().info("POST", path, inputs);
         }
         this._router.get(

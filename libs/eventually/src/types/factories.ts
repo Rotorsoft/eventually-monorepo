@@ -97,10 +97,7 @@ export type EventHandlerFactory<
   C extends Messages = Messages,
   E extends Messages = Messages,
   O extends Messages = Messages
-> =
-  | ProcessManagerFactory<S, C, E, O>
-  | PolicyFactory<C, E>
-  | ProjectorFactory<S, E>;
+> = ProcessManagerFactory<S, C, E, O> | PolicyFactory<C, E>;
 
 /**
  * All message handler factories
@@ -113,7 +110,8 @@ export type ArtifactFactory<
 > =
   | CommandHandlerFactory<S, C, E>
   | EventHandlerFactory<S, C, E, O>
-  | CommandAdapterFactory<S, C>;
+  | CommandAdapterFactory<S, C>
+  | ProjectorFactory<S, E>;
 
 /**
  * Artifact reflected metadata

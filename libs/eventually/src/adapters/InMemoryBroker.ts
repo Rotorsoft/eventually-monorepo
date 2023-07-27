@@ -50,15 +50,15 @@ export const InMemoryBroker = ({
       action: async (): Promise<boolean> => {
         for (let i = 0; i < consumers.length; i++) {
           const c = consumers[i];
-          const { count, error } = await drain(c.factory, {
+          const { total, error } = await drain(c.factory, {
             names: c.names,
             timeout,
             limit
           });
-          count &&
+          total &&
             log()
               .gray()
-              .trace(`~~~ ${c.factory.name} drained ${count} events...`);
+              .trace(`~~~ ${c.factory.name} drained ${total} events...`);
           error && log().error(error);
         }
         return true;

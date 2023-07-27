@@ -1,19 +1,39 @@
 import type {
-  AllQuery,
+  AggregateFactory,
   CommandAdapterFactory,
   CommandHandlerFactory,
+  EventHandlerFactory,
+  ProjectorFactory
+} from "./factories";
+import type {
+  AllQuery,
+  Command,
   CommandTarget,
   CommittedEvent,
-  EventHandlerFactory,
-  EventResponse,
   Messages,
-  ProjectorFactory,
-  ProjectionRecord,
   Snapshot,
-  State,
+  State
+} from "./messages";
+import type {
   ProjectionQuery,
-  AggregateFactory
-} from ".";
+  ProjectionRecord,
+  ProjectionResults
+} from "./projection";
+
+/**
+ * Response from event handlers
+ *
+ * - `id`: the event id
+ * - `error?`: error message when failed
+ * - `command?` the command triggered by the event handler when handled by policies
+ * - `state?` the reducible state when handled by process managers
+ */
+export type EventResponse<S extends State, C extends Messages> = {
+  readonly id: number;
+  readonly error?: string;
+  readonly command?: Command<C>;
+  readonly state?: S;
+};
 
 export type Client = {
   /**
@@ -49,7 +69,7 @@ export type Client = {
   /**
    * Validates and handles event message
    * @param factory the event handler factory (policy, process manager, or projector)
-   * @param events the committed event to be handled
+   * @param event the committed event to be handled
    * @returns response, including command or projection side effects
    */
   event: <S extends State, C extends Messages, E extends Messages>(
@@ -84,6 +104,17 @@ export type Client = {
     last?: CommittedEvent;
     count: number;
   }>;
+
+  /**
+   * Projects events into a projection
+   * @param factory the projector factory
+   * @param events the committed events to project
+   * @returns the projection
+   */
+  project: <S extends State, E extends Messages>(
+    factory: ProjectorFactory<S, E>,
+    events: CommittedEvent<E>[]
+  ) => Promise<ProjectionResults>;
 
   /**
    * Reads projection records by id or query

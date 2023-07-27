@@ -1,12 +1,17 @@
-import { command, event, invoke, load, read } from "../handlers";
+import {
+  command,
+  event,
+  invoke,
+  load,
+  project,
+  query,
+  read
+} from "../handlers";
 import type { Disposable } from "../interfaces";
-import { store } from "../ports";
 import type {
-  AllQuery,
   Client,
   CommandHandlerFactory,
   CommandTarget,
-  CommittedEvent,
   Messages,
   Snapshot,
   State
@@ -29,22 +34,7 @@ export const InMemoryClient = (): Client & Disposable => ({
   ): Promise<Snapshot<S, E>[]> => command(bind(name, data, target)),
   event,
   load,
-  query: async (
-    allQuery: AllQuery,
-    callback?: (event: CommittedEvent) => void
-  ): Promise<{
-    first?: CommittedEvent;
-    last?: CommittedEvent;
-    count: number;
-  }> => {
-    let first: CommittedEvent | undefined = undefined,
-      last: CommittedEvent | undefined = undefined;
-    const count = await store().query((e) => {
-      !first && (first = e);
-      last = e;
-      callback && callback(e);
-    }, allQuery);
-    return { first, last, count };
-  },
+  query,
+  project,
   read
 });

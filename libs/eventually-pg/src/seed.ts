@@ -1,4 +1,4 @@
-import { StateWithId, State } from "@rotorsoft/eventually";
+import type { Projection, State } from "@rotorsoft/eventually";
 
 export const stream = (table: string): string => `
 CREATE TABLE IF NOT EXISTS public.${table}
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS public.${table}_subscriptions
 
 // TODO: infer pg schema types from projection state (zod?)
 export type ProjectionSchema<S extends State> = {
-  [K in keyof StateWithId<S>]: string;
+  [K in keyof Projection<S>]: string;
 };
 export const projector = <S extends State>(
   table: string,

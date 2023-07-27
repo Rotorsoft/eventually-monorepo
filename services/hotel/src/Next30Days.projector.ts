@@ -1,5 +1,5 @@
 import z from "zod";
-import { client, Projection, Projector } from "@rotorsoft/eventually";
+import { client, Projector } from "@rotorsoft/eventually";
 import * as schemas from "./Room.schemas";
 import * as models from "./Room.models";
 import { addDays } from "./utils";
@@ -36,22 +36,24 @@ export const Next30Days = (): Projector<
       if (days.length) {
         const room = await client().load(Room, data.number.toString());
         const sales: Record<string, DaySales> = {};
+
+        // this is not very efficient
         await client().read(Next30Days, days, (r) => {
           sales[r.state.id] = r.state;
         });
+
         const upserts = days.map((day) => {
           const record =
             sales[day] || ({ id: day, total: 0, reserved: [] } as DaySales);
           const total = record.total + room.state.price;
           const reserved = record.reserved;
-          if (reserved.includes(room.state.number))
-            return { where: { id: day }, values: { total } };
+          if (reserved.includes(room.state.number)) return { id: day, total };
           reserved.push(room.state.number);
-          return { where: { id: day }, values: { total, reserved } };
+          return { id: day, total, reserved };
         });
-        return { upserts } as Projection<DaySales>;
+        return upserts;
       }
-      return {};
+      return [];
     }
   }
 });

@@ -1,4 +1,4 @@
-import { client, app, dispose, ProjectionRecord } from "../../.";
+import { client, app, dispose, ProjectionRecord, Projection } from "../../.";
 import { MatchProjection, MatchProjector } from "./Match.projector";
 import { steps, trace } from "./steps";
 
@@ -12,17 +12,28 @@ describe("match projection", () => {
   });
 
   it("should work", async () => {
-    for (const step of steps) {
-      let record: ProjectionRecord = { state: { id: "" }, watermark: -1 };
-      await client().event(MatchProjector, step.event);
-      await client().read(
-        MatchProjector,
-        step.event.stream,
-        (r) => (record = r)
-      );
-      expect(record.state).toEqual(step.state);
-      await trace();
-    }
+    const results = await client().project(
+      MatchProjector,
+      steps.map((step) => step.event)
+    );
+    expect(results).toEqual({ upserted: 6, deleted: 0, watermark: 5 });
+
+    const states: Projection<MatchProjection>[] = [];
+    await client().read(
+      MatchProjector,
+      steps.map((step) => step.event.stream),
+      (r) => states.push(r.state)
+    );
+    expect(states).toEqual([
+      { id: "Customer-101", customerId: 101 },
+      { id: "Supplier-201", supplierId: 201 },
+      { id: "Job-301", jobId: 301, customerId: 101, manager: "Manager 1" },
+      { id: "Job-302", jobId: 302, customerId: 102, manager: "Manager 2" },
+      { id: "Customer-102", customerId: 102 },
+      { id: "Match-401", jobId: 301, supplierId: 201 }
+    ]);
+
+    await trace();
   });
 
   it("should query", async () => {
@@ -37,38 +48,23 @@ describe("match projection", () => {
       {
         select: ["customerId"],
         where: {
-          manager: { operator: "eq", value: "New manager for 1" }
+          manager: { operator: "eq", value: "Manager 1" }
         },
         limit: 5,
         sort: { id: "asc" }
       },
       (r) => results.push(r)
     );
-    expect(r).toBe(2);
+    expect(r).toBe(1);
     expect(results).toEqual([
       {
         state: {
           customerId: 101,
-          customerName: "New customer name for 1",
           id: "Job-301",
           jobId: 301,
-          jobTitle: "New job title for 1",
-          manager: "New manager for 1"
+          manager: "Manager 1"
         },
-        watermark: 9
-      },
-      {
-        state: {
-          customerId: 101,
-          customerName: "New customer name for 1",
-          id: "Match-401",
-          jobId: 301,
-          jobTitle: "New job title for 1",
-          manager: "New manager for 1",
-          supplierId: 201,
-          supplierName: "New supplier name for 1"
-        },
-        watermark: 9
+        watermark: 5
       }
     ]);
   });
@@ -78,12 +74,12 @@ describe("match projection", () => {
       MatchProjector,
       {
         where: {
-          manager: { operator: "neq", value: "New manager for 1" }
+          manager: { operator: "neq", value: "Manager 1" }
         }
       },
       (r) => r
     );
-    expect(r).toBe(4);
+    expect(r).toBe(5);
   });
 
   it("should query with other operators", async () => {

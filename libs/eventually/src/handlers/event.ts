@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
-import type { ProjectorStore } from "../interfaces";
-import { _imps, app, log } from "../ports";
+import { log } from "../ports";
 import type {
   Command,
   CommittedEvent,
@@ -12,15 +11,15 @@ import type {
   ProcessManager,
   State
 } from "../types";
-import { bind, isProjector, validateMessage } from "../utils";
+import { bind, validateMessage } from "../utils";
 import command from "./command";
 import message from "./message";
 
 /**
  * Validates and handles event message
- * @param factory the event handler factory (policy, process manager, or projector)
- * @param events the committed event to be handled
- * @returns response, including command or projection side effects
+ * @param factory the event handler factory (policy or process manager)
+ * @param event the committed event to be handled
+ * @returns response, including command side effects
  */
 export default async function event<
   S extends State,
@@ -30,33 +29,12 @@ export default async function event<
   factory: EventHandlerFactory<S, C, E>,
   event: CommittedEvent<E>
 ): Promise<EventResponse<S, C>> {
+  log().magenta().trace(`\n>>> ${factory.name}`, event);
+
   const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
-
-  const projector = isProjector(artifact) ? artifact : undefined;
-  const color = projector ? "green" : "magenta";
-  log()[color]().trace(`\n>>> ${factory.name}`, event);
-
   const { data } = validateMessage(event);
   const { id, name, stream } = event;
-
-  // ----------------------------------------------------------------
-  if (projector) {
-    const projection = await projector.on[event.name](event);
-    const ps = (app().stores.get(factory.name) as ProjectorStore<S>) || _imps();
-    const results = await ps.commit(projection, event.id);
-    app().emit("projection", { factory, results });
-    log()
-      .gray()
-      .trace(
-        "   ... committed",
-        JSON.stringify(projection),
-        JSON.stringify(results)
-      );
-    return { id, projection: results };
-  }
-
-  // ----------------------------------------------------------------
   const policy = artifact as Policy<C, E> | ProcessManager<S, C, E>;
   const metadata: CommittedEventMetadata = {
     correlation: event.metadata?.correlation || randomUUID(),

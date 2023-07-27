@@ -1,28 +1,27 @@
 import {
-  Actor,
-  AggregateFactory,
-  AllQuery,
-  client,
-  CommandAdapterFactory,
-  CommandHandlerFactory,
-  CommittedEvent,
   Errors,
-  EventHandlerFactory,
+  client,
   log,
-  ProjectionRecord,
-  ProjectionResults,
-  ProjectorFactory,
-  Snapshot,
-  State,
-  store
+  store,
+  type Actor,
+  type AggregateFactory,
+  type AllQuery,
+  type CommandAdapterFactory,
+  type CommandHandlerFactory,
+  type CommittedEvent,
+  type EventHandlerFactory,
+  type ProjectionRecord,
+  type ProjectorFactory,
+  type Snapshot,
+  type State
 } from "@rotorsoft/eventually";
 import {
-  config,
   RestProjectionQuery,
+  config,
   toProjectionQuery
 } from "@rotorsoft/eventually-openapi";
-import { NextFunction, Request, Response } from "express";
-import { ZodObject, ZodType } from "zod";
+import type { NextFunction, Request, Response } from "express";
+import type { ZodObject, ZodType } from "zod";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
   const etag = snapshot?.event?.version;
@@ -200,34 +199,19 @@ export const eventHandler =
     }
   };
 
-export const eventsHandler =
+export const projectHandler =
   (factory: ProjectorFactory) =>
   async (
     req: Request<never, any, CommittedEvent[]>,
-    res: Response<ProjectionResults>
+    res: Response,
+    next: NextFunction
   ): Promise<Response | undefined> => {
-    res.header("content-type", "application/json");
-    res.write("[");
-    for (let i = 0; i < req.body.length; i++) {
-      i && res.write(",");
-      const event = req.body[i];
-      try {
-        const response = await client().event(factory, event);
-        res.write(JSON.stringify(response));
-      } catch (_error: unknown) {
-        log().error(_error);
-        const error =
-          _error instanceof Error
-            ? _error.message
-            : typeof _error === "string"
-            ? _error
-            : `Error found when handling ${req.body[i].name} at position ${i}.`;
-        res.write(JSON.stringify({ id: event.id, error }));
-        break;
-      }
+    try {
+      const response = await client().project(factory, req.body);
+      return res.status(200).send(response);
+    } catch (error) {
+      next(error);
     }
-    res.write("]");
-    return res.status(200).end();
   };
 
 export const readHandler =

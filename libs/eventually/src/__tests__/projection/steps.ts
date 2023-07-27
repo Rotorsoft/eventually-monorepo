@@ -29,7 +29,7 @@ const matchStream1 = matchStream(matchId1);
 const matchStream2 = matchStream(matchId2);
 
 export const trace = async (): Promise<void> => {
-  if (process.env.NODE_ENV === "test") return;
+  //if (process.env.NODE_ENV === "test") return;
   const records = [] as ProjectionRecord<MatchProjection>[];
   await client().read(
     MatchProjector,
@@ -140,73 +140,9 @@ export const steps = [
     state: {
       id: matchStream1,
       jobId: jobId1,
-      jobTitle: "Job Title 1",
       customerId: customerId1,
-      customerName: "Customer 1",
       manager: "Manager 1",
-      supplierId: supplierId1,
-      supplierName: "Supplier 1"
-    }
-  },
-  {
-    event: event("CustomerNameChanged", customerStream1, {
-      id: customerId1,
-      name: "New customer name for 1"
-    }),
-    state: {
-      id: customerStream1,
-      customerId: customerId1,
-      customerName: "New customer name for 1"
-    }
-  },
-  {
-    event: event("SupplierNameChanged", supplierStream1, {
-      id: supplierId1,
-      name: "New supplier name for 1"
-    }),
-    state: {
-      id: supplierStream1,
-      supplierId: supplierId1,
-      supplierName: "New supplier name for 1"
-    }
-  },
-  {
-    event: event("JobTitleChanged", jobStream1, {
-      id: jobId1,
-      title: "New job title for 1"
-    }),
-    state: {
-      id: jobStream1,
-      jobId: jobId1,
-      jobTitle: "New job title for 1",
-      manager: "Manager 1",
-      customerId: customerId1,
-      customerName: "New customer name for 1"
-    }
-  },
-  {
-    event: event("JobManagerChanged", jobStream1, {
-      id: jobId1,
-      manager: "New manager for 1"
-    }),
-    state: {
-      id: jobStream1,
-      jobId: jobId1,
-      jobTitle: "New job title for 1",
-      manager: "New manager for 1",
-      customerId: customerId1,
-      customerName: "New customer name for 1"
-    }
-  },
-  {
-    event: event("CustomerNameChanged", customerStream2, {
-      id: customerId2,
-      name: "New customer name for 2"
-    }),
-    state: {
-      id: customerStream2,
-      customerId: customerId2,
-      customerName: "New customer name for 2"
+      supplierId: supplierId1
     }
   }
 ] as {

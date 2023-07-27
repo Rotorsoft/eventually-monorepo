@@ -5,3 +5,5 @@ export * from "./errors";
 export type * from "./factories";
 export type * from "./handlers";
 export type * from "./messages";
+export type * from "./projection";
+export type * from "./store";

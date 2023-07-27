@@ -1,8 +1,8 @@
 import {
   dispose,
-  Projection,
-  ProjectionRecord,
-  ProjectorStore
+  type ProjectionPatch,
+  type ProjectionRecord,
+  type ProjectorStore
 } from "@rotorsoft/eventually";
 import { Pool } from "pg";
 import { PostgresProjectorStore } from "..";
@@ -77,12 +77,8 @@ const insertRecords: Record<string, ProjectionRecord<Schema>> = {
   }
 };
 
-const projections: Array<Projection<Schema>> = Object.values(insertRecords).map(
-  (r) => {
-    const { id, ...other } = r.state;
-    return { upserts: [{ where: { id }, values: { ...other } }] };
-  }
-);
+const projectionMap = new Map<string, ProjectionPatch<Schema>>();
+Object.entries(insertRecords).map(([k, v]) => projectionMap.set(k, v.state));
 
 const table = "projector_tests";
 describe("projector", () => {
@@ -110,10 +106,7 @@ CREATE INDEX IF NOT EXISTS ${table}_managerId_ix ON public.${table} USING btree 
 CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree ("countryId" ASC) TABLESPACE pg_default;`
     );
     await db.seed();
-
-    for (let i = 0; i < projections.length; i++) {
-      await db.commit(projections[i], i);
-    }
+    await db.commit(projectionMap, 6);
   });
 
   afterAll(async () => {
@@ -128,22 +121,20 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
         .filter(([, v]) => v !== null)
         .reduce((p, [k, v]) => Object.assign(p, { [k]: v }), {});
       expect(r.state).toEqual(clean);
-      expect(r.watermark).toBe(result[i].watermark);
+      expect(result[i].watermark).toBe(6);
     });
   });
 
   it("should update records by id", async () => {
     let result = await db.load(["User-1", "User-3"]);
     await db.commit(
-      { upserts: [{ where: { id: "User-1" }, values: { age: 45 } }] },
+      new Map(Object.entries({ ["User-1"]: { id: "User-1", age: 45 } })),
       result[0].watermark + 1
     );
     await db.commit(
-      {
-        upserts: [
-          { where: { id: "User-3" }, values: { name: "Pepe", age: 12 } }
-        ]
-      },
+      new Map(
+        Object.entries({ ["User-3"]: { id: "User-3", name: "Pepe", age: 12 } })
+      ),
       result[1].watermark + 1
     );
     result = await db.load(["User-1", "User-3"]);
@@ -152,65 +143,28 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
     expect(result[1].state.age).toEqual(12);
   });
 
-  it("should update records by fk", async () => {
-    let result = await db.load(["User-1", "User-2"]);
-    const water = Math.max(result[0].watermark, result[1].watermark) + 1;
-    await db.commit(
-      {
-        upserts: [
-          {
-            where: { countryId: 1 },
-            values: { countryName: "United States of America" }
-          }
-        ]
-      },
-      water
-    );
-    await db.commit(
-      {
-        upserts: [
-          { where: { managerId: 1 }, values: { managerName: "Manager One" } }
-        ]
-      },
-      water
-    );
-    result = await db.load(["User-1", "User-2"]);
-
-    expect(result[0].state.countryName).toEqual("United States of America");
-    expect(result[1].state.countryName).toEqual("United States of America");
-    expect(result[0].state.managerName).toEqual("Manager One");
-    expect(result[1].state.managerName).toEqual("Manager One");
-  });
-
   it("should delete records", async () => {
     let loaded = await db.load(["Country-1"]);
     const result = await db.commit(
-      { deletes: [{ where: { countryId: 1 } }] },
+      new Map(Object.entries({ ["Country-1"]: { id: "Country-1" } })),
       loaded[0].watermark + 1
     );
-    expect(result.deleted[0].count).toBe(1);
+    expect(result.deleted).toBe(1);
     loaded = await db.load(["Country-1"]);
     expect(loaded[0]).toBeUndefined();
   });
 
   it("should ignore low watermarks", async () => {
     const result1 = await db.commit(
-      { upserts: [{ where: { id: "User-1" }, values: { age: 45 } }] },
+      new Map(Object.entries({ ["User-1"]: { id: "User-1", age: 45 } })),
       0
     );
     const result2 = await db.commit(
-      {
-        upserts: [{ where: { countryId: 1 }, values: { countryName: "test" } }]
-      },
+      new Map(Object.entries({ ["Country-1"]: { id: "Country-1" } })),
       0
     );
-    const result3 = await db.commit(
-      { deletes: [{ where: { countryId: 1 } }] },
-      0
-    );
-    expect(result1.upserted[0].count).toBe(0);
-    expect(result2.upserted[0].count).toBe(0);
-    expect(result3.deleted[0].count).toBe(0);
+    expect(result1.upserted).toBe(0);
+    expect(result2.deleted).toBe(0);
   });
 
   it("should query all", async () => {
@@ -234,20 +188,20 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
       {
         state: {
           age: 45,
-          countryName: "United States of America",
+          countryName: "USA",
           id: "User-1",
           name: "John Doe"
         },
-        watermark: 4
+        watermark: 7
       },
       {
         state: {
           age: 40,
-          countryName: "United States of America",
+          countryName: "USA",
           id: "User-2",
           name: "Jane Doe"
         },
-        watermark: 5
+        watermark: 6
       }
     ]);
   });

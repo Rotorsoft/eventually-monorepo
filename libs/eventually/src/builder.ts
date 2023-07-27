@@ -5,7 +5,6 @@ import type {
   Artifact,
   ArtifactFactory,
   ArtifactMetadata,
-  EventHandlingArtifact,
   Messages,
   ProjectionResults,
   ProjectorFactory,
@@ -14,7 +13,6 @@ import type {
   Snapshot,
   State
 } from "./types";
-import { isProjector } from "./utils";
 
 /**
  * Internal message details used as main drivers of public interfaces and documentation
@@ -159,9 +157,9 @@ export abstract class Builder extends EventEmitter implements Disposable {
         return {
           type: reducible
             ? "process-manager"
-            : isProjector(artifact as EventHandlingArtifact)
-            ? "projector"
-            : "policy",
+            : "commands" in artifact.schemas
+            ? "policy"
+            : "projector",
           factory,
           inputs: inputs.map((name) => ({ name, scope })),
           outputs:

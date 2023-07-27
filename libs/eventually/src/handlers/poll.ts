@@ -1,12 +1,14 @@
-import { log, store } from "../ports";
+import { app, log, store } from "../ports";
 import type {
   EventHandlerFactory,
-  EventResponse,
+  Lease,
   Messages,
+  PollOptions,
+  ProjectorFactory,
   State
 } from "../types";
 import event from "./event";
-import type { Lease, PollOptions } from "../interfaces";
+import project from "./project";
 
 /**
  * Polls the `store` for committed events after the factory's `watermark`. This should be the entry
@@ -23,36 +25,52 @@ import type { Lease, PollOptions } from "../interfaces";
  * @param names the event names to poll
  * @param timeout the lease timeout in ms
  * @param limit the max number of events to poll
- * @returns responses (including command or projection side effects), and error message when something failed
+ * @returns number of handled events, and error message when something fails
  */
 export async function poll<
   S extends State,
   C extends Messages,
   E extends Messages
 >(
-  factory: EventHandlerFactory<S, C, E>,
+  factory: EventHandlerFactory<S, C, E> | ProjectorFactory<S, E>,
   options: PollOptions
-): Promise<EventResponse<S, C>[]> {
+): Promise<{ count: number; error?: string }> {
+  const md = app().artifacts.get(factory.name);
+  if (
+    md?.type !== "policy" &&
+    md?.type !== "process-manager" &&
+    md?.type !== "projector"
+  )
+    return { count: 0 };
+
   let lease: Lease<E> | undefined;
-  const responses: EventResponse<S, C>[] = [];
-  let id = -1,
-    error = undefined;
+  let count = 0;
+  let error = undefined;
+  let watermark = -1;
 
   try {
     lease = await store().poll<E>(factory.name, options);
-    if (lease)
-      for (const e of lease.events) {
-        id = e.id;
-        responses.push(await event(factory, e));
+    if (lease) {
+      log().gray().trace(`\n>>> POLL-ACK ${factory.name}`, lease);
+      watermark = lease.watermark;
+      if (md.type === "projector") {
+        await project(factory as ProjectorFactory<S, E>, lease.events);
+        watermark = lease.events.at(-1)?.id ?? watermark;
+        count = lease.events.length;
+      } else {
+        for (const e of lease.events) {
+          await event(factory as EventHandlerFactory<S, C, E>, e);
+          watermark = e.id;
+          count++;
+        }
       }
+    }
   } catch (err: any) {
     // just log - a retry mechanism should be implemented at a higher level
     log().error(err);
     error = err instanceof Error ? err.message : err.toString();
   } finally {
     if (lease) {
-      const watermark = responses.at(-1)?.id;
-      log().gray().trace(`\n>>> POLL-ACK ${factory.name}`, watermark, lease);
       const ok = await store().ack(lease, watermark);
       if (!ok) {
         const msg = `!!! POLL-ACK ${factory.name} failed on lease ${lease.lease} setting watermark ${watermark}. Might need to increase lease timeout`;
@@ -61,12 +79,7 @@ export async function poll<
       }
     }
   }
-  error &&
-    responses.push({
-      id,
-      error
-    });
-  return responses;
+  return { count, error };
 }
 
 /**
@@ -75,26 +88,23 @@ export async function poll<
  * @param names the event names to poll
  * @param timeout the lease timeout in ms
  * @param limit the max number of events to poll
- * @returns number of handled events, and error message when something failed
+ * @returns number of handled events, and error message when something fails
  */
 export async function drain<
   S extends State,
   C extends Messages,
   E extends Messages
 >(
-  factory: EventHandlerFactory<S, C, E>,
+  factory: EventHandlerFactory<S, C, E> | ProjectorFactory<S, E>,
   options: PollOptions
-): Promise<{ count: number; error?: string }> {
-  let count = 0;
-  let error: string | undefined = undefined;
-
+): Promise<{ total: number; error?: string }> {
+  let total = 0;
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const responses = await poll(factory, options);
-    count += responses.length;
-    if (responses.length < options.limit) break;
-    error = responses.at(-1)?.error;
-    if (error) break;
+    const { count, error } = await poll(factory, options);
+    total += count;
+    if (count < options.limit) break;
+    if (error) return { total, error };
   }
-  return { count, error };
+  return { total };
 }

@@ -1,20 +1,15 @@
-import { z, ZodRawShape, ZodType, ZodTypeAny } from "zod";
-import {
+import { z, type ZodRawShape, type ZodType, type ZodTypeAny } from "zod";
+import type {
   ActorHandler,
   CommandHandler,
   EventHandler,
   EventReducer,
   Invariant,
+  ProjectorReducer,
   StateReducer
 } from "./handlers";
-import {
-  Command,
-  CommittedEvent,
-  Messages,
-  Projection,
-  State,
-  StateWithId
-} from "./messages";
+import type { Command, Messages, State } from "./messages";
+import type { Projection } from "./projection";
 
 /** All artifact types */
 export type ArtifactType =
@@ -105,7 +100,7 @@ export type CommandAdapterSchemas<S extends State, C extends Messages> = {
  * - `schemas.events` input validation
  */
 export type ProjectorSchemas<S extends State, E extends Messages> = {
-  state: ZodType<StateWithId<S>>;
+  state: ZodType<Projection<S>>;
   events: Schemas<E>;
 };
 
@@ -205,7 +200,9 @@ export type CommandAdapter<
 };
 
 /**
- * Projectors handle events that produce slices of filters/values representing the area of the data being projected -- created/merged or deleted
+ * Projectors handle events and produce a map of projection patches (driven by the cardinality of the projection).
+ * The input stream can impact the memory used to store the projected state,
+ * specially when the cardinality of the projection is high. It's recommended to filter/batch the input in such cases.
  * - `schemas` for message validation and documentation
  * - `on` projection handlers
  */
@@ -214,11 +211,7 @@ export type Projector<
   E extends Messages = Messages
 > = WithDescription & {
   schemas: ProjectorSchemas<S, E>;
-  on: {
-    [K in keyof E]: (
-      event: CommittedEvent<Pick<E, K>>
-    ) => Promise<Projection<S>>;
-  };
+  on: { [K in keyof E]: ProjectorReducer<S, E, K> };
 };
 
 /** All command handling artifacts */
@@ -234,7 +227,7 @@ export type EventHandlingArtifact<
   C extends Messages = Messages,
   E extends Messages = Messages,
   O extends Messages = Messages
-> = ProcessManager<S, C, E, O> | Policy<C, E> | Projector<S, E>;
+> = ProcessManager<S, C, E, O> | Policy<C, E>;
 
 /** All message handling artifacts */
 export type Artifact<
@@ -245,7 +238,8 @@ export type Artifact<
 > =
   | CommandHandlingArtifact<S, C, E>
   | EventHandlingArtifact<S, C, E, O>
-  | CommandAdapter<S, C>;
+  | CommandAdapter<S, C>
+  | Projector<S, E>;
 
 /** Helper to infer zod types */
 export type Infer<T> = T extends ZodRawShape

@@ -26,26 +26,26 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
     RoomOpened: ({ data }) => {
       const id = `Room-${data.number}`;
       const { number, type, price } = data;
-      return Promise.resolve({
-        upserts: [{ where: { id }, values: { number, type, price } }]
-      });
+      return Promise.resolve([{ id, number, type, price }]);
     },
-    RoomBooked: async ({ data }) => {
+    RoomBooked: async ({ data }, map) => {
       const id = `Room-${data.number}`;
+
       let reserved: Record<string, string> = {};
-      await client().read(
-        Hotel,
-        id,
-        (room) => (reserved = room.state.reserved || {})
-      );
+      if (!map.has(id)) {
+        await client().read(
+          Hotel,
+          id,
+          (room) => (reserved = room.state.reserved || {})
+        );
+      } else reserved = map.get(id)!.reserved || {};
+
       let day = data.checkin;
       while (day <= data.checkout) {
         reserved[day.toISOString().substring(0, 10)] = data.id;
         day = addDays(day, 1);
       }
-      return Promise.resolve({
-        upserts: [{ where: { id }, values: { reserved } }]
-      });
+      return [{ id, reserved }];
     }
   }
 });

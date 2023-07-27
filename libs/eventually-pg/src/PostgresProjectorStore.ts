@@ -1,20 +1,21 @@
-import {
+import type {
   Condition,
-  dispose,
-  log,
   Operator,
   ProjectionQuery,
   ProjectionRecord,
-  ProjectionResults,
   ProjectorStore,
-  State,
-  StateWithId
+  State
 } from "@rotorsoft/eventually";
+
+import { dispose, log } from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
-import { projector, ProjectionSchema } from "./seed";
+import { ProjectionSchema, projector } from "./seed";
 
 types.setTypeParser(types.builtins.INT8, (val) => parseInt(val, 10));
+types.setTypeParser(types.builtins.FLOAT4, (val) => parseFloat(val));
+types.setTypeParser(types.builtins.FLOAT8, (val) => parseFloat(val));
+types.setTypeParser(types.builtins.NUMERIC, (val) => parseFloat(val));
 
 const EQUALS: Operator[] = ["eq", "lte", "gte", "in"];
 
@@ -60,87 +61,43 @@ export const PostgresProjectorStore = <S extends State>(
       });
     },
 
-    commit: async (projection, watermark) => {
-      const upserts: Array<{
-        where: Partial<StateWithId<S>>;
-        sql: string;
-        vals: any[];
-      }> = [];
-      const deletes: Array<{
-        where: Partial<StateWithId<S>>;
-        sql: string;
-        vals: any[];
-      }> = [];
-      const results: ProjectionResults<S> = {
-        upserted: [],
-        deleted: [],
-        watermark
-      };
-
-      projection.upserts &&
-        projection.upserts.forEach(({ where, values }) => {
-          const id = where.id || values.id; // when id found in filter or values -> full upsert, otherwise update
-          const where_entries = Object.entries(where);
-          const values_entries = Object.entries(values);
-          if (where_entries.length && values_entries.length) {
-            const sql = (
-              id
-                ? `INSERT INTO ${table}(id, ${values_entries
-                    .map(([k]) => `"${k}"`)
-                    .join(", ")}, __watermark) VALUES('${id}', ${values_entries
-                    .map((_, index) => `$${where_entries.length + index + 1}`)
-                    .join(", ")}, ${watermark}) ON CONFLICT (id) DO
-                `
-                : ""
-            ).concat(
-              `UPDATE ${id ? "" : table} SET ${values_entries
-                .map(
-                  ([k], index) => `"${k}"=$${where_entries.length + index + 1}`
-                )
-                .join(
-                  ", "
-                )} WHERE ${table}.__watermark < ${watermark} AND ${where_entries
-                .map(([k], index) => `${table}."${k}"=$${index + 1}`)
-                .join(" AND ")}`
+    commit: async (map, watermark) => {
+      const upserts: Array<{ sql: string; vals: any[] }> = [];
+      const deletes: string[] = [];
+      map.forEach((patch) => {
+        if (patch.id) {
+          const vals = Object.entries(patch).filter(([key]) => key !== "id");
+          if (vals.length) {
+            const sql = `INSERT INTO ${table}(id, ${vals
+              .map(([k]) => `"${k}"`)
+              .join(", ")}, __watermark) VALUES('${patch.id}', ${vals
+              .map((_, index) => `$${index + 1}`)
+              .join(", ")}, ${watermark}) ON CONFLICT (id) DO UPDATE SET ${vals
+              .map(([k], index) => `"${k}"=$${index + 1}`)
+              .join(
+                ", "
+              )}, __watermark=${watermark} WHERE ${table}.__watermark < ${watermark} AND ${table}.id='${
+              patch.id
+            }'`;
+            upserts.push({ sql, vals: vals.map(([, v]) => v) });
+          } else
+            deletes.push(
+              `DELETE FROM ${table} WHERE ${table}.__watermark < ${watermark} AND ${table}.id='${patch.id}'`
             );
-            upserts.push({
-              where,
-              sql,
-              vals: where_entries
-                .map(([, v]) => v)
-                .concat(values_entries.map(([, v]) => v))
-            });
-          }
-        });
-
-      projection.deletes &&
-        projection.deletes.forEach(({ where }) => {
-          const where_entries = Object.entries(where);
-          if (where_entries.length) {
-            const sql = `DELETE FROM ${table} WHERE ${table}.__watermark < ${watermark} AND ${where_entries
-              .map(([k], index) => `${table}."${k}"=$${index + 1}`)
-              .join(" AND ")}`;
-            deletes.push({ where, sql, vals: where_entries.map(([, v]) => v) });
-          }
-        });
-
+        }
+      });
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        for (const { where, sql, vals } of upserts) {
-          const count = (await client.query(sql, vals)).rowCount;
-          results.upserted.push({ where, count });
+        let upserted = 0;
+        for (const { sql, vals } of upserts) {
+          upserted += (await client.query(sql, vals)).rowCount;
         }
-        for (const { where, sql, vals } of deletes) {
-          const count = (await client.query(sql, vals)).rowCount;
-          results.deleted.push({ where, count });
-        }
+        const deleted = (await client.query(deletes.join("\n"))).rowCount;
         await client.query("COMMIT");
-        return results;
+        return { upserted, deleted, watermark };
       } catch (error) {
         log().error(error);
-        upserts.forEach(({ sql, vals }) => log().red().trace(sql, vals));
-        deletes.forEach(({ sql, vals }) => log().red().trace(sql, vals));
         await client.query("ROLLBACK");
         throw error;
       } finally {

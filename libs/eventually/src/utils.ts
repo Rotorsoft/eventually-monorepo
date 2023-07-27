@@ -5,10 +5,8 @@ import {
   ValidationError,
   type Command,
   type CommandTarget,
-  type EventHandlingArtifact,
   type Message,
   type Messages,
-  type Projector,
   type State
 } from "./types";
 
@@ -210,15 +208,3 @@ export const clone = <S extends State>(
   });
   return cloned as Readonly<S>;
 };
-
-/**
- * Projector type guard
- */
-export const isProjector = <
-  S extends State,
-  C extends Messages,
-  E extends Messages,
-  O extends Messages
->(
-  artifact: EventHandlingArtifact<S, C, E, O>
-): artifact is Projector<S, E> => !("commands" in artifact.schemas);

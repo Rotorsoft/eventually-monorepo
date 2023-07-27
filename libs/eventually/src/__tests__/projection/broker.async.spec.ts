@@ -17,12 +17,11 @@ describe("async broker", () => {
   });
 
   it("should project", async () => {
-    const id = 1;
     await client().command(
       MatchSystem,
       "CreateCustomer",
       {
-        id,
+        id: 1,
         name: "testing name"
       },
       { stream: "test" }
@@ -31,8 +30,17 @@ describe("async broker", () => {
       MatchSystem,
       "ChangeCustomerName",
       {
-        id,
+        id: 1,
         name: "changed the name"
+      },
+      { stream: "test" }
+    );
+    await client().command(
+      MatchSystem,
+      "CreateCustomer",
+      {
+        id: 2,
+        name: "testing name"
       },
       { stream: "test" }
     );
@@ -41,7 +49,7 @@ describe("async broker", () => {
     let p = { watermark: 0 };
     await client().read(MatchProjector, "MatchSystem", (r) => (p = r));
     expect(p).toBeDefined();
-    expect(p.watermark).toBe(1);
+    expect(p.watermark).toBe(2);
     await broker.dispose();
   });
 });

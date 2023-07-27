@@ -1,22 +1,23 @@
 import {
-  AggregateFactory,
-  AllQuery,
-  Client,
-  CommandAdapterFactory,
-  CommandHandlerFactory,
-  CommandTarget,
-  CommittedEvent,
-  Disposable,
-  EventHandlerFactory,
-  EventResponse,
-  Messages,
-  ProjectionQuery,
-  ProjectionRecord,
-  ProjectorFactory,
-  ReducibleFactory,
-  Snapshot,
-  State,
-  decamelize
+  decamelize,
+  type AggregateFactory,
+  type AllQuery,
+  type Client,
+  type CommandAdapterFactory,
+  type CommandHandlerFactory,
+  type CommandTarget,
+  type CommittedEvent,
+  type Disposable,
+  type EventHandlerFactory,
+  type EventResponse,
+  type Messages,
+  type ProjectionQuery,
+  type ProjectionRecord,
+  type ProjectionResults,
+  type ProjectorFactory,
+  type ReducibleFactory,
+  type Snapshot,
+  type State
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
 import { toRestProjectionQuery } from "./query";
@@ -40,10 +41,6 @@ export type HttpClientExt = Client &
       reducible: ReducibleFactory<S, C, E>,
       id: string
     ) => Promise<Snapshot<S, E>[]>;
-    events: <S extends State, E extends Messages>(
-      factory: ProjectorFactory<S, E>,
-      events: CommittedEvent<E>[]
-    ) => Promise<EventResponseEx<S>[]>;
   };
 
 /**
@@ -112,17 +109,6 @@ export const HttpClient = (
       return { status, ...data };
     },
 
-    events: async <S extends State, E extends Messages>(
-      factory: ProjectorFactory<S, E>,
-      events: CommittedEvent<E>[]
-    ): Promise<EventResponseEx<S>[]> => {
-      const { data } = await axios.post<
-        State,
-        AxiosResponse<EventResponseEx<S>[]>
-      >(url(httpPostPath(factory.name, "projector")), events);
-      return data;
-    },
-
     load: async <S extends State, C extends Messages, E extends Messages>(
       reducible: AggregateFactory<S, C, E>,
       stream: string
@@ -162,6 +148,17 @@ export const HttpClient = (
       const { data } = await axios.get<any, AxiosResponse<Snapshot<S, E>[]>>(
         url(httpGetPath(reducible.name).replace(":id", id).concat("/stream"))
       );
+      return data;
+    },
+
+    project: async <S extends State, E extends Messages>(
+      factory: ProjectorFactory<S, E>,
+      events: CommittedEvent<E>[]
+    ): Promise<ProjectionResults> => {
+      const { data } = await axios.post<
+        State,
+        AxiosResponse<ProjectionResults>
+      >(url(httpPostPath(factory.name, "projector")), events);
       return data;
     },
 

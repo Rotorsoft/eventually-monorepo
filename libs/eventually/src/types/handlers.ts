@@ -1,4 +1,4 @@
-import {
+import type {
   Actor,
   Command,
   CommittedEvent,
@@ -6,9 +6,10 @@ import {
   Messages,
   State
 } from "./messages";
+import type { ProjectionMap, ProjectionPatch } from "./projection";
 
 /**
- * State reducers apply partial state patches to a state, resulting in a new state
+ * State reducers apply partial state patches to a state, and returns the new state
  * - `state` the original state
  * - `patch` the patches to apply, considering rules like:
  *    - using `undefined` values to delete fields from the original state
@@ -20,7 +21,7 @@ export type StateReducer<S extends State> = (
 ) => Readonly<S>;
 
 /**
- * Event reducers apply events to a reduced state, resulting in a new state
+ * Event reducers apply events to a reduced state, and returns the new patch
  * - `state` the current reduced state
  * - `event` the event to be applied
  */
@@ -32,6 +33,20 @@ export type EventReducer<
   state: Readonly<S>,
   event: CommittedEvent<Pick<E, K>>
 ) => Readonly<Partial<S>>;
+
+/**
+ * Projector reducers apply events as "state patches" to the resulting projection map
+ * - `event` the committed event being projected
+ * - `map` a reference to the resulting projection map
+ */
+export type ProjectorReducer<
+  S extends State,
+  E extends Messages,
+  K extends keyof E
+> = (
+  event: CommittedEvent<Pick<E, K>>,
+  map: ProjectionMap<S>
+) => Promise<ProjectionPatch<S>[]>;
 
 /**
  * Command handlers handle commands and emit events

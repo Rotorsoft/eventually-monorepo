@@ -1,60 +1,24 @@
-import {
+import type {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
   Message,
   Messages,
-  ProjectionResults,
-  Projection,
-  State,
-  ProjectionRecord,
-  ProjectionQuery
+  State
 } from "../types/messages";
+import type {
+  ProjectionMap,
+  ProjectionQuery,
+  ProjectionRecord,
+  ProjectionResults
+} from "../types/projection";
+import type {
+  Lease,
+  PollOptions,
+  StoreStat,
+  Subscription
+} from "../types/store";
 import { Disposable, Seedable } from "./generic";
-
-// TODO: implement as projection of all events (by artifact)
-/**
- * Basic event store statistics
- */
-export type StoreStat = {
-  name: string;
-  count: number;
-  firstId?: number;
-  lastId?: number;
-  firstCreated?: Date;
-  lastCreated?: Date;
-};
-
-/**
- * Consumer subscription
- */
-export type Subscription = {
-  readonly consumer: string;
-  readonly watermark: number;
-  readonly lease?: string;
-  readonly expires?: Date;
-};
-
-/**
- * Consumer lease
- */
-export type Lease<E extends Messages> = Subscription & {
-  readonly lease: string;
-  readonly expires: Date;
-  readonly events: CommittedEvent<E>[];
-};
-
-/**
- * Poll options
- * - `names` the event names to poll
- * - `timeout` the lease timeout in ms
- * - `limit` the max number of events to poll
- */
-export type PollOptions = {
-  readonly names: string[];
-  readonly timeout: number;
-  readonly limit: number;
-};
 
 /**
  * Stores events in streams and consumer subscriptions/leases
@@ -91,9 +55,9 @@ export interface Store extends Disposable, Seedable {
    */
   reset: () => Promise<void>;
 
-  // TODO: refactor stats using async projections
   /**
    * Gets store stats
+   * TODO: refactor stats using async projections
    */
   stats: () => Promise<StoreStat[]>;
 
@@ -144,15 +108,15 @@ export interface ProjectorStore<S extends State = State>
   load: (ids: string[]) => Promise<ProjectionRecord<S>[]>;
 
   /**
-   * Commits projection with basic idempotence check
-   * @param projection the projection filters
+   * Commits projection map with basic idempotence check
+   * @param map the projection map
    * @param watermark the new watermark - ignored when new watermark <= stored watermark
    * @returns the projection results
    */
   commit: (
-    projection: Projection<S>,
+    map: ProjectionMap<S>,
     watermark: number
-  ) => Promise<ProjectionResults<S>>;
+  ) => Promise<ProjectionResults>;
 
   /**
    * Queries projection

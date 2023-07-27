@@ -1,19 +1,17 @@
 import { randomUUID } from "crypto";
-import type {
-  Lease,
-  PollOptions,
-  Store,
-  StoreStat,
-  Subscription
-} from "../interfaces";
+import type { Store } from "../interfaces";
 import {
   ActorConcurrencyError,
   ConcurrencyError,
   type AllQuery,
   type CommittedEvent,
   type CommittedEventMetadata,
+  type Lease,
   type Message,
-  type Messages
+  type Messages,
+  type PollOptions,
+  type StoreStat,
+  type Subscription
 } from "../types";
 
 /**

@@ -28,12 +28,9 @@ export const Match = z.object({
 export const MatchProjection = z.object({
   id: z.string(),
   jobId: z.number(),
-  jobTitle: z.string().min(5),
   manager: z.string().min(5),
   customerId: z.number(),
-  customerName: z.string().min(5),
-  supplierId: z.number(),
-  supplierName: z.string().min(5)
+  supplierId: z.number()
 });
 
 // events

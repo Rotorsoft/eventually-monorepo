@@ -1,4 +1,4 @@
-import { client, Projection, Projector } from "@rotorsoft/eventually";
+import { client, ProjectionPatch, Projector } from "@rotorsoft/eventually";
 import { z } from "zod";
 import * as schemas from "./calculator.schemas";
 
@@ -22,25 +22,6 @@ export type TotalsEvents = {
   DigitPressed: z.infer<typeof schemas.DigitPressed>;
 };
 
-const projection = async (
-  stream: string,
-  digit: schemas.Digits
-): Promise<Projection<Totals>> => {
-  const id = `Totals-${stream}`;
-  let totals: Totals | undefined;
-  await client().read(CalculatorTotals, id, (r) => (totals = r.state));
-  return Promise.resolve({
-    upserts: [
-      {
-        where: { id },
-        values: {
-          [digit]: ((totals && totals[digit]) || 0) + 1
-        }
-      }
-    ]
-  });
-};
-
 export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
   description: "Counts all keys pressed by calculator",
   schemas: {
@@ -50,6 +31,20 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
     }
   },
   on: {
-    DigitPressed: (e) => projection(e.stream, e.data.digit)
+    DigitPressed: async ({ stream, data }, map) => {
+      const id = `Totals-${stream}`;
+
+      let totals: ProjectionPatch<Totals> = { id };
+      if (!map.has(id)) {
+        // load persisted state from projector store
+        await client().read(
+          CalculatorTotals,
+          id,
+          ({ state }) => (totals = state)
+        );
+      } else totals = map.get(id)!;
+
+      return [{ id, [data.digit]: (totals[data.digit] ?? 0) + 1 }];
+    }
   }
 });
