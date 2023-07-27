@@ -1,3 +1,5 @@
+#### 2023-07-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.5.2...@rotorsoft/calculator-artifacts-v1.6.0) @rotorsoft/calculator-artifacts-v1.6.0
+  - MINOR [dc922b2c](https://github.com/Rotorsoft/eventually-monorepo/commit/dc922b2c62adfe18c3e6307b832a5b12e527d5ec) feat: simplified projector interface, this is still an experimental feature
 #### 2023-07-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.5.3...@rotorsoft/eventually-express-v5.6.0) @rotorsoft/eventually-express-v5.6.0
   - MINOR [dc922b2c](https://github.com/Rotorsoft/eventually-monorepo/commit/dc922b2c62adfe18c3e6307b832a5b12e527d5ec) feat: simplified projector interface, this is still an experimental feature
 #### 2023-07-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.4.2...@rotorsoft/eventually-pg-v5.5.0) @rotorsoft/eventually-pg-v5.5.0
