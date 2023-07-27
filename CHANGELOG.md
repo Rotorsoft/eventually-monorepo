@@ -1,3 +1,5 @@
+#### 2023-07-27 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.6...@rotorsoft/eventually-v5.6.0) @rotorsoft/eventually-v5.6.0
+  - MINOR [dc922b2c](https://github.com/Rotorsoft/eventually-monorepo/commit/dc922b2c62adfe18c3e6307b832a5b12e527d5ec) feat: simplified projector interface, this is still an experimental feature
 #### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.4.1...@rotorsoft/eventually-pg-v5.4.2) @rotorsoft/eventually-pg-v5.4.2
   - PATCH [e6adbd1b](https://github.com/Rotorsoft/eventually-monorepo/commit/e6adbd1be9dd0fcde66d46adfb952895f9a27ed8) fix: create PollOptions type
 #### 2023-07-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.5.5...@rotorsoft/eventually-v5.5.6) @rotorsoft/eventually-v5.5.6
