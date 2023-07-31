@@ -15,35 +15,31 @@
 <li><a href="../index.html">@rotorsoft/eventually-monorepo</a></li>
 <li><a href="../modules/eventually.html">eventually</a></li>
 <li><a href="eventually.ProjectionResults.html">ProjectionResults</a></li></ul>
-<h1>Type alias ProjectionResults&lt;S&gt;</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Projection<wbr/>Results</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">deleted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">count</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">where</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="eventually.StateWithId.html" class="tsd-signature-type tsd-kind-type-alias">StateWithId</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">error</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">upserted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>        </span><span class="tsd-kind-property">count</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>        </span><span class="tsd-kind-property">where</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="eventually.StateWithId.html" class="tsd-signature-type tsd-kind-type-alias">StateWithId</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">watermark</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
-<div class="tsd-comment tsd-typography"><p>Projection results after commit</p>
+<h1>Type alias ProjectionResults</h1></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Projection<wbr/>Results</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">deleted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">error</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">upserted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">watermark</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-comment tsd-typography"><p>Projection Results</p>
+<p>The results after a <code>Projection Store</code> tries to commit the projection records in a <code>Projection</code></p>
 <ul>
-<li><code>upserted</code> the upserted counts</li>
-<li><code>deleted</code> the deleted counts</li>
-<li><code>watermark</code> the stored watermark</li>
-<li><code>error?</code> the error message when project throws</li>
+<li><code>upserted</code> upserted records</li>
+<li><code>deleted</code> deleted records</li>
+<li><code>watermark</code> the new watermark stored in upserted records</li>
+<li><code>error?</code> error message if commit fails</li>
 </ul>
 </div>
-<section class="tsd-panel">
-<h4>Type Parameters</h4>
-<ul class="tsd-type-parameter-list">
-<li>
-<h4><span class="tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol"> extends </span><a href="eventually.State.html" class="tsd-signature-type tsd-kind-type-alias">State</a> = <a href="eventually.State.html" class="tsd-signature-type tsd-kind-type-alias">State</a></h4></li></ul></section>
 <div class="tsd-type-declaration">
 <h4>Type declaration</h4>
 <ul class="tsd-parameters">
 <li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">deleted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">count</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">where</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="eventually.StateWithId.html" class="tsd-signature-type tsd-kind-type-alias">StateWithId</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<h5><code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">deleted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5></li>
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">error</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5></li>
 <li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">upserted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">count</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">where</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="eventually.StateWithId.html" class="tsd-signature-type tsd-kind-type-alias">StateWithId</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<h5><code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">upserted</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5></li>
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">watermark</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/da936945/libs/eventually/src/types/messages.ts#L154">libs/eventually/src/types/messages.ts:154</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/01caf003/libs/eventually/src/types/projection.ts#L53">libs/eventually/src/types/projection.ts:53</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -132,10 +128,13 @@
 <li><a href="eventually.Policy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy</span></a></li>
 <li><a href="eventually.PolicyFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Factory</span></a></li>
 <li><a href="eventually.PolicySchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Schemas</span></a></li>
+<li><a href="eventually.PollOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Poll<wbr/>Options</span></a></li>
 <li><a href="eventually.ProcessManager.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Process<wbr/>Manager</span></a></li>
 <li><a href="eventually.ProcessManagerFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Process<wbr/>Manager<wbr/>Factory</span></a></li>
 <li><a href="eventually.ProcessManagerSchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Process<wbr/>Manager<wbr/>Schemas</span></a></li>
 <li><a href="eventually.Projection.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection</span></a></li>
+<li><a href="eventually.ProjectionMap.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Map</span></a></li>
+<li><a href="eventually.ProjectionPatch.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Patch</span></a></li>
 <li><a href="eventually.ProjectionQuery.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Query</span></a></li>
 <li><a href="eventually.ProjectionRecord.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Record</span></a></li>
 <li><a href="eventually.ProjectionResults.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Results</span></a></li>
@@ -143,6 +142,7 @@
 <li><a href="eventually.ProjectionWhere.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Where</span></a></li>
 <li><a href="eventually.Projector.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector</span></a></li>
 <li><a href="eventually.ProjectorFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Factory</span></a></li>
+<li><a href="eventually.ProjectorReducer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Reducer</span></a></li>
 <li><a href="eventually.ProjectorSchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Schemas</span></a></li>
 <li><a href="eventually.Reducible.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible</span></a></li>
 <li><a href="eventually.ReducibleFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible<wbr/>Factory</span></a></li>
@@ -152,7 +152,6 @@
 <li><a href="eventually.Snapshot.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Snapshot</span></a></li>
 <li><a href="eventually.State.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>State</span></a></li>
 <li><a href="eventually.StateReducer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>State<wbr/>Reducer</span></a></li>
-<li><a href="eventually.StateWithId.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>State<wbr/>With<wbr/>Id</span></a></li>
 <li><a href="eventually.States.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>States</span></a></li>
 <li><a href="eventually.Status.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Status</span></a></li>
 <li><a href="eventually.StoreStat.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Store<wbr/>Stat</span></a></li>
@@ -190,15 +189,17 @@
 <li><a href="../functions/eventually.dateReviver.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>date<wbr/>Reviver</span></a></li>
 <li><a href="../functions/eventually.decamelize.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>decamelize</span></a></li>
 <li><a href="../functions/eventually.dispose.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>dispose</span></a></li>
+<li><a href="../functions/eventually.drain.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>drain</span></a></li>
 <li><a href="../functions/eventually.event.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>event</span></a></li>
 <li><a href="../functions/eventually.extend.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>extend</span></a></li>
 <li><a href="../functions/eventually.formatTime.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>format<wbr/>Time</span></a></li>
 <li><a href="../functions/eventually.invoke.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>invoke</span></a></li>
-<li><a href="../functions/eventually.isProjector.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>is<wbr/>Projector</span></a></li>
 <li><a href="../functions/eventually.load.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>load</span></a></li>
 <li><a href="../functions/eventually.log.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>log</span></a></li>
 <li><a href="../functions/eventually.poll.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>poll</span></a></li>
 <li><a href="../functions/eventually.port.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>port</span></a></li>
+<li><a href="../functions/eventually.project.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>project</span></a></li>
+<li><a href="../functions/eventually.query.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>query</span></a></li>
 <li><a href="../functions/eventually.read.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>read</span></a></li>
 <li><a href="../functions/eventually.scheduler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>scheduler</span></a></li>
 <li><a href="../functions/eventually.sleep.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>sleep</span></a></li>

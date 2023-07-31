@@ -8,7 +8,7 @@ export type E = {
 };
 
 export const event = (name: keyof E, data: E[keyof E]): Message =>
-  bind<E>(name, data) as Message;
+  bind(name, data) as Message;
 
 export const sleep = (millis: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, millis));

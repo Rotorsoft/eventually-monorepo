@@ -18,7 +18,7 @@
 <h1>Function poll</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="poll"><span class="tsd-kind-call-signature">poll</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">C</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">factory</span>, <span class="tsd-kind-parameter">names</span>, <span class="tsd-kind-parameter">limit</span>, <span class="tsd-kind-parameter">timeout</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.EventResponse.html" class="tsd-signature-type tsd-kind-type-alias">EventResponse</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">C</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#poll" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="poll"><span class="tsd-kind-call-signature">poll</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">C</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">factory</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">count</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">error</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><a href="#poll" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Polls the <code>store</code> for committed events after the factory&#39;s <code>watermark</code>. This should be the entry
 point to reactive service&#39;s event handlers.</p>
@@ -42,30 +42,17 @@ consumers must be idempotent to accomodate potential failures and timeouts.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">factory</span>: <a href="../types/eventually.EventHandlerFactory.html" class="tsd-signature-type tsd-kind-type-alias">EventHandlerFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">C</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">E</span><span class="tsd-signature-symbol">&gt;</span></h5>
+<h5><span class="tsd-kind-parameter">factory</span>: <a href="../types/eventually.EventHandlerFactory.html" class="tsd-signature-type tsd-kind-type-alias">EventHandlerFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">C</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">E</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="../types/eventually.ProjectorFactory.html" class="tsd-signature-type tsd-kind-type-alias">ProjectorFactory</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">E</span><span class="tsd-signature-symbol">&gt;</span></h5>
 <div class="tsd-comment tsd-typography"><p>the event handler factory (policy, process manager, or projector)</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><span class="tsd-kind-parameter">names</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
-<div class="tsd-comment tsd-typography"><p>the event names to poll</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li>
-<li>
-<h5><span class="tsd-kind-parameter">limit</span>: <span class="tsd-signature-type">number</span></h5>
-<div class="tsd-comment tsd-typography"><p>the max number of events to poll</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li>
-<li>
-<h5><span class="tsd-kind-parameter">timeout</span>: <span class="tsd-signature-type">number</span></h5>
-<div class="tsd-comment tsd-typography"><p>the lease timeout in ms</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.EventResponse.html" class="tsd-signature-type tsd-kind-type-alias">EventResponse</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">C</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><p>responses (including command or projection side effects), and error message when something failed</p>
+<h5><span class="tsd-kind-parameter">options</span>: <a href="../types/eventually.PollOptions.html" class="tsd-signature-type tsd-kind-type-alias">PollOptions</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">count</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">error</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span></h4><p>number of handled events, and error message when something fails</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/da936945/libs/eventually/src/handlers/poll.ts#L28">libs/eventually/src/handlers/poll.ts:28</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/01caf003/libs/eventually/src/handlers/poll.ts#L30">libs/eventually/src/handlers/poll.ts:30</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -154,10 +141,13 @@ consumers must be idempotent to accomodate potential failures and timeouts.</p>
 <li><a href="../types/eventually.Policy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy</span></a></li>
 <li><a href="../types/eventually.PolicyFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Factory</span></a></li>
 <li><a href="../types/eventually.PolicySchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Schemas</span></a></li>
+<li><a href="../types/eventually.PollOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Poll<wbr/>Options</span></a></li>
 <li><a href="../types/eventually.ProcessManager.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Process<wbr/>Manager</span></a></li>
 <li><a href="../types/eventually.ProcessManagerFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Process<wbr/>Manager<wbr/>Factory</span></a></li>
 <li><a href="../types/eventually.ProcessManagerSchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Process<wbr/>Manager<wbr/>Schemas</span></a></li>
 <li><a href="../types/eventually.Projection.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection</span></a></li>
+<li><a href="../types/eventually.ProjectionMap.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Map</span></a></li>
+<li><a href="../types/eventually.ProjectionPatch.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Patch</span></a></li>
 <li><a href="../types/eventually.ProjectionQuery.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Query</span></a></li>
 <li><a href="../types/eventually.ProjectionRecord.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Record</span></a></li>
 <li><a href="../types/eventually.ProjectionResults.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Results</span></a></li>
@@ -165,6 +155,7 @@ consumers must be idempotent to accomodate potential failures and timeouts.</p>
 <li><a href="../types/eventually.ProjectionWhere.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projection<wbr/>Where</span></a></li>
 <li><a href="../types/eventually.Projector.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector</span></a></li>
 <li><a href="../types/eventually.ProjectorFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Factory</span></a></li>
+<li><a href="../types/eventually.ProjectorReducer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Reducer</span></a></li>
 <li><a href="../types/eventually.ProjectorSchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Schemas</span></a></li>
 <li><a href="../types/eventually.Reducible.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible</span></a></li>
 <li><a href="../types/eventually.ReducibleFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible<wbr/>Factory</span></a></li>
@@ -174,7 +165,6 @@ consumers must be idempotent to accomodate potential failures and timeouts.</p>
 <li><a href="../types/eventually.Snapshot.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Snapshot</span></a></li>
 <li><a href="../types/eventually.State.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>State</span></a></li>
 <li><a href="../types/eventually.StateReducer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>State<wbr/>Reducer</span></a></li>
-<li><a href="../types/eventually.StateWithId.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>State<wbr/>With<wbr/>Id</span></a></li>
 <li><a href="../types/eventually.States.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>States</span></a></li>
 <li><a href="../types/eventually.Status.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Status</span></a></li>
 <li><a href="../types/eventually.StoreStat.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Store<wbr/>Stat</span></a></li>
@@ -212,15 +202,17 @@ consumers must be idempotent to accomodate potential failures and timeouts.</p>
 <li><a href="eventually.dateReviver.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>date<wbr/>Reviver</span></a></li>
 <li><a href="eventually.decamelize.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>decamelize</span></a></li>
 <li><a href="eventually.dispose.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>dispose</span></a></li>
+<li><a href="eventually.drain.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>drain</span></a></li>
 <li><a href="eventually.event.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>event</span></a></li>
 <li><a href="eventually.extend.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>extend</span></a></li>
 <li><a href="eventually.formatTime.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>format<wbr/>Time</span></a></li>
 <li><a href="eventually.invoke.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>invoke</span></a></li>
-<li><a href="eventually.isProjector.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>is<wbr/>Projector</span></a></li>
 <li><a href="eventually.load.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>load</span></a></li>
 <li><a href="eventually.log.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>log</span></a></li>
 <li><a href="eventually.poll.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>poll</span></a></li>
 <li><a href="eventually.port.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>port</span></a></li>
+<li><a href="eventually.project.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>project</span></a></li>
+<li><a href="eventually.query.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>query</span></a></li>
 <li><a href="eventually.read.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>read</span></a></li>
 <li><a href="eventually.scheduler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>scheduler</span></a></li>
 <li><a href="eventually.sleep.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>sleep</span></a></li>

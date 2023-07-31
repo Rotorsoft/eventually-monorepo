@@ -70,9 +70,9 @@ export const validateMessage = <M extends Messages>(
  * @param target optional command target args
  * @returns The bound message
  */
-export const bind = <M extends Messages>(
-  name: keyof M,
-  data: Readonly<M[keyof M]>,
+export const bind = <M extends Messages, N extends keyof M>(
+  name: N,
+  data: Readonly<M[N]>,
   target?: CommandTarget
 ): Message<M> | Command<M> =>
   ({ name, data, ...target }) as Message<M> | Command<M>;
