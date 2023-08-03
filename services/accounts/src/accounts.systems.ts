@@ -1,4 +1,4 @@
-import { bind, ExternalSystem } from "@rotorsoft/eventually";
+import { bind, ExternalSystem } from "@andela-technology/eventually";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as uuid from "uuid";

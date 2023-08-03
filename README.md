@@ -1,8 +1,8 @@
 # Eventually Monorepo
 
-![Build Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/ci-cd.yml/badge.svg?branch=master)
-![CodeQL Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
-[![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master)
+![Build Status](https://github.com/andela-technology/eventually-monorepo/actions/workflows/ci-cd.yml/badge.svg?branch=master)
+![CodeQL Status](https://github.com/andela-technology/eventually-monorepo/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/andela-technology/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/andela-technology/eventually-monorepo?branch=master)
 
 ## Writing a Hotel Reservation System
 
@@ -32,8 +32,8 @@ Aggregates and Read Models have **State** that can be stored. We must think abou
 
 ```typescript
 export enum RoomType {
-  SINGLE = 'single', 
-  DOUBLE = 'double', 
+  SINGLE = 'single',
+  DOUBLE = 'double',
   DELUXE = 'deluxe'
 }
 
@@ -73,7 +73,7 @@ mkdir hotel
 cd hotel
 npm init # follow prompt
 npx tsc --init
-npm i --save joi @rotorsoft/eventually @rotorsoft/eventually-express
+npm i --save joi @andela-technology/eventually @andela-technology/eventually-express
 npm i --save-dev ts-node-dev jest @types/jest
 ```
 
@@ -92,8 +92,8 @@ npm i --save-dev ts-node-dev jest @types/jest
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@rotorsoft/eventually": "^4.2.1",
-    "@rotorsoft/eventually-express": "^4.1.1",
+    "@andela-technology/eventually": "^4.2.1",
+    "@andela-technology/eventually-express": "^4.1.1",
     "joi": "^17.6.3"
   },
   "devDependencies": {
@@ -127,8 +127,8 @@ npm i --save-dev ts-node-dev jest @types/jest
 Add a dummy entry point *./src/index.ts*
 
 ```typescript
-import { app } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
+import { app } from "@andela-technology/eventually";
+import { ExpressApp } from "@andela-technology/eventually-express";
 
 app(new ExpressApp()).build();
 void app().listen();
@@ -233,7 +233,7 @@ export type RoomEvents = {
 #### A dummy version of *./src/Room.aggregate.ts`*
 
 ```typescript
-import { Aggregate } from "@rotorsoft/eventually";
+import { Aggregate } from "@andela-technology/eventually";
 import { RoomCommands } from "./Room.commands";
 import { RoomEvents } from "./Room.events";
 import * as schemas from "./Room.schemas";
@@ -268,8 +268,8 @@ export const Room = (
 Now we can finish *./src/index.ts* by registering the new aggregate with the app builder...
 
 ```typescript
-import { app, bootstrap, InMemorySnapshotStore } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
+import { app, bootstrap, InMemorySnapshotStore } from "@andela-technology/eventually";
+import { ExpressApp } from "@andela-technology/eventually-express";
 import { Room } from "./Room.aggregate";
 
 void bootstrap(async (): Promise<void> => {
@@ -311,7 +311,7 @@ import {
   dispose,
   InMemorySnapshotStore,
   Snapshot,
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 
@@ -397,7 +397,7 @@ Your project should look like this...
 At this point all tests are failing. We can now focus on closing the implementation gaps...
 
 ```typescript
-import { Aggregate, bind } from "@rotorsoft/eventually";
+import { Aggregate, bind } from "@andela-technology/eventually";
 import { RoomCommands } from "./Room.commands";
 import { RoomEvents } from "./Room.events";
 import * as schemas from "./Room.schemas";

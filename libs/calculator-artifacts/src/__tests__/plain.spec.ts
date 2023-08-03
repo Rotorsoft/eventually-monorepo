@@ -2,7 +2,7 @@ process.env.NODE_ENV = "production";
 process.env.LOG_LEVEL = "trace";
 
 import joi from "joi";
-import { app, bind, dispose, formatTime } from "@rotorsoft/eventually";
+import { app, bind, dispose, formatTime } from "@andela-technology/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Chance } from "chance";
 

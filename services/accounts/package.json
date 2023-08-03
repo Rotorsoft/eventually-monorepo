@@ -1,15 +1,15 @@
 {
-  "name": "@rotorsoft/accounts",
+  "name": "@andela-technology/accounts",
   "version": "0.1.0",
   "description": "Accounts Service",
   "author": {
-    "name": "rotorsoft",
-    "email": "rotorsoft@outlook.com"
+    "name": "andela-technology",
+    "email": "andela-technology@outlook.com"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git",
     "directory": "services/accounts"
   },
   "main": "index.js",
@@ -17,8 +17,8 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
-    "@rotorsoft/eventually-express": "workspace:^4",
+    "@andela-technology/eventually": "workspace:^4",
+    "@andela-technology/eventually-express": "workspace:^4",
     "joi": "^17.6.0",
     "uuid": "^8.3.2"
   }

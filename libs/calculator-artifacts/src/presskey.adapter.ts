@@ -1,4 +1,4 @@
-import { bind, CommandAdapter } from "@rotorsoft/eventually";
+import { bind, CommandAdapter } from "@andela-technology/eventually";
 import joi from "joi";
 import { Commands } from "./calculator.commands";
 import { DIGITS, Keys, OPERATORS, SYMBOLS } from "./calculator.models";

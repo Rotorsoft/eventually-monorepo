@@ -1,10 +1,10 @@
 # eventually-broker
 
-[![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually-broker.svg)](https://www.npmjs.com/package/@rotorsoft/eventually-broker)
+[![NPM Version](https://img.shields.io/npm/v/@andela-technology/eventually-broker.svg)](https://www.npmjs.com/package/@andela-technology/eventually-broker)
 
 ## Message Broker
 
-This library implements a very simple message broker abstraction that centralizes system configuration, service discovery, contract mapping, and basic observability. It uses a pull-push communication pattern that connects event streams from producers to consumers at a higher (system) level. Services don't need to know about this abstraction, they just produce or react to interesting things that happen (events).  
+This library implements a very simple message broker abstraction that centralizes system configuration, service discovery, contract mapping, and basic observability. It uses a pull-push communication pattern that connects event streams from producers to consumers at a higher (system) level. Services don't need to know about this abstraction, they just produce or react to interesting things that happen (events).
 
 Unlike other message brokers like Kafka or RabbitMQ, this broker doesn't store messages in queues or streams. [Eventually](../../README.md) services own their event stores and the broker just connects the streams.
 
@@ -80,7 +80,7 @@ The broker automatically polls HTTP services every 30 seconds at **GET** `/swagg
   "components": {
      ...
     "schemas": {
-      ... 
+      ...
       "DigitPressed": {
         "type": "object",
         "properties": {

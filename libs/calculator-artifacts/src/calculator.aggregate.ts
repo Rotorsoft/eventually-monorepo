@@ -1,4 +1,4 @@
-import { Aggregate, bind } from "@rotorsoft/eventually";
+import { Aggregate, bind } from "@andela-technology/eventually";
 import { Commands } from "./calculator.commands";
 import { Events } from "./calculator.events";
 import {

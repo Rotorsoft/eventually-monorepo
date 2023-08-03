@@ -1,4 +1,4 @@
-import { config } from "@rotorsoft/eventually-pg";
+import { config } from "@andela-technology/eventually-pg";
 import { Pool, types } from "pg";
 import {
   PostgresStreamListener,
@@ -188,8 +188,8 @@ export const PostgresSubscriptionStore = (): SubscriptionStore => {
       id: string,
       position: number
     ): Promise<void> => {
-      /** 
-        TODO: 
+      /**
+        TODO:
           WARNING!!!: We don't support multiple brokers handling the same subscription store
           In the future we can use optimistic concurrency or leasing strategies
       */

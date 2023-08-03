@@ -807,57 +807,57 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rotorsoft/accounts@workspace:services/accounts":
+"@andela-technology/accounts@workspace:services/accounts":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/accounts@workspace:services/accounts"
+  resolution: "@andela-technology/accounts@workspace:services/accounts"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4"
-    "@rotorsoft/eventually-express": "workspace:^4"
+    "@andela-technology/eventually": "workspace:^4"
+    "@andela-technology/eventually-express": "workspace:^4"
     joi: ^17.6.0
     uuid: ^8.3.2
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/broker@workspace:services/broker":
+"@andela-technology/broker@workspace:services/broker":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/broker@workspace:services/broker"
+  resolution: "@andela-technology/broker@workspace:services/broker"
   dependencies:
     "@okta/oidc-middleware": ^5.0.0
-    "@rotorsoft/eventually-broker": "workspace:^1"
+    "@andela-technology/eventually-broker": "workspace:^1"
     "@types/express-session": ^1
     express-session: ^1.17.3
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/calculator-artifacts@workspace:^0, @rotorsoft/calculator-artifacts@workspace:libs/calculator-artifacts":
+"@andela-technology/calculator-artifacts@workspace:^0, @andela-technology/calculator-artifacts@workspace:libs/calculator-artifacts":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/calculator-artifacts@workspace:libs/calculator-artifacts"
+  resolution: "@andela-technology/calculator-artifacts@workspace:libs/calculator-artifacts"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4"
+    "@andela-technology/eventually": "workspace:^4"
     joi: ^17.6.0
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/calculator@workspace:services/calculator":
+"@andela-technology/calculator@workspace:services/calculator":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/calculator@workspace:services/calculator"
+  resolution: "@andela-technology/calculator@workspace:services/calculator"
   dependencies:
-    "@rotorsoft/calculator-artifacts": "workspace:^0"
-    "@rotorsoft/eventually": "workspace:^4"
-    "@rotorsoft/eventually-express": "workspace:^4"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@andela-technology/calculator-artifacts": "workspace:^0"
+    "@andela-technology/eventually": "workspace:^4"
+    "@andela-technology/eventually-express": "workspace:^4"
+    "@andela-technology/eventually-pg": "workspace:^4"
     joi: ^17.6.0
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-broker@workspace:^1, @rotorsoft/eventually-broker@workspace:libs/eventually-broker":
+"@andela-technology/eventually-broker@workspace:^1, @andela-technology/eventually-broker@workspace:libs/eventually-broker":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/eventually-broker@workspace:libs/eventually-broker"
+  resolution: "@andela-technology/eventually-broker@workspace:libs/eventually-broker"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4.2"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@andela-technology/eventually": "workspace:^4.2"
+    "@andela-technology/eventually-pg": "workspace:^4"
     axios: ^0.26.1
     cron: ^2.1.0
     cron-parser: ^4.6.0
@@ -872,12 +872,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-express@workspace:^4, @rotorsoft/eventually-express@workspace:libs/eventually-express":
+"@andela-technology/eventually-express@workspace:^4, @andela-technology/eventually-express@workspace:libs/eventually-express":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/eventually-express@workspace:libs/eventually-express"
+  resolution: "@andela-technology/eventually-express@workspace:libs/eventually-express"
   dependencies:
     "@anatine/zod-openapi": ^1.10.0
-    "@rotorsoft/eventually": "workspace:^4"
+    "@andela-technology/eventually": "workspace:^4"
     "@types/express": ^4.17.14
     axios: ^0.26.0
     cors: ^2.8.5
@@ -888,13 +888,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-monorepo@workspace:.":
+"@andela-technology/eventually-monorepo@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/eventually-monorepo@workspace:."
+  resolution: "@andela-technology/eventually-monorepo@workspace:."
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4"
-    "@rotorsoft/eventually-express": "workspace:^4"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@andela-technology/eventually": "workspace:^4"
+    "@andela-technology/eventually-express": "workspace:^4"
+    "@andela-technology/eventually-pg": "workspace:^4"
     "@types/chance": ^1
     "@types/cors": ^2.8.12
     "@types/cron": ^2.0.0
@@ -925,30 +925,30 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-pg@workspace:^4, @rotorsoft/eventually-pg@workspace:libs/eventually-pg":
+"@andela-technology/eventually-pg@workspace:^4, @andela-technology/eventually-pg@workspace:libs/eventually-pg":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/eventually-pg@workspace:libs/eventually-pg"
+  resolution: "@andela-technology/eventually-pg@workspace:libs/eventually-pg"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4"
+    "@andela-technology/eventually": "workspace:^4"
     pg: ^8.7.1
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually-service-expg@workspace:^0, @rotorsoft/eventually-service-expg@workspace:libs/eventually-service-expg":
+"@andela-technology/eventually-service-expg@workspace:^0, @andela-technology/eventually-service-expg@workspace:libs/eventually-service-expg":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/eventually-service-expg@workspace:libs/eventually-service-expg"
+  resolution: "@andela-technology/eventually-service-expg@workspace:libs/eventually-service-expg"
   dependencies:
-    "@rotorsoft/eventually": "workspace:^4"
-    "@rotorsoft/eventually-express": "workspace:^4"
-    "@rotorsoft/eventually-pg": "workspace:^4"
+    "@andela-technology/eventually": "workspace:^4"
+    "@andela-technology/eventually-express": "workspace:^4"
+    "@andela-technology/eventually-pg": "workspace:^4"
     zod: ^3.19.1
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/eventually@workspace:^4, @rotorsoft/eventually@workspace:^4.2, @rotorsoft/eventually@workspace:libs/eventually":
+"@andela-technology/eventually@workspace:^4, @andela-technology/eventually@workspace:^4.2, @andela-technology/eventually@workspace:libs/eventually":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/eventually@workspace:libs/eventually"
+  resolution: "@andela-technology/eventually@workspace:libs/eventually"
   dependencies:
     chalk: ~4
     dotenv: ^16.0.0
@@ -957,12 +957,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@rotorsoft/generic@workspace:services/generic":
+"@andela-technology/generic@workspace:services/generic":
   version: 0.0.0-use.local
-  resolution: "@rotorsoft/generic@workspace:services/generic"
+  resolution: "@andela-technology/generic@workspace:services/generic"
   dependencies:
-    "@rotorsoft/calculator-artifacts": "workspace:^0"
-    "@rotorsoft/eventually-service-expg": "workspace:^0"
+    "@andela-technology/calculator-artifacts": "workspace:^0"
+    "@andela-technology/eventually-service-expg": "workspace:^0"
   languageName: unknown
   linkType: soft
 

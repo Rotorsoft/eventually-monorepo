@@ -1,4 +1,4 @@
-import { log } from "@rotorsoft/eventually";
+import { log } from "@andela-technology/eventually";
 
 /**
  * Loops are infinite FIFO queues of async actions executed sequentially

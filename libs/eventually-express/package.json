@@ -1,15 +1,15 @@
 {
-  "name": "@rotorsoft/eventually-express",
+  "name": "@andela-technology/eventually-express",
   "version": "4.3.1",
   "description": "Eventually Framework Express Services",
   "author": {
-    "name": "rotorsoft",
-    "email": "rotorsoft@outlook.com"
+    "name": "andela-technology",
+    "email": "andela-technology@outlook.com"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git",
     "directory": "libs/eventually-express"
   },
   "main": "dist/index",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@anatine/zod-openapi": "^1.10.0",
-    "@rotorsoft/eventually": "workspace:^4",
+    "@andela-technology/eventually": "workspace:^4",
     "axios": "^0.26.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",

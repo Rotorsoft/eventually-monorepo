@@ -1,4 +1,4 @@
-import { app } from "@rotorsoft/eventually";
+import { app } from "@andela-technology/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Counter } from "../counter.policy";
 

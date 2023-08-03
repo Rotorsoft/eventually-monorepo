@@ -1,3 +1,3 @@
-import { boot } from "@rotorsoft/eventually-service-expg";
+import { boot } from "@andela-technology/eventually-service-expg";
 
 void boot();

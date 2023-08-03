@@ -1,15 +1,15 @@
 {
-  "name": "@rotorsoft/broker",
+  "name": "@andela-technology/broker",
   "version": "0.1.4",
   "description": "Broker Service",
   "author": {
-    "name": "rotorsoft",
-    "email": "rotorsoft@outlook.com"
+    "name": "andela-technology",
+    "email": "andela-technology@outlook.com"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git",
     "directory": "services/broker"
   },
   "main": "index.js",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@okta/oidc-middleware": "^5.0.0",
-    "@rotorsoft/eventually-broker": "workspace:^1",
+    "@andela-technology/eventually-broker": "workspace:^1",
     "express-session": "^1.17.3"
   },
   "devDependencies": {

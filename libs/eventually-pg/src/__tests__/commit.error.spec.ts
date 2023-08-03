@@ -5,7 +5,7 @@ import {
   dispose,
   Message,
   Payload
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import { Pool, QueryResult } from "pg";
 import { PostgresStore } from "../PostgresStore";
 

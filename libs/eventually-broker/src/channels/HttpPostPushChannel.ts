@@ -1,4 +1,4 @@
-import { log, Payload } from "@rotorsoft/eventually";
+import { log, Payload } from "@andela-technology/eventually";
 import axios, { AxiosRequestHeaders } from "axios";
 import { CommittableHttpStatus } from "../cluster";
 import { PushChannel } from "../interfaces";

@@ -1,4 +1,4 @@
-import { log } from "@rotorsoft/eventually";
+import { log } from "@andela-technology/eventually";
 import { Router } from "express";
 import { subscriptions } from "..";
 import { state } from "../cluster";

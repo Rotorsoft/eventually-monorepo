@@ -17,7 +17,7 @@ import {
   SnapshotsQuery,
   SnapshotStore,
   store
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import { NextFunction, Request, Response } from "express";
 
 export const statsHandler = async (

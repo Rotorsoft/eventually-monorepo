@@ -1,4 +1,4 @@
-import { bind, Message } from "@rotorsoft/eventually";
+import { bind, Message } from "@andela-technology/eventually";
 
 export type E = {
   test1: { value: string };

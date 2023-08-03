@@ -1,5 +1,5 @@
-import { app, bind, dispose } from "@rotorsoft/eventually";
-import { ExpressApp, tester } from "@rotorsoft/eventually-express";
+import { app, bind, dispose } from "@andela-technology/eventually";
+import { ExpressApp, tester } from "@andela-technology/eventually-express";
 import { Chance } from "chance";
 import * as schemas from "../accounts.schemas";
 import * as commands from "../accounts.commands";

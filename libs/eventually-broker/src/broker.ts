@@ -1,4 +1,4 @@
-import { Payload } from "@rotorsoft/eventually";
+import { Payload } from "@andela-technology/eventually";
 import cluster from "cluster";
 import { Express } from "express";
 import {

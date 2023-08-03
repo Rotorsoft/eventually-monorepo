@@ -1,4 +1,4 @@
-import { singleton } from "@rotorsoft/eventually";
+import { singleton } from "@andela-technology/eventually";
 import { VoidPullChannel } from "./channels";
 import { PullChannel, SubscriptionStore } from "./interfaces";
 import { InMemorySubscriptionStore } from "./__dev__";

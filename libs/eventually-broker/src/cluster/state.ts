@@ -1,4 +1,4 @@
-import { dispose, log, singleton } from "@rotorsoft/eventually";
+import { dispose, log, singleton } from "@andela-technology/eventually";
 import cluster, { Worker } from "cluster";
 import { cpus } from "os";
 import { Writable } from "stream";

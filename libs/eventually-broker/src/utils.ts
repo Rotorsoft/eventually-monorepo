@@ -1,4 +1,4 @@
-import { Payload } from "@rotorsoft/eventually";
+import { Payload } from "@andela-technology/eventually";
 import { AxiosRequestHeaders } from "axios";
 
 const usnf = new Intl.NumberFormat("en-US");

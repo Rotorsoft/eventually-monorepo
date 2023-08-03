@@ -1,5 +1,5 @@
-import { app, bind, dispose, Snapshot } from "@rotorsoft/eventually";
-import { ExpressApp, tester } from "@rotorsoft/eventually-express";
+import { app, bind, dispose, Snapshot } from "@andela-technology/eventually";
+import { ExpressApp, tester } from "@andela-technology/eventually-express";
 import { Chance } from "chance";
 import {
   Calculator,
@@ -7,7 +7,7 @@ import {
   Counter,
   CalculatorModel,
   Keys
-} from "@rotorsoft/calculator-artifacts";
+} from "@andela-technology/calculator-artifacts";
 
 const chance = new Chance();
 const port = 4001;

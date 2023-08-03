@@ -1,5 +1,5 @@
-import { dispose } from "@rotorsoft/eventually";
-import { config } from "@rotorsoft/eventually-pg";
+import { dispose } from "@andela-technology/eventually";
+import { config } from "@andela-technology/eventually-pg";
 import Chance from "chance";
 import { Pool } from "pg";
 import { PostgresSubscriptionStore, subscriptions } from "..";

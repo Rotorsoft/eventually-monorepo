@@ -1,5 +1,5 @@
-import { app } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
+import { app } from "@andela-technology/eventually";
+import { ExpressApp } from "@andela-technology/eventually-express";
 import * as commands from "./accounts.commands";
 import * as events from "./accounts.events";
 import * as policies from "./accounts.policies";

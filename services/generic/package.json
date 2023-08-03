@@ -1,15 +1,15 @@
 {
-  "name": "@rotorsoft/generic",
+  "name": "@andela-technology/generic",
   "version": "0.1.0",
   "description": "Generic Service",
   "author": {
-    "name": "rotorsoft",
-    "email": "rotorsoft@outlook.com"
+    "name": "andela-technology",
+    "email": "andela-technology@outlook.com"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git",
     "directory": "services/generic"
   },
   "main": "index.js",
@@ -17,26 +17,26 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/calculator-artifacts": "workspace:^0",
-    "@rotorsoft/eventually-service-expg": "workspace:^0"
+    "@andela-technology/calculator-artifacts": "workspace:^0",
+    "@andela-technology/eventually-service-expg": "workspace:^0"
   },
   "eventually": {
     "store": "calculator",
     "aggregates": {
       "Calculator": {
-        "package": "@rotorsoft/calculator-artifacts",
+        "package": "@andela-technology/calculator-artifacts",
         "description": "Generic Calculator Aggregate"
       }
     },
     "process-managers": {
       "Counter": {
-        "package": "@rotorsoft/calculator-artifacts",
+        "package": "@andela-technology/calculator-artifacts",
         "description": "Generic Counter Policy"
       }
     },
     "adapters": {
       "PressKeyAdapter": {
-        "package": "@rotorsoft/calculator-artifacts",
+        "package": "@andela-technology/calculator-artifacts",
         "description": "Generic PressKey Adapter"
       }
     }

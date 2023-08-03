@@ -13,7 +13,7 @@ fi;
 if [[ ! -d "${target}" ]]; then
     echo "Invalid lib name: [${lib}]"
     exit 1
-fi; 
+fi;
 
 echo ">>> cleaning $lib..."
 yarn clean $lib
@@ -22,7 +22,7 @@ echo ">>> building $target..."
 yarn $target build
 
 version=$(npm pkg get version -w ${target})
-lastpublished=$(npm view @rotorsoft/${lib} version)
+lastpublished=$(npm view @andela-technology/${lib} version)
 
 echo ">>> last published version ${lastpublished}"
 echo ">>> publishing ${version} ..."

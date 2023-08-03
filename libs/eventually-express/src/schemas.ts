@@ -1,5 +1,5 @@
 import { generateSchema } from "@anatine/zod-openapi";
-import { Errors, Payload, Schema } from "@rotorsoft/eventually";
+import { Errors, Payload, Schema } from "@andela-technology/eventually";
 import * as fs from "fs";
 import j2s from "joi-to-swagger";
 import {

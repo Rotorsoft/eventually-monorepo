@@ -1,4 +1,4 @@
-import { Payload } from "@rotorsoft/eventually";
+import { Payload } from "@andela-technology/eventually";
 import { z } from "zod";
 //import { Keys } from "./calculator.models";
 import { PressKey } from "./calculator.schemas";

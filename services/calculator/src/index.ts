@@ -3,10 +3,10 @@ import {
   Counter,
   PressKeyAdapter,
   StatelessCounter
-} from "@rotorsoft/calculator-artifacts";
-import { app, bootstrap, store } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
-import { PostgresSnapshotStore, PostgresStore } from "@rotorsoft/eventually-pg";
+} from "@andela-technology/calculator-artifacts";
+import { app, bootstrap, store } from "@andela-technology/eventually";
+import { ExpressApp } from "@andela-technology/eventually-express";
+import { PostgresSnapshotStore, PostgresStore } from "@andela-technology/eventually-pg";
 
 void bootstrap(async (): Promise<void> => {
   const snapshotStore = PostgresSnapshotStore("calculators");

@@ -1,4 +1,4 @@
-import { Disposable } from "@rotorsoft/eventually";
+import { Disposable } from "@andela-technology/eventually";
 import { Writable } from "stream";
 import { Operation, Service, Subscription } from "../types";
 import {

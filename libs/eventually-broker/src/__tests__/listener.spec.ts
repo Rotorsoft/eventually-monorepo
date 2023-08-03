@@ -1,5 +1,5 @@
-import { bind, CommittedEvent, dispose, store } from "@rotorsoft/eventually";
-import { PostgresStore } from "@rotorsoft/eventually-pg";
+import { bind, CommittedEvent, dispose, store } from "@andela-technology/eventually";
+import { PostgresStore } from "@andela-technology/eventually-pg";
 import {
   PostgresStreamListener,
   PostgresSubscriptionStore,

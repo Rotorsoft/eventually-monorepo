@@ -1,12 +1,12 @@
 {
-  "name": "@rotorsoft/eventually-service-expg",
+  "name": "@andela-technology/eventually-service-expg",
   "version": "0.1.0",
   "description": "Generic Service with Express and Postgres Adapters",
-  "author": "rotorsoft",
+  "author": "andela-technology",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git",
     "directory": "libs/eventually-service-expg"
   },
   "main": "dist/index",
@@ -18,9 +18,9 @@
     "build": "npx tsc --build"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
-    "@rotorsoft/eventually-express": "workspace:^4",
-    "@rotorsoft/eventually-pg": "workspace:^4",
+    "@andela-technology/eventually": "workspace:^4",
+    "@andela-technology/eventually-express": "workspace:^4",
+    "@andela-technology/eventually-pg": "workspace:^4",
     "zod": "^3.19.1"
   }
 }

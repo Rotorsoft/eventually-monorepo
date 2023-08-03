@@ -14,7 +14,7 @@ import {
   ReducibleFactory,
   reduciblePath,
   Snapshot
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import axios, { AxiosResponse } from "axios";
 
 type Tester = {

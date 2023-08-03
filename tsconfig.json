@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "@rotorsoft/*": ["libs/*/src"]
+      "@andela-technology/*": ["libs/*/src"]
     }
   },
   "exclude": ["**/dist", "**/__mocks__", "**/__tests__"]

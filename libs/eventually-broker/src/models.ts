@@ -1,4 +1,4 @@
-import { Actor, Payload } from "@rotorsoft/eventually";
+import { Actor, Payload } from "@andela-technology/eventually";
 import { state, SubscriptionViewModel } from "./cluster";
 import { Subscription } from "./types";
 

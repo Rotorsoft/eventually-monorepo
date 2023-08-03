@@ -1,4 +1,4 @@
-import { randomId } from "@rotorsoft/eventually";
+import { randomId } from "@andela-technology/eventually";
 import { Router } from "express";
 import { state } from "../cluster";
 

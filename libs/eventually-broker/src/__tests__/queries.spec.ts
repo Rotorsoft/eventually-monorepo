@@ -1,5 +1,5 @@
 import axios from "axios";
-import { dispose } from "@rotorsoft/eventually";
+import { dispose } from "@andela-technology/eventually";
 import { getServiceStream } from "../queries";
 import { serviceBody } from "./utils";
 

@@ -1,12 +1,12 @@
 {
-  "name": "@rotorsoft/eventually",
+  "name": "@andela-technology/eventually",
   "version": "4.4.2",
   "description": "Eventually Framework",
-  "author": "rotorsoft",
+  "author": "andela-technology",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git",
     "directory": "libs/eventually"
   },
   "main": "dist/index",

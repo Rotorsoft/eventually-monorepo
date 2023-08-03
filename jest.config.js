@@ -11,6 +11,6 @@ module.exports = {
     "__mocks__"
   ],
   moduleNameMapper: {
-    "^@rotorsoft/(.*)$": "<rootDir>/libs/$1/src"
+    "^@andela-technology/(.*)$": "<rootDir>/libs/$1/src"
   }
 };

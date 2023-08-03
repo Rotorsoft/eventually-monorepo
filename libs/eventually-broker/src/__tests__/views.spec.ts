@@ -1,6 +1,6 @@
 import { events } from "./events";
 import * as queries from "../queries";
-import { CommittedEvent, dispose } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose } from "@andela-technology/eventually";
 import cluster from "cluster";
 import { subscriptions } from "..";
 import { broker } from "../broker";

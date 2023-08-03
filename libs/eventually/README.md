@@ -1,6 +1,6 @@
 # Eventually Framework
 
-[![NPM Version](https://img.shields.io/npm/v/@rotorsoft/eventually.svg)](https://www.npmjs.com/package/@rotorsoft/eventually)
+[![NPM Version](https://img.shields.io/npm/v/@andela-technology/eventually.svg)](https://www.npmjs.com/package/@andela-technology/eventually)
 
 This project aims at exploring practical ideas around reactive micro-services. Our goal is to provide a simple recipe for building general business applications grounded on well known methodologies, patterns, and tools. Here we will test these old concepts and make some assumptions based on our own experiences with real systems, but be aware this in no way tries to cover all possible use cases.
 

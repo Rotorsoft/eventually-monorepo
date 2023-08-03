@@ -1,4 +1,4 @@
-import { CommittedEvent, dispose, ExitCodes, log } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, ExitCodes, log } from "@andela-technology/eventually";
 import {
   AppOptions,
   Operation,

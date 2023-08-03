@@ -1,4 +1,4 @@
-import { config } from "@rotorsoft/eventually";
+import { config } from "@andela-technology/eventually";
 import { Router } from "express";
 import { state } from "../cluster";
 

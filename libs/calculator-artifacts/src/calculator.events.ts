@@ -1,4 +1,4 @@
-import { Payload } from "@rotorsoft/eventually";
+import { Payload } from "@andela-technology/eventually";
 import { Digits, Operators, Complex } from "./calculator.models";
 
 export type Events = {

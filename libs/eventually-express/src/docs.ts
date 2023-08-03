@@ -1,4 +1,4 @@
-import { config, formatTime } from "@rotorsoft/eventually";
+import { config, formatTime } from "@andela-technology/eventually";
 
 export const redoc = (title: string): string => `<!DOCTYPE html>
 <html>

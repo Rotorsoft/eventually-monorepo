@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import z from "zod";
-import { config as target, extend } from "@rotorsoft/eventually";
+import { config as target, extend } from "@andela-technology/eventually";
 
 const Artifact = z.object({
   package: z.string().min(10),

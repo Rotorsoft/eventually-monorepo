@@ -1,9 +1,9 @@
 import { ExpressOIDC } from "@okta/oidc-middleware";
-import { Actor, log } from "@rotorsoft/eventually";
+import { Actor, log } from "@andela-technology/eventually";
 import {
   broker,
   PostgresSubscriptionStore
-} from "@rotorsoft/eventually-broker";
+} from "@andela-technology/eventually-broker";
 import { NextFunction, Request, Response } from "express";
 import session from "express-session";
 

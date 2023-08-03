@@ -1,4 +1,4 @@
-import { log } from "@rotorsoft/eventually";
+import { log } from "@andela-technology/eventually";
 import axios from "axios";
 import { OpenAPIObject, SchemaObject } from "openapi3-ts";
 import { breaker } from "./breaker";
@@ -171,8 +171,8 @@ const reduceConflicts = (
   path: string
 ): void => {
   /*
-    payload field names and types are compatible 
-    - consuming services can define only a subset of the producer contract 
+    payload field names and types are compatible
+    - consuming services can define only a subset of the producer contract
     - ignoring unused fields in producer
 
     - matching fields must following rules
@@ -181,8 +181,8 @@ const reduceConflicts = (
       patterns (regex)
       nullable
       default values
-      enum constraints 
-      min, max lengths 
+      enum constraints
+      min, max lengths
   */
   if (!producer || !consumer) return;
 

@@ -1,12 +1,12 @@
 {
-  "name": "@rotorsoft/calculator-artifacts",
+  "name": "@andela-technology/calculator-artifacts",
   "version": "0.1.0",
   "description": "Generic Calculator Library",
-  "author": "rotorsoft",
+  "author": "andela-technology",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git",
     "directory": "libs/calculator-artifacts"
   },
   "main": "dist/index",
@@ -18,7 +18,7 @@
     "build": "npx tsc --build"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
+    "@andela-technology/eventually": "workspace:^4",
     "joi": "^17.6.0",
     "zod": "^3.19.1"
   }

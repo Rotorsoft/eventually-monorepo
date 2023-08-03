@@ -1,7 +1,7 @@
 import { CronJob } from "cron";
 import { PullChannel } from "../interfaces";
 import { TriggerCallback } from "../types";
-import { camelize, CommittedEvent } from "@rotorsoft/eventually";
+import { camelize, CommittedEvent } from "@andela-technology/eventually";
 
 export const CronPullChannel = (channel: URL, id: string): PullChannel => {
   const eventName = camelize(id);

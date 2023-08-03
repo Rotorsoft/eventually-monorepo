@@ -1,20 +1,20 @@
 {
-  "name": "@rotorsoft/eventually-monorepo",
+  "name": "@andela-technology/eventually-monorepo",
   "description": "Yarn2 monorepo covering *eventually* libs and sample services",
   "version": "1.0.0",
   "author": {
-    "name": "rotorsoft",
-    "email": "rotorsoft@outlook.com"
+    "name": "andela-technology",
+    "email": "andela-technology@outlook.com"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git"
+    "url": "git+https://github.com/andela-technology/eventually-monorepo.git"
   },
   "bugs": {
-    "url": "https://github.com/rotorsoft/eventually-monorepo/issues"
+    "url": "https://github.com/andela-technology/eventually-monorepo/issues"
   },
-  "homepage": "https://github.com/rotorsoft/eventually-monorepo#readme",
+  "homepage": "https://github.com/andela-technology/eventually-monorepo#readme",
   "workspaces": [
     "libs/*",
     "services/*"
@@ -61,9 +61,9 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "@rotorsoft/eventually": "workspace:^4",
-    "@rotorsoft/eventually-express": "workspace:^4",
-    "@rotorsoft/eventually-pg": "workspace:^4",
+    "@andela-technology/eventually": "workspace:^4",
+    "@andela-technology/eventually-express": "workspace:^4",
+    "@andela-technology/eventually-pg": "workspace:^4",
     "handlebars": "^4.7.7",
     "minimist": "^1.2.6",
     "zod": "^3.19.1"
@@ -73,19 +73,19 @@
     "store": "calculator",
     "aggregates": {
       "Calculator": {
-        "package": "@rotorsoft/calculator-artifacts",
+        "package": "@andela-technology/calculator-artifacts",
         "description": "Generic Calculator Aggregate"
       }
     },
     "process-managers": {
       "Counter": {
-        "package": "@rotorsoft/calculator-artifacts",
+        "package": "@andela-technology/calculator-artifacts",
         "description": "Generic Counter Policy"
       }
     },
     "adapters": {
       "PressKeyAdapter": {
-        "package": "@rotorsoft/calculator-artifacts",
+        "package": "@andela-technology/calculator-artifacts",
         "description": "Generic PressKey Adapter"
       }
     }

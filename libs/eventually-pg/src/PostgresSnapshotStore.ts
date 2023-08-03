@@ -1,4 +1,4 @@
-import { dispose, log, SnapshotStore } from "@rotorsoft/eventually";
+import { dispose, log, SnapshotStore } from "@andela-technology/eventually";
 import { Pool } from "pg";
 import { config } from "./config";
 import { snapshot } from "./seed";

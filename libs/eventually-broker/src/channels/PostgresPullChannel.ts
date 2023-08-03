@@ -1,5 +1,5 @@
-import { CommittedEvent, store } from "@rotorsoft/eventually";
-import { PostgresStore } from "@rotorsoft/eventually-pg";
+import { CommittedEvent, store } from "@andela-technology/eventually";
+import { PostgresStore } from "@andela-technology/eventually-pg";
 import { PullChannel } from "../interfaces";
 import { PostgresStreamListener } from "../stores";
 import { TriggerCallback } from "../types";

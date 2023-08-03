@@ -1,4 +1,4 @@
-import { config } from "@rotorsoft/eventually";
+import { config } from "@andela-technology/eventually";
 import { UnknownObject } from "express-handlebars/types";
 import { formatDate, formatDateLocal, formatInt } from "./utils";
 

@@ -4,7 +4,7 @@ import {
   CommittedEvent,
   log,
   Payload
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import { Request, Router } from "express";
 import { Service, subscriptions } from "..";
 import { state } from "../cluster";

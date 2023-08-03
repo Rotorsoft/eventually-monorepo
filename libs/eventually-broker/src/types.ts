@@ -1,4 +1,4 @@
-import { CommittedEvent, Payload } from "@rotorsoft/eventually";
+import { CommittedEvent, Payload } from "@andela-technology/eventually";
 import { RequestHandler } from "express";
 import { PathItemObject, SchemaObject } from "openapi3-ts";
 import { Breaker } from "./breaker";

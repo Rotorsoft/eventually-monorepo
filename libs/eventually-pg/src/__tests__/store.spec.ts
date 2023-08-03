@@ -1,4 +1,4 @@
-import { CommittedEvent, dispose, Errors } from "@rotorsoft/eventually";
+import { CommittedEvent, dispose, Errors } from "@andela-technology/eventually";
 import { Chance } from "chance";
 import { PostgresStore } from "..";
 import { event, sleep } from "./utils";

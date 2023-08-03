@@ -11,8 +11,8 @@ import {
   Payload,
   Snapshot,
   store
-} from "@rotorsoft/eventually";
-import { tester } from "@rotorsoft/eventually-express";
+} from "@andela-technology/eventually";
+import { tester } from "@andela-technology/eventually-express";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Events } from "../calculator.events";

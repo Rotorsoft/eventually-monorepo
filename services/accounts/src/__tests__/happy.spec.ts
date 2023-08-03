@@ -1,6 +1,6 @@
 // process.env.LOG_LEVEL = "trace";
 
-import { app, CommittedEvent, dispose } from "@rotorsoft/eventually";
+import { app, CommittedEvent, dispose } from "@andela-technology/eventually";
 import { Chance } from "chance";
 import * as commands from "../accounts.commands";
 import * as events from "../accounts.events";

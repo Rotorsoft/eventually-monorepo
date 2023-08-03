@@ -1,4 +1,4 @@
-import { CommittedEvent } from "@rotorsoft/eventually";
+import { CommittedEvent } from "@andela-technology/eventually";
 import axios, { AxiosResponse } from "axios";
 import {
   ChildProcess,

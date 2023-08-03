@@ -5,12 +5,12 @@ import {
   dispose,
   InMemorySnapshotStore,
   Snapshot
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import {
   ExpressApp,
   GcpGatewayMiddleware,
   tester
-} from "@rotorsoft/eventually-express";
+} from "@andela-technology/eventually-express";
 import { Chance } from "chance";
 import {
   Calculator,
@@ -21,7 +21,7 @@ import {
   StatelessCounter,
   ExternalPayload,
   PressKeyAdapter
-} from "@rotorsoft/calculator-artifacts";
+} from "@andela-technology/calculator-artifacts";
 
 const chance = new Chance();
 const port = 4000;

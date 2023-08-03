@@ -6,7 +6,7 @@ import {
   Payload,
   Policy,
   ProcessManagerFactory
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import { Calculator } from "./calculator.aggregate";
 import { Commands } from "./calculator.commands";
 import { Events } from "./calculator.events";

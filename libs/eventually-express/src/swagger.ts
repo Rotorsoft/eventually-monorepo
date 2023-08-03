@@ -8,7 +8,7 @@ import {
   Payload,
   Reducible,
   reduciblePath
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import {
   OpenAPIObject,
   PathsObject,

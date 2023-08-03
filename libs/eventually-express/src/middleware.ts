@@ -1,4 +1,4 @@
-import { Actor } from "@rotorsoft/eventually";
+import { Actor } from "@andela-technology/eventually";
 import { NextFunction, Request, Response } from "express";
 
 const USERINFO_HEADER = "X-Apigateway-Api-Userinfo";

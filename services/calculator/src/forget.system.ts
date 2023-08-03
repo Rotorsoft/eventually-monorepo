@@ -1,5 +1,5 @@
-import { bind, ExternalSystemFactory } from "@rotorsoft/eventually";
-import { Commands, Events } from "@rotorsoft/calculator-artifacts";
+import { bind, ExternalSystemFactory } from "@andela-technology/eventually";
+import { Commands, Events } from "@andela-technology/calculator-artifacts";
 
 // To test case when not reducible command handler produces events that are
 // not registered with the builder and there are no local event handlers

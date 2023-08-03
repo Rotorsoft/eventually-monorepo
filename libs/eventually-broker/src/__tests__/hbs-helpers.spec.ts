@@ -1,5 +1,5 @@
 import { hbsHelpers } from "../hbs-helpers";
-import { config, Payload } from "@rotorsoft/eventually";
+import { config, Payload } from "@andela-technology/eventually";
 import { formatDate, formatDateLocal, formatInt } from "../utils";
 
 describe("hbs-helpers", () => {

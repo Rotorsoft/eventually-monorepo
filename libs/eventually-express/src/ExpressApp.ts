@@ -9,7 +9,7 @@ import {
   ReducibleFactory,
   reduciblePath,
   SnapshotStore
-} from "@rotorsoft/eventually";
+} from "@andela-technology/eventually";
 import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";

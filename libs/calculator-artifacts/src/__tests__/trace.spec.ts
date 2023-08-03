@@ -1,7 +1,7 @@
 process.env.LOG_LEVEL = "trace";
 process.env.NODE_ENV = "production";
 
-import { app, bind, dispose, log } from "@rotorsoft/eventually";
+import { app, bind, dispose, log } from "@andela-technology/eventually";
 import { Calculator } from "../calculator.aggregate";
 import { Chance } from "chance";
 

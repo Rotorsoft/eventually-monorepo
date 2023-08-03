@@ -1,4 +1,4 @@
-import { log } from "@rotorsoft/eventually";
+import { log } from "@andela-technology/eventually";
 
 type Response<T> = {
   data?: T;
