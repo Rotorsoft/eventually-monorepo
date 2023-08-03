@@ -169,7 +169,7 @@ export class ExpressApp extends AppBase {
     port = port || config().port;
 
     this._app.get("/", (_, res) => res.type("html").send(home()));
-    this._app.use(errorHandler); // ensure catch-all is last handler
+    this._router.use(errorHandler); // ensure catch-all is last handler
 
     const _config = { env, port, logLevel, service, version };
     if (silent) this.log.info("white", "Config", undefined, _config);
