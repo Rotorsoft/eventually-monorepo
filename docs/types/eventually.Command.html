@@ -16,13 +16,8 @@
 <li><a href="../modules/eventually.html">eventually</a></li>
 <li><a href="eventually.Command.html">Command</a></li></ul>
 <h1>Type alias Command&lt;M&gt;</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Command</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">M</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <a href="eventually.Message.html" class="tsd-signature-type tsd-kind-type-alias">Message</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">M</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="eventually.CommandTarget.html" class="tsd-signature-type tsd-kind-type-alias">CommandTarget</a></div>
-<div class="tsd-comment tsd-typography"><p>Commands are messages with optional target arguments</p>
-<ul>
-<li><code>stream?</code> the target stream</li>
-<li><code>expectedVersion?</code> the expected version of the stream or a concurrency error is thrown</li>
-<li><code>actor?</code> the actor invoking the command</li>
-</ul>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Command</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">M</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <a href="eventually.Message.html" class="tsd-signature-type tsd-kind-type-alias">Message</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">M</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type tsd-kind-type-parameter">M</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><a href="eventually.CommandTarget.html" class="tsd-signature-type tsd-kind-type-alias">CommandTarget</a></div>
+<div class="tsd-comment tsd-typography"><p>Commands are messages with a target</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -31,7 +26,7 @@
 <h4><span class="tsd-kind-type-parameter">M</span><span class="tsd-signature-symbol"> extends </span><a href="eventually.Messages.html" class="tsd-signature-type tsd-kind-type-alias">Messages</a> = <a href="eventually.Messages.html" class="tsd-signature-type tsd-kind-type-alias">Messages</a></h4></li></ul></section>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/01caf003/libs/eventually/src/types/messages.ts#L50">libs/eventually/src/types/messages.ts:50</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/types/messages.ts#L50">libs/eventually/src/types/messages.ts:50</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

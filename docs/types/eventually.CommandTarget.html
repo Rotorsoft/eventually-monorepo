@@ -16,10 +16,10 @@
 <li><a href="../modules/eventually.html">eventually</a></li>
 <li><a href="eventually.CommandTarget.html">CommandTarget</a></li></ul>
 <h1>Type alias CommandTarget</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">Command<wbr/>Target</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">actor</span><span class="tsd-signature-symbol">?: </span><a href="eventually.Actor.html" class="tsd-signature-type tsd-kind-type-alias">Actor</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">expectedVersion</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">stream</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
-<div class="tsd-comment tsd-typography"><p>Commands are messages with optional target arguments</p>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">Command<wbr/>Target</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">actor</span><span class="tsd-signature-symbol">?: </span><a href="eventually.Actor.html" class="tsd-signature-type tsd-kind-type-alias">Actor</a><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">expectedVersion</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">stream</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-comment tsd-typography"><p>Command target</p>
 <ul>
-<li><code>stream?</code> the target stream</li>
+<li><code>stream</code> the target stream</li>
 <li><code>expectedVersion?</code> the expected version of the stream or a concurrency error is thrown</li>
 <li><code>actor?</code> the actor invoking the command</li>
 </ul>
@@ -32,10 +32,10 @@
 <li class="tsd-parameter">
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">expected<wbr/>Version</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5></li>
 <li class="tsd-parameter">
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">stream</span><span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagReadonly">Readonly</code> <span class="tsd-kind-property">stream</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5></li></ul></div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/01caf003/libs/eventually/src/types/messages.ts#L38">libs/eventually/src/types/messages.ts:38</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/types/messages.ts#L41">libs/eventually/src/types/messages.ts:41</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
