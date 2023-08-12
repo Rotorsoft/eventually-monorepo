@@ -19,7 +19,7 @@ describe("cover LOG_LEVEL=trace in production", () => {
 
   it("should cover trace", async () => {
     const stream = chance.guid();
-    await client().command(Calculator, "PressKey", { key: "1" }, { stream });
+    await client().command("PressKey", { key: "1" }, { stream });
     const { state } = await client().load(Calculator, stream);
     expect(state).toEqual({
       left: "1",

@@ -1,6 +1,5 @@
 import {
   Builder,
-  CommandHandlerFactory,
   broker,
   dateReviver,
   log,
@@ -107,14 +106,7 @@ export class ExpressApp extends Builder {
               invokeHandler(factory as CommandAdapterFactory)
             );
           else
-            this._router.post(
-              path,
-              commandHandler(
-                factory as CommandHandlerFactory,
-                name,
-                type === "aggregate"
-              )
-            );
+            this._router.post(path, commandHandler(name, type === "aggregate"));
           log().blue().info("POST", path);
         });
     });

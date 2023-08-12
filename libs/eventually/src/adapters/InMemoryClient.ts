@@ -8,15 +8,7 @@ import {
   read
 } from "../handlers";
 import type { Disposable } from "../interfaces";
-import type {
-  Client,
-  CommandHandlerFactory,
-  CommandTarget,
-  Messages,
-  Snapshot,
-  State
-} from "../types";
-import { bind } from "../utils";
+import type { Client } from "../types";
 
 /**
  * @category Adapters
@@ -26,12 +18,7 @@ export const InMemoryClient = (): Client & Disposable => ({
   name: "InMemoryClient",
   dispose: () => Promise.resolve(),
   invoke,
-  command: <S extends State, C extends Messages, E extends Messages>(
-    factory: CommandHandlerFactory<S, C, E>,
-    name: keyof C,
-    data: Readonly<C[keyof C]>,
-    target?: CommandTarget
-  ): Promise<Snapshot<S, E>[]> => command(bind(name, data, target)),
+  command: (name, data, target) => command({ name, data, ...target }),
   event,
   load,
   query,

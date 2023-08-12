@@ -17,7 +17,7 @@ const openRoom = (
   room: models.Room,
   stream?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
-  client().command(Room, "OpenRoom", room, {
+  client().command("OpenRoom", room, {
     stream: stream || room.number.toString()
   });
 
@@ -27,7 +27,6 @@ const bookRoom = (
   stream?: string
 ): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
   client().command(
-    Room,
     "BookRoom",
     { number, ...reservation },
     { stream: stream || number.toString() }

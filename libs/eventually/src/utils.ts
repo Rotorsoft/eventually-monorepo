@@ -3,8 +3,6 @@ import { app } from "./ports";
 import {
   RegistrationError,
   ValidationError,
-  type Command,
-  type CommandTarget,
   type Message,
   type Messages,
   type State
@@ -67,15 +65,12 @@ export const validateMessage = <M extends Messages>(
  * Binds message arguments
  * @param name the message name
  * @param data the message payload
- * @param target optional command target args
  * @returns The bound message
  */
-export const bind = <M extends Messages, N extends keyof M>(
+export const bind = <M extends Messages, N extends keyof M & string>(
   name: N,
-  data: Readonly<M[N]>,
-  target?: CommandTarget
-): Message<M> | Command<M> =>
-  ({ name, data, ...target }) as Message<M> | Command<M>;
+  data: Readonly<M[N]>
+): Message<M> => ({ name, data });
 
 /**
  * Extends target payload with source payload after validating source

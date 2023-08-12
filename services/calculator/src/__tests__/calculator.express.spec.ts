@@ -116,18 +116,13 @@ describe("calculator express app", () => {
 
     await pressKey(http, stream, "1");
     await expect(
-      http.command(
-        Calculator,
-        "PressKey",
-        { key: "1" },
-        { stream, expectedVersion: -1 }
-      )
+      http.command("PressKey", { key: "1" }, { stream, expectedVersion: -1 })
     ).rejects.toThrow("Request failed with status code 409");
   });
 
   it("should throw validation error", async () => {
     await expect(
-      http.command(Calculator, "PressKey", {}, { stream: chance.guid() })
+      http.command("PressKey", {}, { stream: chance.guid() })
     ).rejects.toThrow("Request failed with status code 400");
   });
 

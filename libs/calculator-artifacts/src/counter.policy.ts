@@ -1,5 +1,4 @@
 import {
-  bind,
   client,
   Command,
   PolicyFactory,
@@ -15,14 +14,14 @@ const policy = async (
   threshold: number
 ): Promise<Command<schemas.CounterCommands> | undefined> => {
   if (counter) {
-    if (counter.count >= threshold) return bind("Reset", {}, { stream });
+    if (counter.count >= threshold) return { name: "Reset", data: {}, stream };
   } else {
     const { state } = await client().load(Calculator, stream);
     if (
       (state?.left || "").length >= threshold ||
       (state?.right || "").length >= threshold
     )
-      return bind("Reset", {}, { stream });
+      return { name: "Reset", data: {}, stream };
   }
 };
 

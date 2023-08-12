@@ -7,7 +7,6 @@ import {
   type AggregateFactory,
   type AllQuery,
   type CommandAdapterFactory,
-  type CommandHandlerFactory,
   type CommittedEvent,
   type EventHandlerFactory,
   type ProjectionRecord,
@@ -141,7 +140,7 @@ export const getStreamHandler =
   };
 
 export const commandHandler =
-  (factory: CommandHandlerFactory, name: string, withEtag: boolean) =>
+  (name: string, withEtag: boolean) =>
   async (
     req: Request<{ id: string }, any, State, never> & {
       actor?: Actor;
@@ -154,7 +153,7 @@ export const commandHandler =
       const ifMatch = req.headers["if-match"] || undefined;
       const expectedVersion = withEtag && ifMatch ? +ifMatch : undefined;
       const { actor } = req;
-      const snapshots = await client().command(factory, name, req.body, {
+      const snapshots = await client().command(name, req.body, {
         stream: id,
         expectedVersion,
         actor

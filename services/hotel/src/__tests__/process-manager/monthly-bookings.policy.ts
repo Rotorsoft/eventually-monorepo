@@ -1,4 +1,4 @@
-import { bind, Infer, InferProcessManager } from "@rotorsoft/eventually";
+import { Infer, InferProcessManager } from "@rotorsoft/eventually";
 import { RoomSchemas, MonthSchemas } from "./schemas";
 
 export const MonthlyBookings = (): InferProcessManager<
@@ -29,9 +29,11 @@ export const MonthlyBookings = (): InferProcessManager<
   },
   on: {
     BookingRequested: (event, state) => {
-      return Promise.resolve(
-        bind(state.booked < 3 ? "Book" : "Reject", {}, { stream: event.stream })
-      );
+      return Promise.resolve({
+        name: state.booked < 3 ? "Book" : "Reject",
+        data: {},
+        stream: event.stream
+      });
     }
   }
 });

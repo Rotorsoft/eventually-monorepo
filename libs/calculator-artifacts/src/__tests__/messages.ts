@@ -4,14 +4,13 @@ import {
   Messages,
   Snapshot
 } from "@rotorsoft/eventually";
-import { Calculator } from "../calculator.aggregate";
 import { Keys } from "../calculator.schemas";
 
 export const pressKey = (stream: string, key: Keys): Promise<Snapshot[]> =>
-  client().command(Calculator, "PressKey", { key }, { stream });
+  client().command("PressKey", { key }, { stream });
 
 export const reset = (stream: string): Promise<Snapshot[]> =>
-  client().command(Calculator, "Reset", {}, { stream });
+  client().command("Reset", {}, { stream });
 
 export const createEvent = <E extends Messages>(
   name: keyof E & string,

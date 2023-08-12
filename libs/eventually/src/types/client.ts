@@ -1,7 +1,6 @@
 import type {
   AggregateFactory,
   CommandAdapterFactory,
-  CommandHandlerFactory,
   EventHandlerFactory,
   ProjectorFactory
 } from "./factories";
@@ -53,17 +52,20 @@ export type Client = {
 
   /**
    * Handles command
-   * @param factory the command handler factory
    * @param name the command name
    * @param data the command payload
    * @param target the command target
    * @returns array of snapshots produced by this command
    */
-  command: <S extends State, C extends Messages, E extends Messages>(
-    factory: CommandHandlerFactory<S, C, E>,
-    name: keyof C,
-    data: Readonly<C[keyof C]>,
-    target?: CommandTarget
+  command: <
+    S extends State,
+    C extends Messages,
+    E extends Messages,
+    N extends keyof C & string
+  >(
+    name: N,
+    data: Readonly<C[N]>,
+    target: CommandTarget
   ) => Promise<Snapshot<S, E>[]>;
 
   /**

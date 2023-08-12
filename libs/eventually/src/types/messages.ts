@@ -6,9 +6,12 @@ export type Messages = Record<string, Record<string, any>>;
  * - `name` a name
  * - `data` a payload
  */
-export type Message<M extends Messages = Messages> = {
-  readonly name: keyof M & string;
-  readonly data: Readonly<M[keyof M & string]>;
+export type Message<
+  M extends Messages = Messages,
+  N extends keyof M & string = string
+> = {
+  readonly name: N;
+  readonly data: Readonly<M[N]>;
 };
 
 /**
@@ -30,24 +33,25 @@ export type Actor = {
 };
 
 /**
- * Commands are messages with optional target arguments
- * - `stream?` the target stream
+ * Command target
+ * - `stream` the target stream
  * - `expectedVersion?` the expected version of the stream or a concurrency error is thrown
  * - `actor?` the actor invoking the command
  */
 export type CommandTarget = {
-  readonly stream?: string;
+  readonly stream: string;
   readonly expectedVersion?: number;
   readonly actor?: Actor;
 };
 
 /**
- * Commands are messages with optional target arguments
- * - `stream?` the target stream
- * - `expectedVersion?` the expected version of the stream or a concurrency error is thrown
- * - `actor?` the actor invoking the command
+ * Commands are messages with a target
  */
-export type Command<M extends Messages = Messages> = Message<M> & CommandTarget;
+export type Command<M extends Messages = Messages> = Message<
+  M,
+  keyof M & string
+> &
+  CommandTarget;
 
 /**
  * Committed events have metadata describing correlation and causation
@@ -59,7 +63,10 @@ export type CommittedEventMetadata = {
   readonly causation: {
     readonly command?: {
       readonly name: string;
-    } & CommandTarget;
+      readonly stream?: string;
+      readonly expectedVersion?: number;
+      readonly actor?: Actor;
+    };
     readonly event?: {
       readonly name: string;
       readonly stream: string;
@@ -76,7 +83,10 @@ export type CommittedEventMetadata = {
  * - `created` the date-time of creation
  * - `metadata` the event metadata
  */
-export type CommittedEvent<M extends Messages = Messages> = Message<M> & {
+export type CommittedEvent<M extends Messages = Messages> = Message<
+  M,
+  keyof M & string
+> & {
   readonly id: number;
   readonly stream: string;
   readonly version: number;

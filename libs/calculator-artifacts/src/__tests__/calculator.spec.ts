@@ -3,7 +3,6 @@ import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Forget } from "../forget.system";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
-import { CalculatorCommands } from "../calculator.schemas";
 import { pressKey } from "./messages";
 
 // app setup
@@ -91,7 +90,6 @@ describe("Calculator", () => {
     const stream = chance.guid();
     const actor: Actor = { id: "the-actor", name: "the-actor" };
     await client().command(
-      Calculator,
       "PressKey",
       { key: "1" },
       { stream, expectedVersion: -1, actor }
@@ -106,7 +104,6 @@ describe("Calculator", () => {
     await pressKey(stream, "1");
     await expect(
       client().command(
-        Calculator,
         "PressKey",
         { key: "1" },
         { stream, expectedVersion: -1 }
@@ -116,7 +113,7 @@ describe("Calculator", () => {
 
   it("should throw validation error", async () => {
     await expect(
-      client().command(Calculator, "PressKey", {}, { stream: chance.guid() })
+      client().command("PressKey", {}, { stream: chance.guid() })
     ).rejects.toThrow();
   });
 
@@ -128,7 +125,7 @@ describe("Calculator", () => {
 
   it("should throw invalid command error", async () => {
     await expect(
-      client().command(Calculator, "ForgetX" as keyof CalculatorCommands, {})
+      client().command("ForgetX", {}, { stream: "" })
     ).rejects.toThrow();
   });
 });

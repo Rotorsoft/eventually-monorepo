@@ -1,5 +1,4 @@
 import { CommandTarget, Infer, Snapshot, client } from "@rotorsoft/eventually";
-import { Room } from "./room.aggregate";
 import { RoomSchemas } from "./schemas";
 
 export const target = (stream: string): CommandTarget => ({
@@ -13,4 +12,4 @@ type Snaps = Snapshot<
 >[];
 
 export const requestBooking = (room: string): Promise<Snaps> =>
-  client().command(Room, "RequestBooking", {}, target(room)) as Promise<Snaps>;
+  client().command("RequestBooking", {}, target(room)) as Promise<Snaps>;
