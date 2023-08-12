@@ -49,7 +49,7 @@ export const PostgresProjectorStore = <S extends State>(
     },
 
     load: async (ids) => {
-      const sql = `SELECT * FROM ${table} WHERE id in (${ids
+      const sql = `SELECT * FROM "${table}" WHERE id in (${ids
         .map((id) => `'${id}'`)
         .join(", ")})`;
       const result = await pool.query<S & { __watermark: number }>(sql);
@@ -68,7 +68,7 @@ export const PostgresProjectorStore = <S extends State>(
         if (patch.id) {
           const vals = Object.entries(patch).filter(([key]) => key !== "id");
           if (vals.length) {
-            const sql = `INSERT INTO ${table}(id, ${vals
+            const sql = `INSERT INTO "${table}"(id, ${vals
               .map(([k]) => `"${k}"`)
               .join(", ")}, __watermark) VALUES('${patch.id}', ${vals
               .map((_, index) => `$${index + 1}`)
@@ -76,13 +76,13 @@ export const PostgresProjectorStore = <S extends State>(
               .map(([k], index) => `"${k}"=$${index + 1}`)
               .join(
                 ", "
-              )}, __watermark=${watermark} WHERE ${table}.__watermark < ${watermark} AND ${table}.id='${
+              )}, __watermark=${watermark} WHERE "${table}".__watermark < ${watermark} AND "${table}".id='${
               patch.id
             }'`;
             upserts.push({ sql, vals: vals.map(([, v]) => v) });
           } else
             deletes.push(
-              `DELETE FROM ${table} WHERE ${table}.__watermark < ${watermark} AND ${table}.id='${patch.id}'`
+              `DELETE FROM "${table}" WHERE "${table}".__watermark < ${watermark} AND "${table}".id='${patch.id}'`
             );
         }
       });
@@ -147,7 +147,7 @@ export const PostgresProjectorStore = <S extends State>(
         ? Object.values(query.where).map(({ value }: Condition<any>) => value)
         : [];
       const limit = query.limit ? `LIMIT ${query.limit}` : "";
-      const sql = `SELECT ${fields} FROM ${table} ${where} ${sort} ${limit}`;
+      const sql = `SELECT ${fields} FROM "${table}" ${where} ${sort} ${limit}`;
       const result = await pool.query<S & { __watermark: number }>(sql, values);
       for (const { __watermark, ...state } of result.rows)
         callback({ state: state as any, watermark: __watermark });

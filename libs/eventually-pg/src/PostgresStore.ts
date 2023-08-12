@@ -56,14 +56,14 @@ export const PostgresStore = (table: string): Store => {
       loading
     } = query || {};
 
-    let sql = `SELECT * FROM ${table} WHERE`;
+    let sql = `SELECT * FROM "${table}" WHERE`;
     const values: any[] = [];
 
     if (loading) {
       // optimize aggregate loading after last state event
       sql = sql.concat(
         ` id>=COALESCE((SELECT id
-          FROM ${table}
+          FROM "${table}"
           WHERE stream='${stream}' AND name='${STATE_EVENT}'
           ORDER BY id DESC LIMIT 1), 0)
           AND stream='${stream}'`
@@ -139,7 +139,7 @@ export const PostgresStore = (table: string): Store => {
 
         // stream concurrency
         const last = await client.query<Event>(
-          `SELECT version FROM ${table} WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
+          `SELECT version FROM "${table}" WHERE stream=$1 ORDER BY version DESC LIMIT 1`,
           [stream]
         );
         version = last.rowCount ? last.rows[0].version : -1;
@@ -158,7 +158,7 @@ export const PostgresStore = (table: string): Store => {
         if (expectedCount && actorId) {
           const count = (
             await client.query<{ count: number }>(
-              `SELECT COUNT(id) FROM ${table} WHERE actor=$1`,
+              `SELECT COUNT(id) FROM "${table}" WHERE actor=$1`,
               [actorId]
             )
           ).rows[0].count;
@@ -175,7 +175,7 @@ export const PostgresStore = (table: string): Store => {
           events.map(async ({ name, data }) => {
             version++;
             const committed = await client.query<Event>(
-              `INSERT INTO ${table}(name, data, stream, version, actor, metadata)
+              `INSERT INTO "${table}"(name, data, stream, version, actor, metadata)
           VALUES($1, $2, $3, $4, $5, $6) RETURNING *`,
               [name, data, stream, version, actorId, metadata]
             );
@@ -186,7 +186,7 @@ export const PostgresStore = (table: string): Store => {
         await client
           .query(
             `
-            NOTIFY ${table}, '${JSON.stringify({
+            NOTIFY "${table}", '${JSON.stringify({
               operation: "INSERT",
               id: committed[0].name,
               position: committed[0].id
@@ -209,7 +209,7 @@ export const PostgresStore = (table: string): Store => {
     },
 
     reset: async (): Promise<void> => {
-      await pool.query(`TRUNCATE TABLE ${table}`);
+      await pool.query(`TRUNCATE TABLE "${table}"`);
     },
 
     stats: async (): Promise<StoreStat[]> => {
@@ -221,7 +221,7 @@ export const PostgresStore = (table: string): Store => {
           MAX(created) as lastCreated, 
           COUNT(*) as count
         FROM 
-          ${table}
+          "${table}"
         GROUP BY 
           name
         ORDER BY 
@@ -241,7 +241,7 @@ export const PostgresStore = (table: string): Store => {
 
         await client.query("BEGIN");
         const { rows } = await pool.query<Subscription>(
-          `SELECT * FROM ${table}_subscriptions WHERE consumer=$1`,
+          `SELECT * FROM "${table}_subscriptions" WHERE consumer=$1`,
           [consumer]
         );
         const subscription =
@@ -266,8 +266,8 @@ export const PostgresStore = (table: string): Store => {
             lease = randomUUID();
             expires = new Date(Date.now() + timeout);
             await client.query(
-              `INSERT INTO ${table}_subscriptions VALUES($1, $2, $3, $4)
-            ON CONFLICT (consumer) DO UPDATE SET lease=$3, expires=$4 WHERE ${table}_subscriptions.consumer=$1`,
+              `INSERT INTO "${table}_subscriptions" VALUES($1, $2, $3, $4)
+            ON CONFLICT (consumer) DO UPDATE SET lease=$3, expires=$4 WHERE "${table}_subscriptions".consumer=$1`,
               [consumer, subscription.watermark, lease, expires]
             );
           }
@@ -297,7 +297,7 @@ export const PostgresStore = (table: string): Store => {
       try {
         await client.query("BEGIN");
         const { rows } = await pool.query<Subscription>(
-          `SELECT * FROM ${table}_subscriptions WHERE consumer=$1`,
+          `SELECT * FROM "${table}_subscriptions" WHERE consumer=$1`,
           [lease.consumer]
         );
         const subscription =
@@ -313,7 +313,7 @@ export const PostgresStore = (table: string): Store => {
           acked =
             (
               await client.query(
-                `UPDATE ${table}_subscriptions SET watermark=$2, lease=null, expires=null WHERE ${table}_subscriptions.consumer=$1`,
+                `UPDATE "${table}_subscriptions" SET watermark=$2, lease=null, expires=null WHERE "${table}_subscriptions".consumer=$1`,
                 [
                   lease.consumer,
                   Math.max(watermark || -1, subscription.watermark)
@@ -333,7 +333,7 @@ export const PostgresStore = (table: string): Store => {
 
     subscriptions: async () => {
       const { rows } = await pool.query<Subscription>(
-        `SELECT * FROM ${table}_subscriptions`
+        `SELECT * FROM "${table}_subscriptions"`
       );
       return rows;
     }
