@@ -1,3 +1,5 @@
+#### 2023-08-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.6.1...@rotorsoft/eventually-v5.7.0) @rotorsoft/eventually-v5.7.0
+  - MINOR [8eee7ffa](https://github.com/Rotorsoft/eventually-monorepo/commit/8eee7ffa85cf17e13521a1a318d374ccc2f39515) feat: remove factory arg in client.command, bind only messages
 #### 2023-07-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.0...@rotorsoft/eventually-pg-v5.5.1) @rotorsoft/eventually-pg-v5.5.1
   - PATCH [a38a4e5a](https://github.com/Rotorsoft/eventually-monorepo/commit/a38a4e5aea12500e61fcfb046fa22fd7229fc26d) fix: fix bind typings, gen docs
 #### 2023-07-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.6.0...@rotorsoft/eventually-v5.6.1) @rotorsoft/eventually-v5.6.1
