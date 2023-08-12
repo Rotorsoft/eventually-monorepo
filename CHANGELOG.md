@@ -1,3 +1,5 @@
+#### 2023-08-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.6.0...@rotorsoft/calculator-artifacts-v1.7.0) @rotorsoft/calculator-artifacts-v1.7.0
+  - MINOR [8eee7ffa](https://github.com/Rotorsoft/eventually-monorepo/commit/8eee7ffa85cf17e13521a1a318d374ccc2f39515) feat: remove factory arg in client.command, bind only messages
 #### 2023-08-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.6.0...@rotorsoft/eventually-express-v5.7.0) @rotorsoft/eventually-express-v5.7.0
   - MINOR [8eee7ffa](https://github.com/Rotorsoft/eventually-monorepo/commit/8eee7ffa85cf17e13521a1a318d374ccc2f39515) feat: remove factory arg in client.command, bind only messages
 #### 2023-08-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.1...@rotorsoft/eventually-pg-v5.5.2) @rotorsoft/eventually-pg-v5.5.2
