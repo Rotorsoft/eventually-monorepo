@@ -930,13 +930,13 @@ __metadata:
 
 "@rotorsoft/eventually-broker@file:./libs/eventually-broker::locator=%40rotorsoft%2Feventually-monorepo%40workspace%3A.":
   version: 2.2.5
-  resolution: "@rotorsoft/eventually-broker@file:./libs/eventually-broker#./libs/eventually-broker::hash=071587&locator=%40rotorsoft%2Feventually-monorepo%40workspace%3A."
+  resolution: "@rotorsoft/eventually-broker@file:./libs/eventually-broker#./libs/eventually-broker::hash=fe03d3&locator=%40rotorsoft%2Feventually-monorepo%40workspace%3A."
   dependencies:
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-openapi": "workspace:^0"
     "@rotorsoft/eventually-pg": "workspace:^5"
     axios: ^1.4.0
-    cron: ^2.4.0
+    cron: ^2.3.1
     cron-parser: ^4.8.1
     cron-validator: ^1.3.1
     express: ^4.18.2
@@ -945,7 +945,7 @@ __metadata:
     joi: ^17.9.2
     pg: ^8.11.2
     pg-listen: ^1.7.0
-  checksum: a5eef136fe9eb8b48f31305e46bf30d84d4a32b00611ee20477eaf83439686c315c26d89b1ec1146e5c2d3bb9f5586ac5d32b0a40d3f62a745c5541f808a6bec
+  checksum: d0bcc5ab28b4445e01bd2b33e3039d99b09b7d6815e3837924bcd651580c4080bf06217d431c82c1e9b712858ee56301c310d8cf9c323c06b64198fa6586c915
   languageName: node
   linkType: hard
 
@@ -957,7 +957,7 @@ __metadata:
     "@rotorsoft/eventually-openapi": "workspace:^0"
     "@rotorsoft/eventually-pg": "workspace:^5"
     axios: ^1.4.0
-    cron: ^2.4.0
+    cron: ^2.3.1
     cron-parser: ^4.8.1
     cron-validator: ^1.3.1
     express: ^4.18.2
@@ -2423,7 +2423,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron@npm:*, cron@npm:^2.4.0":
+"cron@npm:*, cron@npm:^2.3.1":
   version: 2.4.0
   resolution: "cron@npm:2.4.0"
   dependencies:
