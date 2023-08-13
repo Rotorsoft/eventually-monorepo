@@ -1,3 +1,5 @@
+#### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.1...@rotorsoft/eventually-v5.7.2) @rotorsoft/eventually-v5.7.2
+  - PATCH [7fec0feb](https://github.com/Rotorsoft/eventually-monorepo/commit/7fec0febfa9c414d2d9180864893549aae412d1e) fix: new seed utility, refactor projection api
 #### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.0...@rotorsoft/calculator-artifacts-v1.7.1) @rotorsoft/calculator-artifacts-v1.7.1
   - PATCH [75755f69](https://github.com/Rotorsoft/eventually-monorepo/commit/75755f69bff2a7f523be1cb0991231205b41f0a9) fix: revert client command factory
 #### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.5...@rotorsoft/eventually-broker-v2.2.6) @rotorsoft/eventually-broker-v2.2.6
