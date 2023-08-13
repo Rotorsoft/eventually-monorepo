@@ -1,3 +1,6 @@
+#### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.5...@rotorsoft/eventually-broker-v2.2.6) @rotorsoft/eventually-broker-v2.2.6
+  - PATCH [9ee19e81](https://github.com/Rotorsoft/eventually-monorepo/commit/9ee19e81e75dd5b14ee7a2b03d312f7be81b6239) fix: yarn.lock
+  - PATCH [3ebf04c8](https://github.com/Rotorsoft/eventually-monorepo/commit/3ebf04c8315a66e73a8778f9eea78e2cf2ec5629) fix: upgrade packages, regen docs
 #### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.0...@rotorsoft/eventually-express-v5.7.1) @rotorsoft/eventually-express-v5.7.1
   - PATCH [75755f69](https://github.com/Rotorsoft/eventually-monorepo/commit/75755f69bff2a7f523be1cb0991231205b41f0a9) fix: revert client command factory
 #### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.2...@rotorsoft/eventually-pg-v5.5.3) @rotorsoft/eventually-pg-v5.5.3
