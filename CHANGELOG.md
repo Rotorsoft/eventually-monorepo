@@ -1,3 +1,6 @@
+#### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.0...@rotorsoft/eventually-openapi-v0.5.1) @rotorsoft/eventually-openapi-v0.5.1
+  - PATCH [75755f69](https://github.com/Rotorsoft/eventually-monorepo/commit/75755f69bff2a7f523be1cb0991231205b41f0a9) fix: revert client command factory
+  - PATCH [3ebf04c8](https://github.com/Rotorsoft/eventually-monorepo/commit/3ebf04c8315a66e73a8778f9eea78e2cf2ec5629) fix: upgrade packages, regen docs
 #### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.0...@rotorsoft/eventually-v5.7.1) @rotorsoft/eventually-v5.7.1
   - PATCH [75755f69](https://github.com/Rotorsoft/eventually-monorepo/commit/75755f69bff2a7f523be1cb0991231205b41f0a9) fix: revert client command factory
 #### 2023-08-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.6.0...@rotorsoft/eventually-express-v5.7.0) @rotorsoft/eventually-express-v5.7.0
