@@ -933,7 +933,7 @@ __metadata:
 
 "@rotorsoft/eventually-broker@file:./libs/eventually-broker::locator=%40rotorsoft%2Feventually-monorepo%40workspace%3A.":
   version: 2.2.5
-  resolution: "@rotorsoft/eventually-broker@file:./libs/eventually-broker#./libs/eventually-broker::hash=094e87&locator=%40rotorsoft%2Feventually-monorepo%40workspace%3A."
+  resolution: "@rotorsoft/eventually-broker@file:./libs/eventually-broker#./libs/eventually-broker::hash=071587&locator=%40rotorsoft%2Feventually-monorepo%40workspace%3A."
   dependencies:
     "@rotorsoft/eventually": "workspace:^5"
     "@rotorsoft/eventually-openapi": "workspace:^0"
@@ -948,7 +948,7 @@ __metadata:
     joi: ^17.9.2
     pg: ^8.11.2
     pg-listen: ^1.7.0
-  checksum: 0e4156a6f346788b4c15ff5e21a179998538ed2dcb70027c887127ac18dd1871343f252c71055358a152410a667f6cf54f536f183c528c62f364e4556995cc91
+  checksum: a5eef136fe9eb8b48f31305e46bf30d84d4a32b00611ee20477eaf83439686c315c26d89b1ec1146e5c2d3bb9f5586ac5d32b0a40d3f62a745c5541f808a6bec
   languageName: node
   linkType: hard
 

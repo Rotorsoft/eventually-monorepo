@@ -18,6 +18,7 @@ describe("async broker", () => {
 
   it("should project", async () => {
     await client().command(
+      MatchSystem,
       "CreateCustomer",
       {
         id: 1,
@@ -26,6 +27,7 @@ describe("async broker", () => {
       { stream: "test" }
     );
     await client().command(
+      MatchSystem,
       "ChangeCustomerName",
       {
         id: 1,
@@ -34,6 +36,7 @@ describe("async broker", () => {
       { stream: "test" }
     );
     await client().command(
+      MatchSystem,
       "CreateCustomer",
       {
         id: 2,

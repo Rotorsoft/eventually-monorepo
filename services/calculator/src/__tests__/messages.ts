@@ -1,4 +1,5 @@
 import {
+  Calculator,
   CalculatorEvents,
   CalculatorModel,
   Keys
@@ -15,13 +16,13 @@ export const pressKey = (
   stream: string,
   key: Keys
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  http.command("PressKey", { key }, { stream });
+  http.command(Calculator, "PressKey", { key }, { stream });
 
 export const reset = (
   http: Client,
   stream: string
 ): Promise<Snapshot<CalculatorModel, CalculatorEvents>[]> =>
-  http.command("Reset", {}, { stream });
+  http.command(Calculator, "Reset", {}, { stream });
 
 export const createEvent = <E extends Messages>(
   name: keyof E & string,

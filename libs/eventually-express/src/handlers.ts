@@ -12,7 +12,8 @@ import {
   type ProjectionRecord,
   type ProjectorFactory,
   type Snapshot,
-  type State
+  type State,
+  CommandHandlerFactory
 } from "@rotorsoft/eventually";
 import {
   RestProjectionQuery,
@@ -140,7 +141,7 @@ export const getStreamHandler =
   };
 
 export const commandHandler =
-  (name: string, withEtag: boolean) =>
+  (factory: CommandHandlerFactory, name: string, withEtag: boolean) =>
   async (
     req: Request<{ id: string }, any, State, never> & {
       actor?: Actor;
@@ -153,7 +154,7 @@ export const commandHandler =
       const ifMatch = req.headers["if-match"] || undefined;
       const expectedVersion = withEtag && ifMatch ? +ifMatch : undefined;
       const { actor } = req;
-      const snapshots = await client().command(name, req.body, {
+      const snapshots = await client().command(factory, name, req.body, {
         stream: id,
         expectedVersion,
         actor

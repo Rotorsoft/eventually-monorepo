@@ -1,6 +1,7 @@
 import type {
   AggregateFactory,
   CommandAdapterFactory,
+  CommandHandlerFactory,
   EventHandlerFactory,
   ProjectorFactory
 } from "./factories";
@@ -52,6 +53,7 @@ export type Client = {
 
   /**
    * Handles command
+   * @param factory the command handler factory (aggregate or system)
    * @param name the command name
    * @param data the command payload
    * @param target the command target
@@ -63,6 +65,7 @@ export type Client = {
     E extends Messages,
     N extends keyof C & string
   >(
+    factory: CommandHandlerFactory<S, C, E>,
     name: N,
     data: Readonly<C[N]>,
     target: CommandTarget

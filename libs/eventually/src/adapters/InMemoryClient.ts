@@ -18,7 +18,7 @@ export const InMemoryClient = (): Client & Disposable => ({
   name: "InMemoryClient",
   dispose: () => Promise.resolve(),
   invoke,
-  command: (name, data, target) => command({ name, data, ...target }),
+  command: (_, name, data, target) => command({ name, data, ...target }),
   event,
   load,
   query,

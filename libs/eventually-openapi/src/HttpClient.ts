@@ -9,9 +9,6 @@ import {
   type ReducibleFactory,
   type Snapshot,
   type State,
-  app,
-  RegistrationError,
-  CommandHandlerFactory,
   ProjectorFactory,
   ProjectionRecord
 } from "@rotorsoft/eventually";
@@ -62,15 +59,7 @@ export const HttpClient = (
       return data;
     },
 
-    command: async (name, payload, target) => {
-      const msg = app().messages.get(name);
-      if (!msg?.handlers.length)
-        throw new RegistrationError({ name, data: payload });
-
-      const factory = app().artifacts.get(msg.handlers[0])
-        ?.factory as unknown as CommandHandlerFactory;
-      if (!factory) throw new RegistrationError({ name, data: payload });
-
+    command: async (factory, name, payload, target) => {
       const headers = {} as Record<string, string>;
       target.expectedVersion &&
         (headers["If-Match"] = target.expectedVersion.toString());
