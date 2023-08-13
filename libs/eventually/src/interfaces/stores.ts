@@ -2,28 +2,27 @@ import type {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
+  Lease,
   Message,
   Messages,
-  State
-} from "../types/messages";
-import type {
+  PollOptions,
+  Projection,
   ProjectionMap,
   ProjectionQuery,
   ProjectionRecord,
-  ProjectionResults
-} from "../types/projection";
-import type {
-  Lease,
-  PollOptions,
+  ProjectionResults,
+  ProjectionSort,
+  Schema,
+  State,
   StoreStat,
   Subscription
-} from "../types/store";
-import { Disposable, Seedable } from "./generic";
+} from "../types";
+import { Disposable } from "./generic";
 
 /**
  * Stores events in streams and consumer subscriptions/leases
  */
-export interface Store extends Disposable, Seedable {
+export interface Store extends Disposable {
   /**
    * Queries the event store
    * @param callback callback predicate
@@ -92,14 +91,17 @@ export interface Store extends Disposable, Seedable {
    * Gets subscriptions
    */
   subscriptions: () => Promise<Subscription[]>;
+
+  /**
+   * Seeds the schemas
+   */
+  seed: () => Promise<void>;
 }
 
 /**
  * Stores projections
  */
-export interface ProjectorStore<S extends State = State>
-  extends Disposable,
-    Seedable {
+export interface ProjectorStore<S extends State = State> extends Disposable {
   /**
    * Loads projection records by id
    * @param ids the record ids
@@ -120,12 +122,16 @@ export interface ProjectorStore<S extends State = State>
 
   /**
    * Queries projection
-   * @param query the projection query
-   * @param callback the callback receiving results
-   * @returns the number of records found
+   * @param query projection query
+   * @returns array of records found
    */
-  query: (
-    query: ProjectionQuery<S>,
-    callback: (record: ProjectionRecord<S>) => void
-  ) => Promise<number>;
+  query: (query: ProjectionQuery<S>) => Promise<ProjectionRecord<S>[]>;
+
+  /**
+   * Seeds the schemas
+   */
+  seed: (
+    schema: Schema<Projection<S>>,
+    indexes: ProjectionSort<S>[]
+  ) => Promise<void>;
 }

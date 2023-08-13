@@ -31,14 +31,10 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
     RoomBooked: async ({ data }, map) => {
       const id = `Room-${data.number}`;
 
-      let reserved: Record<string, string> = {};
-      if (!map.has(id)) {
-        await client().read(
-          Hotel,
-          id,
-          (room) => (reserved = room.state.reserved || {})
-        );
-      } else reserved = map.get(id)!.reserved || {};
+      const reserved =
+        map.get(id)?.reserved ??
+        (await client().read(Hotel, id)).at(0)?.state.reserved ??
+        {};
 
       let day = data.checkin;
       while (day <= data.checkout) {

@@ -124,9 +124,8 @@ export const HttpClient = (
 
     read: async <S extends State, E extends Messages>(
       factory: ProjectorFactory<S, E>,
-      query: string | string[] | ProjectionQuery<S>,
-      callback: (record: ProjectionRecord<S>) => void
-    ): Promise<number> => {
+      query: string | string[] | ProjectionQuery<S>
+    ): Promise<ProjectionRecord<S>[]> => {
       const ids =
         typeof query === "string"
           ? [query]
@@ -139,9 +138,7 @@ export const HttpClient = (
       >(url("/".concat(decamelize(factory.name))), {
         params: ids ? { ids } : toRestProjectionQuery(query as ProjectionQuery)
       });
-      // WARNING: to be used only in unit tests with small query responses - entire response buffer in data
-      data.forEach((record) => callback(record));
-      return data.length;
+      return data;
     }
   };
 };

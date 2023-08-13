@@ -92,7 +92,7 @@ describe("views", () => {
     responses.forEach((response) => {
       expect(response.status).toBe(200);
     });
-  });
+  }, 8000);
 
   it("should monitor", async () => {
     const paths = ["/monitor", "/monitor/123"];

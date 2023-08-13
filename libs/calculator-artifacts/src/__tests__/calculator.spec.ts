@@ -1,4 +1,11 @@
-import { Actor, app, client, dispose, store } from "@rotorsoft/eventually";
+import {
+  Actor,
+  app,
+  client,
+  dispose,
+  seed,
+  store
+} from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
 import { Forget } from "../forget.system";
@@ -13,7 +20,7 @@ app().with(Forget).with(Calculator).with(PressKeyAdapter).build();
 describe("Calculator", () => {
   beforeAll(async () => {
     // just to cover seeds
-    await store().seed();
+    await seed();
     jest.clearAllMocks();
     await app().listen();
   });

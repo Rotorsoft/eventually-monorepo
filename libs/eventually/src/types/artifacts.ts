@@ -32,6 +32,9 @@ export type WithDescription = { description: string };
 /** Schemas define message validation */
 export type Schemas<M extends Messages> = { [K in keyof M]: ZodType<M[K]> };
 
+/** Schema defines state validation */
+export type Schema<S extends State> = ZodType<S>;
+
 /**
  * System schemas for
  * - `schemas.commands` input validation
@@ -53,7 +56,7 @@ export type AggregateSchemas<
   C extends Messages,
   E extends Messages
 > = {
-  state: ZodType<S>;
+  state: Schema<S>;
   commands: Schemas<C>;
   events: Schemas<E>;
 };
@@ -79,7 +82,7 @@ export type ProcessManagerSchemas<
   C extends Messages,
   E extends Messages
 > = {
-  state: ZodType<S>;
+  state: Schema<S>;
   commands: Schemas<C>;
   events: Schemas<E>;
 };
@@ -100,7 +103,7 @@ export type CommandAdapterSchemas<S extends State, C extends Messages> = {
  * - `schemas.events` input validation
  */
 export type ProjectorSchemas<S extends State, E extends Messages> = {
-  state: ZodType<Projection<S>>;
+  state: Schema<Projection<S>>;
   events: Schemas<E>;
 };
 

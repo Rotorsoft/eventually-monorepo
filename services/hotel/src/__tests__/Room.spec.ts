@@ -1,13 +1,6 @@
-import {
-  app,
-  broker,
-  client,
-  dispose,
-  ProjectionRecord,
-  Snapshot
-} from "@rotorsoft/eventually";
+import { app, broker, client, dispose, Snapshot } from "@rotorsoft/eventually";
 import { Hotel } from "../Hotel.projector";
-import { DaySales, Next30Days } from "../Next30Days.projector";
+import { Next30Days } from "../Next30Days.projector";
 import { Room } from "../Room.aggregate";
 import * as models from "../Room.models";
 import * as schemas from "../Room.schemas";
@@ -50,14 +43,8 @@ describe("Room", () => {
   });
 
   it("should search rooms", async () => {
-    const len = await client().read(
-      Hotel,
-      ["Room-101", "Room-102", "Room-103"],
-      () => {
-        return;
-      }
-    );
-    expect(len).toBe(3);
+    const r = await client().read(Hotel, ["Room-101", "Room-102", "Room-103"]);
+    expect(r.length).toBe(3);
   });
 
   it("should book room", async () => {
@@ -79,9 +66,8 @@ describe("Room", () => {
       room[0].state.price
     );
 
-    let roomstate;
-    await client().read(Hotel, "Room-102", (r) => (roomstate = r.state));
-    expect(roomstate).toEqual({
+    const r = await client().read(Hotel, "Room-102");
+    expect(r.at(0)?.state).toEqual({
       id: "Room-102",
       number: 102,
       type: schemas.RoomType.DOUBLE,
@@ -100,10 +86,7 @@ describe("Room", () => {
     });
     await broker().drain();
 
-    const next30: ProjectionRecord<DaySales>[] = [];
-    await client().read(Next30Days, [checkin_key, checkout_key], (r) =>
-      next30.push(r)
-    );
+    const next30 = await client().read(Next30Days, [checkin_key, checkout_key]);
     expect(next30).toEqual([
       {
         state: { id: checkin_key, total: 600, reserved: [102, 104] },

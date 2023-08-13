@@ -1,24 +1,43 @@
-import { app, dispose } from "@rotorsoft/eventually";
-import { ExpressApp } from "@rotorsoft/eventually-express";
-import { HttpClient } from "@rotorsoft/eventually-openapi";
+import {
+  CommittedEvent,
+  Messages,
+  app,
+  client,
+  dispose,
+  seed
+} from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import {
   CalculatorTotals,
   TotalsEvents
 } from "@rotorsoft/calculator-artifacts";
-import { createEvent } from "./messages";
+import { PostgresProjectorStore } from "../../dist";
 
 const chance = new Chance();
-const port = 4005;
-const http = HttpClient(port);
-const _app = app(new ExpressApp()).with(CalculatorTotals, {
-  scope: "public"
+const _app = app().with(CalculatorTotals, {
+  scope: "public",
+  projector: { store: PostgresProjectorStore("calctotals"), indexes: [] }
 });
 
-describe("calculator with projector in express app", () => {
+const createEvent = <E extends Messages>(
+  name: keyof E & string,
+  stream: string,
+  data: E[keyof E & string],
+  id: number
+): CommittedEvent<E> => ({
+  id,
+  stream,
+  version: 0,
+  created: new Date(),
+  name,
+  data,
+  metadata: { correlation: "", causation: {} }
+});
+
+describe("calculator with pg projector", () => {
   beforeAll(async () => {
+    await seed();
     _app.build();
-    await _app.listen(false, port);
   });
 
   afterAll(async () => {
@@ -27,10 +46,10 @@ describe("calculator with projector in express app", () => {
 
   it("should project", async () => {
     const stream = "Calculator-".concat(chance.guid());
-    await http.project(CalculatorTotals, [
+    await client().project(CalculatorTotals, [
       createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 1)
     ]);
-    const results = await http.project(CalculatorTotals, [
+    const results = await client().project(CalculatorTotals, [
       createEvent<TotalsEvents>("DigitPressed", stream, { digit: "1" }, 2)
     ]);
     expect(results).toEqual({
@@ -39,7 +58,7 @@ describe("calculator with projector in express app", () => {
       watermark: 2
     });
 
-    const response = await http.read(CalculatorTotals, `Totals-${stream}`);
+    const response = await client().read(CalculatorTotals, `Totals-${stream}`);
     expect(response?.at(0)?.state["1"]).toEqual(2);
     expect(response?.at(0)?.watermark).toEqual(2);
   });
@@ -47,7 +66,7 @@ describe("calculator with projector in express app", () => {
   it("should query", async () => {
     const stream1 = "Calculator-".concat(chance.guid());
     const stream2 = "Calculator-".concat(chance.guid());
-    await http.project(CalculatorTotals, [
+    await client().project(CalculatorTotals, [
       createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "1" }, 1),
       createEvent<TotalsEvents>("DigitPressed", stream1, { digit: "2" }, 2),
       createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 3),
@@ -55,10 +74,10 @@ describe("calculator with projector in express app", () => {
       createEvent<TotalsEvents>("DigitPressed", stream2, { digit: "3" }, 5)
     ]);
 
-    const records = await http.read(CalculatorTotals, `Totals-${stream2}`);
+    const records = await client().read(CalculatorTotals, `Totals-${stream2}`);
     expect(records.at(0)?.state["3"]).toBe(3);
 
-    const records1 = await http.read(CalculatorTotals, {
+    const records1 = await client().read(CalculatorTotals, {
       select: ["id"],
       where: {
         id: { operator: "eq", value: `Totals-${stream2}` },

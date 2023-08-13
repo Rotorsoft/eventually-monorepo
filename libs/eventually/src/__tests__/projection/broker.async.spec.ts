@@ -46,10 +46,8 @@ describe("async broker", () => {
     );
     //await client().query({ limit: 5 }, (e) => log().events([e]));
     await broker.drain();
-    let p = { watermark: 0 };
-    await client().read(MatchProjector, "MatchSystem", (r) => (p = r));
-    expect(p).toBeDefined();
-    expect(p.watermark).toBe(2);
+    const records = await client().read(MatchProjector, "MatchSystem");
+    expect(records.at(0)?.watermark).toBe(2);
     await broker.dispose();
   });
 });

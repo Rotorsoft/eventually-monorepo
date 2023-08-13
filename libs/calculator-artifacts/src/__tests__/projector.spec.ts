@@ -1,13 +1,7 @@
-import {
-  app,
-  broker,
-  client,
-  dispose,
-  ProjectionRecord
-} from "@rotorsoft/eventually";
+import { app, broker, client, dispose, seed } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import { CalculatorTotals, Totals } from "../calculator.projector";
+import { CalculatorTotals } from "../calculator.projector";
 import { pressKey, reset } from "./messages";
 
 // app setup
@@ -16,6 +10,7 @@ app().with(Calculator).with(CalculatorTotals).build();
 
 describe("Projector", () => {
   beforeAll(async () => {
+    await seed();
     await app().listen();
   });
   afterAll(async () => {
@@ -33,14 +28,13 @@ describe("Projector", () => {
     await broker().drain();
 
     const pid = "Totals-".concat(id);
-    let record: ProjectionRecord<Totals> | undefined;
-    await client().read(CalculatorTotals, pid, (r) => (record = r));
-    expect(record?.state).toEqual({
+    const record = await client().read(CalculatorTotals, pid);
+    expect(record.at(0)?.state).toEqual({
       id: pid,
       "1": 2,
       "2": 1,
       "3": 1
     });
-    expect(record?.watermark).toBe(7);
+    expect(record.at(0)?.watermark).toBe(7);
   });
 });

@@ -1,11 +1,5 @@
 import type { ProjectorStore } from "../interfaces";
-import type {
-  Condition,
-  Projection,
-  ProjectionRecord,
-  ProjectionResults,
-  State
-} from "../types";
+import type { Condition, Projection, ProjectionRecord, State } from "../types";
 import { clone } from "../utils";
 
 /**
@@ -29,7 +23,7 @@ export const InMemoryProjectorStore = <
     load: (ids) =>
       Promise.resolve(ids.map((id) => _records[id]).filter(Boolean)),
 
-    commit: async (map, watermark): Promise<ProjectionResults> => {
+    commit: async (map, watermark) => {
       let upserted = 0,
         deleted = 0;
 
@@ -60,9 +54,9 @@ export const InMemoryProjectorStore = <
       return Promise.resolve({ upserted, deleted, watermark });
     },
 
-    query: (query, callback): Promise<number> => {
-      let count = 0;
-      Object.values(_records).forEach((record) => {
+    query: (query) => {
+      const result: ProjectionRecord<S>[] = [];
+      for (const record of Object.values(_records)) {
         // TODO: apply sort and select clauses
         const match = query.where
           ? Object.entries(query.where).reduce(
@@ -91,12 +85,11 @@ export const InMemoryProjectorStore = <
             )
           : true;
         if (match) {
-          count++;
-          if (query.limit && count > query.limit) return count;
-          callback(record);
+          result.push(record);
+          if (query.limit && result.length > query.limit) break;
         }
-      });
-      return Promise.resolve(count);
+      }
+      return Promise.resolve(result);
     }
   };
 };

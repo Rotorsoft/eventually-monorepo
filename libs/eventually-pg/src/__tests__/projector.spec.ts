@@ -7,17 +7,20 @@ import {
 import { Pool } from "pg";
 import { PostgresProjectorStore } from "..";
 import { config } from "../config";
+import { z } from "zod";
 
-type Schema = {
-  id: string;
-  name?: string;
-  age?: number;
-  hireDate?: Date;
-  managerId?: number;
-  managerName?: string;
-  countryId?: number;
-  countryName?: string;
-};
+const zSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  age: z.number().optional(),
+  hireDate: z.date().optional(),
+  managerId: z.number().optional(),
+  managerName: z.string().optional(),
+  countryId: z.number().optional(),
+  countryName: z.string().optional()
+});
+
+type Schema = z.infer<typeof zSchema>;
 
 const insertRecords: Record<string, ProjectionRecord<Schema>> = {
   ["Manager-1"]: {
@@ -89,23 +92,8 @@ describe("projector", () => {
     pool = new Pool(config.pg);
     await pool.query(`DROP TABLE IF EXISTS ${table};`);
 
-    db = PostgresProjectorStore<Schema>(
-      table,
-      {
-        id: 'varchar(100) COLLATE pg_catalog."default" NOT NULL PRIMARY KEY',
-        name: 'varchar(100) COLLATE pg_catalog."default"',
-        age: "int",
-        hireDate: "timestamptz",
-        managerId: "int",
-        managerName: 'varchar(100) COLLATE pg_catalog."default"',
-        countryId: "int",
-        countryName: 'varchar(100) COLLATE pg_catalog."default"'
-      },
-      `
-CREATE INDEX IF NOT EXISTS ${table}_managerId_ix ON public.${table} USING btree ("managerId" ASC) TABLESPACE pg_default;
-CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree ("countryId" ASC) TABLESPACE pg_default;`
-    );
-    await db.seed();
+    db = PostgresProjectorStore<Schema>(table);
+    await db.seed(zSchema, [{ managerId: "asc" }, { countryId: "asc" }]);
     await db.commit(projectionMap, 6);
   });
 
@@ -168,22 +156,18 @@ CREATE INDEX IF NOT EXISTS ${table}_countryId_ix ON public.${table} USING btree 
   });
 
   it("should query all", async () => {
-    const r = await db.query({}, (r) => r);
-    expect(r).toBe(6);
+    const records = await db.query({});
+    expect(records.length).toBe(6);
   });
 
   it("should query by age", async () => {
-    const records: Array<ProjectionRecord<Schema>> = [];
-    const r = await db.query(
-      {
-        select: ["id", "name", "age", "countryName"],
-        where: { age: { operator: "gte", value: 40 } },
-        limit: 5,
-        sort: { age: "desc" }
-      },
-      (r) => records.push(r)
-    );
-    expect(r).toBe(2);
+    const records = await db.query({
+      select: ["id", "name", "age", "countryName"],
+      where: { age: { operator: "gte", value: 40 } },
+      limit: 5,
+      sort: { age: "desc" }
+    });
+    expect(records.length).toBe(2);
     expect(records).toEqual([
       {
         state: {

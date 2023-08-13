@@ -1,4 +1,4 @@
-import { client, ProjectionPatch, Projector } from "@rotorsoft/eventually";
+import { client, Projector } from "@rotorsoft/eventually";
 import { z } from "zod";
 import * as schemas from "./calculator.schemas";
 
@@ -34,15 +34,9 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
     DigitPressed: async ({ stream, data }, map) => {
       const id = `Totals-${stream}`;
 
-      let totals: ProjectionPatch<Totals> = { id };
-      if (!map.has(id)) {
-        // load persisted state from projector store
-        await client().read(
-          CalculatorTotals,
-          id,
-          ({ state }) => (totals = state)
-        );
-      } else totals = map.get(id)!;
+      // try to load persisted state from projector store
+      const totals = map.get(id) ??
+        (await client().read(CalculatorTotals, id)).at(0)?.state ?? { id };
 
       return [{ id, [data.digit]: (totals[data.digit] ?? 0) + 1 }];
     }

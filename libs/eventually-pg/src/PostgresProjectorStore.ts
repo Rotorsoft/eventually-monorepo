@@ -1,16 +1,13 @@
 import type {
   Condition,
   Operator,
-  ProjectionQuery,
-  ProjectionRecord,
   ProjectorStore,
   State
 } from "@rotorsoft/eventually";
-
 import { dispose, log } from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
-import { ProjectionSchema, projector } from "./seed";
+import { projector } from "./seed";
 
 types.setTypeParser(types.builtins.INT8, (val) => parseInt(val, 10));
 types.setTypeParser(types.builtins.FLOAT4, (val) => parseFloat(val));
@@ -31,9 +28,7 @@ const OPS: Record<Operator, string> = {
 };
 
 export const PostgresProjectorStore = <S extends State>(
-  table: string,
-  schema: ProjectionSchema<S>,
-  indexes: string
+  table: string
 ): ProjectorStore<S> => {
   const pool = new Pool(config.pg);
   const store: ProjectorStore<S> = {
@@ -42,7 +37,7 @@ export const PostgresProjectorStore = <S extends State>(
       await pool.end();
     },
 
-    seed: async () => {
+    seed: async (schema, indexes) => {
       const seed = projector<S>(table, schema, indexes);
       log().magenta().trace(seed);
       await pool.query(seed);
@@ -93,7 +88,7 @@ export const PostgresProjectorStore = <S extends State>(
         for (const { sql, vals } of upserts) {
           upserted += (await client.query(sql, vals)).rowCount;
         }
-        const deleted = (await client.query(deletes.join("\n"))).rowCount;
+        const deleted = (await client.query(deletes.join("\n"))).rowCount ?? 0;
         await client.query("COMMIT");
         return { upserted, deleted, watermark };
       } catch (error) {
@@ -105,10 +100,7 @@ export const PostgresProjectorStore = <S extends State>(
       }
     },
 
-    query: async (
-      query: ProjectionQuery<S>,
-      callback: (record: ProjectionRecord<S>) => void
-    ): Promise<number> => {
+    query: async (query) => {
       const fields = query.select
         ? query.select
             .map((field) => `"${field as string}"`)
@@ -149,9 +141,10 @@ export const PostgresProjectorStore = <S extends State>(
       const limit = query.limit ? `LIMIT ${query.limit}` : "";
       const sql = `SELECT ${fields} FROM "${table}" ${where} ${sort} ${limit}`;
       const result = await pool.query<S & { __watermark: number }>(sql, values);
-      for (const { __watermark, ...state } of result.rows)
-        callback({ state: state as any, watermark: __watermark });
-      return result.rowCount;
+      return result.rows.map(({ __watermark, ...state }) => ({
+        state: state as any,
+        watermark: __watermark
+      }));
     }
   };
 

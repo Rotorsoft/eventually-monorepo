@@ -124,13 +124,11 @@ export type Client = {
   /**
    * Reads projection records by id or query
    * @param factory the projector factory
-   * @param query the record id(s) or a more complex query
-   * @param callback record predicate
-   * @returns the number of records matched
+   * @param query the record id(s) or a query
+   * @returns the matched records
    */
   read: <S extends State, E extends Messages>(
     factory: ProjectorFactory<S, E>,
-    query: string | string[] | ProjectionQuery<S>,
-    callback: (record: ProjectionRecord<S>) => void
-  ) => Promise<number>;
+    query: string | string[] | ProjectionQuery<S>
+  ) => Promise<ProjectionRecord<S>[]>;
 };

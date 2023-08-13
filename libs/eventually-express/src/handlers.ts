@@ -224,17 +224,8 @@ export const readHandler =
     try {
       const query = toProjectionQuery(req.query, schema as ZodObject<State>);
       log().green().trace(`${factory.name}?`, query);
-
-      res.header("content-type", "application/json");
-      res.write("[");
-      let i = 0;
-      await client().read(factory, query, (record) => {
-        i && res.write(",");
-        res.write(JSON.stringify(record));
-        i++;
-      });
-      res.write("]");
-      return res.status(200).end();
+      const response = await client().read(factory, query);
+      return res.status(200).send(response);
     } catch (error) {
       next(error);
     }

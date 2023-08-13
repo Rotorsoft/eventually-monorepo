@@ -47,8 +47,8 @@ export default async function project<S extends State, E extends Messages>(
     });
   }
 
-  const store =
-    (app().stores.get(factory.name) as ProjectorStore<S>) || _imps();
+  const store = (app().artifacts.get(factory.name)?.projector?.store ||
+    _imps()) as ProjectorStore<S>;
   const results = await store.commit(map, events.at(-1)!.id);
   log()
     .gray()

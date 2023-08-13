@@ -1,4 +1,10 @@
-import type { Projection, State } from "@rotorsoft/eventually";
+import type {
+  Projection,
+  ProjectionSort,
+  Schema,
+  State
+} from "@rotorsoft/eventually";
+import { z } from "zod";
 
 export const stream = (table: string): string => `
 CREATE TABLE IF NOT EXISTS public.${table}
@@ -69,22 +75,58 @@ CREATE TABLE IF NOT EXISTS public.${table}_subscriptions
 ) TABLESPACE pg_default;
 `;
 
-// TODO: infer pg schema types from projection state (zod?)
-export type ProjectionSchema<S extends State> = {
-  [K in keyof Projection<S>]: string;
+const ZOD2PG: { [K in z.ZodFirstPartyTypeKind]?: string } = {
+  [z.ZodFirstPartyTypeKind.ZodString]: "TEXT",
+  [z.ZodFirstPartyTypeKind.ZodNumber]: "NUMERIC",
+  [z.ZodFirstPartyTypeKind.ZodBoolean]: "BOOLEAN",
+  [z.ZodFirstPartyTypeKind.ZodDate]: "TIMESTAMPTZ",
+  [z.ZodFirstPartyTypeKind.ZodBigInt]: "BIGINT",
+  [z.ZodFirstPartyTypeKind.ZodObject]: "JSON"
 };
+
+const toCol = (name: string, type: any, optional = false): string => {
+  if (
+    type instanceof z.ZodString ||
+    type instanceof z.ZodNumber ||
+    type instanceof z.ZodBoolean ||
+    type instanceof z.ZodDate ||
+    type instanceof z.ZodBigInt ||
+    type instanceof z.ZodObject ||
+    type instanceof z.ZodOptional
+  ) {
+    if (name === "id") return "";
+    if (type instanceof z.ZodOptional)
+      return toCol(name, type._def.innerType, true);
+    const pgtype = ZOD2PG[type._def.typeName];
+    const nullable =
+      optional || type.isOptional() || type.isNullable() ? "" : " NOT NULL";
+    return `"${name}" ${pgtype}${nullable}`;
+  }
+  throw Error(`Zod->PG seed type of ${name} not supported!`);
+};
+
 export const projector = <S extends State>(
   table: string,
-  schema: ProjectionSchema<S>,
-  indexes: string
+  schema: Schema<Projection<S>>,
+  indexes: ProjectionSort<S>[]
 ): string => {
-  const fields = Object.entries(schema).map(
-    ([field, type]) => `"${field}" ${type}`
+  const cols = Object.entries((schema as unknown as z.ZodObject<S>).shape).map(
+    ([key, type]) => toCol(key, type)
   );
-  return `
-  CREATE TABLE IF NOT EXISTS public.${table}(
-    ${fields.join(",\n\t")},
-    __watermark bigint NOT NULL) TABLESPACE pg_default;
+  return `CREATE TABLE IF NOT EXISTS public."${table}"(
+  id TEXT NOT NULL PRIMARY KEY,
+  ${cols.filter(Boolean).join(",\n  ")},
+  __watermark BIGINT NOT NULL
+) TABLESPACE pg_default;
 
-  ${indexes}`;
+  ${indexes
+    .map(
+      (index) =>
+        `CREATE INDEX IF NOT EXISTS "${table}_${Object.keys(index).join(
+          "_"
+        )}_ix" ON public."${table}" USING btree (${Object.entries(index)
+          .map(([key, order]) => `"${key}" ${order}`)
+          .join(",")}) TABLESPACE pg_default;`
+    )
+    .join("\n")}`;
 };

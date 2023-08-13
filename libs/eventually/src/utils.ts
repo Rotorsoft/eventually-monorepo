@@ -1,5 +1,5 @@
-import z, { ZodError, ZodType } from "zod";
-import { app } from "./ports";
+import z, { ZodError, type ZodType } from "zod";
+import { app, store } from "./ports";
 import {
   RegistrationError,
   ValidationError,
@@ -202,4 +202,18 @@ export const clone = <S extends State>(
     else if (!deleted) cloned[key] = value;
   });
   return cloned as Readonly<S>;
+};
+
+/**
+ * Seeds registered stores
+ */
+export const seed = async (): Promise<void> => {
+  await store().seed();
+  for (const [, artifact] of app().artifacts) {
+    if (artifact.type === "projector" && artifact.projector)
+      await artifact.projector.store.seed(
+        artifact.projector.schema,
+        artifact.projector.indexes
+      );
+  }
 };

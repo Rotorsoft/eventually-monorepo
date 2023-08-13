@@ -35,12 +35,12 @@ export const Next30Days = (): Projector<
       }
       if (days.length) {
         const room = await client().load(Room, data.number.toString());
-        const sales: Record<string, DaySales> = {};
-
-        // this is not very efficient
-        await client().read(Next30Days, days, (r) => {
-          sales[r.state.id] = r.state;
-        });
+        const sales = Object.fromEntries(
+          (await client().read(Next30Days, days)).map((r) => [
+            r.state.id,
+            r.state
+          ])
+        );
 
         const upserts = days.map((day) => {
           const record =

@@ -1,5 +1,5 @@
 import { client } from "../../ports";
-import { CommittedEvent, Messages, ProjectionRecord } from "../../types";
+import { CommittedEvent, Messages } from "../../types";
 import {
   MatchProjection,
   MatchProjectionEvents,
@@ -30,21 +30,16 @@ const matchStream2 = matchStream(matchId2);
 
 export const trace = async (): Promise<void> => {
   //if (process.env.NODE_ENV === "test") return;
-  const records = [] as ProjectionRecord<MatchProjection>[];
-  await client().read(
-    MatchProjector,
-    [
-      customerStream1,
-      customerStream2,
-      supplierStream1,
-      supplierStream2,
-      jobStream1,
-      jobStream2,
-      matchStream1,
-      matchStream2
-    ],
-    (r) => records.push(r)
-  );
+  const records = await client().read(MatchProjector, [
+    customerStream1,
+    customerStream2,
+    supplierStream1,
+    supplierStream2,
+    jobStream1,
+    jobStream2,
+    matchStream1,
+    matchStream2
+  ]);
   console.table(
     Object.values(records).map((r) => ({ ...r.state, watermark: r.watermark })),
     [...schemas.MatchProjection.keyof().options, "watermark"]

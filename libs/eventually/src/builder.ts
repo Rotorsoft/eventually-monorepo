@@ -1,18 +1,21 @@
 import EventEmitter from "node:events";
-import { ZodType } from "zod";
 import type { Disposable, ProjectorStore } from "./interfaces";
 import type {
   Artifact,
   ArtifactFactory,
-  ArtifactMetadata,
+  ArtifactType,
   Messages,
+  Projection,
   ProjectionResults,
+  ProjectionSort,
   ProjectorFactory,
   ReducibleFactory,
+  Schema,
   Scope,
   Snapshot,
   State
 } from "./types";
+import type { ZodType } from "zod";
 
 /**
  * Internal message details used as main drivers of public interfaces and documentation
@@ -23,6 +26,25 @@ export type MessageMetadata<M extends Messages = Messages> = {
   type: "command" | "event" | "message";
   handlers: string[];
   producer?: string;
+};
+
+/**
+ * Artifact reflected metadata
+ */
+export type ArtifactMetadata<
+  S extends State = State,
+  C extends Messages = Messages,
+  E extends Messages = Messages
+> = {
+  type: ArtifactType;
+  factory: ArtifactFactory<S, C, E>;
+  inputs: Array<{ name: string; scope: Scope }>; // input messages = endpoints
+  outputs: string[]; // output messages = side effects
+  projector?: {
+    schema: Schema<Projection<S>>;
+    store: ProjectorStore<S>;
+    indexes: ProjectionSort<S>[];
+  };
 };
 
 /**
@@ -42,7 +64,7 @@ export type CommitPredicate<
  */
 export type WithOptions<S extends State, E extends Messages> = {
   scope?: Scope;
-  store?: ProjectorStore<S>;
+  projector?: { store: ProjectorStore<S>; indexes: ProjectionSort<S>[] };
   commit?: CommitPredicate<S, E>;
 };
 
@@ -77,7 +99,6 @@ export abstract class Builder extends EventEmitter implements Disposable {
   private _hasStreams = false;
   readonly messages = new Map<string, MessageMetadata>();
   readonly artifacts = new Map<string, ArtifactMetadata>();
-  readonly stores = new Map<string, ProjectorStore>();
   readonly commits = new Map<string, CommitPredicate>();
 
   constructor() {
@@ -208,12 +229,16 @@ export abstract class Builder extends EventEmitter implements Disposable {
     if (options) {
       options.commit &&
         this.commits.set(factory.name, options.commit as CommitPredicate);
-      if (options.store) {
-        if (metadata.type !== "projector")
-          throw Error(
-            `Invalid store ${options.store.name} for ${factory.name}.`
-          );
-        this.stores.set(factory.name, options.store as ProjectorStore);
+      if (metadata.type === "projector" && options.projector) {
+        const artifact = factory("");
+        const schema =
+          "state" in artifact.schemas
+            ? (artifact.schemas.state as Schema<Projection<S>>)
+            : undefined;
+        if (schema) {
+          const am = metadata as ArtifactMetadata<S, C, E>;
+          am.projector = { ...options.projector, schema };
+        }
       }
     }
     return this;

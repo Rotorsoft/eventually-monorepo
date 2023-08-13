@@ -1,5 +1,5 @@
 import { client } from "@rotorsoft/eventually";
-import { Hotel, RoomState } from "./Hotel.projector";
+import { Hotel } from "./Hotel.projector";
 import { DaySales, Next30Days } from "./Next30Days.projector";
 import { RoomType } from "./Room.schemas";
 
@@ -20,15 +20,17 @@ export type HomeView = {
 };
 
 export const readHomeView = async (): Promise<HomeView> => {
-  const _rooms: Array<RoomState> = [];
-  await client().read(
-    Hotel,
-    ["Room-101", "Room-102", "Room-103", "Room-104", "Room-105"],
-    (r) => _rooms.push(r.state)
-  );
+  const _rooms = (
+    await client().read(Hotel, [
+      "Room-101",
+      "Room-102",
+      "Room-103",
+      "Room-104",
+      "Room-105"
+    ])
+  ).map((r) => r.state);
   const tomorrow_key = addDays(new Date(), 1).toISOString().substring(0, 10);
-  let tomorrow: DaySales | undefined;
-  await client().read(Next30Days, tomorrow_key, (r) => (tomorrow = r.state));
+  const tomorrow = (await client().read(Next30Days, tomorrow_key)).at(0)?.state;
   const rooms = _rooms
     .map(({ number, type, price, reserved }) => ({
       number,
