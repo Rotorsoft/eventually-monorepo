@@ -44,9 +44,7 @@ describe("match projection", () => {
   it("should query manager 1", async () => {
     const results = await client().read(MatchProjector, {
       select: ["customerId"],
-      where: {
-        manager: { operator: "eq", value: "Manager 1" }
-      },
+      where: { manager: "Manager 1" },
       limit: 5,
       sort: { id: "asc" }
     });

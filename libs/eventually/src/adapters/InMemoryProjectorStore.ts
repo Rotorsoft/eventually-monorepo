@@ -1,5 +1,11 @@
 import type { ProjectorStore } from "../interfaces";
-import type { Condition, Projection, ProjectionRecord, State } from "../types";
+import type {
+  Condition,
+  Operator,
+  Projection,
+  ProjectionRecord,
+  State
+} from "../types";
 import { clone } from "../utils";
 
 /**
@@ -61,24 +67,28 @@ export const InMemoryProjectorStore = <
         const match = query.where
           ? Object.entries(query.where).reduce(
               (match, [key, condition]: [string, Condition<any>]) => {
+                const { operator, value }: { operator: Operator; value: any } =
+                  typeof condition === "object" && "operator" in condition
+                    ? condition
+                    : { operator: "eq", value: condition };
                 const val = record.state[key]!;
-                switch (condition.operator) {
+                switch (operator) {
                   case "eq":
-                    return match && val == condition.value;
+                    return match && val == value;
                   case "neq":
-                    return match && val != condition.value;
+                    return match && val != value;
                   case "lt":
-                    return match && val < condition.value;
+                    return match && val < value;
                   case "lte":
-                    return match && val <= condition.value;
+                    return match && val <= value;
                   case "gt":
-                    return match && val > condition.value;
+                    return match && val > value;
                   case "gte":
-                    return match && val >= condition.value;
+                    return match && val >= value;
                   case "in":
-                    return match && val == condition.value;
+                    return match && val == value;
                   case "nin":
-                    return match && val != condition.value;
+                    return match && val != value;
                 }
               },
               true

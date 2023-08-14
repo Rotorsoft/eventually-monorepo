@@ -121,7 +121,10 @@ export const PostgresStore = (table: string): Store => {
     },
 
     seed: async () => {
-      await pool.query(stream(table));
+      const seed = stream(table);
+      log().yellow().info(`>>> Seeding event store: ${table}`);
+      log().gray().info(seed);
+      await pool.query(seed);
     },
 
     query,

@@ -39,7 +39,8 @@ export const PostgresProjectorStore = <S extends State>(
 
     seed: async (schema, indexes) => {
       const seed = projector<S>(table, schema, indexes);
-      log().magenta().trace(seed);
+      log().green().info(`>>> Seeding projector table: ${table}`);
+      log().gray().info(seed);
       await pool.query(seed);
     },
 
@@ -47,6 +48,8 @@ export const PostgresProjectorStore = <S extends State>(
       const sql = `SELECT * FROM "${table}" WHERE id in (${ids
         .map((id) => `'${id}'`)
         .join(", ")})`;
+      log().gray().trace(sql);
+
       const result = await pool.query<S & { __watermark: number }>(sql);
       return result.rows.map(({ __watermark, ...state }) => {
         return {
@@ -107,23 +110,24 @@ export const PostgresProjectorStore = <S extends State>(
             .join(", ")
             .concat(", __watermark")
         : "*";
+      const values: any[] = [];
       const where = query.where
         ? "WHERE ".concat(
             Object.entries(query.where)
-              .map(
-                (
-                  [key, { value, operator }]: [string, Condition<any>],
-                  index
-                ) => {
-                  const operation =
-                    value === null
-                      ? EQUALS.includes(operator)
-                        ? "is null"
-                        : "is not null"
-                      : `${OPS[operator]} $${index + 1}`;
-                  return `${table}."${key}" ${operation}`;
-                }
-              )
+              .map(([key, condition]: [string, Condition<any>], index) => {
+                const { operator, value }: { operator: Operator; value: any } =
+                  typeof condition === "object" && "operator" in condition
+                    ? condition
+                    : { operator: "eq", value: condition };
+                const operation =
+                  value === null
+                    ? EQUALS.includes(operator)
+                      ? "is null"
+                      : "is not null"
+                    : `${OPS[operator]} $${index + 1}`;
+                value && values.push(value);
+                return `${table}."${key}" ${operation}`;
+              })
               .join(" AND ")
           )
         : "";
@@ -134,12 +138,10 @@ export const PostgresProjectorStore = <S extends State>(
               .join(", ")
           )
         : "";
-
-      const values = query.where
-        ? Object.values(query.where).map(({ value }: Condition<any>) => value)
-        : [];
       const limit = query.limit ? `LIMIT ${query.limit}` : "";
       const sql = `SELECT ${fields} FROM "${table}" ${where} ${sort} ${limit}`;
+      log().gray().trace(sql, values);
+
       const result = await pool.query<S & { __watermark: number }>(sql, values);
       return result.rows.map(({ __watermark, ...state }) => ({
         state: state as any,

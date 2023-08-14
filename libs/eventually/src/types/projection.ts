@@ -62,12 +62,14 @@ export type ProjectionResults = {
  */
 
 /**
- * Filter condition
+ * Filter condition. Uses scalar value as a shortcut to eq operator
  */
-export type Condition<T> = {
-  readonly operator: Operator;
-  readonly value: T;
-};
+export type Condition<T> =
+  | {
+      readonly operator: Operator;
+      readonly value: T;
+    }
+  | T;
 
 /**
  * Projection filter expression by fields in record

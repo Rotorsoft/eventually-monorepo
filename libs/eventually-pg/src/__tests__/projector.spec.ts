@@ -189,4 +189,14 @@ describe("projector", () => {
       }
     ]);
   });
+
+  it("should query by country id", async () => {
+    const records1 = await db.query({
+      where: { countryId: { operator: "eq", value: 1 } }
+    });
+    const records2 = await db.query({
+      where: { countryId: 1 }
+    });
+    expect(records1).toEqual(records2);
+  });
 });
