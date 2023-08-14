@@ -1,5 +1,5 @@
 import { Operator } from "./enums";
-import type { State } from "./messages";
+import type { Patch, State } from "./messages";
 
 /**
  * EXPERIMENTAL FEATURE - This is a work in progress and subject to change!
@@ -15,7 +15,9 @@ export type Projection<S extends State> = S & { id: string };
 /**
  * A partial state with a required unique id
  */
-export type ProjectionPatch<S extends State> = Readonly<Projection<Partial<S>>>;
+export type ProjectionPatch<S extends State> = Readonly<
+  Patch<Projection<S>> & { id: string }
+>;
 
 /**
  * A map of projection patches

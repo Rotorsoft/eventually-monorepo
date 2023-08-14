@@ -6,7 +6,7 @@ import type {
   ProjectionRecord,
   State
 } from "../types";
-import { clone } from "../utils";
+import { patchCopy } from "../utils";
 
 /**
  * @category Adapters
@@ -44,7 +44,7 @@ export const InMemoryProjectorStore = <
             upserted++;
           } else if (_records[patch.id].watermark < watermark) {
             _records[patch.id] = {
-              state: clone<Projection<S>>(_records[patch.id].state, patch),
+              state: patchCopy<Projection<S>>(_records[patch.id].state, patch),
               watermark
             };
             upserted++;

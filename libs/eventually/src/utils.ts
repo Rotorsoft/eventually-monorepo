@@ -5,6 +5,7 @@ import {
   ValidationError,
   type Message,
   type Messages,
+  type Patch,
   type State
 } from "./types";
 
@@ -136,6 +137,37 @@ export const sleep = (millis: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, millis));
 
 /**
+ * Function debouncer
+ */
+type DF = (this: ThisParameterType<void>, ...args: any[]) => void;
+export const debounce = (func: DF, delay: number): DF => {
+  let timeout: NodeJS.Timeout;
+  return function (this: ThisParameterType<void>, ...args: any[]): void {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+};
+
+/**
+ * Function throttler
+ */
+export const throttle = <T extends (...args: unknown[]) => ReturnType<T>>(
+  func: T,
+  delay: number
+): ((this: ThisParameterType<T>, ...args: Parameters<T>) => void) => {
+  let last = 0;
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
+    const now = Date.now();
+    if (now - last >= delay) {
+      func.apply(this, args);
+      last = now;
+    }
+  };
+};
+
+/**
  * Date reviver when parsing JSON strings with the following formats:
  * - YYYY-MM-DDTHH:MM:SS.sssZ
  * - YYYY-MM-DDTHH:MM:SS.sss+HH:MM
@@ -183,25 +215,28 @@ const mergeable = (value: any): boolean =>
   !UNMERGEABLES.some((t) => value instanceof t);
 
 /**
- * Clones state with patches recursively. Keys with `undefined` values in patch are deleted.
+ * Copies state with patches recursively. Keys with `undefined` or `null` values in patch are deleted.
  * @param state original state
  * @param patch patches to merge
  * @returns a new patched state
  */
-export const clone = <S extends State>(
+export const patchCopy = <S extends State>(
   state: Readonly<S>,
-  patch: Readonly<Partial<S>> | undefined
+  patch: Readonly<Patch<S>> | undefined
 ): Readonly<S> => {
-  const cloned: State = {};
+  const copy: State = {};
   Object.keys({ ...state, ...patch }).forEach((key) => {
-    const patched = patch && key in patch;
-    const deleted = patched && patch[key] === "undefined";
+    const patched = !!patch && key in patch;
+    const deleted =
+      patched && (typeof patch[key] === "undefined" || patch[key] === null);
     const value = patched && !deleted ? patch[key] : state[key];
-    if (mergeable(value))
-      cloned[key] = clone(state[key] || {}, patch && patch[key]);
-    else if (!deleted) cloned[key] = value;
+    if (!deleted) {
+      if (mergeable(value))
+        copy[key] = patchCopy(state[key] || {}, patch && patch[key]);
+      else copy[key] = value;
+    }
   });
-  return cloned as Readonly<S>;
+  return copy as Readonly<S>;
 };
 
 /**

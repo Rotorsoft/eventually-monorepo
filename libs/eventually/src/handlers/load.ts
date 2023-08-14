@@ -8,7 +8,7 @@ import type {
   Snapshot,
   State
 } from "../types";
-import { clone } from "../utils";
+import { patchCopy } from "../utils";
 
 /**
  * Reduces artifact from store
@@ -22,7 +22,7 @@ export async function reduce<S extends State, E extends Messages>(
   id: { stream?: string; actor?: string },
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> {
-  const reducer = reducible.reducer || clone;
+  const reducer = reducible.reducer || patchCopy;
 
   let state = reducible.init();
   let applyCount = 0;

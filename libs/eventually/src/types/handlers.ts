@@ -4,6 +4,7 @@ import type {
   CommittedEvent,
   Message,
   Messages,
+  Patch,
   State
 } from "./messages";
 import type { ProjectionMap, ProjectionPatch } from "./projection";
@@ -17,7 +18,7 @@ import type { ProjectionMap, ProjectionPatch } from "./projection";
  */
 export type StateReducer<S extends State> = (
   state: Readonly<S>,
-  patch: Readonly<Partial<S>> | undefined
+  patch: Readonly<Patch<S>> | undefined
 ) => Readonly<S>;
 
 /**
@@ -32,7 +33,7 @@ export type EventReducer<
 > = (
   state: Readonly<S>,
   event: CommittedEvent<Pick<E, K>>
-) => Readonly<Partial<S>>;
+) => Readonly<Patch<S>>;
 
 /**
  * Projector reducers apply events as "state patches" to the resulting projection map

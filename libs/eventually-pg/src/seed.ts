@@ -7,7 +7,7 @@ import type {
 import { z } from "zod";
 
 export const stream = (table: string): string => `
-CREATE TABLE IF NOT EXISTS public.${table}
+CREATE TABLE IF NOT EXISTS public."${table}"
 (
 	id serial PRIMARY KEY,
   name varchar(100) COLLATE pg_catalog."default" NOT NULL,
@@ -28,7 +28,7 @@ BEGIN
 		and column_name = 'created'
 		and data_type = 'timestamp without time zone'
 	) THEN
-		alter table public.${table}
+		alter table public."${table}"
 		alter created type timestamptz using created at time zone 'UTC',
 		alter created set not null,
 		alter created set default now();
@@ -36,37 +36,37 @@ BEGIN
 END
 $$;
 
-ALTER TABLE public.${table}
+ALTER TABLE public."${table}"
 ADD COLUMN IF NOT EXISTS actor varchar(100) COLLATE pg_catalog."default";
 
-ALTER TABLE public.${table}
+ALTER TABLE public."${table}"
 ADD COLUMN IF NOT EXISTS metadata json;
 
-CREATE UNIQUE INDEX IF NOT EXISTS ${table}_stream_ix
-  ON public.${table} USING btree (stream COLLATE pg_catalog."default" ASC, version ASC)
+CREATE UNIQUE INDEX IF NOT EXISTS "${table}_stream_ix"
+  ON public."${table}" USING btree (stream COLLATE pg_catalog."default" ASC, version ASC)
   TABLESPACE pg_default;
 	
-CREATE INDEX IF NOT EXISTS ${table}_name_ix
-  ON public.${table} USING btree (name COLLATE pg_catalog."default" ASC)
+CREATE INDEX IF NOT EXISTS "${table}_name_ix"
+  ON public."${table}" USING btree (name COLLATE pg_catalog."default" ASC)
   TABLESPACE pg_default;
     
-CREATE INDEX IF NOT EXISTS ${table}_created_id_ix
-  ON public.${table} USING btree (created ASC, id ASC)
+CREATE INDEX IF NOT EXISTS "${table}_created_id_ix"
+  ON public."${table}" USING btree (created ASC, id ASC)
   TABLESPACE pg_default;
 
-CREATE INDEX IF NOT EXISTS ${table}_actor_ix
-  ON public.${table} USING btree (actor COLLATE pg_catalog."default" ASC NULLS LAST)
+CREATE INDEX IF NOT EXISTS "${table}_actor_ix"
+  ON public."${table}" USING btree (actor COLLATE pg_catalog."default" ASC NULLS LAST)
   TABLESPACE pg_default;
 
-CREATE INDEX IF NOT EXISTS ${table}_correlation_ix
-  ON public.${table} USING btree ((metadata ->> 'correlation'::text) COLLATE pg_catalog."default" ASC NULLS LAST)
+CREATE INDEX IF NOT EXISTS "${table}_correlation_ix"
+  ON public."${table}" USING btree ((metadata ->> 'correlation'::text) COLLATE pg_catalog."default" ASC NULLS LAST)
   TABLESPACE pg_default;
     
 DROP INDEX IF EXISTS stream_ix;
 DROP INDEX IF EXISTS name_id;
 DROP INDEX IF EXISTS created_id_ix;
 
-CREATE TABLE IF NOT EXISTS public.${table}_subscriptions
+CREATE TABLE IF NOT EXISTS public."${table}_subscriptions"
 (
 	consumer varchar(100) PRIMARY KEY,
   watermark bigint NOT NULL,

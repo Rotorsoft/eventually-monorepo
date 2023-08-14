@@ -1,9 +1,8 @@
 import { drain } from "../handlers";
 import { STATE_EVENT, type Broker } from "../interfaces";
 import { app, log, store } from "../ports";
-import { scheduler } from "../scheduler";
 import type { ArtifactType, EventHandlerFactory } from "../types";
-import { sleep } from "../utils";
+import { debounce } from "../utils";
 
 const event_handler_types: Array<ArtifactType> = [
   "policy",
@@ -15,20 +14,19 @@ const event_handler_types: Array<ArtifactType> = [
  * @category Adapters
  * @remarks In-memory broker connects private event handlers with events being produced locally
  * @param timeout lease expiration time (in ms) when polling the store
- * @param limit max number of events to poll in each try
- * @param throttle delay (in ms) to enqueue new polls
+ * @param limit max number of events to drain in each try
+ * @param delay debounce delay (in ms) to drain
  */
 export const InMemoryBroker = ({
   timeout,
   limit,
-  throttle
+  delay
 }: {
   timeout: number;
   limit: number;
-  throttle: number;
+  delay: number;
 }): Broker => {
   const name = "InMemoryBroker";
-  const schedule = scheduler(name);
 
   // connect private event handlers only
   // NOTE: public consumers should be connected by an external broker service
@@ -44,28 +42,20 @@ export const InMemoryBroker = ({
       names: md.inputs.map((input) => input.name)
     }));
 
-  const _drain = (delay?: number): void => {
-    schedule.push({
-      id: "drain",
-      action: async (): Promise<boolean> => {
-        for (let i = 0; i < consumers.length; i++) {
-          const c = consumers[i];
-          const { total, error } = await drain(c.factory, {
-            names: c.names,
-            timeout,
-            limit
-          });
-          total &&
-            log()
-              .gray()
-              .trace(`~~~ ${c.factory.name} drained ${total} events...`);
-          error && log().error(error);
-        }
-        return true;
-      },
-      delay
-    });
+  const drainAll = async (): Promise<void> => {
+    for (let i = 0; i < consumers.length; i++) {
+      const c = consumers[i];
+      const { total, error } = await drain(c.factory, {
+        names: c.names,
+        timeout,
+        limit
+      });
+      total &&
+        log().gray().trace(`~~~ ${c.factory.name} drained ${total} events...`);
+      error && log().error(error);
+    }
   };
+  const debouncedDrain = debounce(drainAll, delay);
 
   // subscribe broker to commit events
   app().on("commit", async ({ factory, snapshot }) => {
@@ -94,16 +84,12 @@ export const InMemoryBroker = ({
         }
       }
     }
-    _drain(throttle);
+    debouncedDrain();
   });
 
   return {
     name,
     dispose: () => Promise.resolve(),
-    drain: async () => {
-      _drain();
-      await sleep(100);
-      await schedule.stop();
-    }
+    drain: drainAll
   };
 };

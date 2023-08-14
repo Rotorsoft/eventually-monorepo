@@ -3,12 +3,14 @@ import { _imps, app, log } from "../ports";
 import type {
   CommittedEvent,
   Messages,
+  Patch,
+  Projection,
   ProjectionPatch,
   ProjectionResults,
   ProjectorFactory,
   State
 } from "../types";
-import { clone } from "../utils";
+import { patchCopy } from "../utils";
 
 /**
  * Projects events into a projection map (reduced partial states indexed by id)
@@ -38,12 +40,23 @@ export default async function project<S extends State, E extends Messages>(
     log().green().trace(`\n>>> ${factory.name}`, event);
     const patches = await projector.on[event.name](event, map);
     patches.forEach((patch) => {
-      const rec =
-        map.get(patch.id) ||
-        ({
-          id: patch.id
-        } as ProjectionPatch<S>);
-      map.set(patch.id, clone(rec, patch));
+      if (Object.keys(patch).length === 1) {
+        // just the id, mark for deletion
+        map.set(patch.id, { id: patch.id } as Patch<Projection<S>> & {
+          id: string;
+        });
+      } else {
+        // patch over the existing map
+        const rec =
+          map.get(patch.id) ||
+          ({
+            id: patch.id
+          } as ProjectionPatch<S>);
+        map.set(
+          patch.id,
+          patchCopy(rec, patch as Patch<Patch<Projection<S>> & { id: string }>)
+        );
+      }
     });
   }
 

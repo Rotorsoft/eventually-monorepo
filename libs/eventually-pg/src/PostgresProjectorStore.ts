@@ -87,11 +87,17 @@ export const PostgresProjectorStore = <S extends State>(
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        let upserted = 0;
+        let upserted = 0,
+          deleted = 0;
         for (const { sql, vals } of upserts) {
+          log().gray().trace(sql, vals);
           upserted += (await client.query(sql, vals)).rowCount;
         }
-        const deleted = (await client.query(deletes.join("\n"))).rowCount ?? 0;
+        if (deletes.length) {
+          const sql = deletes.join("\n");
+          log().gray().trace(sql);
+          deleted = (await client.query(sql)).rowCount;
+        }
         await client.query("COMMIT");
         return { upserted, deleted, watermark };
       } catch (error) {
