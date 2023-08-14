@@ -1,3 +1,5 @@
+#### 2023-08-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.4...@rotorsoft/eventually-pg-v5.5.5) @rotorsoft/eventually-pg-v5.5.5
+  - PATCH [5a9747e4](https://github.com/Rotorsoft/eventually-monorepo/commit/5a9747e4618e3bb1936f044e9f287b7bb12ce253) fix: add eq shortcut to query operators
 #### 2023-08-14 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.2...@rotorsoft/eventually-v5.7.3) @rotorsoft/eventually-v5.7.3
   - PATCH [5a9747e4](https://github.com/Rotorsoft/eventually-monorepo/commit/5a9747e4618e3bb1936f044e9f287b7bb12ce253) fix: add eq shortcut to query operators
 #### 2023-08-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.1...@rotorsoft/calculator-artifacts-v1.7.2) @rotorsoft/calculator-artifacts-v1.7.2
