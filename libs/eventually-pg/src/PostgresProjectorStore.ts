@@ -126,7 +126,7 @@ export const PostgresProjectorStore = <S extends State>(
                       : "is not null"
                     : `${OPS[operator]} $${index + 1}`;
                 value && values.push(value);
-                return `${table}."${key}" ${operation}`;
+                return `"${key}" ${operation}`;
               })
               .join(" AND ")
           )

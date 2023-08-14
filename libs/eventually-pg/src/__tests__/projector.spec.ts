@@ -22,6 +22,7 @@ const zSchema = z.object({
 
 type Schema = z.infer<typeof zSchema>;
 
+const hireDate = new Date();
 const insertRecords: Record<string, ProjectionRecord<Schema>> = {
   ["Manager-1"]: {
     state: { id: "Manager-1", managerId: 1, managerName: "Man One" },
@@ -44,7 +45,7 @@ const insertRecords: Record<string, ProjectionRecord<Schema>> = {
       id: "User-1",
       name: "John Doe",
       age: 44,
-      hireDate: new Date(),
+      hireDate,
       managerId: 1,
       managerName: "Man One",
       countryId: 1,
@@ -57,7 +58,7 @@ const insertRecords: Record<string, ProjectionRecord<Schema>> = {
       id: "User-2",
       name: "Jane Doe",
       age: 40,
-      hireDate: new Date(),
+      hireDate,
       managerId: 1,
       managerName: "Man One",
       countryId: 1,
@@ -70,7 +71,7 @@ const insertRecords: Record<string, ProjectionRecord<Schema>> = {
       id: "User-3",
       name: "Pepito",
       age: 10,
-      hireDate: new Date(),
+      hireDate,
       managerId: 2,
       managerName: "Man Two",
       countryId: 2,
@@ -83,14 +84,14 @@ const insertRecords: Record<string, ProjectionRecord<Schema>> = {
 const projectionMap = new Map<string, ProjectionPatch<Schema>>();
 Object.entries(insertRecords).map(([k, v]) => projectionMap.set(k, v.state));
 
-const table = "projector_tests";
+const table = "ProjectorTests";
 describe("projector", () => {
   let pool: Pool;
   let db: ProjectorStore<Schema>;
 
   beforeAll(async () => {
     pool = new Pool(config.pg);
-    await pool.query(`DROP TABLE IF EXISTS ${table};`);
+    await pool.query(`DROP TABLE IF EXISTS "${table}";`);
 
     db = PostgresProjectorStore<Schema>(table);
     await db.seed(zSchema, [{ managerId: "asc" }, { countryId: "asc" }]);
@@ -104,12 +105,12 @@ describe("projector", () => {
 
   it("should have inserted records", async () => {
     const result = await db.load(Object.keys(insertRecords));
-    Object.values(insertRecords).forEach((r, i) => {
-      const clean = Object.entries(result[i].state)
+    result.forEach((r) => {
+      const clean = Object.entries(r.state)
         .filter(([, v]) => v !== null)
         .reduce((p, [k, v]) => Object.assign(p, { [k]: v }), {});
-      expect(r.state).toEqual(clean);
-      expect(result[i].watermark).toBe(6);
+      expect(insertRecords[r.state.id].state).toEqual(clean);
+      expect(r.watermark).toBe(6);
     });
   });
 
