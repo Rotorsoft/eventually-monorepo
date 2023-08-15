@@ -1,4 +1,4 @@
-import { app, bootstrap, store } from "@rotorsoft/eventually";
+import { app, bootstrap, seed } from "@rotorsoft/eventually";
 import { ExpressApp, sse } from "@rotorsoft/eventually-express";
 import path from "node:path";
 import { Hotel } from "./Hotel.projector";
@@ -6,19 +6,24 @@ import { Room } from "./Room.aggregate";
 import { engine } from "express-handlebars";
 import { Next30Days } from "./Next30Days.projector";
 import * as routes from "./routes";
-import { pgHotelProjectorStore, pgNext30ProjectorStore } from "./stores";
 import { HomeView, readHomeView } from "./utils";
+import { PostgresProjectorStore } from "@rotorsoft/eventually-pg";
 
 void bootstrap(async (): Promise<void> => {
-  await store().seed();
-  await pgHotelProjectorStore.seed();
-  await pgNext30ProjectorStore.seed();
-
   const express = app(new ExpressApp())
     .with(Room)
-    .with(Hotel, { store: pgHotelProjectorStore })
-    .with(Next30Days, { store: pgNext30ProjectorStore })
+    .with(Hotel, {
+      projector: {
+        store: PostgresProjectorStore("hotel"),
+        indexes: [{ type: "asc" }]
+      }
+    })
+    .with(Next30Days, {
+      projector: { store: PostgresProjectorStore("next30"), indexes: [{}] }
+    })
     .build();
+
+  await seed();
 
   // get some ui to play with it
   express.engine(

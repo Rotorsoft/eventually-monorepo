@@ -27,7 +27,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">InMemoryApp</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/adapters/InMemoryApp.ts#L8">libs/eventually/src/adapters/InMemoryApp.ts:8</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/adapters/InMemoryApp.ts#L8">libs/eventually/src/adapters/InMemoryApp.ts:8</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -42,7 +42,6 @@
 <div class="tsd-index-list"><a href="eventually.InMemoryApp.html#artifacts" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-1024"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)"></path></g></svg><span>artifacts</span></a>
 <a href="eventually.InMemoryApp.html#commits" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>commits</span></a>
 <a href="eventually.InMemoryApp.html#messages" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>messages</span></a>
-<a href="eventually.InMemoryApp.html#stores" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>stores</span></a>
 <a href="eventually.InMemoryApp.html#captureRejectionSymbol" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>capture<wbr/>Rejection<wbr/>Symbol</span></a>
 <a href="eventually.InMemoryApp.html#captureRejections" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>capture<wbr/>Rejections</span></a>
 <a href="eventually.InMemoryApp.html#defaultMaxListeners" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>default<wbr/>Max<wbr/>Listeners</span></a>
@@ -75,6 +74,7 @@
 <a href="eventually.InMemoryApp.html#setMaxListeners" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>set<wbr/>Max<wbr/>Listeners</span></a>
 <a href="eventually.InMemoryApp.html#with" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>with</span></a>
 <a href="eventually.InMemoryApp.html#withStreams" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>with<wbr/>Streams</span></a>
+<a href="eventually.InMemoryApp.html#addAbortListener" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>add<wbr/>Abort<wbr/>Listener</span></a>
 <a href="eventually.InMemoryApp.html#getEventListeners" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Event<wbr/>Listeners</span></a>
 <a href="eventually.InMemoryApp.html#getMaxListeners-2" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Max<wbr/>Listeners</span></a>
 <a href="eventually.InMemoryApp.html#listenerCount-2" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>listener<wbr/>Count</span></a>
@@ -92,33 +92,27 @@
 <h4 class="tsd-returns-title">Returns <a href="eventually.InMemoryApp.html" class="tsd-signature-type tsd-kind-class">InMemoryApp</a></h4><aside class="tsd-sources">
 <p>Overrides <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/adapters/InMemoryApp.ts#L9">libs/eventually/src/adapters/InMemoryApp.ts:9</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/adapters/InMemoryApp.ts#L9">libs/eventually/src/adapters/InMemoryApp.ts:9</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="artifacts" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>artifacts</span><a href="#artifacts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">artifacts</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/eventually.ArtifactMetadata.html" class="tsd-signature-type tsd-kind-type-alias">ArtifactMetadata</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">artifacts</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/eventually.ArtifactMetadata.html" class="tsd-signature-type tsd-kind-type-alias">ArtifactMetadata</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.State.html" class="tsd-signature-type tsd-kind-type-alias">State</a><span class="tsd-signature-symbol">, </span><a href="../types/eventually.Messages.html" class="tsd-signature-type tsd-kind-type-alias">Messages</a><span class="tsd-signature-symbol">, </span><a href="../types/eventually.Messages.html" class="tsd-signature-type tsd-kind-type-alias">Messages</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#artifacts">artifacts</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L79">libs/eventually/src/builder.ts:79</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L101">libs/eventually/src/builder.ts:101</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="commits" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>commits</span><a href="#commits" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">commits</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/eventually.CommitPredicate.html" class="tsd-signature-type tsd-kind-type-alias">CommitPredicate</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.State.html" class="tsd-signature-type tsd-kind-type-alias">State</a><span class="tsd-signature-symbol">, </span><a href="../types/eventually.Messages.html" class="tsd-signature-type tsd-kind-type-alias">Messages</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#commits">commits</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L81">libs/eventually/src/builder.ts:81</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L102">libs/eventually/src/builder.ts:102</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="messages" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>messages</span><a href="#messages" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">messages</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/eventually.MessageMetadata.html" class="tsd-signature-type tsd-kind-type-alias">MessageMetadata</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.Messages.html" class="tsd-signature-type tsd-kind-type-alias">Messages</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#messages">messages</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L78">libs/eventually/src/builder.ts:78</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member tsd-is-inherited"><a id="stores" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>stores</span><a href="#stores" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">stores</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/eventually.ProjectorStore.html" class="tsd-signature-type tsd-kind-interface">ProjectorStore</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/eventually.State.html" class="tsd-signature-type tsd-kind-type-alias">State</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
-<p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#stores">stores</a></p>
-<ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L80">libs/eventually/src/builder.ts:80</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L100">libs/eventually/src/builder.ts:100</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="captureRejectionSymbol" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>capture<wbr/>Rejection<wbr/>Symbol</span><a href="#captureRejectionSymbol" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">capture<wbr/>Rejection<wbr/>Symbol</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">typeof </span><a href="eventually.InMemoryApp.html#captureRejectionSymbol" class="tsd-signature-type tsd-kind-property">captureRejectionSymbol</a></div>
@@ -130,7 +124,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#captureRejectionSymbol">captureRejectionSymbol</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:355</li></ul></aside></section>
+<li>Defined in node_modules/@types/node/events.d.ts:390</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="captureRejections" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>capture<wbr/>Rejections</span><a href="#captureRejections" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">capture<wbr/>Rejections</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -142,7 +136,7 @@
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#captureRejections">captureRejections</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:362</li></ul></aside></section>
+<li>Defined in node_modules/@types/node/events.d.ts:397</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="defaultMaxListeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>default<wbr/>Max<wbr/>Listeners</span><a href="#defaultMaxListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">default<wbr/>Max<wbr/>Listeners</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
@@ -173,7 +167,7 @@ Its <code>name</code> property is set to <code>&#39;MaxListenersExceededWarning&
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#defaultMaxListeners">defaultMaxListeners</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:399</li></ul></aside></section>
+<li>Defined in node_modules/@types/node/events.d.ts:434</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="errorMonitor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>error<wbr/>Monitor</span><a href="#errorMonitor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">error<wbr/>Monitor</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">typeof </span><a href="eventually.InMemoryApp.html#errorMonitor" class="tsd-signature-type tsd-kind-property">errorMonitor</a></div>
@@ -186,7 +180,7 @@ regular <code>&#39;error&#39;</code> listener is installed.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#errorMonitor">errorMonitor</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:348</li></ul></aside></section></section>
+<li>Defined in node_modules/@types/node/events.d.ts:383</li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="hasStreams" class="tsd-anchor"></a>
@@ -197,7 +191,7 @@ regular <code>&#39;error&#39;</code> listener is installed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Inherited from Builder.hasStreams</p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L186">libs/eventually/src/builder.ts:186</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L207">libs/eventually/src/builder.ts:207</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="name" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>name</span><a href="#name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -206,7 +200,7 @@ regular <code>&#39;error&#39;</code> listener is installed.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <p>Overrides Builder.name</p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/adapters/InMemoryApp.ts#L13">libs/eventually/src/adapters/InMemoryApp.ts:13</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/adapters/InMemoryApp.ts#L13">libs/eventually/src/adapters/InMemoryApp.ts:13</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="addListener" class="tsd-anchor"></a>
@@ -240,7 +234,7 @@ regular <code>&#39;error&#39;</code> listener is installed.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#addListener">addListener</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:419</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:454</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="build" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>build</span><a href="#build" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -254,7 +248,7 @@ Concrete app adapters should provide their own building steps</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#build">build</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L227">libs/eventually/src/builder.ts:227</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L252">libs/eventually/src/builder.ts:252</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="dispose" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>dispose</span><a href="#dispose" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -263,7 +257,7 @@ Concrete app adapters should provide their own building steps</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Overrides <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#dispose">dispose</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/adapters/InMemoryApp.ts#L17">libs/eventually/src/adapters/InMemoryApp.ts:17</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/adapters/InMemoryApp.ts#L17">libs/eventually/src/adapters/InMemoryApp.ts:17</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="emit" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>emit</span><a href="#emit" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -288,7 +282,7 @@ to each.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#emit">emit</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:681</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:716</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="eventNames" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>event<wbr/>Names</span><a href="#eventNames" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -305,7 +299,7 @@ listeners. The values in the array are strings or <code>Symbol</code>s.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#eventNames">eventNames</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:744</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:779</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="getMaxListeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Max<wbr/>Listeners</span><a href="#getMaxListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -320,7 +314,7 @@ set by <code>emitter.setMaxListeners(n)</code> or defaults to <a href="eventuall
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#getMaxListeners">getMaxListeners</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:596</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:631</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="listen" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>listen</span><a href="#listen" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -329,7 +323,7 @@ set by <code>emitter.setMaxListeners(n)</code> or defaults to <a href="eventuall
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Overrides <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#listen">listen</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/adapters/InMemoryApp.ts#L21">libs/eventually/src/adapters/InMemoryApp.ts:21</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/adapters/InMemoryApp.ts#L21">libs/eventually/src/adapters/InMemoryApp.ts:21</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="listenerCount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>listener<wbr/>Count</span><a href="#listenerCount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -358,7 +352,7 @@ in the list of the listeners of the event.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#listenerCount">listenerCount</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:690</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:725</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="listeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>listeners</span><a href="#listeners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -379,7 +373,7 @@ in the list of the listeners of the event.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#listeners">listeners</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:609</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:644</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="off" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>off</span><a href="#off" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -411,7 +405,7 @@ in the list of the listeners of the event.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#off">off</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:569</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:604</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="on" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>on</span><a href="#on" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -443,7 +437,7 @@ in the list of the listeners of the event.</p>
 <h4 class="tsd-returns-title">Returns <a href="eventually.InMemoryApp.html" class="tsd-signature-type tsd-kind-class">InMemoryApp</a></h4><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#on">on</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L50">libs/eventually/src/builder.ts:50</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L72">libs/eventually/src/builder.ts:72</a></li></ul></aside></li>
 <li class="tsd-signature tsd-anchor-link" id="on.on-2"><span class="tsd-kind-call-signature">on</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">event</span>, <span class="tsd-kind-parameter">listener</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="eventually.InMemoryApp.html" class="tsd-signature-type tsd-kind-class">InMemoryApp</a><a href="#on.on-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
@@ -472,7 +466,7 @@ in the list of the listeners of the event.</p>
 <h4 class="tsd-returns-title">Returns <a href="eventually.InMemoryApp.html" class="tsd-signature-type tsd-kind-class">InMemoryApp</a></h4><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#on">on</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L54">libs/eventually/src/builder.ts:54</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L76">libs/eventually/src/builder.ts:76</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="once" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>once</span><a href="#once" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -518,7 +512,7 @@ event listener to the beginning of the listeners array.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#once">once</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:481</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:516</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="prependListener" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>prepend<wbr/>Listener</span><a href="#prependListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -562,7 +556,7 @@ times.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#prependListener">prependListener</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:708</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:743</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="prependOnceListener" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>prepend<wbr/>Once<wbr/>Listener</span><a href="#prependOnceListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -604,7 +598,7 @@ listener is removed, and then invoked.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#prependOnceListener">prependOnceListener</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:724</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:759</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="rawListeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>raw<wbr/>Listeners</span><a href="#rawListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -626,7 +620,7 @@ including any wrappers (such as those created by <code>.once()</code>).</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#rawListeners">rawListeners</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:640</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:675</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="removeAllListeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>All<wbr/>Listeners</span><a href="#removeAllListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -649,7 +643,7 @@ component or module (e.g. sockets or file streams).</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#removeAllListeners">removeAllListeners</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:580</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:615</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="removeListener" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Listener</span><a href="#removeListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -703,7 +697,7 @@ recently added instance. In the example the <code>once(&#39;ping&#39;)</code>lis
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#removeListener">removeListener</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:564</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:599</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="setMaxListeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Max<wbr/>Listeners</span><a href="#setMaxListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -726,7 +720,7 @@ modified for this specific <code>EventEmitter</code> instance. The value can be 
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#setMaxListeners">setMaxListeners</a></p>
 <ul>
-<li>Defined in node_modules/@types/node/events.d.ts:590</li></ul></aside></li></ul></section>
+<li>Defined in node_modules/@types/node/events.d.ts:625</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="with" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>with</span><a href="#with" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -762,7 +756,7 @@ modified for this specific <code>EventEmitter</code> instance. The value can be 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#with">with</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L195">libs/eventually/src/builder.ts:195</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L216">libs/eventually/src/builder.ts:216</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="withStreams" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>with<wbr/>Streams</span><a href="#withStreams" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -774,7 +768,51 @@ modified for this specific <code>EventEmitter</code> instance. The value can be 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#withStreams">withStreams</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/builder.ts#L181">libs/eventually/src/builder.ts:181</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/builder.ts#L202">libs/eventually/src/builder.ts:202</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="addAbortListener" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>add<wbr/>Abort<wbr/>Listener</span><a href="#addAbortListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-inherited tsd-is-external">
+<li class="tsd-signature tsd-anchor-link" id="addAbortListener.addAbortListener-1"><span class="tsd-kind-call-signature">add<wbr/>Abort<wbr/>Listener</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">signal</span>, <span class="tsd-kind-parameter">resource</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Disposable</span><a href="#addAbortListener.addAbortListener-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description"><code class="tsd-tag ts-flagExperimental">Experimental</code> 
+<div class="tsd-comment tsd-typography"><p>Listens once to the <code>abort</code> event on the provided <code>signal</code>.</p>
+<p>Listening to the <code>abort</code> event on abort signals is unsafe and may
+lead to resource leaks since another third party with the signal can
+call <code>e.stopImmediatePropagation()</code>. Unfortunately Node.js cannot change
+this since it would violate the web standard. Additionally, the original
+API makes it easy to forget to remove listeners.</p>
+<p>This API allows safely using <code>AbortSignal</code>s in Node.js APIs by solving these
+two issues by listening to the event such that <code>stopImmediatePropagation</code> does
+not prevent the listener from running.</p>
+<p>Returns a disposable so that it may be unsubscribed from more easily.</p>
+<pre><code class="language-js"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">addAbortListener</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&#39;node:events&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">function</span><span class="hl-1"> </span><span class="hl-6">example</span><span class="hl-1">(</span><span class="hl-2">signal</span><span class="hl-1">) {</span><br/><span class="hl-1">  </span><span class="hl-4">let</span><span class="hl-1"> </span><span class="hl-2">disposable</span><span class="hl-1">;</span><br/><span class="hl-1">  </span><span class="hl-0">try</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-2">signal</span><span class="hl-1">.</span><span class="hl-6">addEventListener</span><span class="hl-1">(</span><span class="hl-3">&#39;abort&#39;</span><span class="hl-1">, (</span><span class="hl-2">e</span><span class="hl-1">) </span><span class="hl-4">=&gt;</span><span class="hl-1"> </span><span class="hl-2">e</span><span class="hl-1">.</span><span class="hl-6">stopImmediatePropagation</span><span class="hl-1">());</span><br/><span class="hl-1">    </span><span class="hl-2">disposable</span><span class="hl-1"> = </span><span class="hl-6">addAbortListener</span><span class="hl-1">(</span><span class="hl-2">signal</span><span class="hl-1">, (</span><span class="hl-2">e</span><span class="hl-1">) </span><span class="hl-4">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-8">// Do something when signal is aborted.</span><br/><span class="hl-1">    });</span><br/><span class="hl-1">  } </span><span class="hl-0">finally</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-2">disposable</span><span class="hl-1">?.[</span><span class="hl-2">Symbol</span><span class="hl-1">.</span><span class="hl-2">dispose</span><span class="hl-1">]();</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">}</span>
+</code><button>Copy</button></pre>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">signal</span>: <span class="tsd-signature-type ">AbortSignal</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">resource</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">event</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures tsd-is-external">
+<li class="tsd-signature"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">event</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">event</span>: <span class="tsd-signature-type ">Event</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Disposable</span></h4><p>that removes the <code>abort</code> listener.</p>
+
+<div class="tsd-comment tsd-typography">
+<h4>Since</h4><p>v20.5.0</p>
+</div><aside class="tsd-sources">
+<p>Inherited from <a href="eventually.Builder.html">Builder</a>.<a href="eventually.Builder.html#addAbortListener">addAbortListener</a></p>
+<ul>
+<li>Defined in node_modules/@types/node/events.d.ts:375</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="getEventListeners" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>get<wbr/>Event<wbr/>Listeners</span><a href="#getEventListeners" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -994,7 +1032,6 @@ special handling:</p>
 <li><a href="#artifacts" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>artifacts</span></a></li>
 <li><a href="#commits" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>commits</span></a></li>
 <li><a href="#messages" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>messages</span></a></li>
-<li><a href="#stores" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>stores</span></a></li>
 <li><a href="#captureRejectionSymbol" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>capture<wbr/>Rejection<wbr/>Symbol</span></a></li>
 <li><a href="#captureRejections" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>capture<wbr/>Rejections</span></a></li>
 <li><a href="#defaultMaxListeners" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>default<wbr/>Max<wbr/>Listeners</span></a></li>
@@ -1021,6 +1058,7 @@ special handling:</p>
 <li><a href="#setMaxListeners" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>set<wbr/>Max<wbr/>Listeners</span></a></li>
 <li><a href="#with" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>with</span></a></li>
 <li><a href="#withStreams" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>with<wbr/>Streams</span></a></li>
+<li><a href="#addAbortListener" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>add<wbr/>Abort<wbr/>Listener</span></a></li>
 <li><a href="#getEventListeners" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Event<wbr/>Listeners</span></a></li>
 <li><a href="#getMaxListeners-2" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Max<wbr/>Listeners</span></a></li>
 <li><a href="#listenerCount-2" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>listener<wbr/>Count</span></a></li>
@@ -1047,7 +1085,6 @@ special handling:</p>
 <li><a href="../interfaces/eventually.Logger.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Logger</span></a></li>
 <li><a href="../interfaces/eventually.ProjectorStore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Projector<wbr/>Store</span></a></li>
 <li><a href="../interfaces/eventually.Schedule.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Schedule</span></a></li>
-<li><a href="../interfaces/eventually.Seedable.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Seedable</span></a></li>
 <li><a href="../interfaces/eventually.Store.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Store</span></a></li>
 <li><a href="../types/eventually.Action.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Action</span></a></li>
 <li><a href="../types/eventually.Actor.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Actor</span></a></li>
@@ -1075,6 +1112,7 @@ special handling:</p>
 <li><a href="../types/eventually.CommittedEvent.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Committed<wbr/>Event</span></a></li>
 <li><a href="../types/eventually.CommittedEventMetadata.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Committed<wbr/>Event<wbr/>Metadata</span></a></li>
 <li><a href="../types/eventually.Condition.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Condition</span></a></li>
+<li><a href="../types/eventually.DeepPartial.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Deep<wbr/>Partial</span></a></li>
 <li><a href="../types/eventually.Disposer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Disposer</span></a></li>
 <li><a href="../types/eventually.Empty.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Empty</span></a></li>
 <li><a href="../types/eventually.Environment.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Environment</span></a></li>
@@ -1098,6 +1136,7 @@ special handling:</p>
 <li><a href="../types/eventually.MessageMetadata.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Message<wbr/>Metadata</span></a></li>
 <li><a href="../types/eventually.Messages.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Messages</span></a></li>
 <li><a href="../types/eventually.Operator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Operator</span></a></li>
+<li><a href="../types/eventually.Patch.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Patch</span></a></li>
 <li><a href="../types/eventually.Policy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy</span></a></li>
 <li><a href="../types/eventually.PolicyFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Factory</span></a></li>
 <li><a href="../types/eventually.PolicySchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Schemas</span></a></li>
@@ -1119,6 +1158,7 @@ special handling:</p>
 <li><a href="../types/eventually.ProjectorSchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Schemas</span></a></li>
 <li><a href="../types/eventually.Reducible.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible</span></a></li>
 <li><a href="../types/eventually.ReducibleFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible<wbr/>Factory</span></a></li>
+<li><a href="../types/eventually.Schema.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Schema</span></a></li>
 <li><a href="../types/eventually.Schemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Schemas</span></a></li>
 <li><a href="../types/eventually.Scope.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Scope</span></a></li>
 <li><a href="../types/eventually.Seeder.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Seeder</span></a></li>
@@ -1156,10 +1196,10 @@ special handling:</p>
 <li><a href="../functions/eventually.broker-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>broker</span></a></li>
 <li><a href="../functions/eventually.camelize.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>camelize</span></a></li>
 <li><a href="../functions/eventually.client-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>client</span></a></li>
-<li><a href="../functions/eventually.clone.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>clone</span></a></li>
 <li><a href="../functions/eventually.command-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>command</span></a></li>
 <li><a href="../functions/eventually.config.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>config</span></a></li>
 <li><a href="../functions/eventually.dateReviver.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>date<wbr/>Reviver</span></a></li>
+<li><a href="../functions/eventually.debounce.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>debounce</span></a></li>
 <li><a href="../functions/eventually.decamelize.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>decamelize</span></a></li>
 <li><a href="../functions/eventually.dispose.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>dispose</span></a></li>
 <li><a href="../functions/eventually.drain.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>drain</span></a></li>
@@ -1169,14 +1209,17 @@ special handling:</p>
 <li><a href="../functions/eventually.invoke.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>invoke</span></a></li>
 <li><a href="../functions/eventually.load.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>load</span></a></li>
 <li><a href="../functions/eventually.log.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>log</span></a></li>
+<li><a href="../functions/eventually.patchCopy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>patch<wbr/>Copy</span></a></li>
 <li><a href="../functions/eventually.poll.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>poll</span></a></li>
 <li><a href="../functions/eventually.port.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>port</span></a></li>
 <li><a href="../functions/eventually.project.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>project</span></a></li>
 <li><a href="../functions/eventually.query.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>query</span></a></li>
 <li><a href="../functions/eventually.read.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>read</span></a></li>
 <li><a href="../functions/eventually.scheduler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>scheduler</span></a></li>
+<li><a href="../functions/eventually.seed.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>seed</span></a></li>
 <li><a href="../functions/eventually.sleep.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>sleep</span></a></li>
 <li><a href="../functions/eventually.store-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>store</span></a></li>
+<li><a href="../functions/eventually.throttle.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>throttle</span></a></li>
 <li><a href="../functions/eventually.validate.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>validate</span></a></li>
 <li><a href="../functions/eventually.validateMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>validate<wbr/>Message</span></a></li></ul></div></details></li>
 <li><a href="../modules/eventually_broker.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>eventually-<wbr/>broker</span></a></li>

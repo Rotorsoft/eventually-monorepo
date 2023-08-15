@@ -27,16 +27,22 @@ export const config = port(function config() {
  ```ts
  void bootstrap(async (): Promise<void> => {
   // Seed the stores (this should be done by CI/CD pipelines)
-  await store().seed();
-  await pgHotelProjectorStore.seed();
-  await pgNext30ProjectorStore.seed();
-
   // Register artifacts, build the app
   const express = app(new ExpressApp())
     .with(Room)
-    .with(Hotel, { store: pgHotelProjectorStore })
-    .with(Next30Days, { store: pgNext30ProjectorStore })
+    .with(Hotel, {
+      projector: {
+        store: PostgresProjectorStore("hotel"),
+        indexes: [{ type: "asc" }]
+      }
+    })
+    .with(Next30Days, {
+      projector: { store: PostgresProjectorStore("next30"), indexes: [{}] }
+    })
     .build();
+
+  // To seed the stores (CI/CD)
+  await seed(); 
 
   // Start listing to incoming messages  
   await app().listen();

@@ -19,7 +19,6 @@ export const boot = (): Promise<void> =>
 
     if (eventually.store) {
       store(PostgresStore(eventually.store));
-      await store().seed();
     }
 
     if (eventually.artifacts) {

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>clone | @rotorsoft/eventually-monorepo</title><meta name="description" content="Documentation for @rotorsoft/eventually-monorepo"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>seed | @rotorsoft/eventually-monorepo</title><meta name="description" content="Documentation for @rotorsoft/eventually-monorepo"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,37 +14,18 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">@rotorsoft/eventually-monorepo</a></li>
 <li><a href="../modules/eventually.html">eventually</a></li>
-<li><a href="eventually.clone.html">clone</a></li></ul>
-<h1>Function clone</h1></div>
+<li><a href="eventually.seed.html">seed</a></li></ul>
+<h1>Function seed</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="clone"><span class="tsd-kind-call-signature">clone</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">state</span>, <span class="tsd-kind-parameter">patch</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><a href="#clone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="seed"><span class="tsd-kind-call-signature">seed</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#seed" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Clones state with patches recursively. Keys with <code>undefined</code> values in patch are deleted.</p>
+<div class="tsd-comment tsd-typography"><p>Seeds registered stores</p>
 </div>
-<section class="tsd-panel">
-<h4>Type Parameters</h4>
-<ul class="tsd-type-parameter-list">
-<li>
-<h4><span class="tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol"> extends </span><a href="../types/eventually.State.html" class="tsd-signature-type tsd-kind-type-alias">State</a></h4></li></ul></section>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5><span class="tsd-kind-parameter">state</span>: <span class="tsd-signature-type ">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span></h5>
-<div class="tsd-comment tsd-typography"><p>original state</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li>
-<li>
-<h5><span class="tsd-kind-parameter">patch</span>: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
-<div class="tsd-comment tsd-typography"><p>patches to merge</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Readonly</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">S</span><span class="tsd-signature-symbol">&gt;</span></h4><p>a new patched state</p>
-
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/8eee7ffa/libs/eventually/src/utils.ts#L191">libs/eventually/src/utils.ts:191</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/Rotorsoft/eventually-monorepo/blob/967f9d1b/libs/eventually/src/utils.ts#L245">libs/eventually/src/utils.ts:245</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -79,7 +60,6 @@
 <li><a href="../interfaces/eventually.Logger.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Logger</span></a></li>
 <li><a href="../interfaces/eventually.ProjectorStore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Projector<wbr/>Store</span></a></li>
 <li><a href="../interfaces/eventually.Schedule.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Schedule</span></a></li>
-<li><a href="../interfaces/eventually.Seedable.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Seedable</span></a></li>
 <li><a href="../interfaces/eventually.Store.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Store</span></a></li>
 <li><a href="../types/eventually.Action.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Action</span></a></li>
 <li><a href="../types/eventually.Actor.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Actor</span></a></li>
@@ -107,6 +87,7 @@
 <li><a href="../types/eventually.CommittedEvent.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Committed<wbr/>Event</span></a></li>
 <li><a href="../types/eventually.CommittedEventMetadata.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Committed<wbr/>Event<wbr/>Metadata</span></a></li>
 <li><a href="../types/eventually.Condition.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Condition</span></a></li>
+<li><a href="../types/eventually.DeepPartial.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Deep<wbr/>Partial</span></a></li>
 <li><a href="../types/eventually.Disposer.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Disposer</span></a></li>
 <li><a href="../types/eventually.Empty.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Empty</span></a></li>
 <li><a href="../types/eventually.Environment.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Environment</span></a></li>
@@ -130,6 +111,7 @@
 <li><a href="../types/eventually.MessageMetadata.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Message<wbr/>Metadata</span></a></li>
 <li><a href="../types/eventually.Messages.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Messages</span></a></li>
 <li><a href="../types/eventually.Operator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Operator</span></a></li>
+<li><a href="../types/eventually.Patch.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Patch</span></a></li>
 <li><a href="../types/eventually.Policy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy</span></a></li>
 <li><a href="../types/eventually.PolicyFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Factory</span></a></li>
 <li><a href="../types/eventually.PolicySchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Policy<wbr/>Schemas</span></a></li>
@@ -151,6 +133,7 @@
 <li><a href="../types/eventually.ProjectorSchemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Projector<wbr/>Schemas</span></a></li>
 <li><a href="../types/eventually.Reducible.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible</span></a></li>
 <li><a href="../types/eventually.ReducibleFactory.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Reducible<wbr/>Factory</span></a></li>
+<li><a href="../types/eventually.Schema.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Schema</span></a></li>
 <li><a href="../types/eventually.Schemas.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Schemas</span></a></li>
 <li><a href="../types/eventually.Scope.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Scope</span></a></li>
 <li><a href="../types/eventually.Seeder.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Seeder</span></a></li>
@@ -188,10 +171,10 @@
 <li><a href="eventually.broker-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>broker</span></a></li>
 <li><a href="eventually.camelize.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>camelize</span></a></li>
 <li><a href="eventually.client-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>client</span></a></li>
-<li><a href="eventually.clone.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>clone</span></a></li>
 <li><a href="eventually.command-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>command</span></a></li>
 <li><a href="eventually.config.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>config</span></a></li>
 <li><a href="eventually.dateReviver.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>date<wbr/>Reviver</span></a></li>
+<li><a href="eventually.debounce.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>debounce</span></a></li>
 <li><a href="eventually.decamelize.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>decamelize</span></a></li>
 <li><a href="eventually.dispose.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>dispose</span></a></li>
 <li><a href="eventually.drain.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>drain</span></a></li>
@@ -201,14 +184,17 @@
 <li><a href="eventually.invoke.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>invoke</span></a></li>
 <li><a href="eventually.load.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>load</span></a></li>
 <li><a href="eventually.log.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>log</span></a></li>
+<li><a href="eventually.patchCopy.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>patch<wbr/>Copy</span></a></li>
 <li><a href="eventually.poll.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>poll</span></a></li>
 <li><a href="eventually.port.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>port</span></a></li>
 <li><a href="eventually.project.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>project</span></a></li>
 <li><a href="eventually.query.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>query</span></a></li>
 <li><a href="eventually.read.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>read</span></a></li>
 <li><a href="eventually.scheduler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>scheduler</span></a></li>
+<li><a href="eventually.seed.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>seed</span></a></li>
 <li><a href="eventually.sleep.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>sleep</span></a></li>
 <li><a href="eventually.store-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>store</span></a></li>
+<li><a href="eventually.throttle.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>throttle</span></a></li>
 <li><a href="eventually.validate.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>validate</span></a></li>
 <li><a href="eventually.validateMessage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>validate<wbr/>Message</span></a></li></ul></div></details></li>
 <li><a href="../modules/eventually_broker.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>eventually-<wbr/>broker</span></a></li>
