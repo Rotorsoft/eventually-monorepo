@@ -1,14 +1,13 @@
 import { InMemoryBroker } from "../../adapters";
-import { app, client } from "../../ports";
+import { app, broker, client, log } from "../../ports";
 import { dispose } from "../../port";
 import { MatchProjector } from "./Match.projector";
 import { MatchSystem } from "./Match.system";
 
 describe("async broker", () => {
-  const broker = InMemoryBroker({ timeout: 1000, limit: 10, throttle: 500 });
-
   beforeAll(async () => {
     app().with(MatchSystem).with(MatchProjector).build();
+    broker(InMemoryBroker({ timeout: 1000, limit: 10, delay: 500 }));
     await app().listen();
   });
 
@@ -44,10 +43,12 @@ describe("async broker", () => {
       },
       { stream: "test" }
     );
-    //await client().query({ limit: 5 }, (e) => log().events([e]));
-    await broker.drain();
+    await client().query({ limit: 5 }, (e) => log().events([e]));
+
+    console.log("final drain");
+    await broker().drain();
     const records = await client().read(MatchProjector, "MatchSystem");
+    console.log(records);
     expect(records.at(0)?.watermark).toBe(2);
-    await broker.dispose();
   });
 });

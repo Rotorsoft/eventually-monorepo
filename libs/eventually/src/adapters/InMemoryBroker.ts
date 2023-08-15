@@ -2,7 +2,7 @@ import { drain } from "../handlers";
 import { STATE_EVENT, type Broker } from "../interfaces";
 import { app, log, store } from "../ports";
 import type { ArtifactType, EventHandlerFactory } from "../types";
-import { debounce } from "../utils";
+import { throttle } from "../utils";
 
 const event_handler_types: Array<ArtifactType> = [
   "policy",
@@ -55,7 +55,7 @@ export const InMemoryBroker = ({
       error && log().error(error);
     }
   };
-  const debouncedDrain = debounce(drainAll, delay);
+  const __drain = throttle(drainAll, delay);
 
   // subscribe broker to commit events
   app().on("commit", async ({ factory, snapshot }) => {
@@ -84,7 +84,7 @@ export const InMemoryBroker = ({
         }
       }
     }
-    debouncedDrain();
+    __drain();
   });
 
   return {
