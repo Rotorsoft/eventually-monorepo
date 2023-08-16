@@ -94,7 +94,7 @@ export const PostgresProjectorStore = <S extends State>(
           upserted += (await client.query(sql, vals)).rowCount;
         }
         if (deletes.length) {
-          const sql = deletes.join("\n");
+          const sql = deletes.join(";\n");
           log().gray().trace(sql);
           deleted = (await client.query(sql)).rowCount;
         }
