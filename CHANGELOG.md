@@ -1,3 +1,5 @@
+#### 2023-08-16 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.7...@rotorsoft/eventually-pg-v5.5.8) @rotorsoft/eventually-pg-v5.5.8
+  - PATCH [5a4d973b](https://github.com/Rotorsoft/eventually-monorepo/commit/5a4d973bf7a0e7dc97977c6c8b2a4863306b8798) fix: add semicolon to multiple deletes
 #### 2023-08-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.2...@rotorsoft/calculator-artifacts-v1.7.3) @rotorsoft/calculator-artifacts-v1.7.3
   - PATCH [b38358ca](https://github.com/Rotorsoft/eventually-monorepo/commit/b38358cab158dbc95bd3b1fc64d5ddecf9ffc343) fix: fix tests, gen docs, up packages
 #### 2023-08-15 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.1...@rotorsoft/eventually-service-expg-v1.1.2) @rotorsoft/eventually-service-expg-v1.1.2
