@@ -1,3 +1,5 @@
+#### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.2...@rotorsoft/eventually-service-expg-v1.1.3) @rotorsoft/eventually-service-expg-v1.1.3
+  - PATCH [ccf045db](https://github.com/Rotorsoft/eventually-monorepo/commit/ccf045dbce2082b35a8b7c7cda225bf830fb2ced) fix: improve projection patches and queries with more options and aggregates
 #### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.8...@rotorsoft/eventually-pg-v5.5.9) @rotorsoft/eventually-pg-v5.5.9
   - PATCH [ccf045db](https://github.com/Rotorsoft/eventually-monorepo/commit/ccf045dbce2082b35a8b7c7cda225bf830fb2ced) fix: improve projection patches and queries with more options and aggregates
 #### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.3...@rotorsoft/eventually-openapi-v0.5.4) @rotorsoft/eventually-openapi-v0.5.4
