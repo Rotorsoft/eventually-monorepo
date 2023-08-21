@@ -6,7 +6,7 @@ export const Environments = [
 ] as const;
 export type Environment = (typeof Environments)[number];
 
-export const LogLevels = ["error", "info", "trace"] as const;
+export const LogLevels = ["error", "info", "data", "trace"] as const;
 export type LogLevel = (typeof LogLevels)[number];
 
 export const Scopes = ["public", "private", "default"] as const;

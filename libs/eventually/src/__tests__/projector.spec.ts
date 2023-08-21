@@ -1,12 +1,10 @@
 import {
   dispose,
+  InMemoryProjectorStore,
   type Patch,
   type ProjectionRecord
 } from "@rotorsoft/eventually";
-import { Pool } from "pg";
 import { z } from "zod";
-import { PostgresProjectorStore } from "..";
-import { config } from "../config";
 
 const zSchema = z.object({
   id: z.string(),
@@ -90,19 +88,14 @@ Object.values(insertRecords).map((v) => {
   projectionMap.records.set(id, patch);
 });
 
-const table = "ProjectorTests";
 describe("projector", () => {
-  const pool = new Pool(config.pg);
-  const db = PostgresProjectorStore<Schema>(table);
-
+  const db = InMemoryProjectorStore<Schema>();
   beforeEach(async () => {
-    await pool.query(`DROP TABLE IF EXISTS "${table}";`);
-    await db.seed(zSchema, [{ managerId: "asc" }, { countryId: "asc" }]);
+    await db.dispose();
     await db.commit(projectionMap, 6);
   });
 
   afterAll(async () => {
-    await pool.end();
     await dispose()();
   });
 

@@ -15,6 +15,8 @@ import type {
   State
 } from "./messages";
 import type {
+  AggQuery,
+  AggResult,
   ProjectionQuery,
   ProjectionRecord,
   ProjectionResults
@@ -131,4 +133,15 @@ export type Client = {
     factory: ProjectorFactory<S, E>,
     query: string | string[] | ProjectionQuery<S>
   ) => Promise<ProjectionRecord<S>[]>;
+
+  /**
+   * Aggregates projection records
+   * @param factory the projector factory
+   * @param query the aggregate query
+   * @returns the aggregate results
+   */
+  agg: <S extends State, E extends Messages>(
+    factory: ProjectorFactory<S, E>,
+    query: AggQuery<S>
+  ) => Promise<AggResult<S>>;
 };

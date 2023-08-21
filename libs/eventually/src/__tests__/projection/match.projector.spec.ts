@@ -3,8 +3,12 @@ import { MatchProjector } from "./Match.projector";
 import { steps, trace } from "./steps";
 
 describe("match projection", () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     app().with(MatchProjector).build();
+    await client().project(
+      MatchProjector,
+      steps.map((step) => step.event)
+    );
   });
 
   afterAll(async () => {
@@ -12,12 +16,6 @@ describe("match projection", () => {
   });
 
   it("should work", async () => {
-    const results = await client().project(
-      MatchProjector,
-      steps.map((step) => step.event)
-    );
-    expect(results).toEqual({ upserted: 6, deleted: 0, watermark: 5 });
-
     const states = (
       await client().read(
         MatchProjector,
@@ -65,7 +63,7 @@ describe("match projection", () => {
   it("should query with neq", async () => {
     const r = await client().read(MatchProjector, {
       where: {
-        manager: { operator: "neq", value: "Manager 1" }
+        manager: { neq: "Manager 1" }
       }
     });
     expect(r.length).toBe(5);
@@ -74,8 +72,8 @@ describe("match projection", () => {
   it("should query with other operators", async () => {
     const r = await client().read(MatchProjector, {
       where: {
-        jobId: { operator: "gt", value: 20 },
-        customerId: { operator: "lt", value: 20 }
+        jobId: { gt: 20 },
+        customerId: { lt: 20 }
       }
     });
     expect(r.length).toBe(0);
@@ -84,8 +82,8 @@ describe("match projection", () => {
   it("should query with other operators 2", async () => {
     const r = await client().read(MatchProjector, {
       where: {
-        jobId: { operator: "gte", value: 20 },
-        customerId: { operator: "lte", value: 20 }
+        jobId: { gte: 20 },
+        customerId: { lte: 20 }
       }
     });
     expect(r.length).toBe(0);
@@ -94,10 +92,24 @@ describe("match projection", () => {
   it("should query with in/not_in", async () => {
     const r = await client().read(MatchProjector, {
       where: {
-        jobId: { operator: "in", value: 1 },
-        customerId: { operator: "nin", value: 2 }
+        jobId: { in: 1 },
+        customerId: { nin: 2 }
       }
     });
     expect(r.length).toBe(0);
+  });
+
+  it("should aggregate with filters", async () => {
+    const r = await client().agg(MatchProjector, {
+      select: { id: ["count"], jobId: ["sum", "min", "max", "avg"] },
+      where: {
+        customerId: { gt: 100, lt: 200 }
+      }
+    });
+    expect(r.id?.count).toBe(4);
+    expect(r.jobId?.min).toBe(301);
+    expect(r.jobId?.max).toBe(302);
+    expect(r.jobId?.sum).toBe(603);
+    expect(r.jobId?.avg).toBe(301.5);
   });
 });

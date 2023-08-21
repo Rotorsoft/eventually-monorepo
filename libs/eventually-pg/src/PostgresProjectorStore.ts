@@ -1,10 +1,12 @@
 import type {
-  Condition,
+  Agg,
+  AggQuery,
   Operator,
+  ProjectionWhere,
   ProjectorStore,
   State
 } from "@rotorsoft/eventually";
-import { dispose, log } from "@rotorsoft/eventually";
+import { conditions, dispose, log, patch } from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
 import { projector } from "./seed";
@@ -16,7 +18,7 @@ types.setTypeParser(types.builtins.NUMERIC, (val) => parseFloat(val));
 
 const EQUALS: Operator[] = ["eq", "lte", "gte", "in"];
 
-const OPS: Record<Operator, string> = {
+const pgOperators: Record<Operator, string> = {
   eq: "=",
   neq: "<>",
   lt: "<",
@@ -25,6 +27,24 @@ const OPS: Record<Operator, string> = {
   gte: ">=",
   in: "in",
   nin: "not in"
+};
+
+const filter = (where: ProjectionWhere<State>, values: any[]): string => {
+  const offset = values.length;
+  return Object.entries(where)
+    .flatMap(([key, condition], i) =>
+      conditions(condition!).map(([operator, value], j) => {
+        const operation =
+          value === null
+            ? EQUALS.includes(operator)
+              ? "is null"
+              : "is not null"
+            : `${pgOperators[operator]} $${offset + i + j + 1}`;
+        values.push(value);
+        return `"${key}" ${operation}`;
+      })
+    )
+    .join(" AND ");
 };
 
 export const PostgresProjectorStore = <S extends State>(
@@ -48,7 +68,7 @@ export const PostgresProjectorStore = <S extends State>(
       const sql = `SELECT * FROM "${table}" WHERE id in (${ids
         .map((id) => `'${id}'`)
         .join(", ")})`;
-      log().gray().trace(sql);
+      log().green().data("sql:", sql);
 
       const result = await pool.query<S & { __watermark: number }>(sql);
       return result.rows.map(({ __watermark, ...state }) => {
@@ -60,43 +80,67 @@ export const PostgresProjectorStore = <S extends State>(
     },
 
     commit: async (map, watermark) => {
+      const deletes: Array<{ sql: string; vals: any[] }> = [];
       const upserts: Array<{ sql: string; vals: any[] }> = [];
-      const deletes: string[] = [];
-      map.forEach((patch) => {
-        if (patch.id) {
-          const vals = Object.entries(patch).filter(([key]) => key !== "id");
-          if (vals.length) {
-            const sql = `INSERT INTO "${table}"(id, ${vals
-              .map(([k]) => `"${k}"`)
-              .join(", ")}, __watermark) VALUES('${patch.id}', ${vals
-              .map((_, index) => `$${index + 1}`)
-              .join(", ")}, ${watermark}) ON CONFLICT (id) DO UPDATE SET ${vals
-              .map(([k], index) => `"${k}"=$${index + 1}`)
+
+      // filtered deletes
+      map.deletes.forEach((del) => {
+        const vals = [] as any[];
+        const where = filter(del, vals);
+        deletes.push({
+          sql: `DELETE FROM "${table}" WHERE __watermark < ${watermark} AND ${where}`,
+          vals
+        });
+      });
+
+      // filtered updates
+      map.updates.forEach(({ where, ...patch }) => {
+        if (where) {
+          const vals = Object.values(patch);
+          const _where = filter(where, vals);
+          upserts.push({
+            sql: `UPDATE "${table}" SET ${Object.keys(patch)
+              .map((key, index) => `"${key}"=$${index + 1}`)
               .join(
                 ", "
-              )}, __watermark=${watermark} WHERE "${table}".__watermark < ${watermark} AND "${table}".id='${
-              patch.id
-            }'`;
-            upserts.push({ sql, vals: vals.map(([, v]) => v) });
-          } else
-            deletes.push(
-              `DELETE FROM "${table}" WHERE "${table}".__watermark < ${watermark} AND "${table}".id='${patch.id}'`
-            );
+              )}, __watermark=${watermark} WHERE __watermark < ${watermark} AND ${_where}`,
+            vals
+          });
         }
+      });
+
+      // patched records
+      map.records.forEach((patch, id) => {
+        const vals = Object.entries(patch);
+        if (vals.length) {
+          const sql = `INSERT INTO "${table}"(id, ${vals
+            .map(([k]) => `"${k}"`)
+            .join(", ")}, __watermark) VALUES('${id}', ${vals
+            .map((_, index) => `$${index + 1}`)
+            .join(", ")}, ${watermark}) ON CONFLICT (id) DO UPDATE SET ${vals
+            .map(([k], index) => `"${k}"=$${index + 1}`)
+            .join(
+              ", "
+            )}, __watermark=${watermark} WHERE "${table}".__watermark < ${watermark} AND "${table}".id='${id}'`;
+          upserts.push({ sql, vals: vals.map(([, v]) => v) });
+        } else
+          deletes.push({
+            sql: `DELETE FROM "${table}" WHERE __watermark < ${watermark} AND "${table}".id='${id}'`,
+            vals: []
+          });
       });
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
         let upserted = 0,
           deleted = 0;
-        for (const { sql, vals } of upserts) {
-          log().gray().trace(sql, vals);
-          upserted += (await client.query(sql, vals)).rowCount;
+        for (const { sql, vals } of deletes) {
+          log().green().data("sql:", sql, vals);
+          deleted += (await client.query(sql, vals)).rowCount;
         }
-        if (deletes.length) {
-          const sql = deletes.join(";\n");
-          log().gray().trace(sql);
-          deleted = (await client.query(sql)).rowCount;
+        for (const { sql, vals } of upserts) {
+          log().green().data("sql:", sql, vals);
+          upserted += (await client.query(sql, vals)).rowCount;
         }
         await client.query("COMMIT");
         return { upserted, deleted, watermark };
@@ -118,24 +162,7 @@ export const PostgresProjectorStore = <S extends State>(
         : "*";
       const values: any[] = [];
       const where = query.where
-        ? "WHERE ".concat(
-            Object.entries(query.where)
-              .map(([key, condition]: [string, Condition<any>], index) => {
-                const { operator, value }: { operator: Operator; value: any } =
-                  typeof condition === "object" && "operator" in condition
-                    ? condition
-                    : { operator: "eq", value: condition };
-                const operation =
-                  value === null
-                    ? EQUALS.includes(operator)
-                      ? "is null"
-                      : "is not null"
-                    : `${OPS[operator]} $${index + 1}`;
-                value && values.push(value);
-                return `"${key}" ${operation}`;
-              })
-              .join(" AND ")
-          )
+        ? "WHERE ".concat(filter(query.where, values))
         : "";
       const sort = query.sort
         ? "ORDER BY ".concat(
@@ -146,13 +173,38 @@ export const PostgresProjectorStore = <S extends State>(
         : "";
       const limit = query.limit ? `LIMIT ${query.limit}` : "";
       const sql = `SELECT ${fields} FROM "${table}" ${where} ${sort} ${limit}`;
-      log().gray().trace(sql, values);
+      log().green().data("sql:", sql, values);
 
       const result = await pool.query<S & { __watermark: number }>(sql, values);
       return result.rows.map(({ __watermark, ...state }) => ({
         state: state as any,
         watermark: __watermark
       }));
+    },
+
+    agg: async (query: AggQuery<S>) => {
+      const keys = Object.entries(query.select) as Array<[string, Agg[]]>;
+      const aggs = keys.flatMap(([key, aggs]) =>
+        aggs.map(
+          (agg) =>
+            [key, agg, `${agg}("${key}")`] satisfies [string, Agg, string]
+        )
+      );
+      const values: any[] = [];
+      const where = query.where
+        ? "WHERE ".concat(filter(query.where, values))
+        : "";
+      const sql = `SELECT ${aggs
+        .map(([key, agg, fn]) => `${fn} AS ${agg}_${key}`)
+        .join(", ")} FROM "${table}" ${where}`;
+      log().green().data("sql:", sql, values);
+
+      const row = (await pool.query(sql, values)).rows.at(0) ?? {};
+      return aggs.reduce(
+        (result, [key, agg]) =>
+          patch(result, { [key]: { [agg]: row[`${agg}_${key}`] } }),
+        {}
+      );
     }
   };
 

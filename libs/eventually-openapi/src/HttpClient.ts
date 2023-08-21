@@ -1,19 +1,21 @@
 import {
+  ProjectorFactory,
   decamelize,
+  type AggQuery,
+  type AggResult,
   type Client,
   type CommittedEvent,
   type Disposable,
   type EventResponse,
   type Messages,
   type ProjectionQuery,
+  type ProjectionRecord,
   type ReducibleFactory,
   type Snapshot,
-  type State,
-  ProjectorFactory,
-  ProjectionRecord
+  type State
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
-import { toRestProjectionQuery } from "./query";
+import { toRestAggQuery, toRestProjectionQuery } from "./query";
 import { httpGetPath, httpPostPath } from "./utils";
 
 /**
@@ -138,6 +140,19 @@ export const HttpClient = (
       >(url("/".concat(decamelize(factory.name))), {
         params: ids ? { ids } : toRestProjectionQuery(query as ProjectionQuery)
       });
+      return data;
+    },
+
+    agg: async <S extends State, E extends Messages>(
+      factory: ProjectorFactory<S, E>,
+      query: AggQuery<S>
+    ): Promise<AggResult<S>> => {
+      const { data } = await axios.get<State, AxiosResponse<AggResult<S>>>(
+        url("/".concat(decamelize(factory.name))),
+        {
+          params: toRestAggQuery(query)
+        }
+      );
       return data;
     }
   };

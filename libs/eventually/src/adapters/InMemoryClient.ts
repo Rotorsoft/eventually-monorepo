@@ -1,4 +1,5 @@
 import {
+  agg,
   command,
   event,
   invoke,
@@ -23,5 +24,6 @@ export const InMemoryClient = (): Client & Disposable => ({
   load,
   query,
   project,
-  read
+  read,
+  agg
 });

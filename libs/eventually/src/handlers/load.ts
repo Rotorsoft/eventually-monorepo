@@ -8,12 +8,12 @@ import type {
   Snapshot,
   State
 } from "../types";
-import { patchCopy } from "../utils";
+import { patch } from "../utils";
 
 /**
  * Reduces artifact from store
  * @param reducible the reducible artifact
- * @param id the reducible id (aggregate:stream or processmanager:actor)
+ * @param id the reducible id (agg:stream or processmanager:actor)
  * @param callback optional reduction predicate
  * @returns a snapshot
  */
@@ -22,7 +22,7 @@ export async function reduce<S extends State, E extends Messages>(
   id: { stream?: string; actor?: string },
   callback?: (snapshot: Snapshot<S, E>) => void
 ): Promise<Snapshot<S, E>> {
-  const reducer = reducible.reducer || patchCopy;
+  const reducer = reducible.reducer || patch;
 
   let state = reducible.init();
   let applyCount = 0;
@@ -39,7 +39,7 @@ export async function reduce<S extends State, E extends Messages>(
           stateCount++;
         }
       } else if (reducible.reduce[e.name]) {
-        state = reducer(state, reducible.reduce[e.name](state, e));
+        state = reducer(state, reducible.reduce[e.name](state, e)) as S;
         applyCount++;
       }
       callback && callback({ event, state, applyCount, stateCount });

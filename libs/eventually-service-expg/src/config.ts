@@ -20,7 +20,7 @@ type Config = z.infer<typeof Artifacts>;
 
 const getArtifacts = (): Config => {
   const manifest = fs.readFileSync("package.json");
-  return JSON.parse(manifest.toString()) as unknown as Config;
+  return JSON.parse(manifest.toString());
 };
 
 export const config = extend(getArtifacts(), Artifacts, target());

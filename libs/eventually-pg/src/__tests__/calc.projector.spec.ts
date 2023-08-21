@@ -80,8 +80,8 @@ describe("calculator with pg projector", () => {
     const records1 = await client().read(CalculatorTotals, {
       select: ["id"],
       where: {
-        id: { operator: "eq", value: `Totals-${stream2}` },
-        ["3"]: { operator: "gt", value: 1 }
+        id: { eq: `Totals-${stream2}` },
+        ["3"]: { gt: 1 }
       },
       sort: { id: "asc" },
       limit: 10

@@ -4,32 +4,38 @@ import type {
   CommittedEvent,
   Messages,
   Patch,
-  Projection,
+  ProjectionMap,
   ProjectionPatch,
   ProjectionResults,
   ProjectorFactory,
   State
 } from "../types";
-import { patchCopy } from "../utils";
+import { patch } from "../utils";
 
 /**
- * Projects events into a projection map (reduced partial states indexed by id)
- *
- * Result of reducing a stream of events into a map of patches,
- * where the cardinality of the map (keys) is driven by the input stream.
- *
- * - Use a batch process (starting from a subscription watermark) when the cardinality is high
- * - Use a projector store to materialize/cache
+ * Projects events (materialized view).
+ * - Projectors reduce events by returning state patches. A patch with an empty record `{id}` represents a `delete` operation.
+ * - Handles event batches (starting from the subscription watermark), reducing patches in a projection map before the final commit.
+ * - The cardinality of the projection is driven by the input stream (can map one or many aggregates in one record).
+ * - The map can contain record-level patches (by id) and filtered patches (updates and deletes).
+ * - Commits are executed in the following order:
+ *    - Filtered deletes
+ *    - Filtered updates
+ *    - Record level patches
  *
  * @param factory the projector factory
  * @param events the committed events to project
- * @returns the projection map
+ * @returns projection results
  */
 export default async function project<S extends State, E extends Messages>(
   factory: ProjectorFactory<S, E>,
   events: CommittedEvent<E>[]
 ): Promise<ProjectionResults> {
-  const map = new Map<string, ProjectionPatch<S>>();
+  const map: ProjectionMap<S> = {
+    records: new Map<string, Patch<S>>(),
+    updates: [],
+    deletes: []
+  };
   if (!events.length) return { upserted: 0, deleted: 0, watermark: -1 };
 
   const projector = factory();
@@ -39,23 +45,19 @@ export default async function project<S extends State, E extends Messages>(
     const event = events[i];
     log().green().trace(`\n>>> ${factory.name}`, event);
     const patches = await projector.on[event.name](event, map);
-    patches.forEach((patch) => {
-      if (Object.keys(patch).length === 1) {
-        // just the id, mark for deletion
-        map.set(patch.id, { id: patch.id } as Patch<Projection<S>> & {
-          id: string;
-        });
+    patches.forEach(({ id, where, ..._patch }) => {
+      if (!Object.keys(_patch).length) {
+        // when just the id, mark for deletion!
+        if (id) map.records.set(id, {} as Patch<S>);
+        else if (where) map.deletes.push(where);
       } else {
-        // patch over the existing map
-        const rec =
-          map.get(patch.id) ||
-          ({
-            id: patch.id
-          } as ProjectionPatch<S>);
-        map.set(
-          patch.id,
-          patchCopy(rec, patch as Patch<Patch<Projection<S>> & { id: string }>)
-        );
+        if (id) {
+          // reduce record patches
+          const rec = map.records.get(id) || ({} as Patch<S>);
+          // TODO: this is another good place to handle default values
+          map.records.set(id, patch<S>(rec, _patch as Patch<S>) as Patch<S>);
+        } else if (where)
+          map.updates.push({ where, ..._patch } as ProjectionPatch<S>);
       }
     });
   }

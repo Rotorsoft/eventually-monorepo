@@ -13,16 +13,23 @@ import type { Patch, State } from "./messages";
 export type Projection<S extends State> = S & { id: string };
 
 /**
- * A partial state with a required unique id
+ * A partial state applied to a record id or a filter
  */
 export type ProjectionPatch<S extends State> = Readonly<
-  Patch<Projection<S>> & { id: string }
+  Patch<S> & { id?: string; where?: ProjectionWhere<S> }
 >;
 
 /**
  * A map of projection patches
+ * - `records` patched records by id (inserts, updates, or deletes)
+ * - `updates` patched updates by filter
+ * - `deletes` patched deletes by filter
  */
-export type ProjectionMap<S extends State> = Map<string, ProjectionPatch<S>>;
+export type ProjectionMap<S extends State> = {
+  records: Map<string, Patch<S>>;
+  updates: ProjectionPatch<S>[];
+  deletes: ProjectionWhere<S>[];
+};
 
 /**
  * *** STORE SECTION ***
@@ -66,12 +73,7 @@ export type ProjectionResults = {
 /**
  * Filter condition. Uses scalar value as a shortcut to eq operator
  */
-export type Condition<T> =
-  | {
-      readonly operator: Operator;
-      readonly value: T;
-    }
-  | T;
+export type Condition<T> = { readonly [K in Operator]?: T } | Readonly<T>;
 
 /**
  * Projection filter expression by fields in record
@@ -99,4 +101,31 @@ export type ProjectionQuery<S extends State = State> = {
   readonly where?: ProjectionWhere<S>;
   readonly sort?: ProjectionSort<S>;
   readonly limit?: number;
+};
+
+/**
+ * Supported aggregate functions
+ */
+export type Agg = "count" | "sum" | "avg" | "min" | "max";
+
+// TODO: add constrain to select only numeric fields in aggs
+// type NumberKeys<T> = {
+//   [K in keyof T]: T[K] extends number | undefined ? K : never;
+// }[keyof T];
+
+/**
+ * Aggregate query options
+ * - `select` aggregated fields
+ * - `where?` filtered fields in projection record (should be indexed)
+ */
+export type AggQuery<S extends State> = {
+  readonly select: { readonly [K in keyof S]?: Agg[] };
+  readonly where?: ProjectionWhere<S>;
+};
+
+/**
+ * Aggregate results
+ */
+export type AggResult<S extends State> = {
+  readonly [K in keyof S]?: Partial<Record<Agg, number | null>>;
 };

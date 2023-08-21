@@ -61,8 +61,8 @@ describe("calculator with projector in express app", () => {
     const records1 = await http.read(CalculatorTotals, {
       select: ["id"],
       where: {
-        id: { operator: "eq", value: `Totals-${stream2}` },
-        ["3"]: { operator: "gt", value: 1 }
+        id: { eq: `Totals-${stream2}` },
+        ["3"]: { gt: 1 }
       },
       sort: { id: "asc" },
       limit: 10

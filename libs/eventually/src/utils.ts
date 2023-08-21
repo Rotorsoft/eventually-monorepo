@@ -3,8 +3,10 @@ import { app, store } from "./ports";
 import {
   RegistrationError,
   ValidationError,
+  type Condition,
   type Message,
   type Messages,
+  type Operator,
   type Patch,
   type State
 } from "./types";
@@ -216,27 +218,27 @@ const mergeable = (value: any): boolean =>
 
 /**
  * Copies state with patches recursively. Keys with `undefined` or `null` values in patch are deleted.
- * @param state original state
- * @param patch patches to merge
+ * @param prev original state
+ * @param curr patches to merge
  * @returns a new patched state
  */
-export const patchCopy = <S extends State>(
-  state: Readonly<S>,
-  patch: Readonly<Patch<S>> | undefined
-): Readonly<S> => {
+export const patch = <S extends State>(
+  prev: Readonly<S | Patch<S>>,
+  curr: Readonly<Patch<S>>
+): Readonly<S | Patch<S>> => {
   const copy: State = {};
-  Object.keys({ ...state, ...patch }).forEach((key) => {
-    const patched = !!patch && key in patch;
+  Object.keys({ ...prev, ...curr }).forEach((key) => {
+    const patched = !!curr && key in curr;
     const deleted =
-      patched && (typeof patch[key] === "undefined" || patch[key] === null);
-    const value = patched && !deleted ? patch[key] : state[key];
+      patched && (typeof curr[key] === "undefined" || curr[key] === null);
+    const value = patched && !deleted ? curr[key] : prev[key];
     if (!deleted) {
       if (mergeable(value))
-        copy[key] = patchCopy(state[key] || {}, patch && patch[key]);
+        copy[key] = patch(prev[key] || {}, curr && curr[key]);
       else copy[key] = value;
     }
   });
-  return copy as Readonly<S>;
+  return copy as S;
 };
 
 /**
@@ -252,3 +254,14 @@ export const seed = async (): Promise<void> => {
       );
   }
 };
+
+/**
+ * Decodes projector filter conditions
+ *
+ * @param condition filter condition expressions
+ * @returns [operator, value] tuples
+ */
+export const conditions = <T>(condition: Condition<T>): [Operator, any][] =>
+  typeof condition === "object"
+    ? (Object.entries(condition) as [Operator, any][])
+    : [["eq", condition]];

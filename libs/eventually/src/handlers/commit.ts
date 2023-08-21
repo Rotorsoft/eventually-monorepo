@@ -9,7 +9,7 @@ import type {
   State,
   Streamable
 } from "../types";
-import { patchCopy, validateMessage } from "../utils";
+import { patch, validateMessage } from "../utils";
 
 /**
  * Commits events to artifact's stream
@@ -37,7 +37,7 @@ export async function commit<
   );
 
   if ("reduce" in artifact) {
-    const reducer = ("reducer" in artifact && artifact.reducer) || patchCopy;
+    const reducer = ("reducer" in artifact && artifact.reducer) || patch;
     let { state, applyCount } = snapshot;
     const snapshots = committed.map((event) => {
       log()
@@ -46,7 +46,7 @@ export async function commit<
           `   ... ${artifact.stream} committed ${event.name} @ ${event.version}`,
           event.data
         );
-      state = reducer(state, artifact.reduce[event.name](state, event));
+      state = reducer(state, artifact.reduce[event.name](state, event)) as S;
       applyCount++;
       log()
         .gray()

@@ -1,4 +1,6 @@
 import type {
+  AggQuery,
+  AggResult,
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
@@ -126,6 +128,13 @@ export interface ProjectorStore<S extends State = State> extends Disposable {
    * @returns array of records found
    */
   query: (query: ProjectionQuery<S>) => Promise<ProjectionRecord<S>[]>;
+
+  /**
+   * Aggregates projection
+   * @param query aggregate query
+   * @returns aggregate results
+   */
+  agg: (query: AggQuery<S>) => Promise<AggResult<S>>;
 
   /**
    * Seeds the schemas

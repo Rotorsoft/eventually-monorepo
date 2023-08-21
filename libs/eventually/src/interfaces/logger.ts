@@ -15,8 +15,9 @@ export interface Logger extends Disposable {
   dimmed(): Logger;
   italic(): Logger;
   underlined(): Logger;
-  trace(message: string, ...params: any[]): void;
-  info(message: string, ...params: any[]): void;
   events(events: CommittedEvent[]): void;
+  trace(message: string, ...params: any[]): void;
+  data(message: string, ...params: any[]): void;
+  info(message: string, ...params: any[]): void;
   error(error: unknown): void;
 }

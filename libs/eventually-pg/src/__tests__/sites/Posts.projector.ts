@@ -21,7 +21,7 @@ export const Posts = (): InferProjector<typeof PostsSchemas> => ({
     PostUpdated: async ({ data }, map) => {
       const { id, slug, ...rest } = data;
       if (slug && slug !== id) {
-        const old = map.get(id) ?? (await client().read(Posts, id));
+        const old = map.records.get(id) ?? (await client().read(Posts, id));
         return [{ id }, { ...old, ...rest, id: slug, updatedAt: new Date() }];
       }
       return [{ ...rest, id, updatedAt: new Date() }];

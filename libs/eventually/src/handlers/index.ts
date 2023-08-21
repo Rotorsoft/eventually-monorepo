@@ -1,3 +1,4 @@
+import agg from "./agg";
 import command from "./command";
 import event from "./event";
 import invoke from "./invoke";
@@ -7,4 +8,4 @@ import project from "./project";
 import query from "./query";
 import read from "./read";
 
-export { command, drain, event, invoke, load, poll, project, query, read };
+export { agg, command, drain, event, invoke, load, poll, project, query, read };

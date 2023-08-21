@@ -32,7 +32,7 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
       const id = `Room-${data.number}`;
 
       const reserved =
-        map.get(id)?.reserved ??
+        map.records.get(id)?.reserved ??
         (await client().read(Hotel, id)).at(0)?.state.reserved ??
         {};
 

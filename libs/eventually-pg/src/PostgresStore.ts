@@ -177,11 +177,10 @@ export const PostgresStore = (table: string): Store => {
         const committed = await Promise.all(
           events.map(async ({ name, data }) => {
             version++;
-            const committed = await client.query<Event>(
-              `INSERT INTO "${table}"(name, data, stream, version, actor, metadata)
-          VALUES($1, $2, $3, $4, $5, $6) RETURNING *`,
-              [name, data, stream, version, actorId, metadata]
-            );
+            const sql = `INSERT INTO "${table}"(name, data, stream, version, actor, metadata) VALUES($1, $2, $3, $4, $5, $6) RETURNING *`;
+            const vals = [name, data, stream, version, actorId, metadata];
+            log().magenta().data(sql, vals);
+            const committed = await client.query<Event>(sql, vals);
             return committed.rows[0] as CommittedEvent<E>;
           })
         );
@@ -268,11 +267,10 @@ export const PostgresStore = (table: string): Store => {
           if (events.length) {
             lease = randomUUID();
             expires = new Date(Date.now() + timeout);
-            await client.query(
-              `INSERT INTO "${table}_subscriptions" VALUES($1, $2, $3, $4)
-            ON CONFLICT (consumer) DO UPDATE SET lease=$3, expires=$4 WHERE "${table}_subscriptions".consumer=$1`,
-              [consumer, subscription.watermark, lease, expires]
-            );
+            const sql = `INSERT INTO "${table}_subscriptions" VALUES($1, $2, $3, $4) ON CONFLICT (consumer) DO UPDATE SET lease=$3, expires=$4 WHERE "${table}_subscriptions".consumer=$1`;
+            const vals = [consumer, subscription.watermark, lease, expires];
+            log().silver().data(sql, vals);
+            await client.query(sql, vals);
           }
         }
         await client.query("COMMIT");
@@ -312,17 +310,15 @@ export const PostgresStore = (table: string): Store => {
           subscription.lease === lease.lease &&
           subscription.expires &&
           subscription.expires > new Date()
-        )
-          acked =
-            (
-              await client.query(
-                `UPDATE "${table}_subscriptions" SET watermark=$2, lease=null, expires=null WHERE "${table}_subscriptions".consumer=$1`,
-                [
-                  lease.consumer,
-                  Math.max(watermark || -1, subscription.watermark)
-                ]
-              )
-            ).rowCount > 0;
+        ) {
+          const sql = `UPDATE "${table}_subscriptions" SET watermark=$2, lease=null, expires=null WHERE "${table}_subscriptions".consumer=$1`;
+          const vals = [
+            lease.consumer,
+            Math.max(watermark || -1, subscription.watermark)
+          ];
+          acked = (await client.query(sql, vals)).rowCount > 0;
+          log().silver().data(sql, vals, { acked });
+        }
         await client.query("COMMIT");
       } catch (error) {
         log().error(error);

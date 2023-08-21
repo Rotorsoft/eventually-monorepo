@@ -1,5 +1,5 @@
 import { Logger } from "./interfaces";
-import { CommittedEvent } from "./types";
+import { CommittedEvent, LogLevel } from "./types";
 
 const { NODE_ENV, LOG_LEVEL } = process.env;
 
@@ -23,6 +23,16 @@ const Effect = {
   underlined: 4
 };
 
+const Levels: Record<LogLevel, number> = {
+  error: 0,
+  info: 1,
+  data: 2,
+  trace: 3
+};
+
+const active = (level: LogLevel): boolean =>
+  Levels[level] <= Levels[LOG_LEVEL as LogLevel] ?? 0;
+
 const code = (...code: Array<number>): string =>
   code.map((c) => `\x1b[${c}m`).join("");
 
@@ -40,13 +50,15 @@ const nop = (): void => {
   return;
 };
 
-const plain = (
+const json = (
+  level: LogLevel,
   message: string,
   details?: unknown,
   ...params: unknown[]
 ): void => {
   console.log(
     JSON.stringify({
+      level,
       severity: "INFO",
       message: `${message} ${details}`,
       params
@@ -54,8 +66,22 @@ const plain = (
   );
 };
 
+const trace = (
+  message: string,
+  details?: unknown,
+  ...params: unknown[]
+): void => json("trace", message, details, params);
+
+const data = (message: string, details?: unknown, ...params: unknown[]): void =>
+  json("data", message, details, params);
+
+const info = (message: string, details?: unknown, ...params: unknown[]): void =>
+  json("info", message, details, params);
+
 const error = (error: any): void => {
-  console.error(JSON.stringify({ severity: "ERROR", ...error }));
+  console.error(
+    JSON.stringify({ level: "error", severity: "ERROR", ...error })
+  );
 };
 
 const events = (events: CommittedEvent[]): void => {
@@ -93,8 +119,18 @@ export const devLogger = (): Logger => {
     dimmed: () => effect(logger, "dimmed"),
     italic: () => effect(logger, "italic"),
     underlined: () => effect(logger, "underlined"),
+    events,
     trace: (message: string, details?: unknown, ...params: unknown[]) =>
-      LOG_LEVEL === "trace" &&
+      active("trace") &&
+      console.log(
+        message,
+        code(Effect.reset, Color.gray),
+        JSON.stringify(details || {}),
+        ...params,
+        code(Effect.reset)
+      ),
+    data: (message: string, details?: unknown, ...params: unknown[]) =>
+      active("data") &&
       console.log(
         message,
         code(Effect.reset, Color.gray),
@@ -103,7 +139,7 @@ export const devLogger = (): Logger => {
         code(Effect.reset)
       ),
     info: (message: string, details?: unknown, ...params: unknown[]) =>
-      LOG_LEVEL !== "error" &&
+      active("info") &&
       console.info(
         message,
         code(Effect.reset, Color.gray),
@@ -113,8 +149,7 @@ export const devLogger = (): Logger => {
       ),
     error: (error: unknown) => {
       console.error(error);
-    },
-    events
+    }
   };
   return logger;
 };
@@ -136,10 +171,11 @@ export const plainLogger = (): Logger => {
     dimmed: () => logger,
     italic: () => logger,
     underlined: () => logger,
-    trace: (NODE_ENV !== "test" && LOG_LEVEL === "trace" && plain) || nop,
-    info: (NODE_ENV !== "test" && LOG_LEVEL !== "error" && plain) || nop,
-    error: (NODE_ENV !== "test" && error) || nop,
-    events
+    events,
+    trace: (NODE_ENV !== "test" && active("trace") && trace) || nop,
+    data: (NODE_ENV !== "test" && active("data") && data) || nop,
+    info: (NODE_ENV !== "test" && active("info") && info) || nop,
+    error: (NODE_ENV !== "test" && error) || nop
   };
   return logger;
 };

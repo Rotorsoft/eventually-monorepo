@@ -1,14 +1,16 @@
 import {
-  Condition,
-  Operator,
   Operators,
-  ProjectionQuery,
-  ProjectionSort,
-  ProjectionWhere,
-  State,
-  validate
+  conditions,
+  validate,
+  type AggQuery,
+  type Operator,
+  type ProjectionQuery,
+  type ProjectionSort,
+  type ProjectionWhere,
+  type State,
+  Condition
 } from "@rotorsoft/eventually";
-import { z, ZodObject } from "zod";
+import { ZodObject, z } from "zod";
 
 /**
  * REST projection query options
@@ -33,9 +35,38 @@ export const toRestProjectionQuery = ({
   select,
   where:
     where &&
-    Object.entries(where).map(([k, v]) => `${k} ${v?.operator} ${v?.value}`),
+    Object.entries(where).flatMap(([key, condition]) =>
+      conditions(condition!).map(
+        ([operator, value]) => `${key} ${operator} ${value}`
+      )
+    ),
   sort: sort && Object.entries(sort).map(([k, v]) => `${k} ${v}`),
   limit
+});
+
+/**
+ * REST aggregate query options
+ */
+export type RestAggQuery = {
+  select?: string[];
+  where?: string[];
+};
+
+/**
+ * Converts an aggregate query to a REST query
+ */
+export const toRestAggQuery = <S extends State>({
+  select,
+  where
+}: AggQuery<S>): RestAggQuery => ({
+  select: Object.entries(select).map(([k, v]) => `${k} ${v}`),
+  where:
+    where &&
+    Object.entries(where).flatMap(([key, condition]) =>
+      conditions(condition as Condition<any>).map(
+        ([operator, value]) => `${key} ${operator} ${value}`
+      )
+    )
 });
 
 const parseWhere = (filters: string[]): ProjectionWhere =>
@@ -44,7 +75,7 @@ const parseWhere = (filters: string[]): ProjectionWhere =>
       const [field, operator, value] = v.split(" ").filter(Boolean);
       if (Operators.includes(operator as Operator))
         return Object.assign(result, {
-          [field]: { operator, value } as Condition<any>
+          [field]: { [operator]: value }
         });
       else throw Error(`Invalid where clause: ${v}`);
     } catch {
@@ -91,12 +122,7 @@ export const toProjectionQuery = (
     query,
     z.object({
       select: z.array(keys).optional(),
-      where: z
-        .record(
-          keys,
-          z.object({ operator: z.enum(Operators), value: z.string() })
-        )
-        .optional(),
+      where: z.record(keys, z.record(z.enum(Operators), z.string())).optional(),
       sort: z.record(keys, z.enum(["asc", "desc"])).optional(),
       limit: z.number().int().optional()
     })

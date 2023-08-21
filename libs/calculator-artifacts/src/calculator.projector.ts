@@ -35,7 +35,7 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
       const id = `Totals-${stream}`;
 
       // try to load persisted state from projector store
-      const totals = map.get(id) ??
+      const totals = map.records.get(id) ??
         (await client().read(CalculatorTotals, id)).at(0)?.state ?? { id };
 
       return [{ id, [data.digit]: (totals[data.digit] ?? 0) + 1 }];

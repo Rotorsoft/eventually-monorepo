@@ -16,7 +16,7 @@ type Package = {
 
 const getPackage = (): Package => {
   const pkg = fs.readFileSync("package.json");
-  return JSON.parse(pkg.toString()) as unknown as Package;
+  return JSON.parse(pkg.toString()) as Package;
 };
 
 /**

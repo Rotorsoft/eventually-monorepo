@@ -1,6 +1,5 @@
-import { app, camelize, formatTime } from "@rotorsoft/eventually";
+import { formatTime } from "@rotorsoft/eventually";
 import { OAS_UI, config } from "../config";
-import { artifacts } from "./artifacts";
 
 const doc = (
   title: string,
@@ -95,23 +94,7 @@ const doc = (
         </div>
       </div>
 
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="ahThree">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acThree" aria-expanded="false" aria-controls="acThree">
-            Model
-          </button>
-        </h2>
-        <div id="acThree" class="accordion-collapse collapse" aria-labelledby="ahThree">
-          <div class="accordion-body">
-            <div class="overflow-hidden" style="max-height:600px" id="esml-container"></div>
-          </div>
-          <div class="accordion-body">
-            <div class="row row-cols-auto g-4">
-              ${artifacts()}
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       <div class="accordion-item">
         <h2 class="accordion-header" id="ahTwo">
@@ -173,36 +156,56 @@ const doc = (
   </body>
 </html>`;
 
-const esml = (): string => {
-  const artifacts = [...app().artifacts.values()].filter(
-    (a) => a.type !== "command-adapter"
-  );
-  const public_commands: string[] = [];
-  const code = artifacts
-    .map((a) => {
-      const sys = a.type === "aggregate" || a.type === "system";
-      const outs = sys ? "emits" : "invokes";
-      const inputs = a.inputs.map(({ name }) => name).join(",");
-      const outputs = a.outputs.map((name) => name).join(",");
-      const pub = sys
-        ? a.inputs
-            .filter(({ scope }) => scope === "public")
-            .map(({ name }) => name)
-        : [];
-      public_commands.push(...pub);
-      return `${a.type} ${a.factory.name} ${
-        inputs ? `handles ${inputs}` : ""
-      } ${outputs ? `${outs} ${outputs}` : ""}`;
-    })
-    .join("\n");
-  return code.concat(
-    `\ncontext ${camelize(config.service)}EventuallyService includes Actor,`,
-    artifacts.map((a) => a.factory.name).join(","),
-    public_commands.length
-      ? `\nactor Actor invokes ${public_commands.join(",")}`
-      : ""
-  );
-};
+// <div class="accordion-item">
+// <h2 class="accordion-header" id="ahThree">
+//   <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#acThree" aria-expanded="false" aria-controls="acThree">
+//     Model
+//   </button>
+// </h2>
+// <div id="acThree" class="accordion-collapse collapse" aria-labelledby="ahThree">
+//   <div class="accordion-body">
+//     <div class="overflow-hidden" style="max-height:600px" id="esml-container"></div>
+//   </div>
+//   <div class="accordion-body">
+//     <div class="row row-cols-auto g-4">
+//       ${artifacts()}
+//     </div>
+//   </div>
+// </div>
+//       < /div>
+
+// TODO: migrate to JSON format
+const esml = (): string => "";
+// const esml = (): string => {
+//   const artifacts = [...app().artifacts.values()].filter(
+//     (a) => a.type !== "command-adapter"
+//   );
+//   const public_commands: string[] = [];
+//   const code = artifacts
+//     .map((a) => {
+//       const sys = a.type === "aggregate" || a.type === "system";
+//       const outs = sys ? "emits" : "invokes";
+//       const inputs = a.inputs.map(({ name }) => name).join(",");
+//       const outputs = a.outputs.map((name) => name).join(",");
+//       const pub = sys
+//         ? a.inputs
+//             .filter(({ scope }) => scope === "public")
+//             .map(({ name }) => name)
+//         : [];
+//       public_commands.push(...pub);
+//       return `${a.type} ${a.factory.name} ${
+//         inputs ? `handles ${inputs}` : ""
+//       } ${outputs ? `${outs} ${outputs}` : ""}`;
+//     })
+//     .join("\n");
+//   return code.concat(
+//     `\ncontext ${camelize(config.service)}EventuallyService includes Actor,`,
+//     artifacts.map((a) => a.factory.name).join(","),
+//     public_commands.length
+//       ? `\nactor Actor invokes ${public_commands.join(",")}`
+//       : ""
+//   );
+// };
 
 let html = "";
 export const home = (): string => {
