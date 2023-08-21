@@ -1,3 +1,5 @@
+#### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.3...@rotorsoft/calculator-artifacts-v1.7.4) @rotorsoft/calculator-artifacts-v1.7.4
+  - PATCH [ccf045db](https://github.com/Rotorsoft/eventually-monorepo/commit/ccf045dbce2082b35a8b7c7cda225bf830fb2ced) fix: improve projection patches and queries with more options and aggregates
 #### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.2...@rotorsoft/eventually-service-expg-v1.1.3) @rotorsoft/eventually-service-expg-v1.1.3
   - PATCH [ccf045db](https://github.com/Rotorsoft/eventually-monorepo/commit/ccf045dbce2082b35a8b7c7cda225bf830fb2ced) fix: improve projection patches and queries with more options and aggregates
 #### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.8...@rotorsoft/eventually-pg-v5.5.9) @rotorsoft/eventually-pg-v5.5.9
