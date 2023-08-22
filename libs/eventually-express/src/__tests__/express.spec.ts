@@ -10,7 +10,7 @@ app(expressApp).withStreams().build();
 
 describe("express app", () => {
   beforeAll(async () => {
-    await expressApp.listen(false, port);
+    await expressApp.listen(port);
   });
 
   afterAll(async () => {

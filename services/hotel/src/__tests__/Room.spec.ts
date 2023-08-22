@@ -9,7 +9,7 @@ import { fromToday, readHomeView } from "../utils";
 const openRoom = (
   room: models.Room,
   stream?: string
-): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+): Promise<Snapshot<models.Room, models.RoomEvents> | undefined> =>
   client().command(Room, "OpenRoom", room, {
     stream: stream || room.number.toString()
   });
@@ -18,7 +18,7 @@ const bookRoom = (
   number: number,
   reservation: models.Reservation,
   stream?: string
-): Promise<Snapshot<models.Room, models.RoomEvents>[]> =>
+): Promise<Snapshot<models.Room, models.RoomEvents> | undefined> =>
   client().command(
     Room,
     "BookRoom",
@@ -61,9 +61,9 @@ describe("Room", () => {
     });
     await broker().drain();
 
-    expect(room[0].state?.reservations?.length).toBe(1);
-    expect(room[0].state?.reservations?.at(0)?.totalPrice).toBe(
-      room[0].state.price
+    expect(room?.state?.reservations?.length).toBe(1);
+    expect(room?.state?.reservations?.at(0)?.totalPrice).toBe(
+      room?.state.price
     );
 
     const r = await client().read(Hotel, "Room-102");

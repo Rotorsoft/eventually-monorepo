@@ -18,7 +18,7 @@ const _app = app(new ExpressApp()).with(CalculatorTotals, {
 describe("calculator with projector in express app", () => {
   beforeAll(async () => {
     _app.build();
-    await _app.listen(false, port);
+    await _app.listen(port);
   });
 
   afterAll(async () => {

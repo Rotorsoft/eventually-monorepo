@@ -14,14 +14,17 @@ import command from "./command";
  *
  * @param factory the command adapter factory
  * @param payload the message payload
- * @returns snapshots side effects
+ * @returns last snapshot
  */
 export default async function invoke<
   P extends State,
   S extends State,
   C extends Messages,
   E extends Messages
->(factory: CommandAdapterFactory<P, C>, payload: P): Promise<Snapshot<S, E>[]> {
+>(
+  factory: CommandAdapterFactory<P, C>,
+  payload: P
+): Promise<Snapshot<S, E> | undefined> {
   const adapter = factory();
   const validated = validate(payload, adapter.schemas.message);
   return command(adapter.on(validated));

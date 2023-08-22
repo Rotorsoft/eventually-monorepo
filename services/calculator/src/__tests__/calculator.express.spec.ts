@@ -29,7 +29,7 @@ app(expressApp)
 
 describe("calculator express app", () => {
   beforeAll(async () => {
-    await expressApp.listen(false, port);
+    await expressApp.listen(port);
   });
 
   afterAll(async () => {

@@ -17,7 +17,7 @@ import message from "./message";
  * Validates and handles command message
  * @param command the command message
  * @param metadata the optional metadata of the event that triggered this command
- * @returns array of resulting snapshots
+ * @returns last snapshot
  */
 export default async function command<
   S extends State,
@@ -26,7 +26,7 @@ export default async function command<
 >(
   command: Command<C>,
   metadata?: CommittedEventMetadata
-): Promise<Snapshot<S, E>[]> {
+): Promise<Snapshot<S, E> | undefined> {
   const validated = validateMessage(command);
   const { name, stream, expectedVersion, actor } = command;
   if (!stream) throw new Error("Missing target stream");
@@ -71,5 +71,5 @@ export default async function command<
       }
     }
   );
-  return snapshots;
+  return snapshots.at(-1);
 }
