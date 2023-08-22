@@ -7,10 +7,10 @@ export const target = (stream: string): CommandTarget => ({
   actor: { id: "actor-id", name: "actor" }
 });
 
-type Snaps = Snapshot<
+type Snap = Snapshot<
   Infer<typeof RoomSchemas.state>,
   Infer<typeof RoomSchemas.events.BookingRequested>
->[];
+>;
 
-export const requestBooking = (room: string): Promise<Snaps> =>
-  client().command(Room, "RequestBooking", {}, target(room)) as Promise<Snaps>;
+export const requestBooking = (room: string): Promise<Snap> =>
+  client().command(Room, "RequestBooking", {}, target(room)) as Promise<Snap>;

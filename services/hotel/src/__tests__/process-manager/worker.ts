@@ -17,7 +17,7 @@ void bootstrap(async () => {
   await store(PostgresStore("pm")).seed();
   app().with(Room).with(MonthlyBookings, { scope: "private" }).build();
   let tries = 1;
-  const [snap] = await requestBooking(stream);
+  const snap = await requestBooking(stream);
   while (tries < 4) {
     try {
       snap.event && (await client().event(MonthlyBookings, snap.event));
