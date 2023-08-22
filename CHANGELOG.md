@@ -1,3 +1,5 @@
+#### 2023-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.5...@rotorsoft/eventually-v5.7.6) @rotorsoft/eventually-v5.7.6
+  - PATCH [f62ce52e](https://github.com/Rotorsoft/eventually-monorepo/commit/f62ce52ec6f3db762a5c0600f80f7f1388c08f52) fix: make command return last snapshot only, expose more utils from express, make listen optional when using serverless
 #### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.3...@rotorsoft/calculator-artifacts-v1.7.4) @rotorsoft/calculator-artifacts-v1.7.4
   - PATCH [ccf045db](https://github.com/Rotorsoft/eventually-monorepo/commit/ccf045dbce2082b35a8b7c7cda225bf830fb2ced) fix: improve projection patches and queries with more options and aggregates
 #### 2023-08-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.2...@rotorsoft/eventually-service-expg-v1.1.3) @rotorsoft/eventually-service-expg-v1.1.3
