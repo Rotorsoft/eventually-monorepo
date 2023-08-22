@@ -22,7 +22,7 @@ app(expressApp)
 
 describe("calculator allstream express app", () => {
   beforeAll(async () => {
-    await expressApp.listen(false, port);
+    await expressApp.listen(port);
   });
 
   afterAll(async () => {
@@ -41,7 +41,7 @@ describe("calculator allstream express app", () => {
     created_after = new Date();
     await sleep(200);
     await pressKey(http, id, "2");
-    const [snap] = await pressKey(http, id, ".");
+    const snap = await pressKey(http, id, ".");
     dot_correlation = snap?.event?.metadata?.correlation || "";
     await sleep(200);
     created_before = new Date();

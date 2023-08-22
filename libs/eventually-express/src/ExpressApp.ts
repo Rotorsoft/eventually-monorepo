@@ -21,7 +21,7 @@ import cors from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
 import {
-  allStreamHandler,
+  queryHandler,
   commandHandler,
   errorHandler,
   eventHandler,
@@ -49,7 +49,7 @@ export class ExpressApp extends Builder {
   }
 
   private _withStreams(): void {
-    this._router.get("/all", allStreamHandler);
+    this._router.get("/all", queryHandler);
     log()
       .green()
       .info(
@@ -122,61 +122,80 @@ export class ExpressApp extends Builder {
 
   build(middleware?: RequestHandler[]): express.Express {
     super.build();
+
+    // route artifacts
     this._withPosts();
     this.hasStreams && this._withStreams();
 
+    // add middleware
     this._app.set("trust proxy", true);
     this._app.use(cors());
     this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json({ reviver: dateReviver }));
     middleware && this._app.use(middleware);
 
+    // add swagger
     const oas = openAPI();
     this._app.get("/swagger", (_, res) => res.json(oas));
+
+    // add liveness endpoints
     this._app.get("/_health", (_, res) =>
       res.status(200).json({ status: "OK", date: new Date().toISOString() })
     );
+    this._app.get("/__killme", () => {
+      log().red().bold().info("KILLME");
+      process.exit(0);
+    });
+
+    // add command schemas
     this._app.get("/_commands/:name", (req, res) => {
       const name = req.params.name.match(/^[a-zA-Z][a-zA-Z0-9]*$/)?.[0];
       const command = name && this.messages.get(name);
       if (command) res.json(toJsonSchema(command.schema));
       else res.status(404).send(`Command ${name} not found!`);
     });
-    this._app.get("/__killme", () => {
-      log().red().bold().info("KILLME");
-      process.exit(0);
-    });
+
+    // use artifact routes
     this._app.use(this._router);
+
+    // add home page
+    this._app.get("/", (_, res) => res.type("html").send(home()));
+
+    // ensure catch-all is last handler
+    this._app.use(errorHandler);
+
+    // log sanitized config
+    const { service, version, env, logLevel, oas_ui } = config;
+    log().info("config", service, { env, logLevel, version, oas_ui });
 
     return this._app;
   }
 
   /**
-   * Starts listening
-   * @param silent flag to skip express listening when using cloud functions
+   * Starts listening for requests
+   *
+   * WARNING!
+   *  - Serverless environments provide their own listening framework
+   *  - Use wrappers like serverless-http instead
+   *
    * @param port to override port in config
    */
-  async listen(silent = false, port?: number): Promise<void> {
-    const { service, version, env, logLevel, oas_ui } = config;
+  async listen(port?: number): Promise<void> {
     port = port || config.port;
 
-    this._app.get("/", (_, res) => res.type("html").send(home()));
-    this._app.use(errorHandler); // ensure catch-all is last handler
+    this._server = await new Promise((resolve) => {
+      const server = this._app.listen(port, () => {
+        log()
+          .yellow()
+          .underlined()
+          .info(`Express is listening on port ${port}`);
 
-    const _config = { env, port, logLevel, service, version, oas_ui };
-    if (silent) log().info("Config", undefined, _config);
-    else
-      this._server = await new Promise((resolve) => {
-        const server = this._app.listen(port, () => {
-          log()
-            .yellow()
-            .underlined()
-            .info("Express app is listening", undefined, _config);
-          resolve(server);
-        });
+        // sync pending subscriptions
+        void broker().drain();
+
+        resolve(server);
       });
-
-    void broker().drain();
+    });
   }
 
   get name(): string {

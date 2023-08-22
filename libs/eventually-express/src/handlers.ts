@@ -1,5 +1,4 @@
 import {
-  Errors,
   client,
   log,
   store,
@@ -7,21 +6,21 @@ import {
   type AggregateFactory,
   type AllQuery,
   type CommandAdapterFactory,
+  type CommandHandlerFactory,
   type CommittedEvent,
   type EventHandlerFactory,
   type ProjectionRecord,
   type ProjectorFactory,
   type Snapshot,
-  type State,
-  CommandHandlerFactory
+  type State
 } from "@rotorsoft/eventually";
 import {
   RestProjectionQuery,
-  config,
   toProjectionQuery
 } from "@rotorsoft/eventually-openapi";
 import type { NextFunction, Request, Response } from "express";
 import type { ZodObject, ZodType } from "zod";
+import { Ok, httpError, send } from "./http";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
   const etag = snapshot?.event?.version;
@@ -34,8 +33,7 @@ export const statsHandler = async (
   next: NextFunction
 ): Promise<Response | undefined> => {
   try {
-    const stats = await store().stats();
-    return res.status(200).send(stats);
+    return send(res, Ok(await store().stats()));
   } catch (error) {
     next(error);
   }
@@ -47,14 +45,128 @@ export const subscriptionsHandler = async (
   next: NextFunction
 ): Promise<Response | undefined> => {
   try {
-    const subscriptions = await store().subscriptions();
-    return res.status(200).send(subscriptions);
+    return send(res, Ok(await store().subscriptions()));
   } catch (error) {
     next(error);
   }
 };
 
-export const allStreamHandler = async (
+export const getHandler =
+  (factory: AggregateFactory) =>
+  async (
+    req: Request<{ id: string }, Snapshot, never, never>,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const { id } = req.params;
+      const snap = await client().load(factory, id);
+      eTag(res, snap);
+      return send(res, Ok(snap));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const commandHandler =
+  (factory: CommandHandlerFactory, name: string, withEtag: boolean) =>
+  async (
+    req: Request<{ id: string }, any, State, never> & {
+      actor?: Actor;
+    },
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const { id } = req.params;
+      const ifMatch = req.headers["if-match"] || undefined;
+      const expectedVersion = withEtag && ifMatch ? +ifMatch : undefined;
+      const { actor } = req;
+      const snap = await client().command(factory, name, req.body, {
+        stream: id,
+        expectedVersion,
+        actor
+      });
+      snap && eTag(res, snap);
+      return send(res, Ok(snap));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const invokeHandler =
+  (factory: CommandAdapterFactory) =>
+  async (
+    req: Request<never, any, State, never> & {
+      actor?: Actor;
+    },
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const snap = await client().invoke(factory, req.body);
+      snap && eTag(res, snap);
+      return send(res, Ok(snap));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const eventHandler =
+  (factory: EventHandlerFactory) =>
+  async (
+    req: Request<never, any, CommittedEvent>,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      return send(res, Ok(await client().event(factory, req.body)));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const projectHandler =
+  (factory: ProjectorFactory) =>
+  async (
+    req: Request<never, any, CommittedEvent[]>,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      return send(res, Ok(await client().project(factory, req.body)));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const readHandler =
+  (factory: ProjectorFactory, schema: ZodType) =>
+  async (
+    req: Request<never, ProjectionRecord[], never, RestProjectionQuery>,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    try {
+      const query = toProjectionQuery(req.query, schema as ZodObject<State>);
+      return send(res, Ok(await client().read(factory, query)));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const errorHandler = (
+  error: Error,
+  _: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  log().error(error);
+  if (res.headersSent) return next(error);
+  send(res, httpError(error));
+};
+
+export const queryHandler = async (
   req: Request<never, CommittedEvent[], never, AllQuery>,
   res: Response,
   next: NextFunction
@@ -99,23 +211,6 @@ export const allStreamHandler = async (
   }
 };
 
-export const getHandler =
-  (factory: AggregateFactory) =>
-  async (
-    req: Request<{ id: string }, Snapshot, never, never>,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const { id } = req.params;
-      const snapshot = await client().load(factory, id);
-      eTag(res, snapshot);
-      return res.status(200).send(snapshot);
-    } catch (error) {
-      next(error);
-    }
-  };
-
 export const getStreamHandler =
   (factory: AggregateFactory) =>
   async (
@@ -139,126 +234,3 @@ export const getStreamHandler =
       next(error);
     }
   };
-
-export const commandHandler =
-  (factory: CommandHandlerFactory, name: string, withEtag: boolean) =>
-  async (
-    req: Request<{ id: string }, any, State, never> & {
-      actor?: Actor;
-    },
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const { id } = req.params;
-      const ifMatch = req.headers["if-match"] || undefined;
-      const expectedVersion = withEtag && ifMatch ? +ifMatch : undefined;
-      const { actor } = req;
-      const snapshots = await client().command(factory, name, req.body, {
-        stream: id,
-        expectedVersion,
-        actor
-      });
-      eTag(res, snapshots.at(-1));
-      return res.status(200).send(snapshots);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-export const invokeHandler =
-  (factory: CommandAdapterFactory) =>
-  async (
-    req: Request<never, any, State, never> & {
-      actor?: Actor;
-    },
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const snapshots = await client().invoke(factory, req.body);
-      eTag(res, snapshots.at(-1));
-      return res.status(200).send(snapshots);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-export const eventHandler =
-  (factory: EventHandlerFactory) =>
-  async (
-    req: Request<never, any, CommittedEvent>,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const response = await client().event(factory, req.body);
-      return res.status(200).send(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-export const projectHandler =
-  (factory: ProjectorFactory) =>
-  async (
-    req: Request<never, any, CommittedEvent[]>,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const response = await client().project(factory, req.body);
-      return res.status(200).send(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-export const readHandler =
-  (factory: ProjectorFactory, schema: ZodType) =>
-  async (
-    req: Request<never, ProjectionRecord[], never, RestProjectionQuery>,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const query = toProjectionQuery(req.query, schema as ZodObject<State>);
-      log().green().trace(`${factory.name}?`, query);
-      const response = await client().read(factory, query);
-      return res.status(200).send(response);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-export const errorHandler = (
-  error: Error,
-  _: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  log().error(error);
-  if (res.headersSent) return next(error);
-  const { name, message, stack, ...other } = error;
-  switch (name) {
-    case Errors.ValidationError:
-    case Errors.InvariantError:
-      res.status(400).send({ name, message, ...other });
-      break;
-    case Errors.RegistrationError:
-      res.status(404).send({ name, message, ...other });
-      break;
-    case Errors.ConcurrencyError:
-      res.status(409).send({ name, message, ...other });
-      break;
-    case Errors.ActorConcurrencyError:
-      res.status(409).send({ name, message, ...other });
-      break;
-    default:
-      res.status(500).send({
-        name,
-        message,
-        stack: config.env !== "production" && stack
-      });
-  }
-};

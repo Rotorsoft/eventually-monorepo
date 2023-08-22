@@ -26,15 +26,18 @@ const eTag = (): oas31.HeadersObject => ({
 });
 
 const toPolicyResponseSchema = (commands: string[]): oas31.ResponseObject => {
-  const reducibles = commands.reduce((p, c) => {
-    const cmd = app().messages.get(c);
-    if (cmd && cmd.type === "command")
-      cmd.handlers.forEach((h) => {
-        const artifact = app().artifacts.get(h);
-        artifact && artifact.type === "aggregate" && (p[h] = artifact);
-      });
-    return p;
-  }, {} as Record<string, ArtifactMetadata>);
+  const reducibles = commands.reduce(
+    (p, c) => {
+      const cmd = app().messages.get(c);
+      if (cmd && cmd.type === "command")
+        cmd.handlers.forEach((h) => {
+          const artifact = app().artifacts.get(h);
+          artifact && artifact.type === "aggregate" && (p[h] = artifact);
+        });
+      return p;
+    },
+    {} as Record<string, ArtifactMetadata>
+  );
   return {
     description: `Optional response from ${commands.join(",")}`,
     content: {
@@ -345,10 +348,10 @@ const getArtifactPaths = (
                     ? toResponse(
                         factory.name.concat("Snapshot"),
                         "OK",
-                        true,
+                        false,
                         eTag()
                       )
-                    : toResponse("", "OK", true),
+                    : toResponse("", "OK"),
                 "400": toResponse("ValidationError", "Validation Error"),
                 "409": toResponse("ConcurrencyError", "Concurrency Error"),
                 "500": toResponse("InvariantError", "Invariant Error"),

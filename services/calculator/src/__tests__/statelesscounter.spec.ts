@@ -23,7 +23,7 @@ app(expressApp)
 
 describe("calculator with stateless counter express app", () => {
   beforeAll(async () => {
-    await expressApp.listen(false, port);
+    await expressApp.listen(port);
   });
 
   afterAll(async () => {
@@ -31,20 +31,20 @@ describe("calculator with stateless counter express app", () => {
   });
 
   it("should return no command", async () => {
-    const snapshots = await pressKey(http, chance.guid(), "1");
+    const snap = await pressKey(http, chance.guid(), "1");
     const { status, command } = (await http.event(
       StatelessCounter,
-      snapshots[0].event as CommittedEvent<CounterEvents>
+      snap!.event as CommittedEvent<CounterEvents>
     )) as EventResponseEx;
     expect(status).toBe(200);
     expect(command).toBeUndefined();
   });
 
   it("should return no command 2", async () => {
-    const snapshots = await pressKey(http, chance.guid(), ".");
+    const snap = await pressKey(http, chance.guid(), ".");
     const response = await http.event(
       StatelessCounter,
-      snapshots[0].event as CommittedEvent<CounterEvents>
+      snap!.event as CommittedEvent<CounterEvents>
     );
     expect(response.command).toBeUndefined();
   });

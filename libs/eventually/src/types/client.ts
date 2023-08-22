@@ -42,6 +42,7 @@ export type Client = {
    * Invokes command through adapter
    * @param factory adapter factory
    * @param payload message payload
+   * @returns last snapshot produced by command
    */
   invoke: <
     P extends State,
@@ -51,7 +52,7 @@ export type Client = {
   >(
     factory: CommandAdapterFactory<P, C>,
     payload: P
-  ) => Promise<Snapshot<S, E>[]>;
+  ) => Promise<Snapshot<S, E> | undefined>;
 
   /**
    * Handles command
@@ -59,7 +60,7 @@ export type Client = {
    * @param name the command name
    * @param data the command payload
    * @param target the command target
-   * @returns array of snapshots produced by this command
+   * @returns last snapshot produced by command
    */
   command: <
     S extends State,
@@ -71,7 +72,7 @@ export type Client = {
     name: N,
     data: Readonly<C[N]>,
     target: CommandTarget
-  ) => Promise<Snapshot<S, E>[]>;
+  ) => Promise<Snapshot<S, E> | undefined>;
 
   /**
    * Validates and handles event message
