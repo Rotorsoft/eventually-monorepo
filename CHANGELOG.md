@@ -1,3 +1,5 @@
+#### 2023-08-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.6...@rotorsoft/eventually-v5.7.7) @rotorsoft/eventually-v5.7.7
+  - PATCH [6058731f](https://github.com/Rotorsoft/eventually-monorepo/commit/6058731fc896ed8c3a8d29b399d575bc1ce9384c) fix: add options to express app build
 #### 2023-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.4...@rotorsoft/calculator-artifacts-v1.7.5) @rotorsoft/calculator-artifacts-v1.7.5
   - PATCH [f62ce52e](https://github.com/Rotorsoft/eventually-monorepo/commit/f62ce52ec6f3db762a5c0600f80f7f1388c08f52) fix: make command return last snapshot only, expose more utils from express, make listen optional when using serverless
 #### 2023-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.2...@rotorsoft/eventually-express-v5.7.3) @rotorsoft/eventually-express-v5.7.3
