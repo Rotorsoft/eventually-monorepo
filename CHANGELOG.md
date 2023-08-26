@@ -1,3 +1,5 @@
+#### 2023-08-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.5...@rotorsoft/eventually-openapi-v0.5.6) @rotorsoft/eventually-openapi-v0.5.6
+  - PATCH [6058731f](https://github.com/Rotorsoft/eventually-monorepo/commit/6058731fc896ed8c3a8d29b399d575bc1ce9384c) fix: add options to express app build
 #### 2023-08-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.6...@rotorsoft/eventually-v5.7.7) @rotorsoft/eventually-v5.7.7
   - PATCH [6058731f](https://github.com/Rotorsoft/eventually-monorepo/commit/6058731fc896ed8c3a8d29b399d575bc1ce9384c) fix: add options to express app build
 #### 2023-08-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.4...@rotorsoft/calculator-artifacts-v1.7.5) @rotorsoft/calculator-artifacts-v1.7.5
