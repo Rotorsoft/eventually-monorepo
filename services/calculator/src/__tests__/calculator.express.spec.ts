@@ -5,19 +5,21 @@ import {
   StatelessCounter
 } from "@rotorsoft/calculator-artifacts";
 import { app, broker, dispose } from "@rotorsoft/eventually";
-import {
-  ExpressApp,
-  GcpGatewayMiddleware
-} from "@rotorsoft/eventually-express";
+import { ActorMiddleware, ExpressApp } from "@rotorsoft/eventually-express";
 import { HttpClient } from "@rotorsoft/eventually-openapi";
 import { Chance } from "chance";
 import { pressKey, reset } from "./messages";
 
 const chance = new Chance();
 const port = 4000;
+const actor = {
+  id: "actor-name",
+  name: "actor@email.com",
+  roles: ["admin"]
+};
+const xActor = Buffer.from(JSON.stringify(actor)).toString("base64");
 const http = HttpClient(port, {
-  "X-Apigateway-Api-Userinfo":
-    "eyJzdWIiOiJhY3Rvci1uYW1lIiwicm9sZXMiOlsiYWRtaW4iXSwiZW1haWwiOiJhY3RvckBlbWFpbC5jb20ifQ=="
+  "X-Actor": xActor
 });
 
 const expressApp = new ExpressApp();
@@ -25,7 +27,7 @@ app(expressApp)
   .with(Calculator, { scope: "public" })
   .with(StatelessCounter)
   .with(PressKeyAdapter)
-  .build([GcpGatewayMiddleware]);
+  .build({ middleware: [ActorMiddleware], home: true });
 
 describe("calculator express app", () => {
   beforeAll(async () => {
@@ -91,11 +93,7 @@ describe("calculator express app", () => {
       left: "-1",
       result: -1
     });
-    expect(event?.metadata?.causation?.command?.actor).toEqual({
-      id: "actor-name",
-      name: "actor@email.com",
-      roles: ["admin"]
-    });
+    expect(event?.metadata?.causation?.command?.actor).toEqual(actor);
 
     const snapshots1 = await http.stream(Calculator, id);
     expect(snapshots1.length).toBe(9);

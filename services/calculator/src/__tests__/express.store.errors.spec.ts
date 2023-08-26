@@ -16,13 +16,15 @@ jest
 
 describe("calculator express app with store errors", () => {
   beforeAll(async () => {
-    exapp.build([
-      (req, _, next) => {
-        if (req.path === "/query")
-          throw new ValidationError(["express query error"]);
-        next();
-      }
-    ]);
+    exapp.build({
+      middleware: [
+        (req, _, next) => {
+          if (req.path === "/query")
+            throw new ValidationError(["express query error"]);
+          next();
+        }
+      ]
+    });
     await exapp.listen(port);
   });
 

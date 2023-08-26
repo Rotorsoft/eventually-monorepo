@@ -17,7 +17,7 @@ import {
   openAPI,
   toJsonSchema
 } from "@rotorsoft/eventually-openapi";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import express, { RequestHandler, Router, urlencoded } from "express";
 import { Server } from "http";
 import {
@@ -120,7 +120,13 @@ export class ExpressApp extends Builder {
     });
   }
 
-  build(middleware?: RequestHandler[]): express.Express {
+  build(
+    options: {
+      cors?: CorsOptions;
+      middleware?: RequestHandler[];
+      home?: boolean;
+    } = { cors: { origin: "*" }, home: true }
+  ): express.Express {
     super.build();
 
     // route artifacts
@@ -129,14 +135,28 @@ export class ExpressApp extends Builder {
 
     // add middleware
     this._app.set("trust proxy", true);
-    this._app.use(cors());
+    options?.cors && this._app.use(cors(options.cors));
     this._app.use(urlencoded({ extended: false }));
     this._app.use(express.json({ reviver: dateReviver }));
-    middleware && this._app.use(middleware);
+    options?.middleware && this._app.use(options.middleware);
 
-    // add swagger
-    const oas = openAPI();
-    this._app.get("/swagger", (_, res) => res.json(oas));
+    // add home page with OpenApi spec, model, etc
+    if (options?.home) {
+      // swagger
+      const oas = openAPI();
+      this._app.get("/swagger", (_, res) => res.json(oas));
+
+      // add command schemas
+      this._app.get("/_commands/:name", (req, res) => {
+        const name = req.params.name.match(/^[a-zA-Z][a-zA-Z0-9]*$/)?.[0];
+        const command = name && this.messages.get(name);
+        if (command) res.json(toJsonSchema(command.schema));
+        else res.status(404).send(`Command ${name} not found!`);
+      });
+
+      // add home page
+      this._app.get("/", (_, res) => res.type("html").send(home()));
+    }
 
     // add liveness endpoints
     this._app.get("/_health", (_, res) =>
@@ -147,19 +167,8 @@ export class ExpressApp extends Builder {
       process.exit(0);
     });
 
-    // add command schemas
-    this._app.get("/_commands/:name", (req, res) => {
-      const name = req.params.name.match(/^[a-zA-Z][a-zA-Z0-9]*$/)?.[0];
-      const command = name && this.messages.get(name);
-      if (command) res.json(toJsonSchema(command.schema));
-      else res.status(404).send(`Command ${name} not found!`);
-    });
-
     // use artifact routes
     this._app.use(this._router);
-
-    // add home page
-    this._app.get("/", (_, res) => res.type("html").send(home()));
 
     // ensure catch-all is last handler
     this._app.use(errorHandler);
