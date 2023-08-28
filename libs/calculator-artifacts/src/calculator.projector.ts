@@ -1,4 +1,4 @@
-import { client, Projector } from "@rotorsoft/eventually";
+import { client, Projector, prj } from "@rotorsoft/eventually";
 import { z } from "zod";
 import * as schemas from "./calculator.schemas";
 
@@ -41,7 +41,7 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
       //@ts-expect-error ts-will-complain-here
       const acc = totals[t];
 
-      return [{ id, [t]: (acc ?? 0) + 1 }];
+      return prj({ id, [t]: (acc ?? 0) + 1 });
     }
   }
 });

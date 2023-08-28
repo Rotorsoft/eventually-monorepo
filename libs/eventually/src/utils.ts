@@ -8,6 +8,7 @@ import {
   type Messages,
   type Operator,
   type Patch,
+  type ProjectionPatch,
   type State
 } from "./types";
 
@@ -93,6 +94,13 @@ export const cmd = <C extends Messages, N extends keyof C & string>(
   expectedVersion?: number
 ): Promise<Message<C, N>> =>
   Promise.resolve({ name, data, stream, expectedVersion });
+
+/**
+ * Shortcut to return promise of projection patches
+ */
+export const prj = <S extends State>(
+  ...patches: ProjectionPatch<S>[]
+): Promise<ProjectionPatch<S>[]> => Promise.resolve(patches);
 
 /**
  * Extends target payload with source payload after validating source

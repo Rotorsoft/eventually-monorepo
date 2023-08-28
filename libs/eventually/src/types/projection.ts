@@ -16,7 +16,7 @@ export type Projection<S extends State> = S & { id: string };
  * A partial state applied to a record id or a filter
  */
 export type ProjectionPatch<S extends State> = Readonly<
-  Patch<S> & { id?: string; where?: ProjectionWhere<S> }
+  Patch<S> & ({ id: string } | { where: ProjectionWhere<S> })
 >;
 
 /**
