@@ -1,6 +1,7 @@
 import {
   client,
-  Command,
+  cmd,
+  Message,
   PolicyFactory,
   ZodEmpty
 } from "@rotorsoft/eventually";
@@ -12,16 +13,18 @@ const policy = async (
   counter: CounterState | undefined,
   stream: string,
   threshold: number
-): Promise<Command<schemas.CounterCommands> | undefined> => {
+): Promise<
+  Message<schemas.CounterCommands, keyof schemas.CounterCommands> | undefined
+> => {
   if (counter) {
-    if (counter.count >= threshold) return { name: "Reset", data: {}, stream };
+    if (counter.count >= threshold) return cmd("Reset", {}, stream);
   } else {
     const { state } = await client().load(Calculator, stream);
     if (
       (state?.left || "").length >= threshold ||
       (state?.right || "").length >= threshold
     )
-      return { name: "Reset", data: {}, stream };
+      return cmd("Reset", {}, stream);
   }
 };
 

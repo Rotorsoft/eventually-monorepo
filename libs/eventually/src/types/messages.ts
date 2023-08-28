@@ -26,6 +26,9 @@ export type Messages = Record<string, Record<string, any>>;
  * Messages have
  * - `name` a name
  * - `data` a payload
+ * - `stream?` the target stream when message is a command
+ * - `expectedVersion?` the expected version of the stream or a concurrency error is thrown
+ * - `actor?` the actor invoking the command
  */
 export type Message<
   M extends Messages = Messages,
@@ -33,6 +36,9 @@ export type Message<
 > = {
   readonly name: N;
   readonly data: Readonly<M[N]>;
+  readonly stream?: string;
+  readonly expectedVersion?: number;
+  readonly actor?: Actor;
 };
 
 /**
@@ -64,15 +70,6 @@ export type CommandTarget = {
   readonly expectedVersion?: number;
   readonly actor?: Actor;
 };
-
-/**
- * Commands are messages with a target
- */
-export type Command<M extends Messages = Messages> = Message<
-  M,
-  keyof M & string
-> &
-  CommandTarget;
 
 /**
  * Committed events have metadata describing correlation and causation

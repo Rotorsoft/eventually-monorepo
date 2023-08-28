@@ -31,9 +31,9 @@ describe("Projector", () => {
     const record = await client().read(CalculatorTotals, pid);
     expect(record.at(0)?.state).toEqual({
       id: pid,
-      "1": 2,
-      "2": 1,
-      "3": 1
+      t1: 2,
+      t2: 1,
+      t3: 1
     });
     expect(record.at(0)?.watermark).toBe(7);
   });

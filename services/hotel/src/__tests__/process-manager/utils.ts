@@ -1,6 +1,11 @@
-import { CommandTarget, Infer, Snapshot, client } from "@rotorsoft/eventually";
-import { RoomSchemas } from "./schemas";
+import {
+  Infer,
+  client,
+  type CommandTarget,
+  type Snapshot
+} from "@rotorsoft/eventually";
 import { Room } from "./room.aggregate";
+import { RoomSchemas } from "./schemas";
 
 export const target = (stream: string): CommandTarget => ({
   stream: stream,

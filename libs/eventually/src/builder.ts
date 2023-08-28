@@ -38,6 +38,7 @@ export type ArtifactMetadata<
 > = {
   type: ArtifactType;
   factory: ArtifactFactory<S, C, E>;
+  schema?: Schema<S>;
   inputs: Array<{ name: string; scope: Scope }>; // input messages = endpoints
   outputs: string[]; // output messages = side effects
   projector?: {
@@ -114,6 +115,9 @@ export abstract class Builder extends EventEmitter implements Disposable {
     "stream" in artifact && this.withStreams();
     const reducible = "reduce" in artifact;
 
+    const schema =
+      "state" in artifact.schemas ? artifact.schemas.state : undefined;
+
     "events" in artifact.schemas &&
       Object.entries(artifact.schemas.events).forEach(([name, schema]) => {
         !this.messages.has(name) &&
@@ -138,6 +142,7 @@ export abstract class Builder extends EventEmitter implements Disposable {
           return {
             type: "command-adapter",
             factory,
+            schema,
             inputs: [{ name: factory.name, scope }],
             outputs: Object.keys(artifact.schemas.commands)
           };
@@ -162,6 +167,7 @@ export abstract class Builder extends EventEmitter implements Disposable {
           return {
             type: reducible ? "aggregate" : "system",
             factory,
+            schema,
             inputs: inputs.map((name) => ({ name, scope })),
             outputs:
               "events" in artifact.schemas
@@ -182,6 +188,7 @@ export abstract class Builder extends EventEmitter implements Disposable {
             ? "policy"
             : "projector",
           factory,
+          schema,
           inputs: inputs.map((name) => ({ name, scope })),
           outputs:
             "commands" in artifact.schemas

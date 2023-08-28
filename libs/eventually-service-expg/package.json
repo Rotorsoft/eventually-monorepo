@@ -22,6 +22,6 @@
     "@rotorsoft/eventually-express": "workspace:^5",
     "@rotorsoft/eventually-openapi": "workspace:^0",
     "@rotorsoft/eventually-pg": "workspace:^5",
-    "zod": "^3.22.1"
+    "zod": "^3.22.2"
   }
 }

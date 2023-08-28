@@ -109,7 +109,8 @@ export const PostgresStore = (table: string): Store => {
     }
 
     const result = await pool.query<Event>(sql, values);
-    for (const row of result.rows) callback(row as CommittedEvent<E>);
+    for (const row of result.rows)
+      callback(row as unknown as CommittedEvent<E>);
 
     return result.rowCount;
   };
@@ -181,7 +182,7 @@ export const PostgresStore = (table: string): Store => {
             const vals = [name, data, stream, version, actorId, metadata];
             log().magenta().data(sql, vals);
             const committed = await client.query<Event>(sql, vals);
-            return committed.rows[0] as CommittedEvent<E>;
+            return committed.rows[0] as unknown as CommittedEvent<E>;
           })
         );
 

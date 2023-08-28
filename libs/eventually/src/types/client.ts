@@ -7,9 +7,9 @@ import type {
 } from "./factories";
 import type {
   AllQuery,
-  Command,
   CommandTarget,
   CommittedEvent,
+  Message,
   Messages,
   Snapshot,
   State
@@ -33,7 +33,7 @@ import type {
 export type EventResponse<S extends State, C extends Messages> = {
   readonly id: number;
   readonly error?: string;
-  readonly command?: Command<C>;
+  readonly command?: Message<C>;
   readonly state?: S;
 };
 

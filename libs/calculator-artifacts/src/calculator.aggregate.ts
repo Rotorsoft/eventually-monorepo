@@ -1,4 +1,4 @@
-import { AggregateFactory, bind, ZodEmpty } from "@rotorsoft/eventually";
+import { AggregateFactory, bind, emit, ZodEmpty } from "@rotorsoft/eventually";
 import { z } from "zod";
 import * as schemas from "./calculator.schemas";
 
@@ -82,18 +82,18 @@ export const Calculator: AggregateFactory<
   on: {
     PressKey: async ({ key }, state) => {
       if (key === schemas.SYMBOLS[0]) {
-        return Promise.resolve([bind("DotPressed", {})]);
+        return emit("DotPressed", {});
       }
       if (key === schemas.SYMBOLS[1]) {
         // let's say this is an invalid operation if there is no operator in the model
         if (!state?.operator) throw Error("Don't have an operator!");
-        return Promise.resolve([bind("EqualsPressed", {})]);
+        return emit("EqualsPressed", {});
       }
       return schemas.DIGITS.includes(key as schemas.Digits)
-        ? [bind("DigitPressed", { digit: key as schemas.Digits })]
-        : [bind("OperatorPressed", { operator: key as schemas.Operators })];
+        ? emit("DigitPressed", { digit: key as schemas.Digits })
+        : emit("OperatorPressed", { operator: key as schemas.Operators });
     },
-    Reset: async () =>
+    Reset: () =>
       Promise.resolve([
         bind("Cleared", {}),
         bind("Ignored3", {}),

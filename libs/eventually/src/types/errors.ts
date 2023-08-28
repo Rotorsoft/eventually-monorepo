@@ -1,4 +1,4 @@
-import { CommandTarget, Message, Messages } from "../types/messages";
+import type { CommandTarget, Message, Messages } from "../types/messages";
 
 /**
  * Application error types
@@ -50,9 +50,8 @@ export class ConcurrencyError extends Error {
     public readonly expectedVersion: number
   ) {
     super(
-      `Concurrency error committing event "${
-        events.at(0)?.name
-      }". Expected version ${expectedVersion} but found version ${lastVersion}.`
+      `Concurrency error committing event "${events.at(0)
+        ?.name}". Expected version ${expectedVersion} but found version ${lastVersion}.`
     );
     this.name = Errors.ConcurrencyError;
   }

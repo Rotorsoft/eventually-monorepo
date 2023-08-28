@@ -11,6 +11,7 @@ import {
 } from "@rotorsoft/eventually";
 import {
   config,
+  esml,
   home,
   httpGetPath,
   httpPostPath,
@@ -145,6 +146,9 @@ export class ExpressApp extends Builder {
       // swagger
       const oas = openAPI();
       this._app.get("/swagger", (_, res) => res.json(oas));
+
+      // esml
+      this._app.get("/_esml", (_, res) => res.json(esml()));
 
       // add command schemas
       this._app.get("/_commands/:name", (req, res) => {

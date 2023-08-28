@@ -65,7 +65,7 @@ export const validateMessage = <M extends Messages>(
 };
 
 /**
- * Binds message arguments
+ * Binds message names and data
  * @param name the message name
  * @param data the message payload
  * @returns The bound message
@@ -73,7 +73,26 @@ export const validateMessage = <M extends Messages>(
 export const bind = <M extends Messages, N extends keyof M & string>(
   name: N,
   data: Readonly<M[N]>
-): Message<M> => ({ name, data });
+): Message<M, N> => ({ name, data });
+
+/**
+ * Shortcut to return promise of [bind]
+ */
+export const emit = <M extends Messages, N extends keyof M & string>(
+  name: N,
+  data: Readonly<M[N]>
+): Promise<Message<M, N>[]> => Promise.resolve([bind(name, data)]);
+
+/**
+ * Shortcut to return promise of command message
+ */
+export const cmd = <C extends Messages, N extends keyof C & string>(
+  name: N,
+  data: Readonly<C[N]>,
+  stream: string,
+  expectedVersion?: number
+): Promise<Message<C, N>> =>
+  Promise.resolve({ name, data, stream, expectedVersion });
 
 /**
  * Extends target payload with source payload after validating source

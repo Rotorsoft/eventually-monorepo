@@ -1,0 +1,55 @@
+{
+  "EventuallyMonorepo": {
+    "Calculator": {
+      "type": "aggregate",
+      "handles": ["PressKey", "Reset"],
+      "emits": [
+        "DigitPressed",
+        "OperatorPressed",
+        "DotPressed",
+        "EqualsPressed",
+        "Cleared",
+        "Ignored3"
+      ],
+      "schema": {
+        "requires": { "result": "number" },
+        "optional": {
+          "left": "string",
+          "right": "string",
+          "operator": "string"
+        }
+      }
+    },
+    "CalculatorTotals": {
+      "type": "projector",
+      "handles": ["DigitPressed"],
+      "schema": {
+        "requires": { "id": "string" },
+        "optional": {
+          "t0": "number",
+          "t1": "number",
+          "t2": "number",
+          "t3": "number",
+          "t4": "number",
+          "t5": "number",
+          "t6": "number",
+          "t7": "number",
+          "t8": "number",
+          "t9": "number"
+        }
+      }
+    },
+    "DigitPressed": {
+      "type": "event",
+      "schema": { "requires": { "digit": "string" } }
+    },
+    "OperatorPressed": {
+      "type": "event",
+      "schema": { "requires": { "operator": "string" } }
+    },
+    "PressKey": {
+      "type": "command",
+      "schema": { "requires": { "key": "string" } }
+    }
+  }
+}

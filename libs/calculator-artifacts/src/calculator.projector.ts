@@ -4,16 +4,16 @@ import * as schemas from "./calculator.schemas";
 
 export const TotalsSchema = z.object({
   id: z.string(),
-  [schemas.DIGITS[0]]: z.number().optional(),
-  [schemas.DIGITS[1]]: z.number().optional(),
-  [schemas.DIGITS[2]]: z.number().optional(),
-  [schemas.DIGITS[3]]: z.number().optional(),
-  [schemas.DIGITS[4]]: z.number().optional(),
-  [schemas.DIGITS[5]]: z.number().optional(),
-  [schemas.DIGITS[6]]: z.number().optional(),
-  [schemas.DIGITS[7]]: z.number().optional(),
-  [schemas.DIGITS[8]]: z.number().optional(),
-  [schemas.DIGITS[9]]: z.number().optional()
+  t0: z.number().optional(),
+  t1: z.number().optional(),
+  t2: z.number().optional(),
+  t3: z.number().optional(),
+  t4: z.number().optional(),
+  t5: z.number().optional(),
+  t6: z.number().optional(),
+  t7: z.number().optional(),
+  t8: z.number().optional(),
+  t9: z.number().optional()
 });
 
 export type Totals = z.infer<typeof TotalsSchema>;
@@ -33,12 +33,15 @@ export const CalculatorTotals = (): Projector<Totals, TotalsEvents> => ({
   on: {
     DigitPressed: async ({ stream, data }, map) => {
       const id = `Totals-${stream}`;
+      const t = `t${data.digit}`;
 
       // try to load persisted state from projector store
-      const totals = map.records.get(id) ??
+      const totals: Totals = (map.records.get(id) as Totals) ??
         (await client().read(CalculatorTotals, id)).at(0)?.state ?? { id };
+      //@ts-expect-error ts-will-complain-here
+      const acc = totals[t];
 
-      return [{ id, [data.digit]: (totals[data.digit] ?? 0) + 1 }];
+      return [{ id, [t]: (acc ?? 0) + 1 }];
     }
   }
 });

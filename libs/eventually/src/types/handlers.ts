@@ -1,6 +1,5 @@
 import type {
   Actor,
-  Command,
   CommittedEvent,
   Message,
   Messages,
@@ -74,21 +73,6 @@ export type Invariant<S extends State> = {
   description: string;
   valid: (state: Readonly<S>, actor?: Actor) => boolean;
 };
-
-/**
- * Event handlers handle events and can produce a command targetting a command handler
- * - `event` the committed event being handled
- * - `state` the state of the artifact handling this event - only applies to process managers, Empty for policies
- */
-export type EventHandler<
-  S extends State,
-  C extends Messages,
-  E extends Messages,
-  K extends keyof E
-> = (
-  event: CommittedEvent<Pick<E, K>>,
-  state: Readonly<S>
-) => Promise<Command<C> | undefined> | undefined;
 
 /**
  * Actor handlers extract process manager actor ids from input events

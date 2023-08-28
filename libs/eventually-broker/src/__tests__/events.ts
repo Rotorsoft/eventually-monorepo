@@ -1,4 +1,4 @@
-import { Command, CommittedEvent } from "@rotorsoft/eventually";
+import type { Message, CommittedEvent } from "@rotorsoft/eventually";
 
 type Events = {
   DigitPressed: { digit: string };
@@ -20,7 +20,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           stream: "calc1"
-        } as Command
+        } as Message<Events>
       }
     }
   },
@@ -39,7 +39,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           stream: "calc1"
-        } as Command
+        } as Message<Events>
       }
     }
   },
@@ -58,7 +58,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           stream: "calc1"
-        } as Command
+        } as Message<Events>
       }
     }
   },
@@ -137,7 +137,7 @@ export const events: CommittedEvent<Events>[] = [
         command: {
           name: "PressKey",
           stream: "calc1"
-        } as Command
+        } as Message<Events>
       }
     }
   },

@@ -2,13 +2,12 @@ import { z, type ZodRawShape, type ZodType, type ZodTypeAny } from "zod";
 import type {
   ActorHandler,
   CommandHandler,
-  EventHandler,
   EventReducer,
   Invariant,
   ProjectorReducer,
   StateReducer
 } from "./handlers";
-import type { Command, Messages, State } from "./messages";
+import type { CommittedEvent, Message, Messages, State } from "./messages";
 import type { Projection } from "./projection";
 
 /** All artifact types */
@@ -167,7 +166,11 @@ export type Policy<
   E extends Messages = Messages
 > = WithDescription & {
   schemas: PolicySchemas<C, E>;
-  on: { [K in keyof E]: EventHandler<State, C, E, K> };
+  on: {
+    [K in keyof E]: (
+      event: CommittedEvent<Pick<E, K>>
+    ) => Promise<Message<C> | undefined> | undefined;
+  };
 };
 
 /**
@@ -185,7 +188,12 @@ export type ProcessManager<
 > = Reducible<S, O> & {
   schemas: ProcessManagerSchemas<S, C, E>;
   actor: { [K in keyof E]: ActorHandler<E, K> };
-  on: { [K in keyof E]: EventHandler<S, C, E, K> };
+  on: {
+    [K in keyof E]: (
+      event: CommittedEvent<Pick<E, K>>,
+      state: Readonly<S>
+    ) => Promise<Message<C> | undefined> | undefined;
+  };
 };
 
 /**
@@ -199,7 +207,7 @@ export type CommandAdapter<
   C extends Messages = Messages
 > = WithDescription & {
   schemas: CommandAdapterSchemas<S, C>;
-  on: (message: Readonly<S>) => Command<C>;
+  on: (message: Readonly<S>) => Message<C>;
 };
 
 /**

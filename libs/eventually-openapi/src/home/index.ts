@@ -190,3 +190,5 @@ export const home = (): string => {
   !html && (html = doc(service, version, dependencies, oas_ui, status));
   return html;
 };
+
+export { esml };

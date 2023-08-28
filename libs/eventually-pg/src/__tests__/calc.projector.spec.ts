@@ -11,7 +11,8 @@ import {
   CalculatorTotals,
   TotalsEvents
 } from "@rotorsoft/calculator-artifacts";
-import { PostgresProjectorStore } from "../../dist";
+import { PostgresProjectorStore, config } from "../..";
+import { Pool } from "pg";
 
 const chance = new Chance();
 const _app = app().with(CalculatorTotals, {
@@ -35,7 +36,10 @@ const createEvent = <E extends Messages>(
 });
 
 describe("calculator with pg projector", () => {
+  const pool = new Pool(config.pg);
+
   beforeAll(async () => {
+    await pool.query(`DROP TABLE IF EXISTS "calctotals";`);
     await seed();
     _app.build();
   });
@@ -59,7 +63,7 @@ describe("calculator with pg projector", () => {
     });
 
     const response = await client().read(CalculatorTotals, `Totals-${stream}`);
-    expect(response?.at(0)?.state["1"]).toEqual(2);
+    expect(response?.at(0)?.state.t1).toEqual(2);
     expect(response?.at(0)?.watermark).toEqual(2);
   });
 
@@ -75,13 +79,13 @@ describe("calculator with pg projector", () => {
     ]);
 
     const records = await client().read(CalculatorTotals, `Totals-${stream2}`);
-    expect(records.at(0)?.state["3"]).toBe(3);
+    expect(records.at(0)?.state.t3).toBe(3);
 
     const records1 = await client().read(CalculatorTotals, {
       select: ["id"],
       where: {
         id: { eq: `Totals-${stream2}` },
-        ["3"]: { gt: 1 }
+        t3: { gt: 1 }
       },
       sort: { id: "asc" },
       limit: 10

@@ -3,9 +3,9 @@ import { app, log } from "../ports";
 import {
   InvariantError,
   RegistrationError,
-  type Command,
   type CommandHandlerFactory,
   type CommittedEventMetadata,
+  type Message,
   type Messages,
   type Snapshot,
   type State
@@ -24,7 +24,7 @@ export default async function command<
   C extends Messages,
   E extends Messages
 >(
-  command: Command<C>,
+  command: Message<C>,
   metadata?: CommittedEventMetadata
 ): Promise<Snapshot<S, E> | undefined> {
   const validated = validateMessage(command);

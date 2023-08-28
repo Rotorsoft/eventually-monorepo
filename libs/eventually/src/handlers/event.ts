@@ -1,11 +1,11 @@
 import { randomUUID } from "crypto";
 import { log } from "../ports";
 import type {
-  Command,
   CommittedEvent,
   CommittedEventMetadata,
   EventHandlerFactory,
   EventResponse,
+  Message,
   Messages,
   Policy,
   ProcessManager,
@@ -40,7 +40,7 @@ export default async function event<
     correlation: event.metadata?.correlation || randomUUID(),
     causation: { event: { name, stream, id } }
   };
-  let cmd: Command<C> | undefined;
+  let cmd: Message<C> | undefined;
   const actor: string = "actor" in artifact ? artifact.actor[name](event) : "";
   const snapshots = await message(
     factory,
