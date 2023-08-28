@@ -1,3 +1,5 @@
+#### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.6...@rotorsoft/eventually-openapi-v0.5.7) @rotorsoft/eventually-openapi-v0.5.7
+  - PATCH [61ea1354](https://github.com/Rotorsoft/eventually-monorepo/commit/61ea1354631f02748e1f7b69d87c2640a2acc0ab) fix: add msg utils emit and cmd with payload validation, expose esml model generator
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.7...@rotorsoft/eventually-v5.7.8) @rotorsoft/eventually-v5.7.8
   - PATCH [61ea1354](https://github.com/Rotorsoft/eventually-monorepo/commit/61ea1354631f02748e1f7b69d87c2640a2acc0ab) fix: add msg utils emit and cmd with payload validation, expose esml model generator
 #### 2023-08-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.3...@rotorsoft/eventually-express-v5.7.4) @rotorsoft/eventually-express-v5.7.4
