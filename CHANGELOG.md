@@ -1,3 +1,5 @@
+#### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.8...@rotorsoft/eventually-broker-v2.2.9) @rotorsoft/eventually-broker-v2.2.9
+  - PATCH [61ea1354](https://github.com/Rotorsoft/eventually-monorepo/commit/61ea1354631f02748e1f7b69d87c2640a2acc0ab) fix: add msg utils emit and cmd with payload validation, expose esml model generator
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.4...@rotorsoft/eventually-express-v5.7.5) @rotorsoft/eventually-express-v5.7.5
   - PATCH [61ea1354](https://github.com/Rotorsoft/eventually-monorepo/commit/61ea1354631f02748e1f7b69d87c2640a2acc0ab) fix: add msg utils emit and cmd with payload validation, expose esml model generator
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.9...@rotorsoft/eventually-pg-v5.5.10) @rotorsoft/eventually-pg-v5.5.10
