@@ -1,3 +1,5 @@
+#### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.6...@rotorsoft/calculator-artifacts-v1.7.7) @rotorsoft/calculator-artifacts-v1.7.7
+  - PATCH [625c25c6](https://github.com/Rotorsoft/eventually-monorepo/commit/625c25c65f7c47b31fa5991b5ca3d7b70fd80262) fix: add prj projection patch shortcut util
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.8...@rotorsoft/eventually-v5.7.9) @rotorsoft/eventually-v5.7.9
   - PATCH [625c25c6](https://github.com/Rotorsoft/eventually-monorepo/commit/625c25c65f7c47b31fa5991b5ca3d7b70fd80262) fix: add prj projection patch shortcut util
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.5...@rotorsoft/calculator-artifacts-v1.7.6) @rotorsoft/calculator-artifacts-v1.7.6
