@@ -82,6 +82,7 @@ const ZOD2PG: { [K in z.ZodFirstPartyTypeKind]?: string } = {
   [z.ZodFirstPartyTypeKind.ZodDate]: "TIMESTAMPTZ",
   [z.ZodFirstPartyTypeKind.ZodBigInt]: "BIGINT",
   [z.ZodFirstPartyTypeKind.ZodObject]: "JSON",
+  [z.ZodFirstPartyTypeKind.ZodRecord]: "JSON",
   [z.ZodFirstPartyTypeKind.ZodNativeEnum]: "TEXT",
   [z.ZodFirstPartyTypeKind.ZodEnum]: "TEXT"
 };
@@ -94,6 +95,7 @@ const toCol = (name: string, type: any, optional = false): string => {
     type instanceof z.ZodDate ||
     type instanceof z.ZodBigInt ||
     type instanceof z.ZodObject ||
+    type instanceof z.ZodRecord ||
     type instanceof z.ZodOptional ||
     type instanceof z.ZodNativeEnum ||
     type instanceof z.ZodEnum
