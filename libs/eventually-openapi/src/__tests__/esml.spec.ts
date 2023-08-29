@@ -51,8 +51,8 @@ describe("esml", () => {
             optional: { children: "Xchildren2" }
           }
         },
-        Xchild1: { requires: { id: "string" } },
-        Xchildren2: { requires: { id: "string" } }
+        Xchild1: { type: "schema", requires: { id: "string" } },
+        Xchildren2: { type: "schema", requires: { id: "string" } }
       }
     });
   });

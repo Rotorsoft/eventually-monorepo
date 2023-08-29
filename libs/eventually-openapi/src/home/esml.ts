@@ -32,7 +32,10 @@ const toField = (
       return toField(name, type._def.innerType, true, model);
     if (type instanceof z.ZodRecord) {
       const ref = `X${name}${Object.keys(model).length}`;
-      model[ref] = toSchema(type._def.valueType, model);
+      model[ref] = {
+        type: "schema",
+        ...toSchema(type._def.valueType, model)
+      };
       return {
         name,
         type: ref,
@@ -41,7 +44,10 @@ const toField = (
     }
     if (type instanceof z.ZodObject) {
       const ref = `X${name}${Object.keys(model).length}`;
-      model[ref] = toSchema(type, model);
+      model[ref] = {
+        type: "schema",
+        ...toSchema(type, model)
+      };
       return { name, type: ref, optional };
     }
     return {
