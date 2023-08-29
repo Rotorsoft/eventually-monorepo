@@ -1,3 +1,5 @@
+#### 2023-08-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.10...@rotorsoft/eventually-pg-v5.5.11) @rotorsoft/eventually-pg-v5.5.11
+  - PATCH [82cba87e](https://github.com/Rotorsoft/eventually-monorepo/commit/82cba87ee0bcba15b722f0eb0ea5e95a35f92478) fix: add enum support as text in projector
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.6...@rotorsoft/calculator-artifacts-v1.7.7) @rotorsoft/calculator-artifacts-v1.7.7
   - PATCH [625c25c6](https://github.com/Rotorsoft/eventually-monorepo/commit/625c25c65f7c47b31fa5991b5ca3d7b70fd80262) fix: add prj projection patch shortcut util
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.8...@rotorsoft/eventually-v5.7.9) @rotorsoft/eventually-v5.7.9
