@@ -81,7 +81,9 @@ const ZOD2PG: { [K in z.ZodFirstPartyTypeKind]?: string } = {
   [z.ZodFirstPartyTypeKind.ZodBoolean]: "BOOLEAN",
   [z.ZodFirstPartyTypeKind.ZodDate]: "TIMESTAMPTZ",
   [z.ZodFirstPartyTypeKind.ZodBigInt]: "BIGINT",
-  [z.ZodFirstPartyTypeKind.ZodObject]: "JSON"
+  [z.ZodFirstPartyTypeKind.ZodObject]: "JSON",
+  [z.ZodFirstPartyTypeKind.ZodNativeEnum]: "TEXT",
+  [z.ZodFirstPartyTypeKind.ZodEnum]: "TEXT"
 };
 
 const toCol = (name: string, type: any, optional = false): string => {
@@ -92,11 +94,14 @@ const toCol = (name: string, type: any, optional = false): string => {
     type instanceof z.ZodDate ||
     type instanceof z.ZodBigInt ||
     type instanceof z.ZodObject ||
-    type instanceof z.ZodOptional
+    type instanceof z.ZodOptional ||
+    type instanceof z.ZodNativeEnum ||
+    type instanceof z.ZodEnum
   ) {
     if (name === "id") return "";
     if (type instanceof z.ZodOptional)
       return toCol(name, type._def.innerType, true);
+    // TODO: use enum values to add constraints
     const pgtype = ZOD2PG[type._def.typeName];
     const nullable =
       optional || type.isOptional() || type.isNullable() ? "" : " NOT NULL";

@@ -8,6 +8,12 @@ import { z } from "zod";
 import { PostgresProjectorStore } from "..";
 import { config } from "../config";
 
+enum TestEnum {
+  On = "ON",
+  Off = "OFF"
+}
+const ConstEnum = ["on", "off"] as const;
+
 const zSchema = z.object({
   id: z.string(),
   name: z.string().optional(),
@@ -16,7 +22,9 @@ const zSchema = z.object({
   managerId: z.number().optional(),
   managerName: z.string().optional(),
   countryId: z.number().optional(),
-  countryName: z.string().optional()
+  countryName: z.string().optional(),
+  testEnum: z.nativeEnum(TestEnum).optional(),
+  constEnum: z.enum(ConstEnum).optional()
 });
 
 type Schema = z.infer<typeof zSchema>;
