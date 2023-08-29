@@ -1,3 +1,5 @@
+#### 2023-08-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.7...@rotorsoft/eventually-openapi-v0.5.8) @rotorsoft/eventually-openapi-v0.5.8
+  - PATCH [9921e918](https://github.com/Rotorsoft/eventually-monorepo/commit/9921e9185c7a8d2097e023538d8adb9db7ed7d39) fix: support enums and objects in esml
 #### 2023-08-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.10...@rotorsoft/eventually-pg-v5.5.11) @rotorsoft/eventually-pg-v5.5.11
   - PATCH [82cba87e](https://github.com/Rotorsoft/eventually-monorepo/commit/82cba87ee0bcba15b722f0eb0ea5e95a35f92478) fix: add enum support as text in projector
 #### 2023-08-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.6...@rotorsoft/calculator-artifacts-v1.7.7) @rotorsoft/calculator-artifacts-v1.7.7
