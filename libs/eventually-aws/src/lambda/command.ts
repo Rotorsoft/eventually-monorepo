@@ -7,7 +7,7 @@ import {
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { BadRequest, Ok, httpError } from "./http";
 
-export const handler = async (
+export const command = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
