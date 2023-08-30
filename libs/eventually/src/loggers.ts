@@ -95,7 +95,7 @@ const events = (events: CommittedEvent[]): void => {
         version,
         created,
         actor: actor ? `${actor.id}:${actor.name}` : "",
-        data: JSON.stringify(data).substring(0, 20)
+        data: JSON.stringify(data).substring(0, 50)
       };
     }),
     ["id", "stream", "name", "version", "created", "actor", "data"]

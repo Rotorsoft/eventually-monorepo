@@ -64,6 +64,9 @@ jobs:
           - eventually-broker
           - eventually-service-expg
           - calculator-artifacts
+          - eventually-aws
+          - eventually-gcp
+          - eventually-azure
 
     steps:
       - uses: actions/checkout@v3

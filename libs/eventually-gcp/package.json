@@ -1,0 +1,27 @@
+{
+  "name": "@rotorsoft/eventually-gcp",
+  "version": "0.1.0",
+  "description": "Eventually Framework GCP Adapters",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "libs/eventually-gcp"
+  },
+  "main": "dist/index",
+  "types": "dist/index",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npx tsc --build"
+  },
+  "dependencies": {
+    "@rotorsoft/eventually": "workspace:^5",
+    "zod": "^3.22.2"
+  }
+}

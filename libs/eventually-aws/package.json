@@ -1,0 +1,33 @@
+{
+  "name": "@rotorsoft/eventually-aws",
+  "version": "0.1.0",
+  "description": "Eventually Framework AWS Adapters",
+  "author": {
+    "name": "rotorsoft",
+    "email": "rotorsoft@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotorsoft/eventually-monorepo.git",
+    "directory": "libs/eventually-aws"
+  },
+  "main": "dist/index",
+  "types": "dist/index",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npx tsc --build"
+  },
+  "dependencies": {
+    "@rotorsoft/eventually": "workspace:^5",
+    "aws-cdk-lib": "2.93.0",
+    "constructs": "^10.2.70",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "aws-cdk": "2.93.0"
+  }
+}

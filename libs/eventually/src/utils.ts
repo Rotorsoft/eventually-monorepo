@@ -1,4 +1,4 @@
-import z, { ZodError, type ZodType } from "zod";
+import { z, ZodError, type ZodType } from "zod";
 import { app, store } from "./ports";
 import {
   RegistrationError,

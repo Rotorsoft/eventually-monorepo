@@ -1,4 +1,4 @@
-import EventEmitter from "node:events";
+import { EventEmitter } from "node:events";
 import type { Disposable, ProjectorStore } from "./interfaces";
 import type {
   Artifact,
