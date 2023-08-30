@@ -1,5 +1,6 @@
 /** @module eventually-aws */
-export * from "./config";
-export * from "./DynamoStore";
 export * from "./DynamoProjectorStore";
+export * from "./DynamoStore";
+export * as cdk from "./cdk";
+export * from "./config";
 export * as lambda from "./lambda";
