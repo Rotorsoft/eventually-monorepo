@@ -1,3 +1,5 @@
+#### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.9...@rotorsoft/eventually-v5.7.10) @rotorsoft/eventually-v5.7.10
+  - PATCH [a4f744ee](https://github.com/Rotorsoft/eventually-monorepo/commit/a4f744ee16e06948a073ac4c086fc23bbd0f8ae7) fix: add adapter libs for 3 major cloud providers
 #### 2023-08-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.8...@rotorsoft/eventually-openapi-v0.5.9) @rotorsoft/eventually-openapi-v0.5.9
   - PATCH [cc4f7587](https://github.com/Rotorsoft/eventually-monorepo/commit/cc4f7587fafa046a8f49c9dab3b211c8f63c9b26) fix: add type schema
 #### 2023-08-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.11...@rotorsoft/eventually-pg-v5.5.12) @rotorsoft/eventually-pg-v5.5.12
