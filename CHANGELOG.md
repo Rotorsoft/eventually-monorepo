@@ -1,3 +1,5 @@
+#### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.0...@rotorsoft/eventually-aws-v0.1.1) @rotorsoft/eventually-aws-v0.1.1
+  - PATCH [0ab7b82e](https://github.com/Rotorsoft/eventually-monorepo/commit/0ab7b82ee1f6acb38703058ef544c771fb55fab5) fix: export command from lambda in aws
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/0...@rotorsoft/eventually-azure-v0.1.0) @rotorsoft/eventually-azure-v0.1.0
   - PATCH [9e54987f](https://github.com/Rotorsoft/eventually-monorepo/commit/9e54987faf8e3e6e31d6b143f7f8987d0bc19872) fix: reset versions
   - PATCH [a4f744ee](https://github.com/Rotorsoft/eventually-monorepo/commit/a4f744ee16e06948a073ac4c086fc23bbd0f8ae7) fix: add adapter libs for 3 major cloud providers
