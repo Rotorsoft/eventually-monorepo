@@ -2,7 +2,8 @@ import {
   CommandHandlerFactory,
   app,
   client,
-  decamelize
+  decamelize,
+  log
 } from "@rotorsoft/eventually";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { BadRequest, Ok, httpError } from "./http";
@@ -17,6 +18,13 @@ export const command = async (
     const stream = event.pathParameters?.id ?? "";
     const ifMatch = event.headers["if-match"];
     const expectedVersion = ifMatch ? +ifMatch : undefined;
+
+    log().trace("command", event.path, {
+      system,
+      command,
+      stream,
+      expectedVersion
+    });
 
     const factory = app().artifacts.get(system)
       ?.factory as CommandHandlerFactory;
