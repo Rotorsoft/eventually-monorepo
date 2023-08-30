@@ -1,3 +1,5 @@
+#### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.1...@rotorsoft/eventually-aws-v0.1.2) @rotorsoft/eventually-aws-v0.1.2
+  - PATCH [febeeb10](https://github.com/Rotorsoft/eventually-monorepo/commit/febeeb10036eb5d14b27f58d632dd98d06973cb1) fix: log commands
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.0...@rotorsoft/eventually-aws-v0.1.1) @rotorsoft/eventually-aws-v0.1.1
   - PATCH [0ab7b82e](https://github.com/Rotorsoft/eventually-monorepo/commit/0ab7b82ee1f6acb38703058ef544c771fb55fab5) fix: export command from lambda in aws
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/0...@rotorsoft/eventually-azure-v0.1.0) @rotorsoft/eventually-azure-v0.1.0
