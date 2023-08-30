@@ -1,3 +1,5 @@
+#### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.2...@rotorsoft/eventually-aws-v0.1.3) @rotorsoft/eventually-aws-v0.1.3
+  - PATCH [a94eba36](https://github.com/Rotorsoft/eventually-monorepo/commit/a94eba366ca1a975d9504f2df283c5605a7779ed) fix: command path parser
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.1...@rotorsoft/eventually-aws-v0.1.2) @rotorsoft/eventually-aws-v0.1.2
   - PATCH [febeeb10](https://github.com/Rotorsoft/eventually-monorepo/commit/febeeb10036eb5d14b27f58d632dd98d06973cb1) fix: log commands
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.0...@rotorsoft/eventually-aws-v0.1.1) @rotorsoft/eventually-aws-v0.1.1
