@@ -1,3 +1,6 @@
+#### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/0...@rotorsoft/eventually-azure-v0.1.0) @rotorsoft/eventually-azure-v0.1.0
+  - PATCH [9e54987f](https://github.com/Rotorsoft/eventually-monorepo/commit/9e54987faf8e3e6e31d6b143f7f8987d0bc19872) fix: reset versions
+  - PATCH [a4f744ee](https://github.com/Rotorsoft/eventually-monorepo/commit/a4f744ee16e06948a073ac4c086fc23bbd0f8ae7) fix: add adapter libs for 3 major cloud providers
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/0...@rotorsoft/eventually-gcp-v0.1.0) @rotorsoft/eventually-gcp-v0.1.0
   - PATCH [9e54987f](https://github.com/Rotorsoft/eventually-monorepo/commit/9e54987faf8e3e6e31d6b143f7f8987d0bc19872) fix: reset versions
   - PATCH [a4f744ee](https://github.com/Rotorsoft/eventually-monorepo/commit/a4f744ee16e06948a073ac4c086fc23bbd0f8ae7) fix: add adapter libs for 3 major cloud providers
