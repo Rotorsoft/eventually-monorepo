@@ -1,8 +1,8 @@
 import {
   CommandHandlerFactory,
   app,
+  camelize,
   client,
-  decamelize,
   log
 } from "@rotorsoft/eventually";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
@@ -12,9 +12,9 @@ export const command = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const [system, _, command] = event.path
+    const [, system, , command] = event.path
       .split("/")
-      .map((part) => decamelize(part));
+      .map((part) => camelize(part));
     const stream = event.pathParameters?.id ?? "";
     const ifMatch = event.headers["if-match"];
     const expectedVersion = ifMatch ? +ifMatch : undefined;
@@ -28,7 +28,8 @@ export const command = async (
 
     const factory = app().artifacts.get(system)
       ?.factory as CommandHandlerFactory;
-    if (!factory) return BadRequest(`Invalid command handler ${system}`);
+    if (!factory)
+      return BadRequest(`Invalid request: /${system}/${stream}/${command}`);
 
     const claims = event.requestContext.authorizer?.jwt?.claims;
     const actor = { id: claims?.email ?? "", name: claims?.name ?? "" };
