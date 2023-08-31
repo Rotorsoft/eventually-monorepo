@@ -2,7 +2,7 @@ import { drain } from "../handlers";
 import { STATE_EVENT, type Broker } from "../interfaces";
 import { app, log, store } from "../ports";
 import type { ArtifactType, EventHandlerFactory } from "../types";
-import { throttle } from "../utils";
+import { throttle } from "../utils/utils";
 
 const event_handler_types: Array<ArtifactType> = [
   "policy",

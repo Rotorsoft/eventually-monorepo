@@ -1,6 +1,5 @@
-import { scheduler } from "../scheduler";
 import { dispose } from "../port";
-import { sleep } from "../utils";
+import { scheduler, sleep } from "../utils";
 
 describe("scheduler", () => {
   const schedule = scheduler("test");

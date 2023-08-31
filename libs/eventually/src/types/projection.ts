@@ -104,6 +104,17 @@ export type ProjectionQuery<S extends State = State> = {
 };
 
 /**
+ * REST projection query options
+ */
+export type RestProjectionQuery = {
+  ids?: string[];
+  select?: string[];
+  where?: string[];
+  sort?: string[];
+  limit?: number;
+};
+
+/**
  * Supported aggregate functions
  */
 export type Agg = "count" | "sum" | "avg" | "min" | "max";
@@ -121,6 +132,14 @@ export type Agg = "count" | "sum" | "avg" | "min" | "max";
 export type AggQuery<S extends State> = {
   readonly select: { readonly [K in keyof S]?: Agg[] };
   readonly where?: ProjectionWhere<S>;
+};
+
+/**
+ * REST aggregate query options
+ */
+export type RestAggQuery = {
+  select?: string[];
+  where?: string[];
 };
 
 /**

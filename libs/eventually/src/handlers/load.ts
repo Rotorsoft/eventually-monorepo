@@ -8,7 +8,7 @@ import type {
   Snapshot,
   State
 } from "../types";
-import { patch } from "../utils";
+import { patch } from "../utils/patch";
 
 /**
  * Reduces artifact from store

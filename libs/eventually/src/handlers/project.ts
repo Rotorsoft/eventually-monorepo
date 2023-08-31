@@ -10,7 +10,7 @@ import type {
   ProjectorFactory,
   State
 } from "../types";
-import { patch } from "../utils";
+import { patch } from "../utils/patch";
 
 /**
  * Projects events (materialized view).

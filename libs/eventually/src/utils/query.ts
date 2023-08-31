@@ -1,30 +1,32 @@
+import { ZodObject, ZodRawShape, z } from "zod";
 import {
+  Condition,
   Operators,
-  conditions,
-  validate,
   type AggQuery,
   type Operator,
   type ProjectionQuery,
   type ProjectionSort,
   type ProjectionWhere,
+  type RestAggQuery,
+  type RestProjectionQuery,
   type State,
-  Condition
-} from "@rotorsoft/eventually";
-import { ZodObject, z } from "zod";
+  Schema
+} from "../types";
+import { validate } from "./validation";
 
 /**
- * REST projection query options
+ * Decodes projector filter conditions
+ *
+ * @param condition filter condition expressions
+ * @returns [operator, value] tuples
  */
-export type RestProjectionQuery = {
-  ids?: string[];
-  select?: string[];
-  where?: string[];
-  sort?: string[];
-  limit?: number;
-};
+export const conditions = <T>(condition: Condition<T>): [Operator, any][] =>
+  typeof condition === "object"
+    ? (Object.entries(condition) as [Operator, any][])
+    : [["eq", condition]];
 
 /**
- * Converts a projection query to a REST query
+ * Converts ProjectionQuery to RestProjectionQuery
  */
 export const toRestProjectionQuery = ({
   select,
@@ -45,15 +47,42 @@ export const toRestProjectionQuery = ({
 });
 
 /**
- * REST aggregate query options
+ * Converts RestProjectionQuery to ProjectionQuery, with schema validation
  */
-export type RestAggQuery = {
-  select?: string[];
-  where?: string[];
+export const toProjectionQuery = (
+  { ids, select, where, sort, limit }: RestProjectionQuery,
+  schema: Schema<State>
+): string[] | ProjectionQuery => {
+  if (ids && ids.length) return ids;
+  const query = {
+    select: select
+      ? typeof select === "string"
+        ? [select]
+        : select
+      : undefined,
+    where: where
+      ? parseWhere(typeof where === "string" ? [where] : where)
+      : undefined,
+    sort: sort
+      ? parseSort(typeof sort === "string" ? [sort] : sort)
+      : undefined,
+    limit: limit ? +limit : undefined
+  };
+  const keys = (schema as ZodObject<ZodRawShape>).keyof();
+  validate<ProjectionQuery>(
+    query,
+    z.object({
+      select: z.array(keys).optional(),
+      where: z.record(keys, z.record(z.enum(Operators), z.string())).optional(),
+      sort: z.record(keys, z.enum(["asc", "desc"])).optional(),
+      limit: z.number().int().optional()
+    })
+  );
+  return query;
 };
 
 /**
- * Converts an aggregate query to a REST query
+ * Converts AggQuery to RestAggQuery
  */
 export const toRestAggQuery = <S extends State>({
   select,
@@ -94,38 +123,3 @@ const parseSort = (sorts: string[]): ProjectionSort =>
       throw Error(`Invalid sort clause: ${v}`);
     }
   }, {} as ProjectionSort);
-
-/**
- * Converts a REST projection query with zod object schema to a projection query
- */
-export const toProjectionQuery = (
-  { ids, select, where, sort, limit }: RestProjectionQuery,
-  schema: ZodObject<State>
-): string[] | ProjectionQuery => {
-  if (ids && ids.length) return ids;
-  const query = {
-    select: select
-      ? typeof select === "string"
-        ? [select]
-        : select
-      : undefined,
-    where: where
-      ? parseWhere(typeof where === "string" ? [where] : where)
-      : undefined,
-    sort: sort
-      ? parseSort(typeof sort === "string" ? [sort] : sort)
-      : undefined,
-    limit: limit ? +limit : undefined
-  };
-  const keys = schema.keyof();
-  validate<ProjectionQuery>(
-    query,
-    z.object({
-      select: z.array(keys).optional(),
-      where: z.record(keys, z.record(z.enum(Operators), z.string())).optional(),
-      sort: z.record(keys, z.enum(["asc", "desc"])).optional(),
-      limit: z.number().int().optional()
-    })
-  );
-  return query;
-};

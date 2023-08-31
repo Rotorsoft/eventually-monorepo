@@ -1,4 +1,4 @@
-import { log } from "./ports";
+import { log } from "../ports";
 
 /**
  * Circuit breaker response

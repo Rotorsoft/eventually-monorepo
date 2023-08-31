@@ -2,6 +2,7 @@ import {
   client,
   log,
   store,
+  toProjectionQuery,
   type Actor,
   type AggregateFactory,
   type AllQuery,
@@ -11,15 +12,12 @@ import {
   type EventHandlerFactory,
   type ProjectionRecord,
   type ProjectorFactory,
+  type RestProjectionQuery,
   type Snapshot,
-  type State
+  type State,
+  Schema
 } from "@rotorsoft/eventually";
-import {
-  RestProjectionQuery,
-  toProjectionQuery
-} from "@rotorsoft/eventually-openapi";
 import type { NextFunction, Request, Response } from "express";
-import type { ZodObject, ZodType } from "zod";
 import { Ok, httpError, send } from "./http";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
@@ -141,14 +139,14 @@ export const projectHandler =
   };
 
 export const readHandler =
-  (factory: ProjectorFactory, schema: ZodType) =>
+  (factory: ProjectorFactory, schema: Schema<State>) =>
   async (
     req: Request<never, ProjectionRecord[], never, RestProjectionQuery>,
     res: Response,
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const query = toProjectionQuery(req.query, schema as ZodObject<State>);
+      const query = toProjectionQuery(req.query, schema);
       return send(res, Ok(await client().read(factory, query)));
     } catch (error) {
       next(error);

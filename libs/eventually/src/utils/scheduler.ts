@@ -1,5 +1,5 @@
-import { Disposable } from "./interfaces";
-import { log } from "./ports";
+import { Disposable } from "../interfaces";
+import { log } from "../ports";
 import { sleep } from "./utils";
 
 /**

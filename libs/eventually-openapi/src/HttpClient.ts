@@ -1,6 +1,8 @@
 import {
   ProjectorFactory,
   decamelize,
+  toRestAggQuery,
+  toRestProjectionQuery,
   type AggQuery,
   type AggResult,
   type Client,
@@ -15,7 +17,6 @@ import {
   type State
 } from "@rotorsoft/eventually";
 import axios, { AxiosResponse } from "axios";
-import { toRestAggQuery, toRestProjectionQuery } from "./query";
 import { httpGetPath, httpPostPath } from "./utils";
 
 /**

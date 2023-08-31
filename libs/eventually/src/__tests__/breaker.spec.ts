@@ -1,4 +1,4 @@
-import { breaker } from "../breaker";
+import { breaker } from "../utils/breaker";
 
 describe("breaker", () => {
   it("should green light", async () => {

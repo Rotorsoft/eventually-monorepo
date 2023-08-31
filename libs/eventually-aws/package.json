@@ -22,12 +22,10 @@
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^5",
-    "aws-cdk-lib": "2.93.0",
-    "constructs": "^10.2.70",
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.119",
-    "aws-cdk": "2.93.0"
+    "@rotorsoft/calculator-artifacts": "workspace:^1",
+    "@types/aws-lambda": "^8.10.119"
   }
 }

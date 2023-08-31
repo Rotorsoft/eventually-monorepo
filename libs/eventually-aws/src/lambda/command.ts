@@ -12,10 +12,15 @@ export const command = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const [, system, , command] = event.path
-      .split("/")
-      .map((part) => camelize(part));
-    const stream = event.pathParameters?.id ?? "";
+    const parts = event.path.split("/");
+    if (parts.length !== 4)
+      return BadRequest("Invalid path. Use: /system-name/stream/command-name", {
+        path: event.path
+      });
+
+    const system = camelize(parts[1]);
+    const stream = parts[2];
+    const command = camelize(parts[3]);
     const ifMatch = event.headers["if-match"];
     const expectedVersion = ifMatch ? +ifMatch : undefined;
 
@@ -26,19 +31,32 @@ export const command = async (
       expectedVersion
     });
 
-    const factory = app().artifacts.get(system)
-      ?.factory as CommandHandlerFactory;
-    if (!factory)
-      return BadRequest(`Invalid request: /${system}/${stream}/${command}`);
+    const md = app().artifacts.get(system);
+    if (!md)
+      return BadRequest("System not found", {
+        system,
+        parsedPath: `/${system}/${stream}/${command}`
+      });
+    if (!(md.type === "aggregate" || md.type === "system"))
+      return BadRequest("Invalid system", {
+        system,
+        type: md.type,
+        parsedPath: `/${system}/${stream}/${command}`
+      });
 
     const claims = event.requestContext.authorizer?.jwt?.claims;
     const actor = { id: claims?.email ?? "", name: claims?.name ?? "" };
     const data: Record<string, any> = event.body ? JSON.parse(event.body) : {};
-    const snap = await client().command(factory, command, data, {
-      stream,
-      expectedVersion,
-      actor
-    });
+    const snap = await client().command(
+      md.factory as CommandHandlerFactory,
+      command,
+      data,
+      {
+        stream,
+        expectedVersion,
+        actor
+      }
+    );
     const headers = snap?.event?.version
       ? { ETag: snap?.event?.version }
       : undefined;

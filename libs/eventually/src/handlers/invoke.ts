@@ -4,7 +4,7 @@ import type {
   Snapshot,
   State
 } from "../types";
-import { validate } from "../utils";
+import { validate } from "../utils/validation";
 import command from "./command";
 
 /**

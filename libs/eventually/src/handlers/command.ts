@@ -10,7 +10,7 @@ import {
   type Snapshot,
   type State
 } from "../types";
-import { validateMessage } from "../utils";
+import { validateMessage } from "../utils/validation";
 import message from "./message";
 
 /**
