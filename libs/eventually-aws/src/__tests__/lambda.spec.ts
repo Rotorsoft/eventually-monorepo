@@ -172,8 +172,8 @@ describe("lambda", () => {
         null,
         {},
         {
-          queryStringParameters: { where: "b" },
-          multiValueQueryStringParameters: {}
+          queryStringParameters: {},
+          multiValueQueryStringParameters: { where: ["b"] }
         }
       )
     );
@@ -208,8 +208,8 @@ describe("lambda", () => {
         null,
         {},
         {
-          queryStringParameters: { sort: "id" },
-          multiValueQueryStringParameters: {}
+          queryStringParameters: {},
+          multiValueQueryStringParameters: { sort: ["id"] }
         }
       )
     );

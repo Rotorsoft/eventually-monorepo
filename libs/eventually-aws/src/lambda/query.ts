@@ -39,19 +39,14 @@ export const query = async (
         type: md.type
       });
 
-    const { ids, select, where, sort, limit } =
-      event.queryStringParameters ?? {};
-    const {
-      ids: mids,
-      select: mselect,
-      where: mwhere,
-      sort: msort
-    } = event.multiValueQueryStringParameters ?? {};
+    const { limit } = event.queryStringParameters ?? {};
+    const { ids, select, where, sort } =
+      event.multiValueQueryStringParameters ?? {};
     const query: RestProjectionQuery = {
-      ids: mids ?? (ids ? [ids] : undefined),
-      select: mselect ?? (select ? [select] : undefined),
-      where: mwhere ?? (where ? [where] : undefined),
-      sort: msort ?? (sort ? [sort] : undefined),
+      ids,
+      select,
+      where,
+      sort,
       limit: limit ? +limit : undefined
     };
 
