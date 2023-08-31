@@ -1,3 +1,5 @@
+#### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.10...@rotorsoft/eventually-v5.7.11) @rotorsoft/eventually-v5.7.11
+  - PATCH [2e4bae48](https://github.com/Rotorsoft/eventually-monorepo/commit/2e4bae48e04a8704045bafb4d192d3eb0c49cc49) fix: restructure utils, remove cdk from aws and add command/query adapters
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.2...@rotorsoft/eventually-aws-v0.1.3) @rotorsoft/eventually-aws-v0.1.3
   - PATCH [a94eba36](https://github.com/Rotorsoft/eventually-monorepo/commit/a94eba366ca1a975d9504f2df283c5605a7779ed) fix: command path parser
 #### 2023-08-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.1...@rotorsoft/eventually-aws-v0.1.2) @rotorsoft/eventually-aws-v0.1.2
