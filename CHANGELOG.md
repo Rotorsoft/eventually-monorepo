@@ -1,3 +1,5 @@
+#### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.4...@rotorsoft/eventually-aws-v0.1.5) @rotorsoft/eventually-aws-v0.1.5
+  - PATCH [0c1b0f40](https://github.com/Rotorsoft/eventually-monorepo/commit/0c1b0f40282e025e284ffde418f90f43ac683f04) fix: simplify query
 #### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-azure-v0.1.0...@rotorsoft/eventually-azure-v0.1.1) @rotorsoft/eventually-azure-v0.1.1
   - PATCH [2e4bae48](https://github.com/Rotorsoft/eventually-monorepo/commit/2e4bae48e04a8704045bafb4d192d3eb0c49cc49) fix: restructure utils, remove cdk from aws and add command/query adapters
 #### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.0...@rotorsoft/eventually-gcp-v0.1.1) @rotorsoft/eventually-gcp-v0.1.1
