@@ -1,3 +1,5 @@
+#### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.3...@rotorsoft/eventually-aws-v0.1.4) @rotorsoft/eventually-aws-v0.1.4
+  - PATCH [2e4bae48](https://github.com/Rotorsoft/eventually-monorepo/commit/2e4bae48e04a8704045bafb4d192d3eb0c49cc49) fix: restructure utils, remove cdk from aws and add command/query adapters
 #### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.5...@rotorsoft/eventually-express-v5.7.6) @rotorsoft/eventually-express-v5.7.6
   - PATCH [2e4bae48](https://github.com/Rotorsoft/eventually-monorepo/commit/2e4bae48e04a8704045bafb4d192d3eb0c49cc49) fix: restructure utils, remove cdk from aws and add command/query adapters
 #### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.9...@rotorsoft/eventually-openapi-v0.5.10) @rotorsoft/eventually-openapi-v0.5.10
