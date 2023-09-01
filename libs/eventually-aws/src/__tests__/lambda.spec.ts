@@ -1,6 +1,6 @@
 import { app, broker, dispose } from "@rotorsoft/eventually";
 import { Calculator, CalculatorTotals } from "@rotorsoft/calculator-artifacts";
-import { command, query } from "../lambda";
+import { command, load, query } from "../lambda";
 import { proxyEvent } from "./proxyEvent";
 
 describe("lambda", () => {
@@ -216,5 +216,46 @@ describe("lambda", () => {
     expect(JSON.parse(result.body).error.message).toEqual(
       "Invalid sort clause: id"
     );
+  });
+
+  it("should invoke load", async () => {
+    const result = await load(proxyEvent("GET", "/calculator/calc-123"));
+    expect(JSON.parse(result.body)).toHaveProperty("result");
+  });
+
+  it("should fail load", async () => {
+    const result = await load(proxyEvent("GET", "/calcul"));
+    expect(JSON.parse(result.body)).toEqual({
+      error: {
+        message: "Invalid path. Use: /aggregate-name/stream",
+        details: {
+          path: "/calcul"
+        }
+      }
+    });
+  });
+
+  it("should fail aggregate", async () => {
+    const result = await load(proxyEvent("GET", "/calcul/1"));
+    expect(JSON.parse(result.body)).toEqual({
+      error: {
+        message: "Aggregate not found",
+        details: { parsedPath: "/Calcul/1", aggregate: "Calcul" }
+      }
+    });
+  });
+
+  it("should fail aggregate type", async () => {
+    const result = await load(proxyEvent("GET", "/calculator-totals/1"));
+    expect(JSON.parse(result.body)).toEqual({
+      error: {
+        message: "Invalid aggregate",
+        details: {
+          type: "projector",
+          parsedPath: "/CalculatorTotals/1",
+          aggregate: "CalculatorTotals"
+        }
+      }
+    });
   });
 });

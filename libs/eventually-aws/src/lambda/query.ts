@@ -4,58 +4,51 @@ import {
   app,
   camelize,
   client,
-  log,
-  toProjectionQuery
-} from "@rotorsoft/eventually";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { BadRequest, Ok, httpError } from "./http";
+  toProjectionQuery,
+} from "@rotorsoft/eventually"
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda"
+import { BadRequest, Ok, httpError } from "./http"
 
 export const query = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const parts = event.path.split("/");
-    if (parts.length !== 2)
+    const segments = event.path.split("/")
+    if (segments.length !== 2)
       return BadRequest("Invalid path. Use: /projector-name", {
-        path: event.path
-      });
+        path: event.path,
+      })
 
-    const projector = camelize(parts[1]);
+    const projector = camelize(segments[1])
 
-    log().trace("query", event.path, {
-      projector,
-      queryStringParameters: event.queryStringParameters,
-      multiValueQueryStringParameters: event.multiValueQueryStringParameters
-    });
-
-    const md = app().artifacts.get(projector);
+    const md = app().artifacts.get(projector)
     if (!md)
       return BadRequest("Projector not found", {
-        projector
-      });
+        projector,
+      })
     if (md.type !== "projector")
       return BadRequest("Invalid projector", {
         projector,
-        type: md.type
-      });
+        type: md.type,
+      })
 
-    const { limit } = event.queryStringParameters ?? {};
+    const { limit } = event.queryStringParameters ?? {}
     const { ids, select, where, sort } =
-      event.multiValueQueryStringParameters ?? {};
+      event.multiValueQueryStringParameters ?? {}
     const query: RestProjectionQuery = {
       ids,
       select,
       where,
       sort,
-      limit: limit ? +limit : undefined
-    };
+      limit: limit ? +limit : undefined,
+    }
 
     const records = await client().read(
       md.factory as ProjectorFactory,
       toProjectionQuery(query, md.schema!)
-    );
-    return Ok(records);
+    )
+    return Ok(records)
   } catch (error) {
-    return httpError(error);
+    return httpError(error)
   }
-};
+}

@@ -8,28 +8,24 @@ import {
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { BadRequest, Ok, httpError } from "./http";
 
-export const command = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
+export const command = async ({
+  path,
+  headers,
+  body,
+  requestContext
+}: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    const parts = event.path.split("/");
-    if (parts.length !== 4)
+    const segments = path.split("/");
+    if (segments.length !== 4)
       return BadRequest("Invalid path. Use: /system-name/stream/command-name", {
-        path: event.path
+        path
       });
 
-    const system = camelize(parts[1]);
-    const stream = parts[2];
-    const command = camelize(parts[3]);
-    const ifMatch = event.headers["if-match"];
+    const system = camelize(segments[1]);
+    const stream = segments[2];
+    const command = camelize(segments[3]);
+    const ifMatch = headers["if-match"];
     const expectedVersion = ifMatch ? +ifMatch : undefined;
-
-    log().trace("command", event.path, {
-      system,
-      command,
-      stream,
-      expectedVersion
-    });
 
     const md = app().artifacts.get(system);
     if (!md)
@@ -44,9 +40,10 @@ export const command = async (
         parsedPath: `/${system}/${stream}/${command}`
       });
 
-    const claims = event.requestContext.authorizer?.jwt?.claims;
+    log().trace("Auth", requestContext.authorizer);
+    const claims = requestContext.authorizer?.jwt?.claims;
     const actor = { id: claims?.email ?? "", name: claims?.name ?? "" };
-    const data: Record<string, any> = event.body ? JSON.parse(event.body) : {};
+    const data: Record<string, any> = body ? JSON.parse(body) : {};
     const snap = await client().command(
       md.factory as CommandHandlerFactory,
       command,
@@ -57,10 +54,10 @@ export const command = async (
         actor
       }
     );
-    const headers = snap?.event?.version
-      ? { ETag: snap?.event?.version }
-      : undefined;
-    return Ok(snap, headers);
+    return Ok(
+      snap,
+      snap?.event?.version ? { ETag: snap?.event?.version } : undefined
+    );
   } catch (error) {
     return httpError(error);
   }
