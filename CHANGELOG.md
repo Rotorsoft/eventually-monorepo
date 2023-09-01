@@ -1,3 +1,5 @@
+#### 2023-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.5...@rotorsoft/eventually-aws-v0.1.6) @rotorsoft/eventually-aws-v0.1.6
+  - PATCH [2ee2abf9](https://github.com/Rotorsoft/eventually-monorepo/commit/2ee2abf97fb6ec103413766847d48fbca9231abc) fix: add more lambdas
 #### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.4...@rotorsoft/eventually-aws-v0.1.5) @rotorsoft/eventually-aws-v0.1.5
   - PATCH [0c1b0f40](https://github.com/Rotorsoft/eventually-monorepo/commit/0c1b0f40282e025e284ffde418f90f43ac683f04) fix: simplify query
 #### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-azure-v0.1.0...@rotorsoft/eventually-azure-v0.1.1) @rotorsoft/eventually-azure-v0.1.1
