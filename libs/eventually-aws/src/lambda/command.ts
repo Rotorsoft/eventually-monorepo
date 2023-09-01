@@ -2,8 +2,7 @@ import {
   CommandHandlerFactory,
   app,
   camelize,
-  client,
-  log
+  client
 } from "@rotorsoft/eventually";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { BadRequest, Ok, httpError } from "./http";
@@ -40,9 +39,10 @@ export const command = async ({
         parsedPath: `/${system}/${stream}/${command}`
       });
 
-    log().trace("Auth", requestContext.authorizer);
-    const claims = requestContext.authorizer?.jwt?.claims;
-    const actor = { id: claims?.email ?? "", name: claims?.name ?? "" };
+    // TODO: check all options to get claims from context
+    const claims = requestContext.authorizer?.claims;
+    const actor = claims ? { id: claims.sub, name: claims.email } : undefined;
+
     const data: Record<string, any> = body ? JSON.parse(body) : {};
     const snap = await client().command(
       md.factory as CommandHandlerFactory,
