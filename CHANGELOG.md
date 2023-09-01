@@ -1,3 +1,5 @@
+#### 2023-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.6...@rotorsoft/eventually-aws-v0.1.7) @rotorsoft/eventually-aws-v0.1.7
+  - PATCH [c5efd44b](https://github.com/Rotorsoft/eventually-monorepo/commit/c5efd44b025978fad5ac89b7ea2c3e5496a9ee41) fix: claims
 #### 2023-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.5...@rotorsoft/eventually-aws-v0.1.6) @rotorsoft/eventually-aws-v0.1.6
   - PATCH [2ee2abf9](https://github.com/Rotorsoft/eventually-monorepo/commit/2ee2abf97fb6ec103413766847d48fbca9231abc) fix: add more lambdas
 #### 2023-08-31 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.4...@rotorsoft/eventually-aws-v0.1.5) @rotorsoft/eventually-aws-v0.1.5
