@@ -1,3 +1,5 @@
+#### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.7...@rotorsoft/eventually-aws-v0.1.8) @rotorsoft/eventually-aws-v0.1.8
+  - PATCH [6067cca5](https://github.com/Rotorsoft/eventually-monorepo/commit/6067cca599312fcf4c165275fbc2254431be68fa) fix: use email as actor id
 #### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.10...@rotorsoft/eventually-broker-v2.2.11) @rotorsoft/eventually-broker-v2.2.11
   - PATCH [e00952e2](https://github.com/Rotorsoft/eventually-monorepo/commit/e00952e29f124f9e23ee4de1c42016b1a68788d6) fix: up pkcs
 #### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.6...@rotorsoft/eventually-express-v5.7.7) @rotorsoft/eventually-express-v5.7.7
