@@ -7,6 +7,9 @@
     "email": "rotorsoft@outlook.com"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rotorsoft/eventually-monorepo.git"

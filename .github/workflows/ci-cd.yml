@@ -29,10 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: install node 16
+      - name: install node 18
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
 
       - name: install and build
         run: yarn install && yarn build
@@ -73,10 +73,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: install node 16
+      - name: install node 18
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
 
       - name: analyze ${{ matrix.lib }}
         id: analyze
