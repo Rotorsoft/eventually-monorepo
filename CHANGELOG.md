@@ -1,3 +1,5 @@
+#### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.12...@rotorsoft/eventually-v5.7.13) @rotorsoft/eventually-v5.7.13
+  - PATCH [9ddc1af5](https://github.com/Rotorsoft/eventually-monorepo/commit/9ddc1af56fd5aa2edd024ee45c9ef7ebbb495525) fix: expose proxy type
 #### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.7...@rotorsoft/eventually-aws-v0.1.8) @rotorsoft/eventually-aws-v0.1.8
   - PATCH [6067cca5](https://github.com/Rotorsoft/eventually-monorepo/commit/6067cca599312fcf4c165275fbc2254431be68fa) fix: use email as actor id
 #### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.10...@rotorsoft/eventually-broker-v2.2.11) @rotorsoft/eventually-broker-v2.2.11
