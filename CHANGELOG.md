@@ -1,3 +1,5 @@
+#### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.7...@rotorsoft/eventually-express-v5.7.8) @rotorsoft/eventually-express-v5.7.8
+  - PATCH [94bdd453](https://github.com/Rotorsoft/eventually-monorepo/commit/94bdd4534fcd60fdd119df5ffc50c2f013d32cf9) fix: add response mapper to proxy
 #### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.13...@rotorsoft/eventually-v5.7.14) @rotorsoft/eventually-v5.7.14
   - PATCH [94bdd453](https://github.com/Rotorsoft/eventually-monorepo/commit/94bdd4534fcd60fdd119df5ffc50c2f013d32cf9) fix: add response mapper to proxy
 #### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.12...@rotorsoft/eventually-v5.7.13) @rotorsoft/eventually-v5.7.13
