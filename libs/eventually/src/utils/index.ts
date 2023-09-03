@@ -1,5 +1,6 @@
 export * from "./binding";
 export * from "./breaker";
+export * from "./http";
 export * from "./query";
 export * from "./formatting";
 export * from "./patch";

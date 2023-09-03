@@ -293,7 +293,7 @@ export const PostgresStore = (table: string): Store => {
       }
     },
 
-    ack: async <E extends Messages>(lease: Lease<E>, watermark?: number) => {
+    ack: async <E extends Messages>(lease: Lease<E>, watermark: number) => {
       let acked = false;
       const client = await pool.connect();
       try {
@@ -313,10 +313,7 @@ export const PostgresStore = (table: string): Store => {
           subscription.expires > new Date()
         ) {
           const sql = `UPDATE "${table}_subscriptions" SET watermark=$2, lease=null, expires=null WHERE "${table}_subscriptions".consumer=$1`;
-          const vals = [
-            lease.consumer,
-            Math.max(watermark || -1, subscription.watermark)
-          ];
+          const vals = [lease.consumer, watermark];
           acked = (await client.query(sql, vals)).rowCount > 0;
           log().silver().data(sql, vals, { acked });
         }

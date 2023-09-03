@@ -1,5 +1,7 @@
 import {
+  Ok,
   client,
+  httpError,
   log,
   store,
   toProjectionQuery,
@@ -10,20 +12,25 @@ import {
   type CommandHandlerFactory,
   type CommittedEvent,
   type EventHandlerFactory,
+  type JsonResponse,
   type ProjectionRecord,
   type ProjectorFactory,
   type RestProjectionQuery,
+  type Schema,
   type Snapshot,
-  type State,
-  Schema
+  type State
 } from "@rotorsoft/eventually";
 import type { NextFunction, Request, Response } from "express";
-import { Ok, httpError, send } from "./http";
 
 const eTag = (res: Response, snapshot?: Snapshot): void => {
   const etag = snapshot?.event?.version;
   typeof etag === "number" && res.setHeader("ETag", etag.toString());
 };
+
+const send = (
+  res: Response,
+  { status, error, result }: JsonResponse<unknown>
+): Response => res.status(status).send(error ?? result);
 
 export const statsHandler = async (
   _: Request,

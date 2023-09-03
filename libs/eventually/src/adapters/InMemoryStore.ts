@@ -171,7 +171,7 @@ export const InMemoryStore = (): Store => {
       }
     },
 
-    ack: <E extends Messages>(lease: Lease<E>, watermark?: number) => {
+    ack: <E extends Messages>(lease: Lease<E>, watermark: number) => {
       const subscription = _subscriptions[lease.consumer];
       // updates subscription while lease is still valid
       if (
@@ -183,7 +183,7 @@ export const InMemoryStore = (): Store => {
       ) {
         _subscriptions[lease.consumer] = {
           consumer: lease.consumer,
-          watermark: Math.max(watermark || -1, subscription.watermark)
+          watermark
         };
         return Promise.resolve(true);
       }

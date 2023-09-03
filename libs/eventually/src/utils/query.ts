@@ -82,6 +82,20 @@ export const toProjectionQuery = (
 };
 
 /**
+ * Converts projection query to query string
+ */
+export const toProjectionQueryString = (query: ProjectionQuery): string => {
+  const { ids, select, where, sort, limit } = toRestProjectionQuery(query);
+  const querystring = new URLSearchParams();
+  ids && ids.forEach((v) => querystring.append("id", v));
+  select && select.forEach((v) => querystring.append("select", v));
+  where && where.forEach((v) => querystring.append("where", v));
+  sort && sort.forEach((v) => querystring.append("sort", v));
+  limit && querystring.append("limit", limit.toString());
+  return querystring.toString();
+};
+
+/**
  * Converts AggQuery to RestAggQuery
  */
 export const toRestAggQuery = <S extends State>({

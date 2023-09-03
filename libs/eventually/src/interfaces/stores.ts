@@ -81,12 +81,12 @@ export interface Store extends Disposable {
   /**
    * Acknowledges when the consumer finishes handling events
    * - `lease` the lease
-   * - `watermark?` the new watermark of consumed events
+   * - `watermark` the new watermark of consumed events
    * - returns false when lease expired
    * */
   ack: <E extends Messages>(
     lease: Lease<E>,
-    watermark?: number
+    watermark: number
   ) => Promise<boolean>;
 
   /**
