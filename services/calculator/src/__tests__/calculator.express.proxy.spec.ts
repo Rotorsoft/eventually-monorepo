@@ -38,6 +38,7 @@ describe("calculator express app with proxy", () => {
     await broker().drain();
 
     const response = await proxy.load(Calculator, id);
+    console.log("???????????????????", response);
     expect(response?.result?.state).toEqual({
       left: "3.3",
       result: 3.3
