@@ -12,7 +12,7 @@ import {
   type CommandHandlerFactory,
   type CommittedEvent,
   type EventHandlerFactory,
-  type JsonResponse,
+  type HttpResponse,
   type ProjectionRecord,
   type ProjectorFactory,
   type RestProjectionQuery,
@@ -29,7 +29,7 @@ const eTag = (res: Response, snapshot?: Snapshot): void => {
 
 const send = (
   res: Response,
-  { status, error, result }: JsonResponse<unknown>
+  { status, error, result }: HttpResponse<unknown>
 ): Response => res.status(status).send(error ?? result);
 
 export const statsHandler = async (

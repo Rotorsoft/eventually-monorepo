@@ -26,7 +26,7 @@ describe("calculator express app with proxy", () => {
     await dispose()();
   });
 
-  it.skip("should compute correctly", async () => {
+  it("should compute correctly", async () => {
     const id = chance.guid();
 
     await proxy.command(Calculator, id, "PressKey", { key: "1" });

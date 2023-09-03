@@ -16,9 +16,9 @@ import { toProjectionQueryString } from "./query";
 
 export type HttpStatusCode = 200 | 400 | 401 | 403 | 404 | 409 | 500;
 
-export type JsonResponse<T> = {
+export type HttpResponse<T> = {
   status: HttpStatusCode;
-  statusText: string;
+  statusText?: string;
   result?: T;
   error?: {
     message: string;
@@ -27,7 +27,7 @@ export type JsonResponse<T> = {
   };
 };
 
-export const Ok = <T>(result?: any): JsonResponse<T> => ({
+export const Ok = <T>(result?: any): HttpResponse<T> => ({
   status: 200,
   statusText: "OK",
   result
@@ -36,31 +36,31 @@ export const Ok = <T>(result?: any): JsonResponse<T> => ({
 export const BadRequest = (
   message?: string,
   details?: any
-): JsonResponse<never> => ({
+): HttpResponse<never> => ({
   status: 400,
   statusText: "Bad Request",
   error: { message: message ?? "Bad Request", details }
 });
 
-export const Unauthorized = (message?: string): JsonResponse<never> => ({
+export const Unauthorized = (message?: string): HttpResponse<never> => ({
   status: 401,
   statusText: "Unauthorized",
   error: { message: message ?? "Unauthorized" }
 });
 
-export const Forbidden = (message?: string): JsonResponse<never> => ({
+export const Forbidden = (message?: string): HttpResponse<never> => ({
   status: 403,
   statusText: "Forbidden",
   error: { message: message ?? "Forbidden" }
 });
 
-export const NotFound = (message?: string): JsonResponse<never> => ({
+export const NotFound = (message?: string): HttpResponse<never> => ({
   status: 404,
   statusText: "Not Found",
   error: { message: message ?? "Not Found" }
 });
 
-export const Conflict = (message?: string): JsonResponse<never> => ({
+export const Conflict = (message?: string): HttpResponse<never> => ({
   status: 409,
   statusText: "Conflict",
   error: { message: message ?? "Conflict" }
@@ -69,7 +69,7 @@ export const Conflict = (message?: string): JsonResponse<never> => ({
 export const InternalServerError = (
   message?: string,
   stack?: string
-): JsonResponse<never> => ({
+): HttpResponse<never> => ({
   status: 500,
   statusText: "Internal Server Error",
   error: {
@@ -79,9 +79,9 @@ export const InternalServerError = (
 });
 
 /**
- * Converts error to JsonResponse with error
+ * Converts error to HttpResponse with error
  */
-export const httpError = (error: unknown): JsonResponse<never> => {
+export const httpError = (error: unknown): HttpResponse<never> => {
   if (error instanceof Error) {
     const { name, message, stack } = error;
     switch (name) {
@@ -113,15 +113,15 @@ export type Proxy = {
     name: N,
     data: C[N],
     expectedVersion?: number
-  ) => Promise<JsonResponse<Snapshot<S>>>;
+  ) => Promise<HttpResponse<Snapshot<S>>>;
   load: <S extends State, C extends Messages, E extends Messages>(
     factory: AggregateFactory<S, C, E>,
     stream: string
-  ) => Promise<JsonResponse<Snapshot<S>> | undefined>;
+  ) => Promise<HttpResponse<Snapshot<S>> | undefined>;
   query: <S extends State, E extends Messages>(
     factory: ProjectorFactory<S, E>,
     query: ProjectionQuery<S>
-  ) => Promise<JsonResponse<ProjectionRecord<S>[]>>;
+  ) => Promise<HttpResponse<ProjectionRecord<S>[]>>;
 };
 
 /**
@@ -129,8 +129,13 @@ export type Proxy = {
  *
  * @param apiUrl api host url
  * @param options fetch options
+ * @param responseMapper optional reponse body mapper
  */
-export const HttpProxy = (apiUrl: string, options?: RequestInit): Proxy => {
+export const HttpProxy = (
+  apiUrl: string,
+  options?: RequestInit,
+  responseMapper?: <T>(response: any) => HttpResponse<T>
+): Proxy => {
   return {
     command: async function (factory, stream, name, data, expectedVersion) {
       const url = `${apiUrl}/${decamelize(factory.name)}/${stream}/${decamelize(
@@ -150,7 +155,7 @@ export const HttpProxy = (apiUrl: string, options?: RequestInit): Proxy => {
         const response = await fetch(url, opts);
         const body = await response.json();
         log().trace("< ", body);
-        return Ok(body);
+        return responseMapper ? responseMapper(body) : Ok(body);
       } catch (error) {
         return httpError(error);
       }
@@ -163,7 +168,8 @@ export const HttpProxy = (apiUrl: string, options?: RequestInit): Proxy => {
           ...options,
           method: "GET"
         });
-        return Ok(await response.json());
+        const body = await response.json();
+        return responseMapper ? responseMapper(body) : Ok(body);
       } catch (error) {
         return httpError(error);
       }
@@ -181,7 +187,7 @@ export const HttpProxy = (apiUrl: string, options?: RequestInit): Proxy => {
         });
         const body = await response.json();
         log().trace("< ", body);
-        return Ok(body);
+        return responseMapper ? responseMapper(body) : Ok(body);
       } catch (error) {
         return httpError(error);
       }
