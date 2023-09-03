@@ -101,7 +101,7 @@ export const httpError = (error: unknown): JsonResponse<never> => {
   );
 };
 
-type ProxyType = {
+export type Proxy = {
   command: <
     S extends State,
     C extends Messages,
@@ -130,7 +130,7 @@ type ProxyType = {
  * @param apiUrl api host url
  * @param options fetch options
  */
-export const HttpProxy = (apiUrl: string, options?: RequestInit): ProxyType => {
+export const HttpProxy = (apiUrl: string, options?: RequestInit): Proxy => {
   return {
     command: async function (factory, stream, name, data, expectedVersion) {
       const url = `${apiUrl}/${decamelize(factory.name)}/${stream}/${decamelize(
