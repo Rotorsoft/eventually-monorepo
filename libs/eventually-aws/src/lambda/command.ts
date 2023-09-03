@@ -41,7 +41,7 @@ export const command = async ({
 
     // TODO: check all options to get claims from context
     const claims = requestContext.authorizer?.claims;
-    const actor = claims ? { id: claims.sub, name: claims.email } : undefined;
+    const actor = claims ? { id: claims.email, name: claims.name } : undefined;
 
     const data: Record<string, any> = body ? JSON.parse(body) : {};
     const snap = await client().command(
