@@ -1,3 +1,5 @@
+#### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.11...@rotorsoft/eventually-v5.7.12) @rotorsoft/eventually-v5.7.12
+  - PATCH [2404b897](https://github.com/Rotorsoft/eventually-monorepo/commit/2404b897611808782e129b152fc18ddfaac4b316) fix: move http utils to eventually, add proxy util
 #### 2023-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.6...@rotorsoft/eventually-aws-v0.1.7) @rotorsoft/eventually-aws-v0.1.7
   - PATCH [c5efd44b](https://github.com/Rotorsoft/eventually-monorepo/commit/c5efd44b025978fad5ac89b7ea2c3e5496a9ee41) fix: claims
 #### 2023-09-01 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.5...@rotorsoft/eventually-aws-v0.1.6) @rotorsoft/eventually-aws-v0.1.6
