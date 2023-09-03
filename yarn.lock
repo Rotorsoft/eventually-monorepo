@@ -962,7 +962,7 @@ __metadata:
     express: ^4.18.2
     express-handlebars: ^7.1.2
     helmet: ^7.0.0
-    joi: ^17.10.0
+    joi: ^17.10.1
     pg: ^8.11.3
     pg-listen: ^1.7.0
   languageName: unknown
@@ -1003,11 +1003,11 @@ __metadata:
     "@types/cron": ^2.4.0
     "@types/http-cache-semantics": ^4.0.1
     "@types/jest": ^29.5.4
-    "@types/luxon": ^3.3.1
+    "@types/luxon": ^3.3.2
     "@types/minimist": ^1.2.2
-    "@types/node": ^20.5.7
+    "@types/node": ^20.5.9
     "@types/pg": ^8.10.2
-    "@types/uuid": ^9.0.2
+    "@types/uuid": ^9.0.3
     "@typescript-eslint/eslint-plugin": ^6.5.0
     "@typescript-eslint/parser": ^6.5.0
     chance: ^1.1.11
@@ -1363,7 +1363,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/luxon@npm:^3.3.1, @types/luxon@npm:~3.3.0":
+"@types/luxon@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "@types/luxon@npm:3.3.2"
+  checksum: b9111132720eae0269538872a5a496b29587ecfc8edc3b0ff7d269aa93a5ff00a131b23d1e9d1f12ec39f2c779ad21bd8d9f90b122c85a182771aabde7f676b8
+  languageName: node
+  linkType: hard
+
+"@types/luxon@npm:~3.3.0":
   version: 3.3.1
   resolution: "@types/luxon@npm:3.3.1"
   checksum: da8f6158edacae1430f3eca5f4ab4891200ffb34aa521ef6bae407a3c50b3854907098bc4535fb2a66a2779738f3c6c48fdfd86f01117a6f4844b18536cdb7c0
@@ -1391,10 +1398,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^20.5.7":
+"@types/node@npm:*":
   version: 20.5.7
   resolution: "@types/node@npm:20.5.7"
   checksum: fc284c8e16ddc04569730d58e87eae349eb1c3dd9020cb79a1862d9d9add6f04e7367a236f3252db8db2572f90278e250f4cd43d27d264972b54394eaba1ed76
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.5.9":
+  version: 20.5.9
+  resolution: "@types/node@npm:20.5.9"
+  checksum: 717490e94131722144878b4ca1a963ede1673bb8f2ef78c2f5b50b918df6dc9b35e7f8283e5c2a7a9f137730f7c08dc6228e53d4494a94c9ee16881e6ce6caed
   languageName: node
   linkType: hard
 
@@ -1472,10 +1486,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^9.0.2":
-  version: 9.0.2
-  resolution: "@types/uuid@npm:9.0.2"
-  checksum: 1754bcf3444e1e3aeadd6e774fc328eb53bc956665e2e8fb6ec127aa8e1f43d9a224c3d22a9a6233dca8dd81a12dc7fed4d84b8876dd5ec82d40f574f7ff8b68
+"@types/uuid@npm:^9.0.3":
+  version: 9.0.3
+  resolution: "@types/uuid@npm:9.0.3"
+  checksum: 3dde198defd71c067dd14b3050a8fe6d1ead5fe94ec318472e2c30a399d13f18941fe66cffabdcac7267177c9de2f975fdee6f0cc87cde610a2578e1ce4cc3af
   languageName: node
   linkType: hard
 
@@ -4260,16 +4274,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"joi@npm:^17.10.0":
-  version: 17.10.0
-  resolution: "joi@npm:17.10.0"
+"joi@npm:^17.10.1":
+  version: 17.10.1
+  resolution: "joi@npm:17.10.1"
   dependencies:
     "@hapi/hoek": ^9.0.0
     "@hapi/topo": ^5.0.0
     "@sideway/address": ^4.1.3
     "@sideway/formula": ^3.0.1
     "@sideway/pinpoint": ^2.0.0
-  checksum: 1a5a0e14e93f40d76e43409348bed222e9d3d6b4547a780a29d1a325e7c9aed820d725ac3ce5826f7a0675979c5fb4bd7a0c7d74219ed3eac83af06c148ed321
+  checksum: 7affbb27ae9283596d6471871352b85ebf73a1e782c0be1998bce1ecc86ba48bee834c8af9a44d7143bb470654d6ae1248a29009ee5463618675d655dbd69306
   languageName: node
   linkType: hard
 
