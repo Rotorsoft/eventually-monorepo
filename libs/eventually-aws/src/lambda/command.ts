@@ -1,6 +1,7 @@
 import {
   CommandHandlerFactory,
   app,
+  broker,
   camelize,
   client
 } from "@rotorsoft/eventually";
@@ -54,6 +55,12 @@ export const command = async ({
         actor
       }
     );
+
+    // TODO: make this optional
+    // Since we are in a serverless world that won't wait for external async operations to complete,
+    // we can force a broker drain here, allowing policies and projectors to consume the new events
+    if (snap?.event) await broker().drain();
+
     return Ok(
       snap,
       snap?.event?.version ? { ETag: snap?.event?.version } : undefined

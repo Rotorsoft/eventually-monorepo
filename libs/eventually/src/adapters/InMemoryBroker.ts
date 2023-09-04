@@ -16,17 +16,21 @@ const event_handler_types: Array<ArtifactType> = [
  * @param timeout lease expiration time (in ms) when polling the store
  * @param limit max number of events to drain in each try
  * @param delay debounce delay (in ms) to drain
+ * @param subscribed to subscribe the broker to commit events - set to false when serverless
  */
-export const InMemoryBroker = ({
-  timeout,
-  limit,
-  delay
-}: {
-  timeout: number;
-  limit: number;
-  delay: number;
+export const InMemoryBroker = (options?: {
+  timeout?: number;
+  limit?: number;
+  delay?: number;
+  subscribed?: boolean;
 }): Broker => {
   const name = "InMemoryBroker";
+  const {
+    timeout = 5000,
+    limit = 10,
+    delay = 500,
+    subscribed = true
+  } = options ?? {};
 
   // connect private event handlers only
   // NOTE: public consumers should be connected by an external broker service
@@ -58,34 +62,35 @@ export const InMemoryBroker = ({
   const __drain = throttle(drainAll, delay);
 
   // subscribe broker to commit events
-  app().on("commit", async ({ factory, snapshot }) => {
-    // commits STATE_EVENT - artifact must be configured in app builder
-    if (snapshot) {
-      const commit = app().commits.get(factory.name);
-      if (commit && commit(snapshot)) {
-        try {
-          const { id, stream, name, metadata, version } = snapshot.event!;
-          return await store().commit(
-            stream,
-            [
+  subscribed &&
+    app().on("commit", async ({ factory, snapshot }) => {
+      // commits STATE_EVENT - artifact must be configured in app builder
+      if (snapshot) {
+        const commit = app().commits.get(factory.name);
+        if (commit && commit(snapshot)) {
+          try {
+            const { id, stream, name, metadata, version } = snapshot.event!;
+            return await store().commit(
+              stream,
+              [
+                {
+                  name: STATE_EVENT,
+                  data: snapshot.state
+                }
+              ],
               {
-                name: STATE_EVENT,
-                data: snapshot.state
-              }
-            ],
-            {
-              correlation: metadata.correlation,
-              causation: { event: { id, name, stream } }
-            },
-            version // IMPORTANT! - state events should be committed right after the snapshot's event
-          );
-        } catch (error) {
-          log().error(error);
+                correlation: metadata.correlation,
+                causation: { event: { id, name, stream } }
+              },
+              version // IMPORTANT! - state events should be committed right after the snapshot's event
+            );
+          } catch (error) {
+            log().error(error);
+          }
         }
       }
-    }
-    __drain();
-  });
+      __drain();
+    });
 
   return {
     name,
