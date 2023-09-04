@@ -1,3 +1,5 @@
+#### 2023-09-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.8...@rotorsoft/eventually-aws-v0.1.9) @rotorsoft/eventually-aws-v0.1.9
+  - PATCH [8e669a48](https://github.com/Rotorsoft/eventually-monorepo/commit/8e669a48aeb563b00fd673402268dd7367e47435) fix: drain broker in serverless command
 #### 2023-09-04 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.14...@rotorsoft/eventually-v5.7.15) @rotorsoft/eventually-v5.7.15
   - PATCH [8e669a48](https://github.com/Rotorsoft/eventually-monorepo/commit/8e669a48aeb563b00fd673402268dd7367e47435) fix: drain broker in serverless command
 #### 2023-09-03 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.7...@rotorsoft/eventually-express-v5.7.8) @rotorsoft/eventually-express-v5.7.8
