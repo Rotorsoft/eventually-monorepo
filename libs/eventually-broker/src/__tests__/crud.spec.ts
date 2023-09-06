@@ -12,6 +12,9 @@ const pool = new Pool(config.pg);
 describe("crud", () => {
   beforeAll(async () => {
     await subscriptions().seed();
+  });
+
+  beforeEach(async () => {
     await pool.query("delete from subscriptions; delete from services;");
   });
 
@@ -60,8 +63,8 @@ describe("crud", () => {
   describe("subscriptions", () => {
     const service = chance.name();
 
-    beforeAll(async () => {
-      await subscriptions().seed();
+    beforeEach(async () => {
+      await pool.query("delete from subscriptions; delete from services;");
       await createService(service);
     });
 
@@ -129,9 +132,8 @@ describe("crud", () => {
       await subscriptions().commitSubscriptionPosition(id1, 10);
       await subscriptions().commitSubscriptionPosition(id2, 11);
       const result1 = await subscriptions().loadSubscriptions();
-      const result2 = await subscriptions().loadSubscriptionsByProducer(
-        producer
-      );
+      const result2 =
+        await subscriptions().loadSubscriptionsByProducer(producer);
       expect(result1.length).toBeGreaterThanOrEqual(2);
       expect(result2.length).toBe(2);
       expect(result2.find((r) => r.id === id1)?.position).toBe(10);
