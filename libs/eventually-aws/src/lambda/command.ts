@@ -56,10 +56,9 @@ export const command = async ({
       }
     );
 
-    // TODO: make this optional
     // Since we are in a serverless world that won't wait for external async operations to complete,
     // we can force a broker drain here, allowing policies and projectors to consume the new events
-    if (snap?.event) await broker().drain();
+    if (snap?.event) await broker().drain(1);
 
     return Ok(
       snap,

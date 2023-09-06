@@ -84,10 +84,8 @@ export async function poll<
 
 /**
  * Drains consumer subscription by polling events until the end of the stream is reached or an error occurs
- * @param factory the event handler factory (policy, process manager, or projector)
- * @param names the event names to poll
- * @param timeout the lease timeout in ms
- * @param limit the max number of events to poll
+ * @param factory event handler factory (policy, process manager, or projector)
+ * @param options poll options
  * @returns number of handled events, and error message when something fails
  */
 export async function drain<
@@ -97,14 +95,15 @@ export async function drain<
 >(
   factory: EventHandlerFactory<S, C, E> | ProjectorFactory<S, E>,
   options: PollOptions
-): Promise<{ total: number; error?: string }> {
-  let total = 0;
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
+): Promise<{ total: number; times: number; error?: string }> {
+  let total = 0,
+    times = 0;
+  while (times < (options.times ?? 1000)) {
     const { count, error } = await poll(factory, options);
     total += count;
+    times++;
     if (count < options.limit) break;
-    if (error) return { total, error };
+    if (error) return { total, times, error };
   }
-  return { total };
+  return { total, times };
 }

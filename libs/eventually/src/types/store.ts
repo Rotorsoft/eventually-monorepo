@@ -34,12 +34,14 @@ export type Lease<E extends Messages> = Subscription & {
 
 /**
  * Poll options
- * - `names` the event names to poll
- * - `timeout` the lease timeout in ms
- * - `limit` the max number of events to poll
+ * - `names` event names to poll
+ * - `timeout` lease timeout in ms
+ * - `limit` max number of events to poll
+ * - `times` number of times to poll
  */
 export type PollOptions = {
   readonly names: string[];
   readonly timeout: number;
   readonly limit: number;
+  readonly times?: number;
 };

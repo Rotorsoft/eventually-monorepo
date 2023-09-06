@@ -46,20 +46,21 @@ export const InMemoryBroker = (options?: {
       names: md.inputs.map((input) => input.name)
     }));
 
-  const drainAll = async (): Promise<void> => {
+  const drainAll = async (times?: number): Promise<void> => {
     for (let i = 0; i < consumers.length; i++) {
       const c = consumers[i];
       const { total, error } = await drain(c.factory, {
         names: c.names,
         timeout,
-        limit
+        limit,
+        times
       });
       total &&
         log().gray().trace(`~~~ ${c.factory.name} drained ${total} events...`);
       error && log().error(error);
     }
   };
-  const __drain = throttle(drainAll, delay);
+  const __drain = throttle(() => drainAll(), delay);
 
   // subscribe broker to commit events
   subscribed &&

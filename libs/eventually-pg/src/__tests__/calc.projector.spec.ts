@@ -45,6 +45,7 @@ describe("calculator with pg projector", () => {
   });
 
   afterAll(async () => {
+    await pool.end();
     await dispose()();
   });
 
