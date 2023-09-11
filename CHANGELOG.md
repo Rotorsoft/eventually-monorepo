@@ -1,3 +1,5 @@
+#### 2023-09-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.14...@rotorsoft/eventually-pg-v5.5.15) @rotorsoft/eventually-pg-v5.5.15
+  - PATCH [186a5652](https://github.com/Rotorsoft/eventually-monorepo/commit/186a56525ad2c0e7bf6c3881a06be171f205cc8b) fix: separate subscriptions from event store
 #### 2023-09-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.16...@rotorsoft/eventually-v5.7.17) @rotorsoft/eventually-v5.7.17
   - PATCH [186a5652](https://github.com/Rotorsoft/eventually-monorepo/commit/186a56525ad2c0e7bf6c3881a06be171f205cc8b) fix: separate subscriptions from event store
 #### 2023-09-06 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.9...@rotorsoft/eventually-aws-v0.1.10) @rotorsoft/eventually-aws-v0.1.10
