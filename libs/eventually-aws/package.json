@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-aws",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Eventually Framework AWS Adapters",
   "author": {
     "name": "rotorsoft",
