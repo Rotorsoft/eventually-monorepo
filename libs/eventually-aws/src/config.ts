@@ -6,11 +6,16 @@ type Region = (typeof Regions)[number];
 
 const Schema = z.object({
   aws: z.object({
-    region: z.enum(Regions).optional()
+    region: z.enum(Regions).optional(),
+    dynamo: z
+      .object({
+        endpoint: z.string().optional()
+      })
+      .optional()
   })
 });
 
-const { AWS_REGION } = process.env;
+const { AWS_REGION, AWS_DYNAMO_ENDPOINT } = process.env;
 
 /**
  * AWS configuration options
@@ -18,7 +23,10 @@ const { AWS_REGION } = process.env;
 export const config = extend(
   {
     aws: {
-      region: AWS_REGION as Region
+      region: AWS_REGION as Region,
+      dynamo: AWS_DYNAMO_ENDPOINT
+        ? { endpoint: AWS_DYNAMO_ENDPOINT }
+        : undefined
     }
   },
   Schema,
