@@ -1,3 +1,5 @@
+#### 2023-09-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-azure-v0.1.1...@rotorsoft/eventually-azure-v0.1.2) @rotorsoft/eventually-azure-v0.1.2
+  - PATCH [186a5652](https://github.com/Rotorsoft/eventually-monorepo/commit/186a56525ad2c0e7bf6c3881a06be171f205cc8b) fix: separate subscriptions from event store
 #### 2023-09-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.1...@rotorsoft/eventually-gcp-v0.1.2) @rotorsoft/eventually-gcp-v0.1.2
   - PATCH [186a5652](https://github.com/Rotorsoft/eventually-monorepo/commit/186a56525ad2c0e7bf6c3881a06be171f205cc8b) fix: separate subscriptions from event store
 #### 2023-09-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.10...@rotorsoft/eventually-aws-v0.1.11) @rotorsoft/eventually-aws-v0.1.11
