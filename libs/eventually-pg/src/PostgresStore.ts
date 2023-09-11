@@ -2,13 +2,10 @@ import type {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
-  Lease,
   Message,
   Messages,
-  PollOptions,
   Store,
-  StoreStat,
-  Subscription
+  StoreStat
 } from "@rotorsoft/eventually";
 import {
   ActorConcurrencyError,
@@ -17,7 +14,6 @@ import {
   dateReviver,
   log
 } from "@rotorsoft/eventually";
-import { randomUUID } from "crypto";
 import { Pool, types } from "pg";
 import { config } from "./config";
 import { stream } from "./seed";
@@ -38,85 +34,9 @@ types.setTypeParser(types.builtins.JSON, (val) => JSON.parse(val, dateReviver));
 export const PostgresStore = (table: string): Store => {
   const pool = new Pool(config.pg);
 
-  const query = async <E extends Messages>(
-    callback: (event: CommittedEvent<E>) => void,
-    query?: AllQuery
-  ): Promise<number> => {
-    const {
-      stream,
-      names,
-      before,
-      after,
-      limit,
-      created_before,
-      created_after,
-      backward,
-      actor,
-      correlation,
-      loading
-    } = query || {};
-
-    let sql = `SELECT * FROM "${table}" WHERE`;
-    const values: any[] = [];
-
-    if (loading) {
-      // optimize aggregate loading after last state event
-      sql = sql.concat(
-        ` id>=COALESCE((SELECT id
-          FROM "${table}"
-          WHERE stream='${stream}' AND name='${STATE_EVENT}'
-          ORDER BY id DESC LIMIT 1), 0)
-          AND stream='${stream}'`
-      );
-    } else {
-      if (typeof after !== "undefined") {
-        values.push(after);
-        sql = sql.concat(" id>$1");
-      } else sql = sql.concat(" id>-1");
-      if (stream) {
-        values.push(stream);
-        sql = sql.concat(` AND stream=$${values.length}`);
-      }
-      if (actor) {
-        values.push(actor);
-        sql = sql.concat(` AND actor=$${values.length}`);
-      }
-      if (names && names.length) {
-        values.push(names);
-        sql = sql.concat(` AND name = ANY($${values.length})`);
-      }
-      if (before) {
-        values.push(before);
-        sql = sql.concat(` AND id<$${values.length}`);
-      }
-      if (created_after) {
-        values.push(created_after.toISOString());
-        sql = sql.concat(` AND created>$${values.length}`);
-      }
-      if (created_before) {
-        values.push(created_before.toISOString());
-        sql = sql.concat(` AND created<$${values.length}`);
-      }
-      if (correlation) {
-        values.push(correlation);
-        sql = sql.concat(` AND metadata->>'correlation'=$${values.length}`);
-      }
-    }
-    sql = sql.concat(` ORDER BY id ${backward ? "DESC" : "ASC"}`);
-    if (limit) {
-      values.push(limit);
-      sql = sql.concat(` LIMIT $${values.length}`);
-    }
-
-    const result = await pool.query<Event>(sql, values);
-    for (const row of result.rows)
-      callback(row as unknown as CommittedEvent<E>);
-
-    return result.rowCount;
-  };
-
   return {
     name: `PostgresStore:${table}`,
+
     dispose: async () => {
       await pool.end();
     },
@@ -128,7 +48,82 @@ export const PostgresStore = (table: string): Store => {
       await pool.query(seed);
     },
 
-    query,
+    query: async <E extends Messages>(
+      callback: (event: CommittedEvent<E>) => void,
+      query?: AllQuery
+    ): Promise<number> => {
+      const {
+        stream,
+        names,
+        before,
+        after,
+        limit,
+        created_before,
+        created_after,
+        backward,
+        actor,
+        correlation,
+        loading
+      } = query || {};
+
+      let sql = `SELECT * FROM "${table}" WHERE`;
+      const values: any[] = [];
+
+      if (loading) {
+        // optimize aggregate loading after last state event
+        sql = sql.concat(
+          ` id>=COALESCE((SELECT id
+            FROM "${table}"
+            WHERE stream='${stream}' AND name='${STATE_EVENT}'
+            ORDER BY id DESC LIMIT 1), 0)
+            AND stream='${stream}'`
+        );
+      } else {
+        if (typeof after !== "undefined") {
+          values.push(after);
+          sql = sql.concat(" id>$1");
+        } else sql = sql.concat(" id>-1");
+        if (stream) {
+          values.push(stream);
+          sql = sql.concat(` AND stream=$${values.length}`);
+        }
+        if (actor) {
+          values.push(actor);
+          sql = sql.concat(` AND actor=$${values.length}`);
+        }
+        if (names && names.length) {
+          values.push(names);
+          sql = sql.concat(` AND name = ANY($${values.length})`);
+        }
+        if (before) {
+          values.push(before);
+          sql = sql.concat(` AND id<$${values.length}`);
+        }
+        if (created_after) {
+          values.push(created_after.toISOString());
+          sql = sql.concat(` AND created>$${values.length}`);
+        }
+        if (created_before) {
+          values.push(created_before.toISOString());
+          sql = sql.concat(` AND created<$${values.length}`);
+        }
+        if (correlation) {
+          values.push(correlation);
+          sql = sql.concat(` AND metadata->>'correlation'=$${values.length}`);
+        }
+      }
+      sql = sql.concat(` ORDER BY id ${backward ? "DESC" : "ASC"}`);
+      if (limit) {
+        values.push(limit);
+        sql = sql.concat(` LIMIT $${values.length}`);
+      }
+
+      const result = await pool.query<Event>(sql, values);
+      for (const row of result.rows)
+        callback(row as unknown as CommittedEvent<E>);
+
+      return result.rowCount;
+    },
 
     commit: async <E extends Messages>(
       stream: string,
@@ -231,108 +226,6 @@ export const PostgresStore = (table: string): Store => {
           5 DESC`;
 
       return (await pool.query<StoreStat>(sql)).rows;
-    },
-
-    poll: async <E extends Messages>(
-      consumer: string,
-      { names, timeout, limit }: PollOptions
-    ): Promise<Lease<E> | undefined> => {
-      const client = await pool.connect();
-      try {
-        const events: CommittedEvent<E>[] = [];
-        let lease, expires;
-
-        await client.query("BEGIN");
-        const { rows } = await pool.query<Subscription>(
-          `SELECT * FROM "${table}_subscriptions" WHERE consumer=$1`,
-          [consumer]
-        );
-        const subscription =
-          rows.at(0) || ({ consumer, watermark: -1 } as Subscription);
-        // block competing consumers while existing lease is valid
-        if (
-          !(
-            subscription.lease &&
-            subscription.expires &&
-            subscription.expires > new Date()
-          )
-        ) {
-          // get events after watermark
-          await query<E>((e) => events.push(e), {
-            after: subscription.watermark,
-            limit,
-            names
-          });
-
-          // create a new lease when events found
-          if (events.length) {
-            lease = randomUUID();
-            expires = new Date(Date.now() + timeout);
-            const sql = `INSERT INTO "${table}_subscriptions" VALUES($1, $2, $3, $4) ON CONFLICT (consumer) DO UPDATE SET lease=$3, expires=$4 WHERE "${table}_subscriptions".consumer=$1`;
-            const vals = [consumer, subscription.watermark, lease, expires];
-            log().silver().data(sql, vals);
-            await client.query(sql, vals);
-          }
-        }
-        await client.query("COMMIT");
-        return events.length
-          ? ({
-              consumer,
-              watermark: subscription.watermark,
-              lease,
-              expires,
-              events
-            } as Lease<E>)
-          : undefined;
-      } catch (error) {
-        log().error(error);
-        await client.query("ROLLBACK");
-        throw error;
-      } finally {
-        client.release();
-      }
-    },
-
-    ack: async <E extends Messages>(lease: Lease<E>, watermark: number) => {
-      let acked = false;
-      const client = await pool.connect();
-      try {
-        await client.query("BEGIN");
-        const { rows } = await pool.query<Subscription>(
-          `SELECT * FROM "${table}_subscriptions" WHERE consumer=$1`,
-          [lease.consumer]
-        );
-        const subscription =
-          rows.at(0) ||
-          ({ consumer: lease.consumer, watermark: -1 } as Subscription);
-        // update watermark while lease is still valid
-        if (
-          subscription.lease &&
-          subscription.lease === lease.lease &&
-          subscription.expires &&
-          subscription.expires > new Date()
-        ) {
-          const sql = `UPDATE "${table}_subscriptions" SET watermark=$2, lease=null, expires=null WHERE "${table}_subscriptions".consumer=$1`;
-          const vals = [lease.consumer, watermark];
-          acked = (await client.query(sql, vals)).rowCount > 0;
-          log().silver().data(sql, vals, { acked });
-        }
-        await client.query("COMMIT");
-      } catch (error) {
-        log().error(error);
-        await client.query("ROLLBACK");
-        throw error;
-      } finally {
-        client.release();
-      }
-      return acked;
-    },
-
-    subscriptions: async () => {
-      const { rows } = await pool.query<Subscription>(
-        `SELECT * FROM "${table}_subscriptions"`
-      );
-      return rows;
     }
   };
 };

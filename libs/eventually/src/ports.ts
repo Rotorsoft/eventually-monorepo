@@ -3,11 +3,18 @@ import {
   InMemoryBroker,
   InMemoryClient,
   InMemoryProjectorStore,
-  InMemoryStore
+  InMemoryStore,
+  InMemorySubscriptionStore
 } from "./adapters";
 import { Builder } from "./builder";
 import { config as _config } from "./config";
-import { Broker, Disposable, Logger, Store } from "./interfaces";
+import {
+  Broker,
+  Disposable,
+  Logger,
+  Store,
+  SubscriptionStore
+} from "./interfaces";
 import * as loggers from "./loggers";
 import { port } from "./port";
 import { Client } from "./types";
@@ -75,6 +82,16 @@ export const app = port(function app<T extends Builder = InMemoryApp>(
  */
 export const store = port(function store(store?: Store) {
   return store || InMemoryStore();
+});
+
+/**
+ * @category Ports
+ * @remarks Global port to subscriptions store
+ */
+export const subscriptions = port(function subscriptions(
+  store?: SubscriptionStore
+) {
+  return store || InMemorySubscriptionStore();
 });
 
 /**

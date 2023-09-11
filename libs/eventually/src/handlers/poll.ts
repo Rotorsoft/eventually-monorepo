@@ -1,4 +1,4 @@
-import { app, log, store } from "../ports";
+import { app, log, subscriptions } from "../ports";
 import type {
   EventHandlerFactory,
   Lease,
@@ -49,7 +49,7 @@ export async function poll<
   let watermark = -1;
 
   try {
-    lease = await store().poll<E>(factory.name, options);
+    lease = await subscriptions().poll<E>(factory.name, options);
     if (lease) {
       log().gray().trace(`\n>>> POLL-ACK ${factory.name}`, lease);
       watermark = lease.watermark;
@@ -71,7 +71,7 @@ export async function poll<
     error = err instanceof Error ? err.message : err.toString();
   } finally {
     if (lease) {
-      const ok = await store().ack(lease, watermark);
+      const ok = await subscriptions().ack(lease, watermark);
       if (!ok) {
         const msg = `!!! POLL-ACK ${factory.name} failed on lease ${lease.lease} setting watermark ${watermark}. Might need to increase lease timeout`;
         log().info(msg);

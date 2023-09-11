@@ -2,10 +2,8 @@ import type {
   AllQuery,
   CommittedEvent,
   CommittedEventMetadata,
-  Lease,
   Message,
   Messages,
-  PollOptions,
   Store,
   StoreStat
 } from "@rotorsoft/eventually";
@@ -86,41 +84,6 @@ export const CosmosStore = (table: string): Store => {
 
     stats: (): Promise<StoreStat[]> => {
       // TODO await stats
-      throw Error("Not implemented");
-    },
-
-    poll: <E extends Messages>(
-      consumer: string,
-      { names, timeout, limit }: PollOptions
-    ): Promise<Lease<E> | undefined> => {
-      // TODO await steps
-      // - connect
-      // - open transaction
-      // - get consumer subscription/lease
-      // - block when existing lease is still valid
-      // - get events after watermark
-      // - create new lease when events found
-      // - commit or rollback transaction
-      // - release connection
-      console.log({ consumer, names, timeout, limit });
-      throw Error("Not implemented");
-    },
-
-    ack: <E extends Messages>(lease: Lease<E>, watermark?: number) => {
-      // TODO await steps
-      // - connect
-      // - open transaction
-      // - get consumer subscription/lease
-      // - update watermark and release when existing lease is still valid (acked)
-      // - commit or rollback transaction
-      // - release connection
-      // - return if acked
-      console.log({ lease, watermark });
-      throw Error("Not implemented");
-    },
-
-    subscriptions: () => {
-      // TODO await get subscriptions/leases
       throw Error("Not implemented");
     }
   };

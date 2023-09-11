@@ -63,39 +63,7 @@ export interface Store extends Disposable {
   stats: () => Promise<StoreStat[]>;
 
   /**
-   * Polls for events after stored consumer watermark
-   *
-   * > Creates an expiring consumer lease when events are found
-   *
-   * > This strategy must commit a new watermark with `ack` within the lease time, or new consumer requests will be allowed after lease expires
-   *
-   * - `consumer` the consumer name
-   * - `options` the poll options
-   * @returns a new lease when events are found
-   */
-  poll: <E extends Messages>(
-    consumer: string,
-    options: PollOptions
-  ) => Promise<Lease<E> | undefined>;
-
-  /**
-   * Acknowledges when the consumer finishes handling events
-   * - `lease` the lease
-   * - `watermark` the new watermark of consumed events
-   * - returns false when lease expired
-   * */
-  ack: <E extends Messages>(
-    lease: Lease<E>,
-    watermark: number
-  ) => Promise<boolean>;
-
-  /**
-   * Gets subscriptions
-   */
-  subscriptions: () => Promise<Subscription[]>;
-
-  /**
-   * Seeds the schemas
+   * Seeds the schema
    */
   seed: () => Promise<void>;
 }
@@ -117,10 +85,7 @@ export interface ProjectorStore<S extends State = State> extends Disposable {
    * @param watermark the new watermark - ignored when new watermark <= stored watermark
    * @returns the projection results
    */
-  commit: (
-    map: ProjectionMap<S>,
-    watermark: number
-  ) => Promise<ProjectionResults>;
+  commit: (map: ProjectionMap<S>, watermark: any) => Promise<ProjectionResults>;
 
   /**
    * Queries projection
@@ -137,10 +102,49 @@ export interface ProjectorStore<S extends State = State> extends Disposable {
   agg: (query: AggQuery<S>) => Promise<AggResult<S>>;
 
   /**
-   * Seeds the schemas
+   * Seeds the schema
    */
   seed: (
     schema: Schema<Projection<S>>,
     indexes: ProjectionSort<S>[]
   ) => Promise<void>;
+}
+
+/**
+ * Stores subscriptions
+ * - Poll: When no active lease found, creates new consumer lease if events are found after watermark
+ * - Ack: Updates watermark if received before lease expiration
+ */
+export interface SubscriptionStore extends Disposable {
+  /**
+   * Polls the store for events created after a watermark
+   * @param consumer consumer name
+   * @param options poll options
+   * @returns a new lease when events are found
+   */
+  poll: <E extends Messages>(
+    consumer: string,
+    options: PollOptions
+  ) => Promise<Lease<E> | undefined>;
+
+  /**
+   * Acknowledges consumer handling events on active lease
+   * @param lease active lease
+   * @param watermark new watermark poiting to the last consumed event
+   * @returns false when lease expired
+   */
+  ack: <E extends Messages>(
+    lease: Lease<E>,
+    watermark: any
+  ) => Promise<boolean>;
+
+  /**
+   * Gets stored subscriptions
+   */
+  subscriptions: () => Promise<Subscription[]>;
+
+  /**
+   * Seeds the schema
+   */
+  seed: () => Promise<void>;
 }

@@ -18,7 +18,7 @@ export type StoreStat = {
  */
 export type Subscription = {
   readonly consumer: string;
-  readonly watermark: number;
+  readonly watermark: any;
   readonly lease?: string;
   readonly expires?: Date;
 };

@@ -11,10 +11,8 @@ import {
   type AllQuery,
   type CommittedEvent,
   type CommittedEventMetadata,
-  type Lease,
   type Message,
   type Messages,
-  type PollOptions,
   type Store,
   type StoreStat
 } from "@rotorsoft/eventually";
@@ -27,63 +25,6 @@ export const DynamoStore = (table: string): Store => {
   });
   const name = `DynamoStore:${table}`;
   const subsName = `${table}-subscriptions`;
-
-  const query = async <E extends Messages>(
-    callback: (event: CommittedEvent<E>) => void,
-    query?: AllQuery
-  ): Promise<number> => {
-    const {
-      stream,
-      names,
-      before,
-      after,
-      limit,
-      created_before,
-      created_after,
-      actor,
-      correlation
-    } = query || {};
-    const conditions = [];
-    const values: any = {};
-
-    if (before) throw Error("Query by before not implemented");
-    if (after) throw Error("Query by after not implemented");
-    if (created_before) throw Error("Query by created_before not implemented");
-    if (created_after) throw Error("Query by created_after not implemented");
-    if (actor) throw Error("Query by actor not implemented");
-    if (correlation) throw Error("Query by correlation not implemented");
-
-    if (stream) {
-      conditions.push("StreamId = :StreamId");
-      values[":StreamId"] = { S: stream };
-    }
-    const command = new QueryCommand({
-      TableName: table,
-      KeyConditionExpression: conditions.join(" AND "),
-      ExpressionAttributeValues: values,
-      Limit: limit
-    });
-    const response = await client.send(command);
-    // TODO: stream records to avoid storing the entire resultset in memory
-    response.Items?.forEach((item) => {
-      if (!names || names.includes(item.Name.S!)) {
-        const created = new Date(item.Created.S!);
-        callback({
-          id: created.getTime(),
-          stream: item.StreamId.S!,
-          version: Number.parseInt(item.Version.N!),
-          created,
-          name: item.Name.S!,
-          data: JSON.parse(item.Data.S ?? "{}"),
-          metadata: {
-            correlation: item.Correlation.S!,
-            causation: JSON.parse(item.Causation.S ?? "{}")
-          }
-        });
-      }
-    });
-    return response.Count ?? 0;
-  };
 
   return {
     name,
@@ -146,7 +87,63 @@ export const DynamoStore = (table: string): Store => {
       log().info(`${name}.seed`, subscriptions);
     },
 
-    query,
+    query: async <E extends Messages>(
+      callback: (event: CommittedEvent<E>) => void,
+      query?: AllQuery
+    ): Promise<number> => {
+      const {
+        stream,
+        names,
+        before,
+        after,
+        limit,
+        created_before,
+        created_after,
+        actor,
+        correlation
+      } = query || {};
+      const conditions = [];
+      const values: any = {};
+
+      if (before) throw Error("Query by before not implemented");
+      if (after) throw Error("Query by after not implemented");
+      if (created_before)
+        throw Error("Query by created_before not implemented");
+      if (created_after) throw Error("Query by created_after not implemented");
+      if (actor) throw Error("Query by actor not implemented");
+      if (correlation) throw Error("Query by correlation not implemented");
+
+      if (stream) {
+        conditions.push("StreamId = :StreamId");
+        values[":StreamId"] = { S: stream };
+      }
+      const command = new QueryCommand({
+        TableName: table,
+        KeyConditionExpression: conditions.join(" AND "),
+        ExpressionAttributeValues: values,
+        Limit: limit
+      });
+      const response = await client.send(command);
+      // TODO: stream records to avoid storing the entire resultset in memory
+      response.Items?.forEach((item) => {
+        if (!names || names.includes(item.Name.S!)) {
+          const created = new Date(item.Created.S!);
+          callback({
+            id: created.getTime(),
+            stream: item.StreamId.S!,
+            version: Number.parseInt(item.Version.N!),
+            created,
+            name: item.Name.S!,
+            data: JSON.parse(item.Data.S ?? "{}"),
+            metadata: {
+              correlation: item.Correlation.S!,
+              causation: JSON.parse(item.Causation.S ?? "{}")
+            }
+          });
+        }
+      });
+      return response.Count ?? 0;
+    },
 
     commit: async <E extends Messages>(
       stream: string,
@@ -207,41 +204,6 @@ export const DynamoStore = (table: string): Store => {
 
     stats: (): Promise<StoreStat[]> => {
       // TODO stats projection
-      throw Error("Not implemented");
-    },
-
-    poll: <E extends Messages>(
-      consumer: string,
-      { names, timeout, limit }: PollOptions
-    ): Promise<Lease<E> | undefined> => {
-      // TODO await steps
-      // - connect
-      // - open transaction
-      // - get consumer subscription/lease
-      // - block when existing lease is still valid
-      // - get events after watermark
-      // - create new lease when events found
-      // - commit or rollback transaction
-      // - release connection
-      console.log({ consumer, names, timeout, limit });
-      throw Error("Not implemented");
-    },
-
-    ack: <E extends Messages>(lease: Lease<E>, watermark?: number) => {
-      // TODO await steps
-      // - connect
-      // - open transaction
-      // - get consumer subscription/lease
-      // - update watermark and release when existing lease is still valid (acked)
-      // - commit or rollback transaction
-      // - release connection
-      // - return if acked
-      console.log({ lease, watermark });
-      throw Error("Not implemented");
-    },
-
-    subscriptions: () => {
-      // TODO await get subscriptions/leases
       throw Error("Not implemented");
     }
   };

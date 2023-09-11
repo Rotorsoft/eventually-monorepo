@@ -4,6 +4,7 @@ import {
   httpError,
   log,
   store,
+  subscriptions,
   toProjectionQuery,
   type Actor,
   type AggregateFactory,
@@ -50,7 +51,7 @@ export const subscriptionsHandler = async (
   next: NextFunction
 ): Promise<Response | undefined> => {
   try {
-    return send(res, Ok(await store().subscriptions()));
+    return send(res, Ok(await subscriptions().subscriptions()));
   } catch (error) {
     next(error);
   }

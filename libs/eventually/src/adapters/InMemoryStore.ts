@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import type { Store } from "../interfaces";
 import {
   ActorConcurrencyError,
@@ -6,12 +5,9 @@ import {
   type AllQuery,
   type CommittedEvent,
   type CommittedEventMetadata,
-  type Lease,
   type Message,
   type Messages,
-  type PollOptions,
-  type StoreStat,
-  type Subscription
+  type StoreStat
 } from "../types";
 
 /**
@@ -20,49 +16,49 @@ import {
  */
 export const InMemoryStore = (): Store => {
   const _events: CommittedEvent[] = [];
-  const _subscriptions: Record<string, Subscription> = {};
-
-  const query = async <E extends Messages>(
-    callback: (event: CommittedEvent<E>) => void,
-    query?: AllQuery
-  ): Promise<number> => {
-    const {
-      stream,
-      names,
-      before,
-      after = -1,
-      limit,
-      created_before,
-      created_after,
-      actor,
-      correlation
-    } = query || {};
-    let i = after + 1,
-      count = 0;
-    while (i < _events.length) {
-      const e = _events[i++] as CommittedEvent<E>;
-      if (stream && e.stream !== stream) continue;
-      if (actor && e.metadata?.causation?.command?.actor?.id !== actor)
-        continue;
-      if (names && !names.includes(e.name)) continue;
-      if (correlation && e.metadata?.correlation !== correlation) continue;
-      if (created_after && e.created <= created_after) continue;
-      if (before && e.id >= before) break;
-      if (created_before && e.created >= created_before) break;
-      callback(e);
-      if (limit && ++count >= limit) break;
-    }
-    return Promise.resolve(count);
-  };
 
   return {
     name: "InMemoryStore",
+
     dispose: () => {
       _events.length = 0;
       return Promise.resolve();
     },
+
     seed: () => Promise.resolve(),
-    query,
+
+    query: async <E extends Messages>(
+      callback: (event: CommittedEvent<E>) => void,
+      query?: AllQuery
+    ): Promise<number> => {
+      const {
+        stream,
+        names,
+        before,
+        after = -1,
+        limit,
+        created_before,
+        created_after,
+        actor,
+        correlation
+      } = query || {};
+      let i = after + 1,
+        count = 0;
+      while (i < _events.length) {
+        const e = _events[i++] as CommittedEvent<E>;
+        if (stream && e.stream !== stream) continue;
+        if (actor && e.metadata?.causation?.command?.actor?.id !== actor)
+          continue;
+        if (names && !names.includes(e.name)) continue;
+        if (correlation && e.metadata?.correlation !== correlation) continue;
+        if (created_after && e.created <= created_after) continue;
+        if (before && e.id >= before) break;
+        if (created_before && e.created >= created_before) break;
+        callback(e);
+        if (limit && ++count >= limit) break;
+      }
+      return Promise.resolve(count);
+    },
 
     commit: <E extends Messages>(
       stream: string,
@@ -132,64 +128,6 @@ export const InMemoryStore = (): Store => {
         stat.lastCreated = e.created;
       });
       return Promise.resolve(Object.values(stats));
-    },
-
-    poll: async <E extends Messages>(
-      consumer: string,
-      { names, timeout, limit }: PollOptions
-    ): Promise<Lease<E> | undefined> => {
-      const subscription: Subscription = (_subscriptions[consumer] =
-        _subscriptions[consumer] || { consumer, watermark: -1 });
-
-      // blocks competing consumers while existing lease is valid
-      if (
-        !(
-          subscription.lease &&
-          subscription.expires &&
-          subscription.expires > new Date()
-        )
-      ) {
-        // get events after watermark
-        const events: Array<CommittedEvent<E>> = [];
-        await query<E>((e) => events.push(e), {
-          after: subscription.watermark,
-          limit,
-          names
-        });
-
-        // create a new lease when events found
-        if (events.length) {
-          const renew: Subscription = {
-            consumer,
-            watermark: subscription.watermark,
-            lease: randomUUID(),
-            expires: new Date(Date.now() + timeout)
-          };
-          _subscriptions[consumer] = renew;
-          return { ...renew, events } as Lease<E>;
-        }
-      }
-    },
-
-    ack: <E extends Messages>(lease: Lease<E>, watermark: number) => {
-      const subscription = _subscriptions[lease.consumer];
-      // updates subscription while lease is still valid
-      if (
-        subscription &&
-        subscription.lease &&
-        subscription.lease === lease.lease &&
-        subscription.expires &&
-        subscription.expires > new Date()
-      ) {
-        _subscriptions[lease.consumer] = {
-          consumer: lease.consumer,
-          watermark
-        };
-        return Promise.resolve(true);
-      }
-      return Promise.resolve(false);
-    },
-
-    subscriptions: () => Promise.resolve(Object.values(_subscriptions))
+    }
   };
 };

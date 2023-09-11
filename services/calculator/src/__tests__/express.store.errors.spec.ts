@@ -1,4 +1,10 @@
-import { app, dispose, store, ValidationError } from "@rotorsoft/eventually";
+import {
+  app,
+  dispose,
+  store,
+  subscriptions,
+  ValidationError
+} from "@rotorsoft/eventually";
 import { ExpressApp } from "@rotorsoft/eventually-express";
 import { HttpClient } from "@rotorsoft/eventually-openapi";
 import { Calculator } from "@rotorsoft/calculator-artifacts";
@@ -11,7 +17,7 @@ const exapp = app(new ExpressApp()).with(Calculator);
 jest.spyOn(store(), "query").mockRejectedValue(new Error("store query error"));
 jest.spyOn(store(), "stats").mockRejectedValue(new Error("store stats error"));
 jest
-  .spyOn(store(), "subscriptions")
+  .spyOn(subscriptions(), "subscriptions")
   .mockRejectedValue(new Error("store subs error"));
 
 describe("calculator express app with store errors", () => {

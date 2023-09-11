@@ -65,8 +65,10 @@ CREATE INDEX IF NOT EXISTS "${table}_correlation_ix"
 DROP INDEX IF EXISTS stream_ix;
 DROP INDEX IF EXISTS name_id;
 DROP INDEX IF EXISTS created_id_ix;
+`;
 
-CREATE TABLE IF NOT EXISTS public."${table}_subscriptions"
+export const subscription = (table: string): string => `
+CREATE TABLE IF NOT EXISTS public."${table}"
 (
 	consumer varchar(100) PRIMARY KEY,
   watermark bigint NOT NULL,
