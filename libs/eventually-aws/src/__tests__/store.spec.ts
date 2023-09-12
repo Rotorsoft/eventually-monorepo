@@ -1,15 +1,20 @@
-import { dispose, store } from "@rotorsoft/eventually";
-import { DynamoStore } from "../DynamoStore";
+import { dispose, store, subscriptions } from "@rotorsoft/eventually";
+import { DynamoStore, DynamoSubscriptionStore } from "..";
 import { randomUUID } from "crypto";
 
-describe.skip("store", () => {
+const table = "StoreTest";
+store(DynamoStore(table));
+subscriptions(DynamoSubscriptionStore(table + "_subscriptions"));
+
+describe("dynamo stores", () => {
   beforeAll(async () => {
-    store(DynamoStore("TestDynamoStore"));
+    await store().reset();
+    await subscriptions().reset();
     await store().seed();
+    await subscriptions().seed();
   });
 
   afterAll(async () => {
-    await store().reset();
     await dispose()();
   });
 
@@ -63,6 +68,14 @@ describe.skip("store", () => {
     );
     expect(committed2.length).toBe(events.length);
 
-    await store().query((e) => console.log(e), { stream });
+    // polling
+    const lease = await subscriptions().poll("test", {
+      names: ["Event1", "Event2"],
+      timeout: 5000,
+      limit: 5
+    });
+    expect(lease?.events.length).toBeGreaterThanOrEqual(3);
+    const acked = await subscriptions().ack(lease!, 5);
+    expect(acked).toBeTruthy();
   });
 });

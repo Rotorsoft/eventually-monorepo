@@ -23,8 +23,10 @@ const pm = chance.guid();
 let created_before: Date;
 let created_after: Date;
 
-describe("pg", () => {
+describe("pg stores", () => {
   beforeAll(async () => {
+    await store().reset();
+    await subscriptions().reset();
     await store().seed();
     await subscriptions().seed();
   });
@@ -97,8 +99,8 @@ describe("pg", () => {
     expect(events[l - 3].data).toStrictEqual({ value: "1" });
 
     const events2: CommittedEvent[] = [];
-    await store().query((e) => events2.push(e), { after: 2, limit: 2 });
-    expect(events2[0].id).toBe(3);
+    await store().query((e) => events2.push(e), { after: first, limit: 2 });
+    expect(events2.at(0)?.id).toBe(first + 1);
     expect(events2.length).toBe(2);
 
     const events3: CommittedEvent[] = [];
@@ -107,7 +109,9 @@ describe("pg", () => {
     expect(events3.length).toBeGreaterThanOrEqual(3);
     events3.map((evt) => expect(evt.name).toBe("test1"));
 
-    expect(await store().query(() => 0, { after: 2, before: 4 })).toBe(1);
+    expect(
+      await store().query(() => 0, { after: first, before: first + 4 })
+    ).toBe(3);
 
     expect(
       await store().query(() => 0, {

@@ -27,6 +27,11 @@ export const InMemoryStore = (): Store => {
 
     seed: () => Promise.resolve(),
 
+    reset: (): Promise<void> => {
+      _events.length = 0;
+      return Promise.resolve();
+    },
+
     query: async <E extends Messages>(
       callback: (event: CommittedEvent<E>) => void,
       query?: AllQuery
@@ -107,11 +112,6 @@ export const InMemoryStore = (): Store => {
         return committed;
       });
       return Promise.resolve(committed);
-    },
-
-    reset: (): Promise<void> => {
-      _events.length = 0;
-      return Promise.resolve();
     },
 
     stats: (): Promise<StoreStat[]> => {

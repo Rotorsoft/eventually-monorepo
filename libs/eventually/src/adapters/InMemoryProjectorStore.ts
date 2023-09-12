@@ -48,7 +48,7 @@ export const InMemoryProjectorStore = <
   };
 
   // upserts records after watermark
-  const _upsert = (id: string, _patch: Patch<S>, watermark: any): 0 | 1 => {
+  const _upsert = (id: string, _patch: Patch<S>, watermark: number): 0 | 1 => {
     // insert
     if (!_records[id]) {
       _records[id] = {
@@ -71,7 +71,7 @@ export const InMemoryProjectorStore = <
   };
 
   // deletes records after watermark
-  const _delete = (id: string, watermark: any): 0 | 1 => {
+  const _delete = (id: string, watermark: number): 0 | 1 => {
     if (_records[id] && _records[id].watermark < watermark) {
       delete _records[id];
       return 1;

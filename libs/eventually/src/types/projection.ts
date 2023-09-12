@@ -46,7 +46,7 @@ export type ProjectionMap<S extends State> = {
  */
 export type ProjectionRecord<S extends State = State> = {
   readonly state: Projection<S>;
-  readonly watermark: any;
+  readonly watermark: number;
 };
 
 /**
@@ -62,7 +62,7 @@ export type ProjectionRecord<S extends State = State> = {
 export type ProjectionResults = {
   readonly upserted: number;
   readonly deleted: number;
-  readonly watermark: any;
+  readonly watermark: number;
   readonly error?: string;
 };
 

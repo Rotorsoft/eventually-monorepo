@@ -85,7 +85,10 @@ export interface ProjectorStore<S extends State = State> extends Disposable {
    * @param watermark the new watermark - ignored when new watermark <= stored watermark
    * @returns the projection results
    */
-  commit: (map: ProjectionMap<S>, watermark: any) => Promise<ProjectionResults>;
+  commit: (
+    map: ProjectionMap<S>,
+    watermark: number
+  ) => Promise<ProjectionResults>;
 
   /**
    * Queries projection
@@ -135,13 +138,18 @@ export interface SubscriptionStore extends Disposable {
    */
   ack: <E extends Messages>(
     lease: Lease<E>,
-    watermark: any
+    watermark: number
   ) => Promise<boolean>;
 
   /**
    * Gets stored subscriptions
    */
   subscriptions: () => Promise<Subscription[]>;
+
+  /**
+   * Resets the store
+   */
+  reset: () => Promise<void>;
 
   /**
    * Seeds the schema

@@ -17,12 +17,18 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
   let _subscriptions: Record<string, Subscription> = {};
 
   return {
-    name: "InMemoryStore",
+    name: "InMemorySubscriptionStore",
     dispose: () => {
       _subscriptions = {};
       return Promise.resolve();
     },
+
     seed: () => Promise.resolve(),
+
+    reset: (): Promise<void> => {
+      _subscriptions = {};
+      return Promise.resolve();
+    },
 
     poll: async <E extends Messages>(
       consumer: string,
@@ -61,7 +67,7 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
       }
     },
 
-    ack: <E extends Messages>(lease: Lease<E>, watermark: any) => {
+    ack: <E extends Messages>(lease: Lease<E>, watermark: number) => {
       const subscription = _subscriptions[lease.consumer];
       // updates subscription while lease is still valid
       if (

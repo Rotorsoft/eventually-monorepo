@@ -30,6 +30,10 @@ export const PostgresSubscriptionStore = (table: string): SubscriptionStore => {
       await pool.query(seed);
     },
 
+    reset: async (): Promise<void> => {
+      await pool.query(`TRUNCATE TABLE "${table}"`);
+    },
+
     poll: async <E extends Messages>(
       consumer: string,
       { names, timeout, limit }: PollOptions
@@ -90,7 +94,7 @@ export const PostgresSubscriptionStore = (table: string): SubscriptionStore => {
       }
     },
 
-    ack: async <E extends Messages>(lease: Lease<E>, watermark: any) => {
+    ack: async <E extends Messages>(lease: Lease<E>, watermark: number) => {
       let acked = false;
       const client = await pool.connect();
       try {

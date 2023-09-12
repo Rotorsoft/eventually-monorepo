@@ -48,6 +48,10 @@ export const PostgresStore = (table: string): Store => {
       await pool.query(seed);
     },
 
+    reset: async (): Promise<void> => {
+      await pool.query(`TRUNCATE TABLE "${table}"`);
+    },
+
     query: async <E extends Messages>(
       callback: (event: CommittedEvent<E>) => void,
       query?: AllQuery
@@ -204,10 +208,6 @@ export const PostgresStore = (table: string): Store => {
       } finally {
         client.release();
       }
-    },
-
-    reset: async (): Promise<void> => {
-      await pool.query(`TRUNCATE TABLE "${table}"`);
     },
 
     stats: async (): Promise<StoreStat[]> => {
