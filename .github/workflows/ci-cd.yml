@@ -51,6 +51,8 @@ jobs:
           PG_DATABASE: postgres
           AWS_REGION: us-east-1
           AWS_DYNAMO_ENDPOINT: http://localhost:8000
+          AWS_CREDENTIALS_ACCESS_KEY_ID: accesskeyid
+          AWS_CREDENTIALS_SECRET_ACCESS_KEY: secretaccesskey
 
       - name: coveralls
         uses: coverallsapp/github-action@master

@@ -49,7 +49,7 @@ export const PostgresStore = (table: string): Store => {
     },
 
     reset: async (): Promise<void> => {
-      await pool.query(`TRUNCATE TABLE "${table}"`);
+      await pool.query(`DROP TABLE IF EXISTS "${table}"`);
     },
 
     query: async <E extends Messages>(

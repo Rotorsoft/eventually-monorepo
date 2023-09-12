@@ -31,7 +31,7 @@ export const PostgresSubscriptionStore = (table: string): SubscriptionStore => {
     },
 
     reset: async (): Promise<void> => {
-      await pool.query(`TRUNCATE TABLE "${table}"`);
+      await pool.query(`DROP TABLE IF EXISTS "${table}"`);
     },
 
     poll: async <E extends Messages>(

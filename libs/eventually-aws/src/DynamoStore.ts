@@ -22,7 +22,8 @@ import { config } from "./config";
 export const DynamoStore = (table: string): Store => {
   const client = new DynamoDBClient({
     region: config.aws.region,
-    endpoint: config.aws.dynamo?.endpoint
+    endpoint: config.aws.dynamo?.endpoint,
+    credentials: config.aws.credentials
   });
   const name = `DynamoStore:${table}`;
 
