@@ -1,3 +1,5 @@
+#### 2023-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.17...@rotorsoft/eventually-v5.7.18) @rotorsoft/eventually-v5.7.18
+  - PATCH [0e542908](https://github.com/Rotorsoft/eventually-monorepo/commit/0e54290885a18dd3a1559ae1ba34f182ca845372) fix: finish dynamo stores demo
 #### 2023-09-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-azure-v0.1.1...@rotorsoft/eventually-azure-v0.1.2) @rotorsoft/eventually-azure-v0.1.2
   - PATCH [186a5652](https://github.com/Rotorsoft/eventually-monorepo/commit/186a56525ad2c0e7bf6c3881a06be171f205cc8b) fix: separate subscriptions from event store
 #### 2023-09-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.1...@rotorsoft/eventually-gcp-v0.1.2) @rotorsoft/eventually-gcp-v0.1.2
