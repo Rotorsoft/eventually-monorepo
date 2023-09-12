@@ -1,3 +1,6 @@
+#### 2023-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.11...@rotorsoft/eventually-aws-v0.1.12) @rotorsoft/eventually-aws-v0.1.12
+  - PATCH [8cdb3fa4](https://github.com/Rotorsoft/eventually-monorepo/commit/8cdb3fa44a8287b4e692c49b734abc597db042eb) fix: add aws credentials to config
+  - PATCH [0e542908](https://github.com/Rotorsoft/eventually-monorepo/commit/0e54290885a18dd3a1559ae1ba34f182ca845372) fix: finish dynamo stores demo
 #### 2023-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.15...@rotorsoft/eventually-pg-v5.5.16) @rotorsoft/eventually-pg-v5.5.16
   - PATCH [8cdb3fa4](https://github.com/Rotorsoft/eventually-monorepo/commit/8cdb3fa44a8287b4e692c49b734abc597db042eb) fix: add aws credentials to config
   - PATCH [0e542908](https://github.com/Rotorsoft/eventually-monorepo/commit/0e54290885a18dd3a1559ae1ba34f182ca845372) fix: finish dynamo stores demo
