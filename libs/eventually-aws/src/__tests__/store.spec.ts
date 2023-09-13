@@ -8,8 +8,8 @@ subscriptions(DynamoSubscriptionStore(table + "_subscriptions"));
 
 describe("dynamo stores", () => {
   beforeAll(async () => {
-    await store().reset();
-    await subscriptions().reset();
+    await store().drop();
+    await subscriptions().drop();
     await store().seed();
     await subscriptions().seed();
   });

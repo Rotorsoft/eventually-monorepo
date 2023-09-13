@@ -64,6 +64,10 @@ export const PostgresProjectorStore = <S extends State>(
       await pool.query(seed);
     },
 
+    drop: async (): Promise<void> => {
+      await pool.query(`DROP TABLE IF EXISTS "${table}"`);
+    },
+
     load: async (ids) => {
       const sql = `SELECT * FROM "${table}" WHERE id in (${ids
         .map((id) => `'${id}'`)

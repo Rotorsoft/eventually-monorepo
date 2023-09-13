@@ -27,7 +27,7 @@ export const InMemoryStore = (): Store => {
 
     seed: () => Promise.resolve(),
 
-    reset: (): Promise<void> => {
+    drop: (): Promise<void> => {
       _events.length = 0;
       return Promise.resolve();
     },

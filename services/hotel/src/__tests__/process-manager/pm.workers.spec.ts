@@ -4,8 +4,8 @@ import { PostgresStore } from "@rotorsoft/eventually-pg";
 
 describe("pm workers", () => {
   beforeAll(async () => {
+    await store().drop();
     await store(PostgresStore("pm")).seed();
-    await store().reset();
   });
 
   afterAll(async () => {

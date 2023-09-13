@@ -6,15 +6,16 @@ import {
   QueryCommand,
   UpdateItemCommand
 } from "@aws-sdk/client-dynamodb";
-import type {
-  CommittedEvent,
-  Lease,
-  Messages,
-  PollOptions,
-  Subscription,
-  SubscriptionStore
+import {
+  log,
+  store,
+  type CommittedEvent,
+  type Lease,
+  type Messages,
+  type PollOptions,
+  type Subscription,
+  type SubscriptionStore
 } from "@rotorsoft/eventually";
-import { log, store } from "@rotorsoft/eventually";
 import { randomUUID } from "crypto";
 import { config } from "./config";
 
@@ -34,7 +35,7 @@ export const DynamoSubscriptionStore = (table: string): SubscriptionStore => {
     },
 
     seed: async () => {
-      const subscriptions = await client.send(
+      const response = await client.send(
         new CreateTableCommand({
           TableName: table,
           KeySchema: [{ AttributeName: "Consumer", KeyType: "HASH" }],
@@ -47,15 +48,12 @@ export const DynamoSubscriptionStore = (table: string): SubscriptionStore => {
           }
         })
       );
-      log().info(`${name}.seed`, subscriptions);
+      log().info(`${name}.seed`, response);
     },
 
-    reset: async (): Promise<void> => {
+    drop: async (): Promise<void> => {
       try {
-        const result = await client.send(
-          new DeleteTableCommand({ TableName: table })
-        );
-        log().info(`${name}.reset`, result);
+        await client.send(new DeleteTableCommand({ TableName: table }));
       } catch {
         //ignore when not found
       }

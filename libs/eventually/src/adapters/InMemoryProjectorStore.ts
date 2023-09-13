@@ -88,6 +88,11 @@ export const InMemoryProjectorStore = <
 
     seed: () => Promise.resolve(),
 
+    drop: () => {
+      _records = {};
+      return Promise.resolve();
+    },
+
     load: (ids) =>
       Promise.resolve(ids.map((id) => _records[id]).filter(Boolean)),
 

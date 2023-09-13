@@ -25,7 +25,7 @@ export const InMemorySubscriptionStore = (): SubscriptionStore => {
 
     seed: () => Promise.resolve(),
 
-    reset: (): Promise<void> => {
+    drop: (): Promise<void> => {
       _subscriptions = {};
       return Promise.resolve();
     },

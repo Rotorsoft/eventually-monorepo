@@ -17,6 +17,11 @@ export const CosmosProjectorStore = <S extends State>(
       throw Error("Not implemented");
     },
 
+    drop: () => {
+      // TODO await drop store
+      throw Error("Not implemented");
+    },
+
     load: (ids) => {
       // TODO await loading records by id
       console.log({ ids });

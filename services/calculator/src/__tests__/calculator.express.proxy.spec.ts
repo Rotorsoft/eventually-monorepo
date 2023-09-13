@@ -19,7 +19,7 @@ describe("calculator express app with proxy", () => {
   });
 
   beforeEach(async () => {
-    await store().reset();
+    await store().drop();
   });
 
   afterAll(async () => {

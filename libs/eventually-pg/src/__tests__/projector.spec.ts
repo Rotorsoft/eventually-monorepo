@@ -3,10 +3,8 @@ import {
   type Patch,
   type ProjectionRecord
 } from "@rotorsoft/eventually";
-import { Pool } from "pg";
 import { z } from "zod";
 import { PostgresProjectorStore } from "..";
-import { config } from "../config";
 
 enum TestEnum {
   On = "ON",
@@ -100,17 +98,15 @@ Object.values(insertRecords).map((v) => {
 
 const table = "ProjectorTests";
 describe("projector", () => {
-  const pool = new Pool(config.pg);
   const db = PostgresProjectorStore<Schema>(table);
 
   beforeEach(async () => {
-    await pool.query(`DROP TABLE IF EXISTS "${table}";`);
+    await db.drop();
     await db.seed(zSchema, [{ managerId: "asc" }, { countryId: "asc" }]);
     await db.commit(projectionMap, 6);
   });
 
   afterAll(async () => {
-    await pool.end();
     await dispose()();
   });
 

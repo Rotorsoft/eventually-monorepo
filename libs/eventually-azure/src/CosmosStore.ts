@@ -77,7 +77,7 @@ export const CosmosStore = (table: string): Store => {
       throw Error("Not implemented");
     },
 
-    reset: (): Promise<void> => {
+    drop: (): Promise<void> => {
       // TODO await truncate table
       throw Error("Not implemented");
     },

@@ -11,15 +11,9 @@ import {
   CalculatorTotals,
   TotalsEvents
 } from "@rotorsoft/calculator-artifacts";
-import { PostgresProjectorStore, config } from "../..";
-import { Pool } from "pg";
+import { PostgresProjectorStore } from "../..";
 
 const chance = new Chance();
-const _app = app().with(CalculatorTotals, {
-  scope: "public",
-  projector: { store: PostgresProjectorStore("calctotals"), indexes: [] }
-});
-
 const createEvent = <E extends Messages>(
   name: keyof E & string,
   stream: string,
@@ -36,16 +30,19 @@ const createEvent = <E extends Messages>(
 });
 
 describe("calculator with pg projector", () => {
-  const pool = new Pool(config.pg);
+  const totalsStore = PostgresProjectorStore("calctotals");
+  const _app = app().with(CalculatorTotals, {
+    scope: "public",
+    projector: { store: totalsStore, indexes: [] }
+  });
 
   beforeAll(async () => {
-    await pool.query(`DROP TABLE IF EXISTS "calctotals";`);
+    await totalsStore.drop();
     await seed();
     _app.build();
   });
 
   afterAll(async () => {
-    await pool.end();
     await dispose()();
   });
 

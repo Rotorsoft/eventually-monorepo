@@ -52,20 +52,20 @@ export interface Store extends Disposable {
   ) => Promise<CommittedEvent<E>[]>;
 
   /**
-   * Resets the store - TODO: add options to "close the books"
-   */
-  reset: () => Promise<void>;
-
-  /**
    * Gets store stats
    * TODO: refactor stats using async projections
    */
   stats: () => Promise<StoreStat[]>;
 
   /**
-   * Seeds the schema
+   * Seeds the store
    */
   seed: () => Promise<void>;
+
+  /**
+   * Drops the store
+   */
+  drop: () => Promise<void>;
 }
 
 /**
@@ -105,12 +105,17 @@ export interface ProjectorStore<S extends State = State> extends Disposable {
   agg: (query: AggQuery<S>) => Promise<AggResult<S>>;
 
   /**
-   * Seeds the schema
+   * Seeds the store
    */
   seed: (
     schema: Schema<Projection<S>>,
     indexes: ProjectionSort<S>[]
   ) => Promise<void>;
+
+  /**
+   * Drops the store
+   */
+  drop: () => Promise<void>;
 }
 
 /**
@@ -147,12 +152,12 @@ export interface SubscriptionStore extends Disposable {
   subscriptions: () => Promise<Subscription[]>;
 
   /**
-   * Resets the store
-   */
-  reset: () => Promise<void>;
-
-  /**
-   * Seeds the schema
+   * Seeds the store
    */
   seed: () => Promise<void>;
+
+  /**
+   * Drops the store
+   */
+  drop: () => Promise<void>;
 }

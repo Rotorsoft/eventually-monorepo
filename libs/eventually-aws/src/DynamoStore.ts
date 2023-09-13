@@ -7,6 +7,7 @@ import {
   TransactWriteItemsCommand
 } from "@aws-sdk/client-dynamodb";
 import {
+  ConcurrencyError,
   log,
   type AllQuery,
   type CommittedEvent,
@@ -14,8 +15,7 @@ import {
   type Message,
   type Messages,
   type Store,
-  type StoreStat,
-  ConcurrencyError
+  type StoreStat
 } from "@rotorsoft/eventually";
 import { config } from "./config";
 
@@ -44,7 +44,7 @@ export const DynamoStore = (table: string): Store => {
        * - In this implementation, we use a constant (dummy) partition key as the only practical solution to complete the project,
        * but this is not recommended at all.
        */
-      const store = await client.send(
+      const response = await client.send(
         new CreateTableCommand({
           TableName: table,
           KeySchema: [
@@ -77,15 +77,12 @@ export const DynamoStore = (table: string): Store => {
           ]
         })
       );
-      log().info(`${name}.seed`, store);
+      log().info(`${name}.seed`, response);
     },
 
-    reset: async (): Promise<void> => {
+    drop: async (): Promise<void> => {
       try {
-        const result = await client.send(
-          new DeleteTableCommand({ TableName: table })
-        );
-        log().info(`${name}.reset`, result);
+        await client.send(new DeleteTableCommand({ TableName: table }));
       } catch {
         //ignore when not found
       }

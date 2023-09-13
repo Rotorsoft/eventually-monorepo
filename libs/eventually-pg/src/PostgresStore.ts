@@ -48,7 +48,7 @@ export const PostgresStore = (table: string): Store => {
       await pool.query(seed);
     },
 
-    reset: async (): Promise<void> => {
+    drop: async (): Promise<void> => {
       await pool.query(`DROP TABLE IF EXISTS "${table}"`);
     },
 

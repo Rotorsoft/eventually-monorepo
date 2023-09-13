@@ -30,7 +30,7 @@ export const PostgresSubscriptionStore = (table: string): SubscriptionStore => {
       await pool.query(seed);
     },
 
-    reset: async (): Promise<void> => {
+    drop: async (): Promise<void> => {
       await pool.query(`DROP TABLE IF EXISTS "${table}"`);
     },
 

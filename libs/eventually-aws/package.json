@@ -21,12 +21,12 @@
     "build": "npx tsc --build"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.405.0",
+    "@aws-sdk/client-dynamodb": "^3.410.0",
     "@rotorsoft/eventually": "workspace:^5",
     "zod": "^3.22.2"
   },
   "devDependencies": {
     "@rotorsoft/calculator-artifacts": "workspace:^1",
-    "@types/aws-lambda": "^8.10.119"
+    "@types/aws-lambda": "^8.10.120"
   }
 }

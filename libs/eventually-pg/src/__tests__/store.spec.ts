@@ -25,8 +25,8 @@ let created_after: Date;
 
 describe("pg stores", () => {
   beforeAll(async () => {
-    await store().reset();
-    await subscriptions().reset();
+    await store().drop();
+    await subscriptions().drop();
     await store().seed();
     await subscriptions().seed();
   });

@@ -4,36 +4,42 @@ import {
   client,
   dispose,
   seed,
-  store
+  store,
+  subscriptions
 } from "@rotorsoft/eventually";
 import { Posts } from "./Posts.projector";
 import { Site } from "./Site.aggregate";
 import { Sites } from "./Sites.projector";
-import { config, PostgresProjectorStore, PostgresStore } from "../../../";
+import {
+  PostgresProjectorStore,
+  PostgresStore,
+  PostgresSubscriptionStore
+} from "../../../";
 import { randomUUID } from "node:crypto";
-import { Pool } from "pg";
 
 describe("Site aggregate with projections", () => {
-  const pool = new Pool(config.pg);
+  store(PostgresStore("SiteEvents"));
+  subscriptions(PostgresSubscriptionStore("SiteEvents_subscriptions"));
+  const sitesStore = PostgresProjectorStore("Sites");
+  const postsStore = PostgresProjectorStore("Posts");
 
   beforeAll(async () => {
-    await pool.query(`DROP TABLE IF EXISTS "SiteEvents";`);
-    await pool.query(`DROP TABLE IF EXISTS "SiteEvents_subscriptions";`);
-    await pool.query(`DROP TABLE IF EXISTS "Sites";`);
-    await pool.query(`DROP TABLE IF EXISTS "Posts";`);
+    await store().drop();
+    await subscriptions().drop();
+    await sitesStore.drop();
+    await postsStore.drop();
 
-    store(PostgresStore("SiteEvents"));
     app()
       .with(Site)
       .with(Sites, {
         projector: {
-          store: PostgresProjectorStore("Sites"),
+          store: sitesStore,
           indexes: [{ userId: "asc" }]
         }
       })
       .with(Posts, {
         projector: {
-          store: PostgresProjectorStore("Posts"),
+          store: postsStore,
           indexes: [{ userId: "asc" }, { siteId: "asc" }]
         }
       })
@@ -42,7 +48,6 @@ describe("Site aggregate with projections", () => {
   });
 
   afterAll(async () => {
-    await pool.end();
     await dispose()();
   });
 
