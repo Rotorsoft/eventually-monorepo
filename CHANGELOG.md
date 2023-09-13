@@ -1,3 +1,5 @@
+#### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.16...@rotorsoft/eventually-pg-v5.5.17) @rotorsoft/eventually-pg-v5.5.17
+  - PATCH [53200a38](https://github.com/Rotorsoft/eventually-monorepo/commit/53200a3811178b5a3fa917fe4b50f82a35dfa7a6) fix: stores drop method, failed attempt to build a dynamo projector
 #### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.18...@rotorsoft/eventually-v5.7.19) @rotorsoft/eventually-v5.7.19
   - PATCH [53200a38](https://github.com/Rotorsoft/eventually-monorepo/commit/53200a3811178b5a3fa917fe4b50f82a35dfa7a6) fix: stores drop method, failed attempt to build a dynamo projector
 #### 2023-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.11...@rotorsoft/eventually-aws-v0.1.12) @rotorsoft/eventually-aws-v0.1.12
