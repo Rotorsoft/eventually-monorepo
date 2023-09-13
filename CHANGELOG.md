@@ -1,3 +1,5 @@
+#### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-azure-v0.1.2...@rotorsoft/eventually-azure-v0.1.3) @rotorsoft/eventually-azure-v0.1.3
+  - PATCH [53200a38](https://github.com/Rotorsoft/eventually-monorepo/commit/53200a3811178b5a3fa917fe4b50f82a35dfa7a6) fix: stores drop method, failed attempt to build a dynamo projector
 #### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.2...@rotorsoft/eventually-gcp-v0.1.3) @rotorsoft/eventually-gcp-v0.1.3
   - PATCH [53200a38](https://github.com/Rotorsoft/eventually-monorepo/commit/53200a3811178b5a3fa917fe4b50f82a35dfa7a6) fix: stores drop method, failed attempt to build a dynamo projector
 #### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.12...@rotorsoft/eventually-aws-v0.1.13) @rotorsoft/eventually-aws-v0.1.13
