@@ -1,3 +1,5 @@
+#### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.18...@rotorsoft/eventually-v5.7.19) @rotorsoft/eventually-v5.7.19
+  - PATCH [53200a38](https://github.com/Rotorsoft/eventually-monorepo/commit/53200a3811178b5a3fa917fe4b50f82a35dfa7a6) fix: stores drop method, failed attempt to build a dynamo projector
 #### 2023-09-12 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.11...@rotorsoft/eventually-aws-v0.1.12) @rotorsoft/eventually-aws-v0.1.12
   - PATCH [8cdb3fa4](https://github.com/Rotorsoft/eventually-monorepo/commit/8cdb3fa44a8287b4e692c49b734abc597db042eb) fix: add aws credentials to config
   - PATCH [0e542908](https://github.com/Rotorsoft/eventually-monorepo/commit/0e54290885a18dd3a1559ae1ba34f182ca845372) fix: finish dynamo stores demo
