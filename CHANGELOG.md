@@ -1,3 +1,5 @@
+#### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.3...@rotorsoft/eventually-gcp-v0.1.4) @rotorsoft/eventually-gcp-v0.1.4
+  - PATCH [a6791f3a](https://github.com/Rotorsoft/eventually-monorepo/commit/a6791f3a19b1d98f274baec256f37b2837fa0cf4) fix: partial dynamo store
 #### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-aws-v0.1.13...@rotorsoft/eventually-aws-v0.1.14) @rotorsoft/eventually-aws-v0.1.14
   - PATCH [a6791f3a](https://github.com/Rotorsoft/eventually-monorepo/commit/a6791f3a19b1d98f274baec256f37b2837fa0cf4) fix: partial dynamo store
 #### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.7...@rotorsoft/calculator-artifacts-v1.7.8) @rotorsoft/calculator-artifacts-v1.7.8
