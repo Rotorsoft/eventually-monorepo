@@ -1,3 +1,5 @@
+#### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.19...@rotorsoft/eventually-v5.7.20) @rotorsoft/eventually-v5.7.20
+  - PATCH [a6791f3a](https://github.com/Rotorsoft/eventually-monorepo/commit/a6791f3a19b1d98f274baec256f37b2837fa0cf4) fix: partial dynamo store
 #### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-azure-v0.1.2...@rotorsoft/eventually-azure-v0.1.3) @rotorsoft/eventually-azure-v0.1.3
   - PATCH [53200a38](https://github.com/Rotorsoft/eventually-monorepo/commit/53200a3811178b5a3fa917fe4b50f82a35dfa7a6) fix: stores drop method, failed attempt to build a dynamo projector
 #### 2023-09-13 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.2...@rotorsoft/eventually-gcp-v0.1.3) @rotorsoft/eventually-gcp-v0.1.3
