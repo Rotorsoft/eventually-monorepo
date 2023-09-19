@@ -1,12 +1,10 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "CommonJS",
     "target": "ESNext",
 
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "NodeNext",
-    "moduleDetection": "force",
 
     "sourceMap": true,
     "declaration": true,

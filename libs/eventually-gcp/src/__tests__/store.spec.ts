@@ -1,12 +1,12 @@
 import { dispose, store, subscriptions } from "@rotorsoft/eventually";
-import { DynamoStore, DynamoSubscriptionStore } from "..";
+import { FirestoreStore, FirestoreSubscriptionStore } from "..";
 import { randomUUID } from "crypto";
 
 const table = "StoreTest";
-store(DynamoStore(table));
-subscriptions(DynamoSubscriptionStore(table + "_subscriptions"));
+store(FirestoreStore(table));
+subscriptions(FirestoreSubscriptionStore(table + "_subscriptions"));
 
-describe("dynamo stores", () => {
+describe("firestore stores", () => {
   beforeAll(async () => {
     await store().drop();
     await subscriptions().drop();
@@ -67,5 +67,15 @@ describe("dynamo stores", () => {
       2
     );
     expect(committed2.length).toBe(events.length);
+
+    // polling
+    const lease = await subscriptions().poll("test", {
+      names: ["Event1", "Event2"],
+      timeout: 5000,
+      limit: 5
+    });
+    expect(lease?.events.length).toBeGreaterThanOrEqual(3);
+    const acked = await subscriptions().ack(lease!, 5);
+    expect(acked).toBeTruthy();
   });
 });

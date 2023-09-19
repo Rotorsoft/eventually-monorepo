@@ -5,7 +5,7 @@ import {
   getConflicts,
   getServiceSpec
 } from "@rotorsoft/eventually-openapi";
-import axios from "axios";
+import * as axios from "axios";
 import { state } from "./cluster";
 import { Service } from "./types";
 
@@ -80,7 +80,7 @@ export const refreshServiceSpec = async (service: Service): Promise<void> => {
         /\/+$/,
         ""
       )}/swagger${secretsQueryString}`;
-      const response = await axios.get<OpenAPIObject>(path, {
+      const response = await axios.default.get<OpenAPIObject>(path, {
         timeout: HTTP_TIMEOUT
       });
       return { data: response.data };

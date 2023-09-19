@@ -1,5 +1,5 @@
 import { Empty } from "@rotorsoft/eventually";
-import z from "zod";
+import { z } from "zod";
 
 export const DIGITS = [
   "0",

@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { config as target, extend } from "@rotorsoft/eventually";
 
 const Regions = ["eastus", "centralus", "westus"] as const;

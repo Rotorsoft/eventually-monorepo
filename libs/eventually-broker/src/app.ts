@@ -1,10 +1,10 @@
 import { dispose, log } from "@rotorsoft/eventually";
-import express, { Express, RequestHandler } from "express";
+import * as express from "express";
 import { engine } from "express-handlebars";
 import helmet from "helmet";
 import { Server } from "http";
 import { Socket } from "net";
-import path from "path";
+import * as path from "path";
 import { AppOptions, subscriptions } from ".";
 import { state } from "./cluster";
 import { config } from "./config";
@@ -13,12 +13,12 @@ import * as routes from "./routes";
 
 export const app = async ({
   port,
-  middleware = [] as RequestHandler[],
+  middleware = [] as express.RequestHandler[],
   handlers,
   resolvers,
   serviceLogLinkTemplate,
   secrets
-}: AppOptions): Promise<Express> => {
+}: AppOptions): Promise<express.Express> => {
   port = port || config.port;
 
   await subscriptions().seed();
@@ -36,7 +36,7 @@ export const app = async ({
     ({ operation, id }) => state().refreshSubscription(operation, id)
   );
 
-  const app = express();
+  const app = express.default();
   handlers && handlers.forEach((handler) => app.use(handler));
 
   app.use(express.urlencoded({ extended: false }));

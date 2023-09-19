@@ -18,8 +18,8 @@ import {
   openAPI,
   toJsonSchema
 } from "@rotorsoft/eventually-openapi";
-import cors, { CorsOptions } from "cors";
-import express, { RequestHandler, Router, urlencoded } from "express";
+import * as cors from "cors";
+import * as express from "express";
 import { Server } from "http";
 import {
   queryHandler,
@@ -41,8 +41,8 @@ import {
  * @remarks Exposes public interface as `express` HTTP endpoints
  */
 export class ExpressApp extends Builder {
-  private _app = express();
-  private _router = Router();
+  private _app = express.default();
+  private _router = express.Router();
   private _server: Server | undefined;
 
   constructor() {
@@ -123,8 +123,8 @@ export class ExpressApp extends Builder {
 
   build(
     options: {
-      cors?: CorsOptions;
-      middleware?: RequestHandler[];
+      cors?: cors.CorsOptions;
+      middleware?: express.RequestHandler[];
       home?: boolean;
     } = { cors: { origin: "*" }, home: true }
   ): express.Express {
@@ -136,8 +136,8 @@ export class ExpressApp extends Builder {
 
     // add middleware
     this._app.set("trust proxy", true);
-    options?.cors && this._app.use(cors(options.cors));
-    this._app.use(urlencoded({ extended: false }));
+    options?.cors && this._app.use(cors.default(options.cors));
+    this._app.use(express.urlencoded({ extended: false }));
     this._app.use(express.json({ reviver: dateReviver }));
     options?.middleware && this._app.use(options.middleware);
 

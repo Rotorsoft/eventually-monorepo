@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import z from "zod";
+import { z } from "zod";
 import { Environment, Environments, LogLevel, LogLevels } from "./types/enums";
 import { extend } from "./utils";
 

@@ -1,4 +1,4 @@
-import joi from "joi";
+import * as joi from "joi";
 import { isValidCron } from "cron-validator";
 import { Service, Subscription } from "../types";
 import * as regex from "./regex";

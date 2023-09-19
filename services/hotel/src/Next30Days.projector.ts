@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { client, Projector } from "@rotorsoft/eventually";
 import * as schemas from "./Room.schemas";
 import * as models from "./Room.models";

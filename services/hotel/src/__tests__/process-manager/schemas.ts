@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 const RoomState = z.object({
   status: z.enum(["open", "waiting", "booked"])

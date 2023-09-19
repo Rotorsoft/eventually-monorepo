@@ -1,6 +1,6 @@
 import { extend, config as target } from "@rotorsoft/eventually";
-import fs from "node:fs";
-import z from "zod";
+import * as fs from "node:fs";
+import { z } from "zod";
 
 type Package = {
   name: string;

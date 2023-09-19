@@ -19,6 +19,9 @@ import {
 import { randomUUID } from "crypto";
 import { config } from "./config";
 
+/**
+ * For demo purposes only. There are more efficient stores to handle the high read/write traffic.
+ */
 export const DynamoSubscriptionStore = (table: string): SubscriptionStore => {
   const client = new DynamoDBClient({
     region: config.aws.region,

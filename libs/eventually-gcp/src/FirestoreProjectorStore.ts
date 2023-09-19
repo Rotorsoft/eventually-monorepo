@@ -1,25 +1,42 @@
-import type { AggQuery, ProjectorStore, State } from "@rotorsoft/eventually";
-import { dispose, log } from "@rotorsoft/eventually";
+import { Firestore } from "@google-cloud/firestore";
+import {
+  dispose,
+  log,
+  type AggQuery,
+  type ProjectorStore,
+  type State
+} from "@rotorsoft/eventually";
+import { config } from "./config";
 
 export const FirestoreProjectorStore = <S extends State>(
-  table: string
+  collection: string
 ): ProjectorStore<S> => {
+  const db = new Firestore({
+    projectId: config.gcp.projectId,
+    ignoreUndefinedProperties: true,
+    host: config.gcp.firestore?.host,
+    port: config.gcp.firestore?.port,
+    keyFilename: config.gcp.keyFilename
+  });
+  const name = `FirestoreStore:${collection}`;
+
   const store: ProjectorStore<S> = {
-    name: `FirestoreProjectorStore:${table}`,
-    dispose: () => {
-      // TODO await dispose resources
-      throw Error("Not implemented");
+    name,
+    dispose: async () => {
+      await db.terminate();
+      return Promise.resolve();
     },
 
-    seed: (schema, indexes) => {
-      // TODO await seed store
-      console.log({ schema, indexes });
-      throw Error("Not implemented");
-    },
+    seed: async () => {},
 
-    drop: () => {
-      // TODO await drop store
-      throw Error("Not implemented");
+    drop: async (): Promise<void> => {
+      try {
+        const ref = db.collection(`/${collection}`);
+        const col = await ref.get();
+        if (!col.empty) await db.recursiveDelete(ref);
+      } catch (error) {
+        console.error(error);
+      }
     },
 
     load: (ids) => {

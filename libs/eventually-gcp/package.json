@@ -21,6 +21,7 @@
     "build": "npx tsc --build"
   },
   "dependencies": {
+    "@google-cloud/firestore": "6.7.0",
     "@rotorsoft/eventually": "workspace:^5",
     "zod": "^3.22.2"
   }

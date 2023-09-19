@@ -1,5 +1,5 @@
 import { AllQuery, CommittedEvent, log } from "@rotorsoft/eventually";
-import axios from "axios";
+import * as axios from "axios";
 import { state } from "./cluster";
 import { getEventContract } from "./specs";
 import { Service } from "./types";
@@ -17,7 +17,7 @@ export const getServiceStream = async (
   const secretsQueryString =
     state().serviceSecretsQueryString(service.id) || "?";
   const path = `${url.origin}/all${secretsQueryString}&${toQueryString(query)}`;
-  const { data } = await axios.get<CommittedEvent[]>(path, {
+  const { data } = await axios.default.get<CommittedEvent[]>(path, {
     timeout: HTTP_TIMEOUT
   });
   return data;

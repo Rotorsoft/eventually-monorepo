@@ -16,25 +16,25 @@ In [Eventually](./libs/eventually/README.md), **the model** is king, and code is
 
 In this particular API, we are modeling:
 
-* A hotel administrator that can open rooms to reservations - via `OpenRoom` commands
-* Customers that can query a `Hotel` for available rooms - via `SearchRoom` query commands
-* Customers that can book available rooms - via `BookRoom` commands
+- A hotel administrator that can open rooms to reservations - via `OpenRoom` commands
+- Customers that can query a `Hotel` for available rooms - via `SearchRoom` query commands
+- Customers that can book available rooms - via `BookRoom` commands
 
 The Event Storming model is super simple and captures:
 
-* A `Room` aggregate receiving `OpenRoom`, `BookRoom` commands and emitting `RoomOpened`, `RoomBooked` events that are projected into a `Hotel` read model
+- A `Room` aggregate receiving `OpenRoom`, `BookRoom` commands and emitting `RoomOpened`, `RoomBooked` events that are projected into a `Hotel` read model
 
 ![Hotel Reservation System Model](./assets/hotel.png)
 
 ### **2.** Schemas
 
-Aggregates and Read Models have **State** that can be stored. We must think about the shape and validation guards of these schemas next...*following the original post*:
+Aggregates and Read Models have **State** that can be stored. We must think about the shape and validation guards of these schemas next..._following the original post_:
 
 ```typescript
 export enum RoomType {
-  SINGLE = 'single', 
-  DOUBLE = 'double', 
-  DELUXE = 'deluxe'
+  SINGLE = "single",
+  DOUBLE = "double",
+  DELUXE = "deluxe"
 }
 
 export type Reservation = {
@@ -42,14 +42,14 @@ export type Reservation = {
   checkin: Date;
   checkout: Date;
   totalPrice: number;
-}
+};
 
 export type Room = {
   number: number;
   type: RoomType;
   price: number;
   reservations?: Reservation[];
-}
+};
 
 export type Hotel = Record<number, Room>;
 ```
@@ -67,7 +67,7 @@ npm i --save zod @rotorsoft/eventually @rotorsoft/eventually-express
 npm i --save-dev ts-node-dev jest @types/jest
 ```
 
-#### *package.json*
+#### _package.json_
 
 ```json
 {
@@ -80,8 +80,8 @@ npm i --save-dev ts-node-dev jest @types/jest
     "test": "npx tsc && jest ./dist/**/*.spec.js"
   },
   "author": {
-      "name": "your name",
-      "email": "your@email.com"
+    "name": "your name",
+    "email": "your@email.com"
   },
   "license": "ISC",
   "dependencies": {
@@ -97,7 +97,7 @@ npm i --save-dev ts-node-dev jest @types/jest
 }
 ```
 
-#### *tsconfig.json*
+#### _tsconfig.json_
 
 ```json
 {
@@ -117,7 +117,7 @@ npm i --save-dev ts-node-dev jest @types/jest
 }
 ```
 
-Add a dummy entry point *./src/index.ts*
+Add a dummy entry point _./src/index.ts_
 
 ```typescript
 import { app } from "@rotorsoft/eventually";
@@ -137,22 +137,22 @@ LOG_LEVEL="trace" npm run start:dev
 
 Message payloads also have schemas. We use [zod](https://zod.dev/) with type inference to define our schemas and types...
 
-#### *./src/Room.schemas.ts*
+#### _./src/Room.schemas.ts_
 
 ```typescript
-import z from "zod";
+import { z } from "zod";
 
 export enum RoomType {
-  SINGLE = 'single', 
-  DOUBLE = 'double', 
-  DELUXE = 'deluxe'
+  SINGLE = "single",
+  DOUBLE = "double",
+  DELUXE = "deluxe"
 }
 
 export const Reservation = z.object({
   id: z.string(),
   checkin: z.date(),
   checkout: z.date(),
-  totalPrice: z.number(),
+  totalPrice: z.number()
 });
 
 export const Room = z.object({
@@ -165,7 +165,7 @@ export const Room = z.object({
 export const BookRoom = z.intersection(
   z.object({
     number: z.number()
-  }), 
+  }),
   Reservation
 );
 
@@ -175,10 +175,10 @@ export const SearchRoom = z.object({
 });
 ```
 
-#### *./src/Room.models.ts*
+#### _./src/Room.models.ts_
 
 ```typescript
-import z from "zod";
+import { z } from "zod";
 import * as schemas from "./Room.schemas";
 
 export type Reservation = z.infer<typeof schemas.Reservation>;
@@ -197,7 +197,7 @@ export type RoomEvents = {
 };
 ```
 
-#### A dummy version of *./src/Room.aggregate.ts`*
+#### A dummy version of _./src/Room.aggregate.ts`_
 
 ```typescript
 import { Aggregate } from "@rotorsoft/eventually";
@@ -237,7 +237,7 @@ export const Room = (
 });
 ```
 
-Now we can finish *./src/index.ts* by registering the new aggregate with the app builder...
+Now we can finish _./src/index.ts_ by registering the new aggregate with the app builder...
 
 ```typescript
 import { app, bootstrap, InMemorySnapshotStore } from "@rotorsoft/eventually";
@@ -245,9 +245,7 @@ import { ExpressApp } from "@rotorsoft/eventually-express";
 import { Room } from "./Room.aggregate";
 
 void bootstrap(async (): Promise<void> => {
-  app(new ExpressApp())
-    .with(Room)
-    .build();
+  app(new ExpressApp()).with(Room).build();
   await app().listen();
 });
 ```
@@ -283,7 +281,7 @@ In this case, we will just implement a couple of basic tests following the origi
 
 > Always decide what you are testing before implementing the core logic (model guards/invariants and projections)
 
-#### *./src/\_\_tests\_\_/Room.spec.ts*
+#### _./src/\_\_tests\_\_/Room.spec.ts_
 
 ```typescript
 import {
@@ -317,9 +315,7 @@ describe("Room", () => {
   const snapshotStore = InMemorySnapshotStore();
 
   beforeAll(async () => {
-    app()
-      .with(Room)
-      .build();
+    app().with(Room).build();
     await app().listen();
 
     await openRoom({ number: 101, price: 100, type: schemas.RoomType.SINGLE });
@@ -465,13 +461,13 @@ Room events can be projected into read models that are useful to feed the user i
 
 You can use any of the following HTTP test clients to validate the API:
 
-* REST Client VSCode extension
-* Thunder Client VSCode extension
-* Postman
+- REST Client VSCode extension
+- Thunder Client VSCode extension
+- Postman
 
 Here is a sample REST Client file:
 
-#### *./http/Room.http*
+#### _./http/Room.http_
 
 ```bash
 @host = http://localhost:3000

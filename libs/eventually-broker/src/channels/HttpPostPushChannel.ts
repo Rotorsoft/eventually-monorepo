@@ -1,4 +1,4 @@
-import axios, { AxiosRequestHeaders } from "axios";
+import * as axios from "axios";
 import { CommittableHttpStatus } from "../cluster";
 import { PushChannel } from "../interfaces";
 import { PushEvent, PushResponse } from "../types";
@@ -9,10 +9,10 @@ const TIMEOUT = 10000;
 const push = async (
   url: string,
   event: PushEvent,
-  headers?: AxiosRequestHeaders
+  headers?: axios.AxiosRequestHeaders
 ): Promise<PushResponse> => {
   try {
-    const { status, statusText } = await axios.post(url, event, {
+    const { status, statusText } = await axios.default.post(url, event, {
       timeout: TIMEOUT,
       headers
     });

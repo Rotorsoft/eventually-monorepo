@@ -79,7 +79,7 @@ export type Condition<T> = { readonly [K in Operator]?: T } | Readonly<T>;
  * Projection filter expression by fields in record
  */
 export type ProjectionWhere<S extends State = State> = {
-  readonly [K in keyof Projection<S>]?: Condition<S[K]>;
+  readonly [K in keyof Projection<S>]?: Condition<S[K] | Array<S[K]>>;
 };
 
 /**

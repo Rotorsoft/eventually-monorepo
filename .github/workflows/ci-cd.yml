@@ -53,6 +53,10 @@ jobs:
           AWS_DYNAMO_ENDPOINT: http://localhost:8000
           AWS_CREDENTIALS_ACCESS_KEY_ID: accesskeyid
           AWS_CREDENTIALS_SECRET_ACCESS_KEY: secretaccesskey
+          GCP_PROJECT_ID: test
+          GCP_KEY_FILENAME:
+          GCP_FIRESTORE_HOST: localhost
+          GCP_FIRESTORE_PORT: 8080
 
       - name: coveralls
         uses: coverallsapp/github-action@master

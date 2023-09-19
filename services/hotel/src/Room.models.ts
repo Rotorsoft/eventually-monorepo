@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import * as schemas from "./Room.schemas";
 
 export type Reservation = z.infer<typeof schemas.Reservation>;

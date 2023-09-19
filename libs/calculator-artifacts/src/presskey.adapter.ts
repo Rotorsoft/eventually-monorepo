@@ -1,5 +1,5 @@
 import { CommandAdapterFactory, ZodEmpty } from "@rotorsoft/eventually";
-import z from "zod";
+import { z } from "zod";
 import * as schemas from "./calculator.schemas";
 
 export const ExternalPayloadSchema = z.object({

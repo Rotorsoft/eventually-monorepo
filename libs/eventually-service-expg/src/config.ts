@@ -1,6 +1,6 @@
 import { Scopes, extend, config as target } from "@rotorsoft/eventually";
 import * as fs from "node:fs";
-import z from "zod";
+import { z } from "zod";
 
 const Artifacts = z.object({
   eventually: z.object({
