@@ -1,3 +1,5 @@
+#### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.17...@rotorsoft/eventually-pg-v5.5.18) @rotorsoft/eventually-pg-v5.5.18
+  - PATCH [a6791f3a](https://github.com/Rotorsoft/eventually-monorepo/commit/a6791f3a19b1d98f274baec256f37b2837fa0cf4) fix: partial dynamo store
 #### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.10...@rotorsoft/eventually-openapi-v0.5.11) @rotorsoft/eventually-openapi-v0.5.11
   - PATCH [a6791f3a](https://github.com/Rotorsoft/eventually-monorepo/commit/a6791f3a19b1d98f274baec256f37b2837fa0cf4) fix: partial dynamo store
 #### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.19...@rotorsoft/eventually-v5.7.20) @rotorsoft/eventually-v5.7.20
