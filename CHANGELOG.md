@@ -1,3 +1,5 @@
+#### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.4...@rotorsoft/eventually-service-expg-v1.1.5) @rotorsoft/eventually-service-expg-v1.1.5
+  - PATCH [a6791f3a](https://github.com/Rotorsoft/eventually-monorepo/commit/a6791f3a19b1d98f274baec256f37b2837fa0cf4) fix: partial dynamo store
 #### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.11...@rotorsoft/eventually-broker-v2.2.12) @rotorsoft/eventually-broker-v2.2.12
   - PATCH [a6791f3a](https://github.com/Rotorsoft/eventually-monorepo/commit/a6791f3a19b1d98f274baec256f37b2837fa0cf4) fix: partial dynamo store
 #### 2023-09-19 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.9...@rotorsoft/eventually-express-v5.7.10) @rotorsoft/eventually-express-v5.7.10
