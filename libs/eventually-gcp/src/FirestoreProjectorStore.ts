@@ -7,6 +7,7 @@ import {
   type State
 } from "@rotorsoft/eventually";
 import { config } from "./config";
+import { dropCollection } from "./utils";
 
 export const FirestoreProjectorStore = <S extends State>(
   collection: string
@@ -29,15 +30,7 @@ export const FirestoreProjectorStore = <S extends State>(
 
     seed: async () => {},
 
-    drop: async (): Promise<void> => {
-      try {
-        const ref = db.collection(`/${collection}`);
-        const col = await ref.get();
-        if (!col.empty) await db.recursiveDelete(ref);
-      } catch (error) {
-        console.error(error);
-      }
-    },
+    drop: () => dropCollection(db, collection),
 
     load: (ids) => {
       // TODO await loading records by id

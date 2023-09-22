@@ -10,6 +10,7 @@ import {
 } from "@rotorsoft/eventually";
 import { randomUUID } from "crypto";
 import { config } from "./config";
+import { dropCollection } from "./utils";
 
 /**
  * For demo purposes only. There are more efficient stores to handle the high read/write traffic.
@@ -35,15 +36,7 @@ export const FirestoreSubscriptionStore = (
 
     seed: async () => {},
 
-    drop: async (): Promise<void> => {
-      try {
-        const ref = db.collection(`/${collection}`);
-        const col = await ref.get();
-        if (!col.empty) await db.recursiveDelete(ref);
-      } catch (error) {
-        console.error(error);
-      }
-    },
+    drop: () => dropCollection(db, collection),
 
     poll: async <E extends Messages>(
       consumer: string,

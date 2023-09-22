@@ -32,6 +32,18 @@ jobs:
           - 8000:8000
 
     steps:
+      # - name: setup gcloud sdk
+      #   uses: google-github-actions/setup-gcloud@v1
+      #   with:
+      #     version: ">=363.0.0"
+
+      # - name: run firestore emulator
+      #   run: gcloud emulators firestore start --host-port=localhost:8080
+      #   env:
+      #     FIRESTORE_EMULATOR_HOST: localhost:8080
+      #     FIRESTORE_PROJECT_ID: test-project-id
+      #     GCLOUD_PROJECT: test-project-id
+
       - uses: actions/checkout@v3
 
       - name: install node 18
@@ -53,10 +65,6 @@ jobs:
           AWS_DYNAMO_ENDPOINT: http://localhost:8000
           AWS_CREDENTIALS_ACCESS_KEY_ID: accesskeyid
           AWS_CREDENTIALS_SECRET_ACCESS_KEY: secretaccesskey
-          GCP_PROJECT_ID: test
-          GCP_KEY_FILENAME:
-          GCP_FIRESTORE_HOST: localhost
-          GCP_FIRESTORE_PORT: 8080
 
       - name: coveralls
         uses: coverallsapp/github-action@master

@@ -24,17 +24,18 @@ describe("firestore stores", () => {
     const events = [
       {
         name: "Event1",
-        data: { a: 1 }
+        data: { a: 1, recorded: new Date() }
       },
       {
         name: "Event2",
-        data: { b: false }
+        data: { b: false, recorded: new Date() }
       },
       {
         name: "Event3",
-        data: { c: "abc" }
+        data: { c: "abc", recorded: new Date() }
       }
     ];
+
     const committed = await store().commit(stream, events, {
       correlation: randomUUID(),
       causation: {
@@ -68,14 +69,9 @@ describe("firestore stores", () => {
     );
     expect(committed2.length).toBe(events.length);
 
-    // polling
-    const lease = await subscriptions().poll("test", {
-      names: ["Event1", "Event2"],
-      timeout: 5000,
-      limit: 5
+    const l = await store().query((e) => expect(e.stream).toBe(stream), {
+      stream
     });
-    expect(lease?.events.length).toBeGreaterThanOrEqual(3);
-    const acked = await subscriptions().ack(lease!, 5);
-    expect(acked).toBeTruthy();
+    expect(l).toBe(6);
   });
 });

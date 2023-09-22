@@ -1,4 +1,8 @@
-import { Firestore } from "@google-cloud/firestore";
+import {
+  CollectionReference,
+  FieldPath,
+  Firestore
+} from "@google-cloud/firestore";
 import {
   ConcurrencyError,
   type AllQuery,
@@ -7,9 +11,12 @@ import {
   type Message,
   type Messages,
   type Store,
-  type StoreStat
+  type StoreStat,
+  log
 } from "@rotorsoft/eventually";
 import { config } from "./config";
+import { NotSupportedError } from "./NotSupportedError";
+import { dropCollection } from "./utils";
 
 export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
   const padlen = (maxId - 1).toString().length;
@@ -28,6 +35,9 @@ export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
   });
   const name = `FirestoreStore:${collection}`;
 
+  const eventsRef = (stream: string): CollectionReference =>
+    db.collection(`/${collection}/${stream}/events`);
+
   return {
     name,
     dispose: async () => {
@@ -37,17 +47,9 @@ export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
 
     seed: async () => {},
 
-    drop: async (): Promise<void> => {
-      try {
-        const ref = db.collection(`/${collection}`);
-        const col = await ref.get();
-        if (!col.empty) await db.recursiveDelete(ref);
-      } catch (error) {
-        console.error(error);
-      }
-    },
+    drop: () => dropCollection(db, collection),
 
-    query: <E extends Messages>(
+    query: async <E extends Messages>(
       callback: (event: CommittedEvent<E>) => void,
       query?: AllQuery
     ): Promise<number> => {
@@ -59,26 +61,49 @@ export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
         limit,
         created_before,
         created_after,
-        backward,
         actor,
-        correlation,
-        loading
+        correlation
       } = query || {};
-      console.log({
-        stream,
-        names,
-        before,
-        after,
-        limit,
-        created_before,
-        created_after,
-        backward,
-        actor,
-        correlation,
-        loading
+
+      if (!stream)
+        throw new NotSupportedError(
+          "Global filters are not supported. Filter by stream is required."
+        );
+      if (
+        names ||
+        before ||
+        created_before ||
+        created_after ||
+        actor ||
+        correlation
+      )
+        throw new NotSupportedError(
+          "Global filters are not supported. Avoid using names, before, created_before, created_after, actor, correlation."
+        );
+
+      const ref = eventsRef(stream);
+      const q = ref.where(
+        FieldPath.documentId(),
+        ">=",
+        pad(typeof after !== "undefined" ? after + 1 : 0)
+      );
+      limit && q.limit(limit);
+      const snap = await q.get();
+      snap.forEach((item) => {
+        const { name, data: dataStr, metadata: metadataStr } = item.data();
+        const data = JSON.parse(dataStr as string);
+        const metadata = JSON.parse(metadataStr as string);
+        callback({
+          id: item.createTime.toMillis(),
+          stream,
+          version: Number.parseInt(item.id),
+          created: item.createTime.toDate(),
+          name,
+          data,
+          metadata
+        } satisfies CommittedEvent<E>);
       });
-      // TODO await query results
-      throw Error("Not implemented");
+      return snap.size;
     },
 
     commit: async <E extends Messages>(
@@ -87,27 +112,33 @@ export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
       metadata: CommittedEventMetadata,
       expectedVersion?: number
     ): Promise<CommittedEvent<E>[]> => {
-      const ref = db.collection(`/${collection}/${stream}`);
-      const version = expectedVersion ?? -1;
+      const version = (expectedVersion ?? -1) + 1;
+      const ref = eventsRef(stream);
       try {
         return await db.runTransaction((tx) =>
           Promise.resolve(
             events.map((e, i) => {
-              const id = pad(version + i);
-              const committed: CommittedEvent<E> = {
-                ...e,
-                id: Date.now(),
-                stream,
+              // TODO: fix date to timestamp conversion issue to avoid stringify
+              tx.create(ref.doc(pad(version + i)), {
                 version: version + i,
-                created: new Date(),
+                name: e.name,
+                data: JSON.stringify(e.data),
+                metadata: JSON.stringify(metadata)
+              });
+              const created = new Date();
+              return {
+                ...e,
+                id: created.getTime(),
+                stream,
+                created,
+                version: version + i + 1,
                 metadata
-              };
-              tx.create(ref.doc(id), committed);
-              return committed;
+              } satisfies CommittedEvent<E>;
             })
           )
         );
-      } catch {
+      } catch (error) {
+        log().error(error);
         throw new ConcurrencyError(-1, events, version);
       }
     },

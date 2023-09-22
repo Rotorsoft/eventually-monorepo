@@ -4,7 +4,7 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   testMatch: ["**/*spec.ts"],
-  testPathIgnorePatterns: ["libs/eventually-gcp"], // ignore unstable gcp lib
+  testPathIgnorePatterns: ["libs/eventually-gcp/src/__tests__/"], // ignore partial implementation
   coveragePathIgnorePatterns: [
     "node_modules",
     "dist",
