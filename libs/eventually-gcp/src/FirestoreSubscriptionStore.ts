@@ -1,4 +1,3 @@
-import { Firestore } from "@google-cloud/firestore";
 import {
   store,
   type CommittedEvent,
@@ -9,8 +8,7 @@ import {
   type SubscriptionStore
 } from "@rotorsoft/eventually";
 import { randomUUID } from "crypto";
-import { config } from "./config";
-import { dropCollection } from "./utils";
+import * as firestore from "./firestore";
 
 /**
  * For demo purposes only. There are more efficient stores to handle the high read/write traffic.
@@ -18,25 +16,14 @@ import { dropCollection } from "./utils";
 export const FirestoreSubscriptionStore = (
   collection: string
 ): SubscriptionStore => {
-  const db = new Firestore({
-    projectId: config.gcp.projectId,
-    ignoreUndefinedProperties: true,
-    host: config.gcp.firestore?.host,
-    port: config.gcp.firestore?.port,
-    keyFilename: config.gcp.keyFilename
-  });
+  const db = firestore.create();
   const name = `FirestoreSubscriptionStore:${collection}`;
 
   return {
     name,
-    dispose: async () => {
-      await db.terminate();
-      return Promise.resolve();
-    },
-
+    dispose: () => firestore.dispose(db),
     seed: async () => {},
-
-    drop: () => dropCollection(db, collection),
+    drop: () => firestore.drop(db, collection),
 
     poll: async <E extends Messages>(
       consumer: string,

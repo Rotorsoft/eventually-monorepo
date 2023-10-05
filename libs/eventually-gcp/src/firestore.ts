@@ -1,6 +1,21 @@
 import { Firestore } from "@google-cloud/firestore";
+import { config } from "./config";
 
-export const dropCollection = async (
+export const create = (): Firestore =>
+  new Firestore({
+    projectId: config.gcp.projectId,
+    ignoreUndefinedProperties: true,
+    host: config.gcp.firestore?.host,
+    port: config.gcp.firestore?.port,
+    keyFilename: config.gcp.keyFilename
+  });
+
+export const dispose = async (db: Firestore): Promise<void> => {
+  await db.terminate();
+  return Promise.resolve();
+};
+
+export const drop = async (
   db: Firestore,
   collection: string
 ): Promise<void> => {

@@ -1,22 +1,17 @@
-import {
-  CollectionReference,
-  FieldPath,
-  Firestore
-} from "@google-cloud/firestore";
+import { CollectionReference, FieldPath } from "@google-cloud/firestore";
 import {
   ConcurrencyError,
+  log,
   type AllQuery,
   type CommittedEvent,
   type CommittedEventMetadata,
   type Message,
   type Messages,
   type Store,
-  type StoreStat,
-  log
+  type StoreStat
 } from "@rotorsoft/eventually";
-import { config } from "./config";
 import { NotSupportedError } from "./NotSupportedError";
-import { dropCollection } from "./utils";
+import * as firestore from "./firestore";
 
 export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
   const padlen = (maxId - 1).toString().length;
@@ -26,13 +21,7 @@ export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
     return padstr.substring(0, padlen - s.length).concat(s);
   };
 
-  const db = new Firestore({
-    projectId: config.gcp.projectId,
-    ignoreUndefinedProperties: true,
-    host: config.gcp.firestore?.host,
-    port: config.gcp.firestore?.port,
-    keyFilename: config.gcp.keyFilename
-  });
+  const db = firestore.create();
   const name = `FirestoreStore:${collection}`;
 
   const eventsRef = (stream: string): CollectionReference =>
@@ -40,14 +29,9 @@ export const FirestoreStore = (collection: string, maxId = 1e6): Store => {
 
   return {
     name,
-    dispose: async () => {
-      await db.terminate();
-      return Promise.resolve();
-    },
-
+    dispose: () => firestore.dispose(db),
     seed: async () => {},
-
-    drop: () => dropCollection(db, collection),
+    drop: () => firestore.drop(db, collection),
 
     query: async <E extends Messages>(
       callback: (event: CommittedEvent<E>) => void,

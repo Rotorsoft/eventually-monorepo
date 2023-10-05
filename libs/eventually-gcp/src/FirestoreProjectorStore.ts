@@ -1,36 +1,23 @@
-import { Firestore } from "@google-cloud/firestore";
 import {
-  dispose,
   log,
   type AggQuery,
   type ProjectorStore,
-  type State
+  type State,
+  dispose
 } from "@rotorsoft/eventually";
-import { config } from "./config";
-import { dropCollection } from "./utils";
+import * as firestore from "./firestore";
 
 export const FirestoreProjectorStore = <S extends State>(
   collection: string
 ): ProjectorStore<S> => {
-  const db = new Firestore({
-    projectId: config.gcp.projectId,
-    ignoreUndefinedProperties: true,
-    host: config.gcp.firestore?.host,
-    port: config.gcp.firestore?.port,
-    keyFilename: config.gcp.keyFilename
-  });
+  const db = firestore.create();
   const name = `FirestoreStore:${collection}`;
 
   const store: ProjectorStore<S> = {
     name,
-    dispose: async () => {
-      await db.terminate();
-      return Promise.resolve();
-    },
-
+    dispose: () => firestore.dispose(db),
     seed: async () => {},
-
-    drop: () => dropCollection(db, collection),
+    drop: () => firestore.drop(db, collection),
 
     load: (ids) => {
       // TODO await loading records by id
