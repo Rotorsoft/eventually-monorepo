@@ -1,3 +1,5 @@
+#### 2023-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.11...@rotorsoft/eventually-openapi-v0.5.12) @rotorsoft/eventually-openapi-v0.5.12
+  - PATCH [7d3d3198](https://github.com/Rotorsoft/eventually-monorepo/commit/7d3d3198dbd3fe214edfa805e2145dfd909d1b00) fix: up deps
 #### 2023-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.20...@rotorsoft/eventually-v5.7.21) @rotorsoft/eventually-v5.7.21
   - PATCH [7d3d3198](https://github.com/Rotorsoft/eventually-monorepo/commit/7d3d3198dbd3fe214edfa805e2145dfd909d1b00) fix: up deps
 #### 2023-09-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.4...@rotorsoft/eventually-gcp-v0.1.5) @rotorsoft/eventually-gcp-v0.1.5
