@@ -1,3 +1,5 @@
+#### 2023-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.8...@rotorsoft/calculator-artifacts-v1.7.9) @rotorsoft/calculator-artifacts-v1.7.9
+  - PATCH [7d3d3198](https://github.com/Rotorsoft/eventually-monorepo/commit/7d3d3198dbd3fe214edfa805e2145dfd909d1b00) fix: up deps
 #### 2023-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.5...@rotorsoft/eventually-service-expg-v1.1.6) @rotorsoft/eventually-service-expg-v1.1.6
   - PATCH [7d3d3198](https://github.com/Rotorsoft/eventually-monorepo/commit/7d3d3198dbd3fe214edfa805e2145dfd909d1b00) fix: up deps
 #### 2023-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.12...@rotorsoft/eventually-broker-v2.2.13) @rotorsoft/eventually-broker-v2.2.13
