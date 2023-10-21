@@ -180,7 +180,7 @@ export const DynamoProjectorStore = <S extends State>(
             },
             {
               AttributeName: "F_id",
-              KeyType: "ORDER"
+              KeyType: "RANGE"
             }
           ],
           AttributeDefinitions: [

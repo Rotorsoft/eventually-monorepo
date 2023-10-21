@@ -26,6 +26,6 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/validator": "^13.11.2"
+    "@types/validator": "^13.11.5"
   }
 }
