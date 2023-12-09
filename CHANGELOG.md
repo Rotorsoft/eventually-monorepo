@@ -1,3 +1,5 @@
+#### 2023-12-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.12...@rotorsoft/eventually-openapi-v0.5.13) @rotorsoft/eventually-openapi-v0.5.13
+  - PATCH [160968d7](https://github.com/Rotorsoft/eventually-monorepo/commit/160968d726d7bceb142dc3b7b664a2ebc0ba55fd) fix: add trpc adapter
 #### 2023-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-azure-v0.1.4...@rotorsoft/eventually-azure-v0.1.5) @rotorsoft/eventually-azure-v0.1.5
   - PATCH [7d3d3198](https://github.com/Rotorsoft/eventually-monorepo/commit/7d3d3198dbd3fe214edfa805e2145dfd909d1b00) fix: up deps
 #### 2023-10-05 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-gcp-v0.1.5...@rotorsoft/eventually-gcp-v0.1.6) @rotorsoft/eventually-gcp-v0.1.6
