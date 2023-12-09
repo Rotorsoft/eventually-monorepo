@@ -115,7 +115,7 @@ export const PostgresSubscriptionStore = (table: string): SubscriptionStore => {
         ) {
           const sql = `UPDATE "${table}" SET watermark=$2, lease=null, expires=null WHERE "${table}".consumer=$1`;
           const vals = [lease.consumer, watermark];
-          acked = (await client.query(sql, vals)).rowCount > 0;
+          acked = ((await client.query(sql, vals)).rowCount ?? 0) > 0;
           log().silver().data(sql, vals, { acked });
         }
         await client.query("COMMIT");

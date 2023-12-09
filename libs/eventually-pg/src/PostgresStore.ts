@@ -126,7 +126,7 @@ export const PostgresStore = (table: string): Store => {
       for (const row of result.rows)
         callback(row as unknown as CommittedEvent<E>);
 
-      return result.rowCount;
+      return result.rowCount ?? 0;
     },
 
     commit: async <E extends Messages>(

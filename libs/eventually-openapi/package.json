@@ -19,13 +19,13 @@
   },
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^5",
-    "axios": "^1.5.1",
+    "axios": "^1.6.2",
     "openapi3-ts": "^4.1.2",
     "ts-deepmerge": "^6.2.0",
     "validator": "^13.11.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/validator": "^13.11.5"
+    "@types/validator": "^13.11.7"
   }
 }

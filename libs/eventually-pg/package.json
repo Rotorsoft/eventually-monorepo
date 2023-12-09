@@ -1,7 +1,7 @@
 {
   "name": "@rotorsoft/eventually-pg",
   "version": "5.5.19",
-  "description": "Eventually Framework Postgres Services",
+  "description": "Eventually Postgres Store Adapters",
   "author": {
     "name": "rotorsoft",
     "email": "rotorsoft@outlook.com"

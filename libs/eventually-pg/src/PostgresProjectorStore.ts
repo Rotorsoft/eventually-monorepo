@@ -140,11 +140,11 @@ export const PostgresProjectorStore = <S extends State>(
           deleted = 0;
         for (const { sql, vals } of deletes) {
           log().green().data("sql:", sql, vals);
-          deleted += (await client.query(sql, vals)).rowCount;
+          deleted += (await client.query(sql, vals)).rowCount ?? 0;
         }
         for (const { sql, vals } of upserts) {
           log().green().data("sql:", sql, vals);
-          upserted += (await client.query(sql, vals)).rowCount;
+          upserted += (await client.query(sql, vals)).rowCount ?? 0;
         }
         await client.query("COMMIT");
         return { upserted, deleted, watermark };
