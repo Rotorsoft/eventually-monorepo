@@ -1,3 +1,5 @@
+#### 2023-12-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.13...@rotorsoft/eventually-broker-v2.2.14) @rotorsoft/eventually-broker-v2.2.14
+  - PATCH [160968d7](https://github.com/Rotorsoft/eventually-monorepo/commit/160968d726d7bceb142dc3b7b664a2ebc0ba55fd) fix: add trpc adapter
 #### 2023-12-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.7.11...@rotorsoft/eventually-express-v5.7.12) @rotorsoft/eventually-express-v5.7.12
   - PATCH [160968d7](https://github.com/Rotorsoft/eventually-monorepo/commit/160968d726d7bceb142dc3b7b664a2ebc0ba55fd) fix: add trpc adapter
 #### 2023-12-09 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.19...@rotorsoft/eventually-pg-v5.5.20) @rotorsoft/eventually-pg-v5.5.20
