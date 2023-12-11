@@ -1,3 +1,5 @@
+#### 2023-12-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/0...@rotorsoft/eventually-trpc-v0.1.0) @rotorsoft/eventually-trpc-v0.1.0
+  - PATCH [160968d7](https://github.com/Rotorsoft/eventually-monorepo/commit/160968d726d7bceb142dc3b7b664a2ebc0ba55fd) fix: add trpc adapter
 #### 2023-12-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.14...@rotorsoft/eventually-broker-v2.2.15) @rotorsoft/eventually-broker-v2.2.15
   - PATCH [66b03679](https://github.com/Rotorsoft/eventually-monorepo/commit/66b03679ce9338dd29a3a3c3621da3367064aef2) fix: add trpc to typedoc and ci-cd
 #### 2023-12-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.13...@rotorsoft/eventually-openapi-v0.5.14) @rotorsoft/eventually-openapi-v0.5.14
