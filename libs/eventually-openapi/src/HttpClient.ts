@@ -133,8 +133,8 @@ export const HttpClient = (
         typeof query === "string"
           ? [query]
           : Array.isArray(query)
-          ? query
-          : undefined;
+            ? query
+            : undefined;
       const { data } = await axios.default.get<
         State,
         axios.AxiosResponse<ProjectionRecord<S>[]>

@@ -185,8 +185,8 @@ export abstract class Builder extends EventEmitter implements Disposable {
           type: reducible
             ? "process-manager"
             : "commands" in artifact.schemas
-            ? "policy"
-            : "projector",
+              ? "policy"
+              : "projector",
           factory,
           schema,
           inputs: inputs.map((name) => ({ name, scope })),

@@ -29,9 +29,9 @@ export const toSubscriptionsView = (
       a.active < b.active
         ? 1
         : a.active > b.active
-        ? -1
-        : b.total - a.total
-        ? b.total - a.total
-        : b.position - a.position
+          ? -1
+          : b.total - a.total
+            ? b.total - a.total
+            : b.position - a.position
     )
 });

@@ -8,7 +8,8 @@
     "./libs/eventually-aws/src/index.ts",
     "./libs/eventually-gcp/src/index.ts",
     "./libs/eventually-azure/src/index.ts",
-    "./libs/eventually-broker/src/index.ts"
+    "./libs/eventually-broker/src/index.ts",
+    "./libs/eventually-trpc/src/index.ts"
   ],
   "out": "docs",
   "excludePrivate": true,
