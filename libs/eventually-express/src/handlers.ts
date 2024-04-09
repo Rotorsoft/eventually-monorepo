@@ -19,7 +19,8 @@ import {
   type RestProjectionQuery,
   type Schema,
   type Snapshot,
-  type State
+  type State,
+  decamelize
 } from "@rotorsoft/eventually";
 import type { NextFunction, Request, Response } from "express";
 
@@ -75,7 +76,7 @@ export const getHandler =
   };
 
 export const commandHandler =
-  (factory: CommandHandlerFactory, name: string, withEtag: boolean) =>
+  (factory: CommandHandlerFactory, name: string, reducible: boolean) =>
   async (
     req: Request<{ id: string }, any, State, never> & {
       actor?: Actor;
@@ -86,10 +87,10 @@ export const commandHandler =
     try {
       const { id } = req.params;
       const ifMatch = req.headers["if-match"] || undefined;
-      const expectedVersion = withEtag && ifMatch ? +ifMatch : undefined;
+      const expectedVersion = reducible && ifMatch ? +ifMatch : undefined;
       const { actor } = req;
       const snap = await client().command(factory, name, req.body, {
-        stream: id,
+        stream: reducible ? id : decamelize(factory.name),
         expectedVersion,
         actor
       });
