@@ -239,6 +239,9 @@ export const work = async (
                 [],
               position: lastResponse.id
             };
+            if(!retryable) {
+              sub.loop.pause();
+            }
             sendState(state);
             return retryable;
           }
@@ -295,12 +298,20 @@ export const work = async (
         position: sub.state.position
       };
       pump(sub, trigger, sub.state.retryTimeoutSecs * 1000 * sub.retry_count);
+    } else {
+      sub.loop.pause();
     }
   };
 
   const pumpChannel: TriggerCallback = (trigger) => {
     subs.forEach((sub) => {
       sub.retry_count = 0;
+      if(
+        trigger.operation === "REFRESH" ||
+        trigger.operation === "RESTART"
+      ) {
+        sub.loop.resume();
+      }
       pump(sub, trigger);
     });
   };
