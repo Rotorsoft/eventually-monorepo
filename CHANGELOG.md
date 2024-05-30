@@ -1,3 +1,5 @@
+#### 2024-05-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.15...@rotorsoft/eventually-broker-v2.2.16) @rotorsoft/eventually-broker-v2.2.16
+  - PATCH [78c541c4](https://github.com/Rotorsoft/eventually-monorepo/commit/78c541c42fcb2d466fefb4858963acc8dabc73a5) fix: pause non-flowing subscription
 #### 2024-05-30 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.7.22...@rotorsoft/eventually-v5.7.23) @rotorsoft/eventually-v5.7.23
   - PATCH [78c541c4](https://github.com/Rotorsoft/eventually-monorepo/commit/78c541c42fcb2d466fefb4858963acc8dabc73a5) fix: pause non-flowing subscription
 #### 2023-12-11 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/0...@rotorsoft/eventually-trpc-v0.1.0) @rotorsoft/eventually-trpc-v0.1.0
