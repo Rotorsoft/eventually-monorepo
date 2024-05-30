@@ -5,7 +5,7 @@ import { sleep } from "./utils";
 /**
  * Scheduler statuses
  */
-export type Status = "running" | "stopping" | "stopped";
+export type Status = "running" | "paused" | "stopping" | "stopped";
 
 /**
  * Scheduler actions
@@ -28,6 +28,8 @@ export type Action = {
 export interface Schedule extends Disposable {
   push: (action: Action) => void;
   stop: () => Promise<void>;
+  pause: () => void;
+  resume: () => void;
   status: () => Status;
   pending: () => number;
 }
@@ -40,12 +42,14 @@ export interface Schedule extends Disposable {
 export const scheduler = (name: string): Schedule => {
   const queue: Array<Action> = [];
   const delayed = new Map<string, NodeJS.Timeout>();
-  let status: Status = "stopped";
+  let _status: Status = "stopped";
 
   log().green().trace(`Schedule "${name}" created`);
 
+  const status = (): Status => (_status)
+
   const schedule = (action: Action): void => {
-    if (status === "stopping") return;
+    if (_status === "stopping" || _status === "paused") return;
     clearTimeout(delayed.get(action.id));
     delayed.set(
       action.id,
@@ -57,43 +61,53 @@ export const scheduler = (name: string): Schedule => {
   };
 
   const enqueue = (action: Action): void => {
-    if (status === "stopping") return;
+    if (_status === "stopping" || _status === "paused") return;
     queue.push(action);
     setImmediate(dequeue);
   };
 
   const dequeue = async (): Promise<void> => {
-    if (status === "stopping") return;
-    status = "running";
-    while (queue.length && status === "running") {
+    if (_status === "stopping" || _status === "paused") return;
+    _status = "running";
+    while (queue.length && _status === "running") {
       const action = queue.shift();
       if (action) {
         const result = await action.action();
         action.callback && action.callback(action.id, result);
       }
     }
-    status = "stopped";
+    if(status() !== "paused") _status = "stopped";
   };
 
   const stop = async (): Promise<void> => {
-    if (status === "stopping") return;
-    status = "stopping";
+    if (_status === "stopping") return;
+    _status = "stopping";
     delayed.forEach((timeout) => clearTimeout(timeout));
     delayed.clear();
     for (
       let attempt = 1;
-      queue.length && status === "stopping" && attempt <= 10;
+      queue.length && _status === "stopping" && attempt <= 10;
       attempt++
     ) {
       log()
         .red()
         .trace(
-          `Schedule "${name}" - ${status} [${queue.length}] (${attempt})...`
+          `Schedule "${name}" - ${_status} [${queue.length}] (${attempt})...`
         );
       await sleep(1000);
     }
     queue.length = 0;
-    status = "stopped";
+    _status = "stopped";
+  };
+
+  const pause = (): void => {
+    if (_status !== "running") return;
+    _status = "paused";
+  };
+
+  const resume = (): void => {
+    if (_status !== "paused") return;
+    _status = "running";
   };
 
   return {
@@ -103,7 +117,9 @@ export const scheduler = (name: string): Schedule => {
       action.delay ? schedule(action) : enqueue(action);
     },
     stop,
-    status: () => status,
+    pause,
+    resume,
+    status: () => _status,
     pending: () => delayed.size
   };
 };
