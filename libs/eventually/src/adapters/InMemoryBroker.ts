@@ -71,7 +71,7 @@ export const InMemoryBroker = (options?: {
         if (commit && commit(snapshot)) {
           try {
             const { id, stream, name, metadata, version } = snapshot.event!;
-            return await store().commit(
+            await store().commit(
               stream,
               [
                 {
