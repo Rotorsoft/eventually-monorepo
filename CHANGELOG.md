@@ -1,3 +1,6 @@
+#### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.7.9...@rotorsoft/calculator-artifacts-v1.8.0) @rotorsoft/calculator-artifacts-v1.8.0
+  - MINOR [2f61537f](https://github.com/Rotorsoft/eventually-monorepo/commit/2f61537f6c281464a4d626ad9c570ab15438621c) feat: replace yarn with pnpm
+  - PATCH [a59448db](https://github.com/Rotorsoft/eventually-monorepo/commit/a59448db5a227febca8bac887be2561fc9a4a121) fix: pretty files
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.6...@rotorsoft/eventually-service-expg-v1.2.0) @rotorsoft/eventually-service-expg-v1.2.0
   - MINOR [2f61537f](https://github.com/Rotorsoft/eventually-monorepo/commit/2f61537f6c281464a4d626ad9c570ab15438621c) feat: replace yarn with pnpm
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.16...@rotorsoft/eventually-broker-v2.3.0) @rotorsoft/eventually-broker-v2.3.0
