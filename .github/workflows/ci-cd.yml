@@ -128,7 +128,7 @@ jobs:
           echo "${{ steps.analyze.outputs.change-log }}"
 
       - name: release ${{ matrix.lib }}
-        uses: rotorsoft/semrel-release@v2.0.0
+        uses: rotorsoft/semrel-release@v3.0.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           npm-registry: "registry.npmjs.org"
