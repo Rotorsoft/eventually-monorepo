@@ -115,7 +115,7 @@ jobs:
 
       - name: analyze ${{ matrix.lib }}
         id: analyze
-        uses: rotorsoft/semrel-analyze@v2
+        uses: rotorsoft/semrel-analyze@v3.0.0
         with:
           package: "@rotorsoft/${{ matrix.lib }}"
           directory: "libs/${{ matrix.lib }}"
