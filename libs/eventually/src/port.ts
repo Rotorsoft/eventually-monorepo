@@ -18,7 +18,7 @@ export const port =
     if (!adapters.has(target.name)) {
       const adapter = target(arg);
       adapters.set(target.name, adapter);
-      log(`✨ ${adapter.name || target.name}`);
+      log(`[created adapter] ${adapter.name || target.name}`);
     }
     return adapters.get(target.name) as T;
   };
@@ -28,7 +28,7 @@ const disposeAndExit = async (code: ExitCode = "UNIT_TEST"): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
   await Promise.all(
     [...adapters].reverse().map(async ([key, adapter]) => {
-      log(`♻️ ${adapter.name || key}`);
+      log(`[disposed adapter] ${adapter.name || key}`);
       await adapter.dispose();
     })
   );
