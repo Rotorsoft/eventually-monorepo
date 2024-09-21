@@ -12,7 +12,6 @@ import type { Projection } from "./projection";
 
 /** All artifact types */
 export type ArtifactType =
-  | "system"
   | "aggregate"
   | "policy"
   | "process-manager"
@@ -33,16 +32,6 @@ export type Schemas<M extends Messages> = { [K in keyof M]: ZodType<M[K]> };
 
 /** Schema defines state validation */
 export type Schema<S extends State> = ZodType<S>;
-
-/**
- * System schemas for
- * - `schemas.commands` input validation
- * - `schemas.events` output validation
- */
-export type SystemSchemas<C extends Messages, E extends Messages> = {
-  commands: Schemas<C>;
-  events: Schemas<E>;
-};
 
 /**
  * Aggregate schemas for
@@ -123,19 +112,6 @@ export type Reducible<
   init: () => Readonly<S>;
   reduce: { [K in keyof E]: EventReducer<S, E, K> };
   reducer?: StateReducer<S>;
-};
-
-/**
- * Systems handle commands and produce a stream of committed events
- * - `schemas` for message validation and documentation
- * - `on` command handlers
- */
-export type System<
-  C extends Messages = Messages,
-  E extends Messages = Messages
-> = Streamable & {
-  schemas: SystemSchemas<C, E>;
-  on: { [K in keyof C]: CommandHandler<State, C, E, K> };
 };
 
 /**
@@ -230,7 +206,7 @@ export type CommandHandlingArtifact<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = Aggregate<S, C, E> | System<C, E>;
+> = Aggregate<S, C, E>;
 
 /** All event handling artifacts */
 export type EventHandlingArtifact<
@@ -258,45 +234,31 @@ export type Infer<T> = T extends ZodRawShape
       [K in keyof T]: z.infer<T[K]>;
     }
   : T extends ZodTypeAny
-  ? z.infer<T>
-  : never;
-
-/** Helper to infer system types from schemas */
-export type InferSystem<Z> = Z extends SystemSchemas<infer C, infer E>
-  ? System<C, E>
-  : never;
+    ? z.infer<T>
+    : never;
 
 /** Helper to infer aggregate types from schemas */
-export type InferAggregate<Z> = Z extends AggregateSchemas<
-  infer S,
-  infer C,
-  infer E
->
-  ? Aggregate<S, C, E>
-  : never;
+export type InferAggregate<Z> =
+  Z extends AggregateSchemas<infer S, infer C, infer E>
+    ? Aggregate<S, C, E>
+    : never;
 
 /** Helper to infer policy types from schemas */
-export type InferPolicy<Z> = Z extends PolicySchemas<infer C, infer E>
-  ? Policy<C, E>
-  : never;
+export type InferPolicy<Z> =
+  Z extends PolicySchemas<infer C, infer E> ? Policy<C, E> : never;
 
 /** Helper to infer process manager types from schemas */
-export type InferProcessManager<
-  Z,
-  O extends Messages
-> = Z extends ProcessManagerSchemas<infer S, infer C, infer E>
-  ? ProcessManager<S, C, E, O>
-  : never;
+export type InferProcessManager<Z, O extends Messages> =
+  Z extends ProcessManagerSchemas<infer S, infer C, infer E>
+    ? ProcessManager<S, C, E, O>
+    : never;
 
 /** Helper to infer command adapter types from schemas */
-export type InferCommandAdapter<Z> = Z extends CommandAdapterSchemas<
-  infer S,
-  infer C
->
-  ? CommandAdapter<S, C>
-  : never;
+export type InferCommandAdapter<Z> =
+  Z extends CommandAdapterSchemas<infer S, infer C>
+    ? CommandAdapter<S, C>
+    : never;
 
 /** Helper to infer projector types from schemas */
-export type InferProjector<Z> = Z extends ProjectorSchemas<infer S, infer E>
-  ? Projector<S, E>
-  : never;
+export type InferProjector<Z> =
+  Z extends ProjectorSchemas<infer S, infer E> ? Projector<S, E> : never;

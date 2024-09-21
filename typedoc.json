@@ -2,14 +2,9 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "./libs/eventually/src/index.ts",
-    "./libs/eventually-openapi/src/index.ts",
     "./libs/eventually-express/src/index.ts",
     "./libs/eventually-pg/src/index.ts",
-    "./libs/eventually-aws/src/index.ts",
-    "./libs/eventually-gcp/src/index.ts",
-    "./libs/eventually-azure/src/index.ts",
-    "./libs/eventually-broker/src/index.ts",
-    "./libs/eventually-trpc/src/index.ts"
+    "./libs/eventually-broker/src/index.ts"
   ],
   "out": "docs",
   "excludePrivate": true,

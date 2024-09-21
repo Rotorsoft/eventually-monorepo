@@ -1,9 +1,9 @@
 import { randomUUID } from "crypto";
 import { app, log } from "../ports";
 import {
+  AggregateFactory,
   InvariantError,
   RegistrationError,
-  type CommandHandlerFactory,
   type CommittedEventMetadata,
   type Message,
   type Messages,
@@ -35,7 +35,7 @@ export default async function command<
   if (!msg?.handlers.length) throw new RegistrationError(command);
 
   const factory = app().artifacts.get(msg.handlers[0])
-    ?.factory as unknown as CommandHandlerFactory<S, C, E>;
+    ?.factory as unknown as AggregateFactory<S, C, E>;
   if (!factory) throw new RegistrationError(command);
 
   log().blue().trace(`\n>>> ${factory.name}`, command, metadata);

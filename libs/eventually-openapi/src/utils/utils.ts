@@ -11,8 +11,6 @@ export const httpPostPath = (
   switch (type) {
     case "aggregate":
       return "/".concat(decamelize(name), "/:id/", decamelize(message));
-    case "system":
-      return "/".concat(decamelize(name), "/", decamelize(message));
     default:
       return "/".concat(decamelize(name));
   }

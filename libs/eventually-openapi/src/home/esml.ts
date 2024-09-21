@@ -1,6 +1,6 @@
 import { app, camelize } from "@rotorsoft/eventually";
-import { config } from "..";
 import { z } from "zod";
+import { config } from "..";
 
 const ZOD2TYPE: { [K in z.ZodFirstPartyTypeKind]?: string } = {
   [z.ZodFirstPartyTypeKind.ZodString]: "string",
@@ -93,12 +93,12 @@ export const esml = (): Record<string, any> => {
   [...app().artifacts.values()]
     .filter((a) => a.type !== "command-adapter")
     .forEach((a) => {
-      const sys = a.type === "aggregate" || a.type === "system";
+      const agg = a.type === "aggregate";
       const art = (model[a.factory.name] = {
         type: a.type
       } as Record<string, any>);
       if (a.inputs.length) art.handles = a.inputs.map((i) => i.name);
-      if (a.outputs.length) art[sys ? "emits" : "invokes"] = a.outputs;
+      if (a.outputs.length) art[agg ? "emits" : "invokes"] = a.outputs;
       if (a.schema) art.schema = toSchema(a.schema, model);
     });
 

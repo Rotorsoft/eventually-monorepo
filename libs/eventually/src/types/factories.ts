@@ -3,8 +3,7 @@ import {
   CommandAdapter,
   Policy,
   ProcessManager,
-  Projector,
-  System
+  Projector
 } from "./artifacts";
 import { Messages, State } from "./messages";
 
@@ -16,14 +15,6 @@ export type AggregateFactory<
   C extends Messages = Messages,
   E extends Messages = Messages
 > = (stream: string) => Aggregate<S, C, E>;
-
-/**
- * System factories build systems
- */
-export type SystemFactory<
-  C extends Messages = Messages,
-  E extends Messages = Messages
-> = () => System<C, E>;
 
 /**
  * Policy factories build policies
@@ -66,7 +57,7 @@ export type StreamableFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = AggregateFactory<S, C, E> | SystemFactory<C, E>;
+> = AggregateFactory<S, C, E>;
 
 /**
  * All reducible factories
@@ -85,7 +76,7 @@ export type CommandHandlerFactory<
   S extends State = State,
   C extends Messages = Messages,
   E extends Messages = Messages
-> = AggregateFactory<S, C, E> | SystemFactory<C, E>;
+> = AggregateFactory<S, C, E>;
 
 /**
  * All event handler factories

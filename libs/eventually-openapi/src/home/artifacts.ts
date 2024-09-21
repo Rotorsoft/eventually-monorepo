@@ -30,8 +30,6 @@ const _color = (type: ArtifactType): string => {
       return "primary";
     case "projector":
       return "success";
-    case "system":
-      return "secondary";
     default:
       return "danger";
   }
@@ -47,7 +45,7 @@ export const artifacts = (): string =>
         <p class="m-0 fw-lighter fst-italic" style="font-size:75%">${
           factory("").description
         }</p>
-        ${_inputs(type === "aggregate" || type === "system", inputs)}
+        ${_inputs(type === "aggregate", inputs)}
         <hr />
         ${_outputs(outputs)}
         </div></div></div>`

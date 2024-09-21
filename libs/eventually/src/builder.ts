@@ -165,7 +165,7 @@ export abstract class Builder extends EventEmitter implements Disposable {
             });
           });
           return {
-            type: reducible ? "aggregate" : "system",
+            type: "aggregate",
             factory,
             schema,
             inputs: inputs.map((name) => ({ name, scope })),

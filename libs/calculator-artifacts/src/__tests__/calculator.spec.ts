@@ -8,14 +8,13 @@ import {
 } from "@rotorsoft/eventually";
 import { Chance } from "chance";
 import { Calculator } from "../calculator.aggregate";
-import { Forget } from "../forget.system";
+import { CalculatorCommands } from "../calculator.schemas";
 import { ExternalPayload, PressKeyAdapter } from "../presskey.adapter";
 import { pressKey } from "./messages";
-import { CalculatorCommands } from "../calculator.schemas";
 
 // app setup
 const chance = new Chance();
-app().with(Forget).with(Calculator).with(PressKeyAdapter).build();
+app().with(Calculator).with(PressKeyAdapter).build();
 
 describe("Calculator", () => {
   beforeAll(async () => {

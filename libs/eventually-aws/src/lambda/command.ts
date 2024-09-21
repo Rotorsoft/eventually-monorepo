@@ -33,7 +33,7 @@ export const command = async ({
         system,
         parsedPath: `/${system}/${stream}/${command}`
       });
-    if (!(md.type === "aggregate" || md.type === "system"))
+    if (!(md.type === "aggregate"))
       return BadRequest("Invalid system", {
         system,
         type: md.type,

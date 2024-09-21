@@ -111,10 +111,10 @@ const toResponse = (
               : {}
           }
         : ref
-        ? {
-            $ref: `#/components/schemas/${ref}`
-          }
-        : {}
+          ? {
+              $ref: `#/components/schemas/${ref}`
+            }
+          : {}
     }
   },
   headers
@@ -312,7 +312,7 @@ const getArtifactPaths = (
           }
         };
       }
-      if (type === "aggregate" || type === "system") {
+      if (type === "aggregate") {
         endpoints.forEach((message) => {
           const path = httpPostPath(factory.name, type, message);
           paths[path.replace("/:id/", "/{id}/")] = {

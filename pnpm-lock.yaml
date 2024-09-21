@@ -27,6 +27,12 @@ importers:
       '@types/chance':
         specifier: ^1.1.6
         version: 1.1.6
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
+      '@types/express-serve-static-core':
+        specifier: ^4.19.5
+        version: 4.19.5
       '@types/http-cache-semantics':
         specifier: ^4.0.4
         version: 4.0.4

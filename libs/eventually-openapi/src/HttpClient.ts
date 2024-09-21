@@ -66,11 +66,7 @@ export const HttpClient = (
       const headers = {} as Record<string, string>;
       target.expectedVersion &&
         (headers["If-Match"] = target.expectedVersion.toString());
-      const path = httpPostPath(
-        factory.name,
-        "reduce" in factory("") ? "aggregate" : "system",
-        name as string
-      );
+      const path = httpPostPath(factory.name, "aggregate", name as string);
       const { data } = await axios.default.post(
         url(path.replace(":id", target?.stream || "")),
         payload,

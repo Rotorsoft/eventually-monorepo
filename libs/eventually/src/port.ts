@@ -27,7 +27,7 @@ const disposers: Disposer[] = [];
 const disposeAndExit = async (code: ExitCode = "UNIT_TEST"): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
   await Promise.all(
-    [...adapters].map(async ([key, adapter]) => {
+    [...adapters].reverse().map(async ([key, adapter]) => {
       log(`♻️ ${adapter.name || key}`);
       await adapter.dispose();
     })
