@@ -1,5 +1,5 @@
+import { extend, config as target } from "@rotorsoft/eventually";
 import { z } from "zod";
-import { config as target, extend } from "@rotorsoft/eventually";
 
 const Schema = z.object({
   pg: z.object({

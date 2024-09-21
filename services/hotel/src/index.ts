@@ -1,13 +1,13 @@
 import { app, bootstrap, seed } from "@rotorsoft/eventually";
 import { ExpressApp, sse } from "@rotorsoft/eventually-express";
+import { PostgresProjectorStore } from "@rotorsoft/eventually-pg";
+import { engine } from "express-handlebars";
 import path from "node:path";
 import { Hotel } from "./Hotel.projector";
-import { Room } from "./Room.aggregate";
-import { engine } from "express-handlebars";
 import { Next30Days } from "./Next30Days.projector";
+import { Room } from "./Room.aggregate";
 import * as routes from "./routes";
 import { HomeView, readHomeView } from "./utils";
-import { PostgresProjectorStore } from "@rotorsoft/eventually-pg";
 
 void bootstrap(async (): Promise<void> => {
   const express = app(new ExpressApp())

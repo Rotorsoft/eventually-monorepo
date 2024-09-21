@@ -1,0 +1,13 @@
+**/build
+**/dist
+**/.github
+**/*.env
+**/node_modules
+**/.nyc_output
+**/.nycrc
+**/.stylelintrc
+**/*.md
+**/coverage
+**/*.d.ts
+**/.eslintrc.js
+pnpm-lock.yaml

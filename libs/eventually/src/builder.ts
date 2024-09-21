@@ -1,4 +1,5 @@
 import { EventEmitter } from "node:events";
+import type { ZodType } from "zod";
 import type { Disposable, ProjectorStore } from "./interfaces";
 import type {
   Artifact,
@@ -15,7 +16,6 @@ import type {
   Snapshot,
   State
 } from "./types";
-import type { ZodType } from "zod";
 
 /**
  * Internal message details used as main drivers of public interfaces and documentation

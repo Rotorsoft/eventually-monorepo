@@ -32,5 +32,11 @@
     "pg": "^8.13.0",
     "pg-listen": "^1.7.0",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cron": "^2.4.0",
+    "@types/express": "^4.17.21",
+    "@types/express-serve-static-core": "^4.19.5",
+    "@types/pg": "^8.11.10"
   }
 }

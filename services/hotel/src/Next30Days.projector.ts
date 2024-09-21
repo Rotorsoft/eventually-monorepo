@@ -1,9 +1,9 @@
-import { z } from "zod";
 import { client, Projector } from "@rotorsoft/eventually";
-import * as schemas from "./Room.schemas";
-import * as models from "./Room.models";
-import { addDays } from "./utils";
+import { z } from "zod";
 import { Room } from "./Room.aggregate";
+import * as models from "./Room.models";
+import * as schemas from "./Room.schemas";
+import { addDays } from "./utils";
 
 export const DaySalesSchema = z.object({
   id: z.string(),

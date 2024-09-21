@@ -9,6 +9,7 @@ import {
   TransactionCanceledException
 } from "@aws-sdk/client-dynamodb";
 import {
+  ProjectionRecord,
   conditions,
   dispose,
   log,
@@ -18,8 +19,7 @@ import {
   type ProjectionWhere,
   type ProjectorStore,
   type Schema,
-  type State,
-  ProjectionRecord
+  type State
 } from "@rotorsoft/eventually";
 import { NotSupportedError } from "./NotSupportedError";
 import { config } from "./config";

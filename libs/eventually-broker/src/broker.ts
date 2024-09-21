@@ -1,14 +1,14 @@
 import cluster from "cluster";
 import { Express } from "express";
 import {
-  ChannelResolvers,
-  PostgresPullChannel,
-  HttpPostPushChannel,
-  VoidPullChannel,
-  VoidPushChannel,
   AppOptions,
+  ChannelResolvers,
+  HttpPostPushChannel,
+  PostgresPullChannel,
   PostgresSubscriptionStore,
-  subscriptions
+  subscriptions,
+  VoidPullChannel,
+  VoidPushChannel
 } from ".";
 import { app } from "./app";
 import { CronPullChannel } from "./channels/CronPullChannel";

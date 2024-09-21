@@ -1,9 +1,9 @@
 import {
+  dispose,
   log,
   type AggQuery,
   type ProjectorStore,
-  type State,
-  dispose
+  type State
 } from "@rotorsoft/eventually";
 import * as firestore from "./firestore";
 

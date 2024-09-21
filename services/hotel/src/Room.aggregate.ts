@@ -1,6 +1,6 @@
 import { Aggregate, bind } from "@rotorsoft/eventually";
-import * as schemas from "./Room.schemas";
 import * as models from "./Room.models";
+import * as schemas from "./Room.schemas";
 
 const nights = (reservation: models.Reservation): number => {
   const dtime = reservation.checkout.getTime() - reservation.checkin.getTime();

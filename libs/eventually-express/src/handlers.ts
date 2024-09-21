@@ -1,6 +1,7 @@
 import {
   Ok,
   client,
+  decamelize,
   httpError,
   log,
   store,
@@ -19,8 +20,7 @@ import {
   type RestProjectionQuery,
   type Schema,
   type Snapshot,
-  type State,
-  decamelize
+  type State
 } from "@rotorsoft/eventually";
 import type { NextFunction, Request, Response } from "express";
 

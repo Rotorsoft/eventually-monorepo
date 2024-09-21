@@ -1,7 +1,7 @@
-import { z } from "zod";
 import { client, Projector } from "@rotorsoft/eventually";
-import * as schemas from "./Room.schemas";
+import { z } from "zod";
 import * as models from "./Room.models";
+import * as schemas from "./Room.schemas";
 import { addDays } from "./utils";
 
 export const RoomStateSchema = z.object({

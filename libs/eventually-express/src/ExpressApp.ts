@@ -1,13 +1,13 @@
 import {
   Builder,
+  CommandHandlerFactory,
   broker,
   dateReviver,
   log,
   type AggregateFactory,
   type CommandAdapterFactory,
   type EventHandlerFactory,
-  type ProjectorFactory,
-  CommandHandlerFactory
+  type ProjectorFactory
 } from "@rotorsoft/eventually";
 import {
   config,
@@ -22,7 +22,6 @@ import * as cors from "cors";
 import * as express from "express";
 import { Server } from "http";
 import {
-  queryHandler,
   commandHandler,
   errorHandler,
   eventHandler,
@@ -30,6 +29,7 @@ import {
   getStreamHandler,
   invokeHandler,
   projectHandler,
+  queryHandler,
   readHandler,
   statsHandler,
   subscriptionsHandler

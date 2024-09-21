@@ -1,5 +1,5 @@
+import { extend, config as target } from "@rotorsoft/eventually";
 import { z } from "zod";
-import { config as target, extend } from "@rotorsoft/eventually";
 
 const Regions = ["us-east1", "us-central1", "us-west1"] as const;
 type Region = (typeof Regions)[number];

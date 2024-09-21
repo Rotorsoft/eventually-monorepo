@@ -1,3 +1,5 @@
 packages:
   - "libs/**"
+  - "!libs/eventually-aws"
+  - "!libs/eventually-gcp"
   - "services/**"

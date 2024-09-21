@@ -1,4 +1,4 @@
-import { client, Projector, prj } from "@rotorsoft/eventually";
+import { client, prj, Projector } from "@rotorsoft/eventually";
 import { z } from "zod";
 import * as schemas from "./calculator.schemas";
 
