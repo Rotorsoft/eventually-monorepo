@@ -1,3 +1,5 @@
+#### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.2...@rotorsoft/eventually-v5.8.3) @rotorsoft/eventually-v5.8.3
+  - PATCH [a9f14ad2](https://github.com/Rotorsoft/eventually-monorepo/commit/a9f14ad23968715582e5bc89695825255df99b79) fix: change log to test publish
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.1...@rotorsoft/eventually-v5.8.2) @rotorsoft/eventually-v5.8.2
   - PATCH [d855dd92](https://github.com/Rotorsoft/eventually-monorepo/commit/d855dd925baa97ddf1afa1aff39c25c498d2eeef) fix: better log
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.6.0...@rotorsoft/eventually-openapi-v0.6.1) @rotorsoft/eventually-openapi-v0.6.1
