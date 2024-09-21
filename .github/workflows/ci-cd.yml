@@ -61,7 +61,7 @@ jobs:
         run: pnpm install && pnpm build
 
       - name: unit test
-        run: pnpm test --coverage
+        run: pnpm jest --coverage
         env:
           PG_HOST: localhost
           PG_USER: postgres
