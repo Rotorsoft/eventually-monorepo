@@ -1,5 +1,6 @@
 packages:
   - "libs/**"
   - "!libs/eventually-aws"
+  - "!libs/eventually-azure"
   - "!libs/eventually-gcp"
   - "services/**"

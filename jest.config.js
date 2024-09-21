@@ -4,7 +4,11 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   testMatch: ["**/*spec.ts"],
-  testPathIgnorePatterns: ["libs/eventually-gcp/src/__tests__/"], // ignore partial implementation
+  testPathIgnorePatterns: [
+    "libs/eventually-aws",
+    "libs/eventually-azure",
+    "libs/eventually-gcp"
+  ],
   coveragePathIgnorePatterns: [
     "node_modules",
     "dist",

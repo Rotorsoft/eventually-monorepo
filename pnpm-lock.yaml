@@ -112,15 +112,6 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
 
-  libs/eventually-azure:
-    dependencies:
-      '@rotorsoft/eventually':
-        specifier: workspace:^
-        version: link:../eventually
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
-
   libs/eventually-broker:
     dependencies:
       '@rotorsoft/eventually':

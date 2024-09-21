@@ -91,10 +91,10 @@ jobs:
           - eventually-broker
           - eventually-service-expg
           - calculator-artifacts
-          - eventually-aws
-          - eventually-gcp
-          - eventually-azure
           - eventually-trpc
+          #- eventually-aws
+          #- eventually-azure
+          #- eventually-gcp
 
     steps:
       - uses: actions/checkout@v3
