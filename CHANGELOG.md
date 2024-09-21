@@ -1,3 +1,5 @@
+#### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-service-expg-v1.1.6...@rotorsoft/eventually-service-expg-v1.2.0) @rotorsoft/eventually-service-expg-v1.2.0
+  - MINOR [2f61537f](https://github.com/Rotorsoft/eventually-monorepo/commit/2f61537f6c281464a4d626ad9c570ab15438621c) feat: replace yarn with pnpm
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.2.16...@rotorsoft/eventually-broker-v2.3.0) @rotorsoft/eventually-broker-v2.3.0
   - MINOR [ffb61306](https://github.com/Rotorsoft/eventually-monorepo/commit/ffb61306c482fb6cb93af38d1ad74897f2050fa0) feat: replace yarn with pnpm
   - MINOR [2f61537f](https://github.com/Rotorsoft/eventually-monorepo/commit/2f61537f6c281464a4d626ad9c570ab15438621c) feat: replace yarn with pnpm
