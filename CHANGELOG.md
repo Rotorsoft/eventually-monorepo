@@ -1,3 +1,6 @@
+#### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.5.20...@rotorsoft/eventually-pg-v5.6.0) @rotorsoft/eventually-pg-v5.6.0
+  - MINOR [2f61537f](https://github.com/Rotorsoft/eventually-monorepo/commit/2f61537f6c281464a4d626ad9c570ab15438621c) feat: replace yarn with pnpm
+  - PATCH [a59448db](https://github.com/Rotorsoft/eventually-monorepo/commit/a59448db5a227febca8bac887be2561fc9a4a121) fix: pretty files
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.5.14...@rotorsoft/eventually-openapi-v0.6.0) @rotorsoft/eventually-openapi-v0.6.0
   - MINOR [ffb61306](https://github.com/Rotorsoft/eventually-monorepo/commit/ffb61306c482fb6cb93af38d1ad74897f2050fa0) feat: replace yarn with pnpm
   - MINOR [2f61537f](https://github.com/Rotorsoft/eventually-monorepo/commit/2f61537f6c281464a4d626ad9c570ab15438621c) feat: replace yarn with pnpm
