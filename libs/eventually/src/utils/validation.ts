@@ -72,10 +72,10 @@ export const extend = <
   S extends Record<string, unknown>,
   T extends Record<string, unknown>
 >(
-  source: S,
+  source: Readonly<S>,
   schema: ZodType<S>,
-  target?: T
-): S & T => {
+  target?: Readonly<T>
+): Readonly<S & T> => {
   const value = validate(source, schema);
-  return Object.assign(target || {}, value) as S & T;
+  return Object.assign(target || {}, value) as Readonly<S & T>;
 };

@@ -5,7 +5,6 @@ on:
   workflow_dispatch:
 
 env:
-  # .yarnrc.yml needs this
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
@@ -44,18 +43,25 @@ jobs:
       #     FIRESTORE_PROJECT_ID: test-project-id
       #     GCLOUD_PROJECT: test-project-id
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: install node 18
-        uses: actions/setup-node@v3
+      - name: install pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 18.x
+          version: 9
+          run_install: false
+
+      - name: install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
 
       - name: install and build
-        run: yarn install && yarn build
+        run: pnpm install && pnpm build
 
       - name: unit test
-        run: yarn test --coverage
+        run: pnpm test --coverage
         env:
           PG_HOST: localhost
           PG_USER: postgres
@@ -95,10 +101,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: install node 18
+      - name: install node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 22.x
 
       - name: analyze ${{ matrix.lib }}
         id: analyze
@@ -115,7 +121,7 @@ jobs:
           echo "${{ steps.analyze.outputs.change-log }}"
 
       - name: release ${{ matrix.lib }}
-        uses: rotorsoft/semrel-release@v1
+        uses: rotorsoft/semrel-release@v2.0.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           npm-registry: "registry.npmjs.org"

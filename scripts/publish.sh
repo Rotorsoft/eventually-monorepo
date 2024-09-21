@@ -16,17 +16,17 @@ if [[ ! -d "${target}" ]]; then
 fi; 
 
 echo ">>> cleaning $lib..."
-yarn clean $lib
+pnpm -F $lib clean
 
 echo ">>> building $target..."
-yarn $target build
+pnpm -F $target build
 
 version=$(npm pkg get version -w ${target})
 lastpublished=$(npm view @rotorsoft/${lib} version)
 
 echo ">>> last published version ${lastpublished}"
 echo ">>> publishing ${version} ..."
-yarn "${target}" npm publish --access public
+pnpm -F "${target}" npm publish --access public
 if [ $? -eq 0 ]; then
     echo ">>> DONE!"
 fi

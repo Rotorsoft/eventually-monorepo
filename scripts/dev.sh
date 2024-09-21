@@ -4,7 +4,7 @@ set -e
 
 if [[ $# -eq 0 ]]; then
     echo "Missing service name!"
-    echo "Usage: yarn dev service-name [port]"
+    echo "Usage: pnpm dev service-name [port]"
     exit 1
 fi;
 

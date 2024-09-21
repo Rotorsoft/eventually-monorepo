@@ -2,5 +2,5 @@
 . "$(dirname "$0")/_/husky.sh"
 
 echo ">>> lint and pretty before commit..."
-yarn lint
-yarn pretty
+pnpm lint
+pnpm pretty

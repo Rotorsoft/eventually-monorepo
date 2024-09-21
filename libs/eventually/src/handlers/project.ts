@@ -5,7 +5,6 @@ import type {
   Messages,
   Patch,
   ProjectionMap,
-  ProjectionPatch,
   ProjectionResults,
   ProjectorFactory,
   State
@@ -45,19 +44,22 @@ export default async function project<S extends State, E extends Messages>(
     const event = events[i];
     log().green().trace(`\n>>> ${factory.name}`, event);
     const patches = await projector.on[event.name](event, map);
-    patches.forEach(({ id, where, ..._patch }) => {
-      if (!Object.keys(_patch).length) {
-        // when just the id, mark for deletion!
+    patches.forEach((p) => {
+      const id = "id" in p && p.id;
+      const where = "where" in p && p.where;
+      if (Object.keys(p).length === 1) {
+        // just id or where
+        // mark for deletion!
         if (id) map.records.set(id, {} as Patch<S>);
         else if (where) map.deletes.push(where);
       } else {
         if (id) {
+          const { id, ..._patch } = p;
           // reduce record patches
           const rec = map.records.get(id) || ({} as Patch<S>);
           // TODO: this is another good place to handle default values
           map.records.set(id, patch<S>(rec, _patch as Patch<S>) as Patch<S>);
-        } else if (where)
-          map.updates.push({ where, ..._patch } as ProjectionPatch<S>);
+        } else if (where) map.updates.push(p);
       }
     });
   }

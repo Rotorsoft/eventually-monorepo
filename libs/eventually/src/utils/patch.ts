@@ -35,20 +35,25 @@ const mergeable = (value: any): boolean =>
  * @returns a new patched state
  */
 export const patch = <S extends State>(
-  prev: Readonly<S | Patch<S>>,
+  prev: Readonly<Patch<S>>,
   curr: Readonly<Patch<S>>
-): Readonly<S | Patch<S>> => {
-  const copy: State = {};
+): Readonly<Patch<S>> => {
+  const copy = {} as Record<string, any>;
   Object.keys({ ...prev, ...curr }).forEach((key) => {
-    const patched = !!curr && key in curr;
+    const curr_value = curr[key as keyof typeof curr];
+    const prev_value = prev[key as keyof typeof prev];
+    const patched = curr && key in curr;
     const deleted =
-      patched && (typeof curr[key] === "undefined" || curr[key] === null);
-    const value = patched && !deleted ? curr[key] : prev[key];
+      patched && (typeof curr_value === "undefined" || curr_value === null);
+    const value = patched && !deleted ? curr_value : prev_value;
+
     if (!deleted) {
-      if (mergeable(value))
-        copy[key] = patch(prev[key] || {}, curr && curr[key]);
-      else copy[key] = value;
+      if (mergeable(value)) {
+        copy[key] = patch(prev_value || {}, curr_value || {});
+      } else {
+        copy[key] = value;
+      }
     }
   });
-  return copy as S;
+  return copy as Patch<S>;
 };

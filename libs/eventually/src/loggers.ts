@@ -31,7 +31,7 @@ const Levels: Record<LogLevel, number> = {
 };
 
 const active = (level: LogLevel): boolean =>
-  Levels[level] <= Levels[LOG_LEVEL as LogLevel] ?? 0;
+  Levels[level] <= Levels[LOG_LEVEL as LogLevel];
 
 const code = (...code: Array<number>): string =>
   code.map((c) => `\x1b[${c}m`).join("");

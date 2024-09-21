@@ -17,11 +17,11 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@rotorsoft/calculator-artifacts": "workspace:^1",
-    "@rotorsoft/eventually": "workspace:^5",
-    "@rotorsoft/eventually-express": "workspace:^5",
-    "@rotorsoft/eventually-openapi": "workspace:^0",
-    "@rotorsoft/eventually-pg": "workspace:^5",
-    "zod": "^3.22.4"
+    "@rotorsoft/calculator-artifacts": "workspace:^",
+    "@rotorsoft/eventually": "workspace:^",
+    "@rotorsoft/eventually-express": "workspace:^",
+    "@rotorsoft/eventually-openapi": "workspace:^",
+    "@rotorsoft/eventually-pg": "workspace:^",
+    "zod": "^3.23.8"
   }
 }

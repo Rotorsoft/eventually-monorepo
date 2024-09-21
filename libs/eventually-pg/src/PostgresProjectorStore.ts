@@ -98,8 +98,9 @@ export const PostgresProjectorStore = <S extends State>(
       });
 
       // filtered updates
-      map.updates.forEach(({ where, ...patch }) => {
-        if (where) {
+      map.updates.forEach((p) => {
+        if ("where" in p && p.where) {
+          const { where, ...patch } = p;
           const vals = Object.values(patch);
           const _where = filter(where, vals);
           upserts.push({

@@ -38,18 +38,21 @@ describe("express app", () => {
   });
 
   it("should get home - default", async () => {
+    // @ts-expect-error readonly
     config.oas_ui = "SwaggerUI";
     const swagger = await http.get("/");
     expect(swagger.status).toBe(200);
   });
 
   it("should get home - redoc", async () => {
+    // @ts-expect-error readonly
     config.oas_ui = "Redoc";
     const swagger = await http.get("/");
     expect(swagger.status).toBe(200);
   });
 
   it("should get home - rapidoc", async () => {
+    // @ts-expect-error readonly
     config.oas_ui = "Rapidoc";
     const swagger = await http.get("/");
     expect(swagger.status).toBe(200);

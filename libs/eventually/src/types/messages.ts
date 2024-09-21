@@ -6,11 +6,12 @@ export type State = Record<string, any>;
 /**
  * DeepPartial utility
  */
-export type DeepPartial<T> = T extends Array<infer I>
-  ? Array<DeepPartial<I>>
-  : T extends object
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : T;
+export type DeepPartial<T> =
+  T extends Array<infer I>
+    ? Array<DeepPartial<I>>
+    : T extends object
+      ? { [K in keyof T]?: DeepPartial<T[K]> }
+      : T;
 
 /**
  * Patches are deep partial states

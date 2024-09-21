@@ -19,10 +19,10 @@ const { PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE, PG_PORT } = process.env;
 export const config = extend(
   {
     pg: {
-      host: PG_HOST,
-      user: PG_USER,
-      password: PG_PASSWORD,
-      database: PG_DATABASE,
+      host: PG_HOST ?? "",
+      user: PG_USER ?? "",
+      password: PG_PASSWORD ?? "",
+      database: PG_DATABASE ?? "",
       port: Number.parseInt(PG_PORT || "5432")
     }
   },

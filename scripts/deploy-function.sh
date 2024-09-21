@@ -7,7 +7,7 @@ readonly target="./services/${service}"
 
 if [[ $# -eq 0 ]]; then
     echo "Missing service name"
-    echo "Use: yarn deploy service"
+    echo "Use: pnpm deploy service"
     exit 1
 fi;
 

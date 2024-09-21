@@ -2,7 +2,7 @@
 
 set -e
 
-readonly usage="Usage: yarn clinic [doctor|flame|bubbleprof|heapprofiler] service-name [port=3000]"
+readonly usage="Usage: pnpm clinic [doctor|flame|bubbleprof|heapprofiler] service-name [port=3000]"
 
 profiler="$1"
 case $profiler in 

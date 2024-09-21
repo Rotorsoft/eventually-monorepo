@@ -1,7 +1,7 @@
 assets
 node_modules
 templates
-vscode
+.vscode
 .DS_Store
 .eslintrc.json
 .gitignore
@@ -13,4 +13,5 @@ README.md
 tsconfig.json
 yarn-error.log
 yarn.lock
+pnpm-lock.yaml
 *.key.json

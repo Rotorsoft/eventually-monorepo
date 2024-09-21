@@ -107,8 +107,9 @@ export const InMemoryProjectorStore = <
       });
 
       // filtered updates
-      map.updates.forEach(({ where, ...patch }) => {
-        if (where) {
+      map.updates.forEach((p) => {
+        if ("where" in p && p.where) {
+          const { where, ...patch } = p;
           const recs = Object.values(_records).filter((rec) =>
             _filter(rec, where)
           );
@@ -169,14 +170,14 @@ export const InMemoryProjectorStore = <
               agg === "count"
                 ? cnt[index]
                 : agg === "sum"
-                ? sum[index]
-                : agg === "min"
-                ? min[index]
-                : agg === "max"
-                ? max[index]
-                : cnt[index]
-                ? sum[index] / cnt[index]
-                : null;
+                  ? sum[index]
+                  : agg === "min"
+                    ? min[index]
+                    : agg === "max"
+                      ? max[index]
+                      : cnt[index]
+                        ? sum[index] / cnt[index]
+                        : null;
             result = patch(result, { [key[0]]: { [agg]: value } });
           });
           return result;

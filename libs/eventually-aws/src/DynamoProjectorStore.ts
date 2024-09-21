@@ -248,10 +248,10 @@ export const DynamoProjectorStore = <S extends State>(
               TableName: table,
               Key: {
                 [`F_${partitionField.toString()}`]: {
-                  S: rec[partitionField.toString()]
+                  S: rec[partitionField.toString() as keyof typeof rec]
                 },
                 F_id: { S: id }
-              },
+              } as Record<string, AttributeValue>,
               ConditionExpression:
                 "attribute_not_exists(Watermark) OR Watermark < :Watermark",
               UpdateExpression:
@@ -270,10 +270,10 @@ export const DynamoProjectorStore = <S extends State>(
               TableName: table,
               Key: {
                 [`F_${partitionField.toString()}`]: {
-                  S: rec[partitionField.toString()]
+                  S: rec[partitionField.toString() as keyof typeof rec]
                 },
                 F_id: { S: id }
-              },
+              } as Record<string, AttributeValue>,
               ConditionExpression:
                 "attribute_not_exists(Watermark) OR Watermark < :Watermark",
               ExpressionAttributeValues: {
