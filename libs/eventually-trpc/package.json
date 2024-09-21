@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-trpc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Eventually tRPC Application Adapter",
   "author": {
     "name": "rotorsoft",
