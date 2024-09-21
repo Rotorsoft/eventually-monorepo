@@ -24,11 +24,7 @@
     "@rotorsoft/eventually": "workspace:^",
     "@rotorsoft/eventually-openapi": "workspace:^",
     "cors": "^2.8.5",
-<<<<<<< Updated upstream
-    "express": "^4.20.0"
-=======
     "express": "^4.21.0"
->>>>>>> Stashed changes
   },
   "devDependencies": {
     "@types/express": "^4.17.21"
