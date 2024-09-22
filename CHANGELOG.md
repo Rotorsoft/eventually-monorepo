@@ -1,3 +1,5 @@
+#### 2024-09-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.4...@rotorsoft/eventually-v5.8.5) @rotorsoft/eventually-v5.8.5
+  - PATCH [8a70c5be](https://github.com/Rotorsoft/eventually-monorepo/commit/8a70c5be8aa47803c253d4f3169ba4a792168148) fix: remove yarn stuff, fix logs
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/calculator-artifacts-v1.8.0...@rotorsoft/calculator-artifacts-v1.8.1) @rotorsoft/calculator-artifacts-v1.8.1
   - PATCH [1dd6311c](https://github.com/Rotorsoft/eventually-monorepo/commit/1dd6311c9e6b7125e7b27209712cd4697eaafb7c) fix: remove System
 #### 2024-09-21 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.3...@rotorsoft/eventually-v5.8.4) @rotorsoft/eventually-v5.8.4
