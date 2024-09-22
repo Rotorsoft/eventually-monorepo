@@ -1,3 +1,5 @@
+#### 2024-09-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.3.0...@rotorsoft/eventually-broker-v2.3.1) @rotorsoft/eventually-broker-v2.3.1
+  - PATCH [8a70c5be](https://github.com/Rotorsoft/eventually-monorepo/commit/8a70c5be8aa47803c253d4f3169ba4a792168148) fix: remove yarn stuff, fix logs
 #### 2024-09-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.6.0...@rotorsoft/eventually-pg-v5.6.1) @rotorsoft/eventually-pg-v5.6.1
   - PATCH [8a70c5be](https://github.com/Rotorsoft/eventually-monorepo/commit/8a70c5be8aa47803c253d4f3169ba4a792168148) fix: remove yarn stuff, fix logs
 #### 2024-09-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.4...@rotorsoft/eventually-v5.8.5) @rotorsoft/eventually-v5.8.5
