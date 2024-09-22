@@ -1,4 +1,4 @@
-import { dispose, log } from "@rotorsoft/eventually";
+import { dispose, log, logAdapterDisposed } from "@rotorsoft/eventually";
 import * as express from "express";
 import { engine } from "express-handlebars";
 import helmet from "helmet";
@@ -104,7 +104,7 @@ export const app = async ({
     }
     return new Promise((resolve, reject) => {
       server.once("close", () => {
-        log().red().info(`[${process.pid}]`, "♻️ Broker Express App");
+        logAdapterDisposed("Broker app");
         resolve();
       });
       server.close(reject);

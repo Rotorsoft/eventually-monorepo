@@ -1,6 +1,16 @@
-import { app, bootstrap, seed } from "@rotorsoft/eventually";
+import {
+  app,
+  bootstrap,
+  seed,
+  store,
+  subscriptions
+} from "@rotorsoft/eventually";
 import { ExpressApp, sse } from "@rotorsoft/eventually-express";
-import { PostgresProjectorStore } from "@rotorsoft/eventually-pg";
+import {
+  PostgresProjectorStore,
+  PostgresStore,
+  PostgresSubscriptionStore
+} from "@rotorsoft/eventually-pg";
 import { engine } from "express-handlebars";
 import path from "node:path";
 import { Hotel } from "./Hotel.projector";
@@ -10,6 +20,7 @@ import * as routes from "./routes";
 import { HomeView, readHomeView } from "./utils";
 
 void bootstrap(async (): Promise<void> => {
+  store(PostgresStore("rooms"));
   const express = app(new ExpressApp())
     .with(Room)
     .with(Hotel, {
@@ -19,9 +30,10 @@ void bootstrap(async (): Promise<void> => {
       }
     })
     .with(Next30Days, {
-      projector: { store: PostgresProjectorStore("next30"), indexes: [{}] }
+      projector: { store: PostgresProjectorStore("next30"), indexes: [] }
     })
     .build();
+  subscriptions(PostgresSubscriptionStore("hotel-subscriptions"));
 
   await seed();
 

@@ -1,9 +1,27 @@
 import { Disposable, Disposer } from "./interfaces";
+import { devLogger } from "./loggers";
 import { ExitCode } from "./types/enums";
 
-const log = (message: string): void => {
-  (process.env.NODE_ENV || "development") === "development" &&
-    console.log(`[${process.pid}]`, message);
+const logger = devLogger();
+
+export const logAdapterCreated = (name: string): void => {
+  logger
+    .green()
+    .write(">>> ")
+    .gray()
+    .write(`(${process.pid}) `)
+    .white()
+    .info(name);
+};
+
+export const logAdapterDisposed = (name: string): void => {
+  logger
+    .red()
+    .write("<<< ")
+    .gray()
+    .write(`(${process.pid}) `)
+    .white()
+    .info(name);
 };
 
 const adapters = new Map<string, Disposable>();
@@ -18,7 +36,7 @@ export const port =
     if (!adapters.has(target.name)) {
       const adapter = target(arg);
       adapters.set(target.name, adapter);
-      log(`Created adapter: ${adapter.name || target.name}`);
+      logAdapterCreated(adapter.name || target.name);
     }
     return adapters.get(target.name) as T;
   };
@@ -28,7 +46,7 @@ const disposeAndExit = async (code: ExitCode = "UNIT_TEST"): Promise<void> => {
   await Promise.all(disposers.map((disposer) => disposer()));
   await Promise.all(
     [...adapters].reverse().map(async ([key, adapter]) => {
-      log(`Disposed adapter: ${adapter.name || key}`);
+      logAdapterDisposed(adapter.name || key);
       await adapter.dispose();
     })
   );
@@ -49,7 +67,7 @@ export const dispose = (
 
 ["SIGINT", "SIGTERM", "uncaughtException", "unhandledRejection"].map((e) => {
   process.once(e, async (arg?: any) => {
-    log(`${e} ${arg !== e ? arg : ""}`);
+    logger.red().info(`${e} ${arg !== e ? arg : ""}`);
     await disposeAndExit("ERROR");
   });
 });

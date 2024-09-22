@@ -1,3 +1,13 @@
+package.json
 **/dist
 **/templates
-package.json
+**/dist
+**/.github
+**/*.env
+**/node_modules
+**/.stylelintrc
+**/*.md
+**/coverage
+**/*.d.ts
+**/.eslintrc.js
+pnpm-lock.yaml

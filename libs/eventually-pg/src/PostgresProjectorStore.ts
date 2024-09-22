@@ -6,7 +6,14 @@ import type {
   ProjectorStore,
   State
 } from "@rotorsoft/eventually";
-import { conditions, dispose, log, patch } from "@rotorsoft/eventually";
+import {
+  conditions,
+  dispose,
+  log,
+  logAdapterCreated,
+  logAdapterDisposed,
+  patch
+} from "@rotorsoft/eventually";
 import { Pool, types } from "pg";
 import { config } from "./config";
 import { projector } from "./seed";
@@ -213,10 +220,10 @@ export const PostgresProjectorStore = <S extends State>(
     }
   };
 
-  log().info(`[${process.pid}] ✨ ${store.name}`);
+  logAdapterCreated(store.name);
   dispose(() => {
     if (store.dispose) {
-      log().info(`[${process.pid}] ♻️ ${store.name}`);
+      logAdapterDisposed(store.name);
       return store.dispose();
     }
     return Promise.resolve();

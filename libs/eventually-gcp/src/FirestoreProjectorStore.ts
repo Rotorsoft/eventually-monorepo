@@ -1,6 +1,7 @@
 import {
   dispose,
-  log,
+  logAdapterCreated,
+  logAdapterDisposed,
   type AggQuery,
   type ProjectorStore,
   type State
@@ -52,10 +53,10 @@ export const FirestoreProjectorStore = <S extends State>(
     }
   };
 
-  log().info(`[${process.pid}] ✨ ${store.name}`);
+  logAdapterCreated(store.name);
   dispose(() => {
     if (store.dispose) {
-      log().info(`[${process.pid}] ♻️ ${store.name}`);
+      logAdapterDisposed(store.name);
       return store.dispose();
     }
     return Promise.resolve();

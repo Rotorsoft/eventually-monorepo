@@ -1,5 +1,9 @@
 import type { AggQuery, ProjectorStore, State } from "@rotorsoft/eventually";
-import { dispose, log } from "@rotorsoft/eventually";
+import {
+  dispose,
+  logAdapterCreated,
+  logAdapterDisposed
+} from "@rotorsoft/eventually";
 
 export const CosmosProjectorStore = <S extends State>(
   table: string
@@ -55,10 +59,10 @@ export const CosmosProjectorStore = <S extends State>(
     }
   };
 
-  log().info(`[${process.pid}] ✨ ${store.name}`);
+  logAdapterCreated(store.name);
   dispose(() => {
     if (store.dispose) {
-      log().info(`[${process.pid}] ♻️ ${store.name}`);
+      logAdapterDisposed(store.name);
       return store.dispose();
     }
     return Promise.resolve();

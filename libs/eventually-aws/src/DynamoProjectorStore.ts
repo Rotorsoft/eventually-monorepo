@@ -13,6 +13,8 @@ import {
   conditions,
   dispose,
   log,
+  logAdapterCreated,
+  logAdapterDisposed,
   type AggQuery,
   type Operator,
   type Projection,
@@ -336,10 +338,10 @@ export const DynamoProjectorStore = <S extends State>(
     }
   };
 
-  log().info(`[${process.pid}] ✨ ${store.name}`);
+  logAdapterCreated(store.name);
   dispose(() => {
     if (store.dispose) {
-      log().info(`[${process.pid}] ♻️ ${store.name}`);
+      logAdapterDisposed(store.name);
       return store.dispose();
     }
     return Promise.resolve();

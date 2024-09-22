@@ -4,7 +4,7 @@ import type {
   Schema,
   State
 } from "@rotorsoft/eventually";
-import { z } from "zod";
+import { z, ZodType } from "zod";
 
 export const stream = (table: string): string => `
 CREATE TABLE IF NOT EXISTS public."${table}"
@@ -89,6 +89,25 @@ const ZOD2PG: { [K in z.ZodFirstPartyTypeKind]?: string } = {
   [z.ZodFirstPartyTypeKind.ZodEnum]: "TEXT"
 };
 
+const toPGArrayType = (name: string, array: z.ZodArray<any, any>): string => {
+  const type = array._def.type as ZodType<any>;
+  if (
+    type instanceof z.ZodString ||
+    type instanceof z.ZodNumber ||
+    type instanceof z.ZodBoolean ||
+    type instanceof z.ZodDate ||
+    type instanceof z.ZodBigInt ||
+    type instanceof z.ZodObject ||
+    type instanceof z.ZodRecord ||
+    type instanceof z.ZodOptional ||
+    type instanceof z.ZodNativeEnum ||
+    type instanceof z.ZodEnum ||
+    type instanceof z.ZodArray
+  )
+    return `${ZOD2PG[type._def.typeName]}[]`;
+  throw Error(`Zod->PG seed array type of ${name} not supported!`);
+};
+
 const toCol = (name: string, type: any, optional = false): string => {
   if (
     type instanceof z.ZodString ||
@@ -100,13 +119,17 @@ const toCol = (name: string, type: any, optional = false): string => {
     type instanceof z.ZodRecord ||
     type instanceof z.ZodOptional ||
     type instanceof z.ZodNativeEnum ||
-    type instanceof z.ZodEnum
+    type instanceof z.ZodEnum ||
+    type instanceof z.ZodArray
   ) {
     if (name === "id") return "";
     if (type instanceof z.ZodOptional)
       return toCol(name, type._def.innerType, true);
     // TODO: use enum values to add constraints
-    const pgtype = ZOD2PG[type._def.typeName];
+    const pgtype =
+      type instanceof z.ZodArray
+        ? toPGArrayType(name, type)
+        : ZOD2PG[type._def.typeName];
     const nullable =
       optional || type.isOptional() || type.isNullable() ? "" : " NOT NULL";
     return `"${name}" ${pgtype}${nullable}`;

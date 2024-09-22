@@ -85,13 +85,11 @@ jobs:
       matrix:
         lib:
           - eventually
-          - eventually-openapi
           - eventually-pg
           - eventually-express
-          - eventually-broker
           - eventually-service-expg
-          - calculator-artifacts
           - eventually-trpc
+          - eventually-broker
           #- eventually-aws
           #- eventually-azure
           #- eventually-gcp

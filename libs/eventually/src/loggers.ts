@@ -46,10 +46,6 @@ const effect = (logger: Logger, effect: keyof typeof Effect): Logger => {
   return logger;
 };
 
-const nop = (): void => {
-  return;
-};
-
 const json = (
   level: LogLevel,
   message: string,
@@ -63,24 +59,6 @@ const json = (
       message: `${message} ${details}`,
       params
     })
-  );
-};
-
-const trace = (
-  message: string,
-  details?: unknown,
-  ...params: unknown[]
-): void => json("trace", message, details, params);
-
-const data = (message: string, details?: unknown, ...params: unknown[]): void =>
-  json("data", message, details, params);
-
-const info = (message: string, details?: unknown, ...params: unknown[]): void =>
-  json("info", message, details, params);
-
-const error = (error: any): void => {
-  console.error(
-    JSON.stringify({ level: "error", severity: "ERROR", ...error })
   );
 };
 
@@ -119,36 +97,47 @@ export const devLogger = (): Logger => {
     dimmed: () => effect(logger, "dimmed"),
     italic: () => effect(logger, "italic"),
     underlined: () => effect(logger, "underlined"),
+    write: (message: string) => {
+      process.stdout.write(message);
+      return logger;
+    },
     events,
-    trace: (message: string, details?: unknown, ...params: unknown[]) =>
+    trace: (message: string, details?: unknown, ...params: unknown[]) => {
       active("trace") &&
-      console.log(
-        message,
-        code(Effect.reset, Color.gray),
-        JSON.stringify(details || {}),
-        ...params,
-        code(Effect.reset)
-      ),
-    data: (message: string, details?: unknown, ...params: unknown[]) =>
+        console.log(
+          message,
+          code(Effect.reset, Color.gray),
+          details ? JSON.stringify(details) : "",
+          ...params,
+          code(Effect.reset)
+        );
+      return logger;
+    },
+    data: (message: string, details?: unknown, ...params: unknown[]) => {
       active("data") &&
-      console.log(
-        message,
-        code(Effect.reset, Color.gray),
-        JSON.stringify(details || {}),
-        ...params,
-        code(Effect.reset)
-      ),
-    info: (message: string, details?: unknown, ...params: unknown[]) =>
+        console.log(
+          message,
+          code(Effect.reset, Color.gray),
+          JSON.stringify(details || {}),
+          ...params,
+          code(Effect.reset)
+        );
+      return logger;
+    },
+    info: (message: string, details?: unknown, ...params: unknown[]) => {
       active("info") &&
-      console.info(
-        message,
-        code(Effect.reset, Color.gray),
-        details || "",
-        ...params,
-        code(Effect.reset)
-      ),
+        console.info(
+          message,
+          code(Effect.reset, Color.gray),
+          details || "",
+          ...params,
+          code(Effect.reset)
+        );
+      return logger;
+    },
     error: (error: unknown) => {
       console.error(error);
+      return logger;
     }
   };
   return logger;
@@ -171,11 +160,36 @@ export const plainLogger = (): Logger => {
     dimmed: () => logger,
     italic: () => logger,
     underlined: () => logger,
+    write: (message: string) => {
+      process.stdout.write(message);
+      return logger;
+    },
     events,
-    trace: (NODE_ENV !== "test" && active("trace") && trace) || nop,
-    data: (NODE_ENV !== "test" && active("data") && data) || nop,
-    info: (NODE_ENV !== "test" && active("info") && info) || nop,
-    error: (NODE_ENV !== "test" && error) || nop
+    trace: (message: string, details?: unknown, ...params: unknown[]) => {
+      NODE_ENV !== "test" &&
+        active("trace") &&
+        json("trace", message, details, params);
+      return logger;
+    },
+    data: (message: string, details?: unknown, ...params: unknown[]) => {
+      NODE_ENV !== "test" &&
+        active("data") &&
+        json("data", message, details, params);
+      return logger;
+    },
+    info: (message: string, details?: unknown, ...params: unknown[]) => {
+      NODE_ENV !== "test" &&
+        active("info") &&
+        json("info", message, details, params);
+      return logger;
+    },
+    error: (error: any) => {
+      NODE_ENV !== "test" &&
+        console.error(
+          JSON.stringify({ level: "error", severity: "ERROR", ...error })
+        );
+      return logger;
+    }
   };
   return logger;
 };
