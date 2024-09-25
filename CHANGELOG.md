@@ -1,3 +1,5 @@
+#### 2024-09-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.5...@rotorsoft/eventually-v5.8.6) @rotorsoft/eventually-v5.8.6
+  - PATCH [3610c162](https://github.com/Rotorsoft/eventually-monorepo/commit/3610c1620ee0120821df06a99d9cd683eea3fd45) fix: build trpc utils, fix hotel projection
 #### 2024-09-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-broker-v2.3.0...@rotorsoft/eventually-broker-v2.3.1) @rotorsoft/eventually-broker-v2.3.1
   - PATCH [8a70c5be](https://github.com/Rotorsoft/eventually-monorepo/commit/8a70c5be8aa47803c253d4f3169ba4a792168148) fix: remove yarn stuff, fix logs
 #### 2024-09-22 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.6.0...@rotorsoft/eventually-pg-v5.6.1) @rotorsoft/eventually-pg-v5.6.1
