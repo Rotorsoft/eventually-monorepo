@@ -8,7 +8,8 @@ const ZOD2TYPE: { [K in z.ZodFirstPartyTypeKind]?: string } = {
   [z.ZodFirstPartyTypeKind.ZodBoolean]: "boolean",
   [z.ZodFirstPartyTypeKind.ZodDate]: "date",
   [z.ZodFirstPartyTypeKind.ZodNativeEnum]: "string",
-  [z.ZodFirstPartyTypeKind.ZodEnum]: "string"
+  [z.ZodFirstPartyTypeKind.ZodEnum]: "string",
+  [z.ZodFirstPartyTypeKind.ZodArray]: "array"
 };
 
 const toField = (
@@ -16,7 +17,11 @@ const toField = (
   type: any,
   optional: boolean,
   model: Record<string, any>
-): { name: string; type: string; optional: boolean } => {
+): {
+  name: string;
+  type: string;
+  optional: boolean;
+} => {
   if (
     type instanceof z.ZodString ||
     type instanceof z.ZodNumber ||
@@ -26,7 +31,8 @@ const toField = (
     type instanceof z.ZodNativeEnum ||
     type instanceof z.ZodEnum ||
     type instanceof z.ZodObject ||
-    type instanceof z.ZodRecord
+    type instanceof z.ZodRecord ||
+    type instanceof z.ZodArray
   ) {
     if (type instanceof z.ZodOptional)
       return toField(name, type._def.innerType, true, model);
@@ -108,7 +114,6 @@ export const esml = (): Record<string, any> => {
       const schema = toSchema(m.schema, model);
       if (schema) model[m.name] = { type: m.type, schema };
     });
-
   return {
     [camelize(config.service)]: model
   };
