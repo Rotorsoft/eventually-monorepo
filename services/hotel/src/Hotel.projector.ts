@@ -26,7 +26,7 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
     RoomOpened: ({ data }) => {
       const id = `Room-${data.number}`;
       const { number, type, price } = data;
-      return Promise.resolve([{ id, number, type, price }]);
+      return Promise.resolve([{ id, number, type, price, reserved: {} }]);
     },
     RoomBooked: async ({ data }, map) => {
       const id = `Room-${data.number}`;
@@ -41,7 +41,7 @@ export const Hotel = (): Projector<RoomState, models.RoomEvents> => ({
         reserved[day.toISOString().substring(0, 10)] = data.id;
         day = addDays(day, 1);
       }
-      return [{ id, reserved }];
+      return [{ where: { id }, reserved }];
     }
   }
 });

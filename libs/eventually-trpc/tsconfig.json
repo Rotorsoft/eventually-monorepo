@@ -7,8 +7,5 @@
     "composite": true
   },
 
-  "references": [
-    { "path": "../eventually" },
-    { "path": "../eventually-openapi" }
-  ]
+  "references": [{ "path": "../eventually" }]
 }

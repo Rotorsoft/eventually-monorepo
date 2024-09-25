@@ -8,26 +8,26 @@ export enum RoomType {
 
 export const Reservation = z.object({
   id: z.string(),
-  checkin: z.date(),
-  checkout: z.date(),
-  totalPrice: z.number()
+  checkin: z.coerce.date(),
+  checkout: z.coerce.date(),
+  totalPrice: z.coerce.number()
 });
 
 export const Room = z.object({
-  number: z.number(),
+  number: z.coerce.number(),
   type: z.nativeEnum(RoomType),
-  price: z.number(),
+  price: z.coerce.number(),
   reservations: z.array(Reservation).optional()
 });
 
 export const BookRoom = z.intersection(
   z.object({
-    number: z.number()
+    number: z.coerce.number()
   }),
   Reservation
 );
 
 export const SearchRoom = z.object({
-  checkin: z.date(),
-  checkout: z.date()
+  checkin: z.coerce.date(),
+  checkout: z.coerce.date()
 });

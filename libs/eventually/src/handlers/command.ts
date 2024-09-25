@@ -25,9 +25,10 @@ export default async function command<
   E extends Messages
 >(
   command: Message<C>,
-  metadata?: CommittedEventMetadata
+  metadata?: CommittedEventMetadata,
+  skipValidation = false
 ): Promise<Snapshot<S, E> | undefined> {
-  const validated = validateMessage(command);
+  const validated = skipValidation ? command : validateMessage(command);
   const { name, stream, expectedVersion, actor } = command;
   if (!stream) throw new Error("Missing target stream");
 

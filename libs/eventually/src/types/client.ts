@@ -71,7 +71,8 @@ export type Client = {
     factory: CommandHandlerFactory<S, C, E>,
     name: N,
     data: Readonly<C[N]>,
-    target: CommandTarget
+    target: CommandTarget,
+    skipValidation?: boolean
   ) => Promise<Snapshot<S, E> | undefined>;
 
   /**

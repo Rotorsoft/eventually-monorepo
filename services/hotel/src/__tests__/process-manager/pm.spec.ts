@@ -7,8 +7,8 @@ import {
   log,
   sleep
 } from "@rotorsoft/eventually";
-import { Room } from "./room.aggregate";
 import { MonthlyBookings } from "./monthly-bookings.policy";
+import { Room } from "./room.aggregate";
 import { requestBooking } from "./utils";
 
 describe("pm", () => {

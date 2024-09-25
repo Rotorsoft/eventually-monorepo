@@ -89,7 +89,7 @@ export const InMemoryStore = (): Store => {
         ).length;
         if (count !== expectedCount)
           throw new ActorConcurrencyError(
-            `${actor.name}:${actor.id}`,
+            `${actor?.name}:${actor?.id}`,
             events.at(0) as Message,
             count,
             expectedCount

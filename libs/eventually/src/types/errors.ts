@@ -2,6 +2,8 @@ import type { CommandTarget, Message, Messages } from "../types/messages";
 
 /**
  * Application error types
+ * - `ERR_AUTHENTICATION` authentication error
+ * - `ERR_AUTHORIZATION` authorization error
  * - `ERR_VALIDATION` schema validation error
  * - `ERR_INVARIANT` invariant validation error
  * - `ERR_CONCURRENCY` optimistic concurrency validation error on aggregate commits
@@ -9,12 +11,28 @@ import type { CommandTarget, Message, Messages } from "../types/messages";
  * - `ERR_REGISTRATION` schema registration error
  */
 export const Errors = {
+  AuthenticationError: "ERR_AUTHENTICATION",
+  AuthorizationError: "ERR_AUTHORIZATION",
   ValidationError: "ERR_VALIDATION",
   InvariantError: "ERR_INVARIANT",
   ConcurrencyError: "ERR_CONCURRENCY",
   ActorConcurrencyError: "ERR_ACTOR_CONCURRENCY",
   RegistrationError: "ERR_REGISTRATION"
 } as const;
+
+export class AuthenticationError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = Errors.AuthenticationError;
+  }
+}
+
+export class AuthorizationError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = Errors.AuthorizationError;
+  }
+}
 
 export class ValidationError extends Error {
   public readonly details;
@@ -50,8 +68,9 @@ export class ConcurrencyError extends Error {
     public readonly expectedVersion: number
   ) {
     super(
-      `Concurrency error committing event "${events.at(0)
-        ?.name}". Expected version ${expectedVersion} but found version ${lastVersion}.`
+      `Concurrency error committing event "${
+        events.at(0)?.name
+      }". Expected version ${expectedVersion} but found version ${lastVersion}.`
     );
     this.name = Errors.ConcurrencyError;
   }
