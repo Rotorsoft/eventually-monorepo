@@ -1,3 +1,5 @@
+#### 2024-09-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-trpc-v0.2.0...@rotorsoft/eventually-trpc-v0.2.1) @rotorsoft/eventually-trpc-v0.2.1
+  - PATCH [3610c162](https://github.com/Rotorsoft/eventually-monorepo/commit/3610c1620ee0120821df06a99d9cd683eea3fd45) fix: build trpc utils, fix hotel projection
 #### 2024-09-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.8.0...@rotorsoft/eventually-express-v5.8.1) @rotorsoft/eventually-express-v5.8.1
   - PATCH [3610c162](https://github.com/Rotorsoft/eventually-monorepo/commit/3610c1620ee0120821df06a99d9cd683eea3fd45) fix: build trpc utils, fix hotel projection
 #### 2024-09-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.5...@rotorsoft/eventually-v5.8.6) @rotorsoft/eventually-v5.8.6
