@@ -1,3 +1,6 @@
+#### 2024-09-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.6.1...@rotorsoft/eventually-openapi-v0.6.2) @rotorsoft/eventually-openapi-v0.6.2
+  - PATCH [5485fffe](https://github.com/Rotorsoft/eventually-monorepo/commit/5485fffe61aa0ef95e81848dcacab68c3be25912) fix: add openapi to ci-cd matrix
+  - PATCH [a6257a52](https://github.com/Rotorsoft/eventually-monorepo/commit/a6257a52b5fb6df0cc93297d8260bf208c7fcf6a) fix: add array to zod map
 #### 2024-09-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-trpc-v0.2.0...@rotorsoft/eventually-trpc-v0.2.1) @rotorsoft/eventually-trpc-v0.2.1
   - PATCH [3610c162](https://github.com/Rotorsoft/eventually-monorepo/commit/3610c1620ee0120821df06a99d9cd683eea3fd45) fix: build trpc utils, fix hotel projection
 #### 2024-09-25 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.8.0...@rotorsoft/eventually-express-v5.8.1) @rotorsoft/eventually-express-v5.8.1
