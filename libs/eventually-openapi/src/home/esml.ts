@@ -9,7 +9,7 @@ const ZOD2TYPE: { [K in z.ZodFirstPartyTypeKind]?: string } = {
   [z.ZodFirstPartyTypeKind.ZodDate]: "date",
   [z.ZodFirstPartyTypeKind.ZodNativeEnum]: "string",
   [z.ZodFirstPartyTypeKind.ZodEnum]: "string",
-  [z.ZodFirstPartyTypeKind.ZodArray]: "array"
+  [z.ZodFirstPartyTypeKind.ZodArray]: "string" // TODO: fix esml grammar to support array
 };
 
 const toField = (

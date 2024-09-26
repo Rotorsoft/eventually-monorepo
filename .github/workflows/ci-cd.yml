@@ -85,6 +85,7 @@ jobs:
       matrix:
         lib:
           - eventually
+          - eventually-openapi
           - eventually-pg
           - eventually-express
           - eventually-service-expg
