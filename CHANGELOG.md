@@ -1,3 +1,5 @@
+#### 2024-09-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-express-v5.8.1...@rotorsoft/eventually-express-v5.8.2) @rotorsoft/eventually-express-v5.8.2
+  - PATCH [98e24d76](https://github.com/Rotorsoft/eventually-monorepo/commit/98e24d76e89cf33b263ccce42e528f9107477a30) fix: logs and gendocs
 #### 2024-09-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.6.1...@rotorsoft/eventually-pg-v5.6.2) @rotorsoft/eventually-pg-v5.6.2
   - PATCH [98e24d76](https://github.com/Rotorsoft/eventually-monorepo/commit/98e24d76e89cf33b263ccce42e528f9107477a30) fix: logs and gendocs
 #### 2024-09-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.6...@rotorsoft/eventually-v5.8.7) @rotorsoft/eventually-v5.8.7

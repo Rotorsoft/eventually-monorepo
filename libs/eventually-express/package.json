@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-express",
-  "version": "5.8.1",
+  "version": "5.8.2",
   "description": "Eventually ExpressJs Application Adapter",
   "author": {
     "name": "rotorsoft",
