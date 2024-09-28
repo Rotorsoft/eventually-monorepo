@@ -1,8 +1,8 @@
 import { Disposable, Disposer } from "./interfaces";
-import { devLogger } from "./loggers";
+import { devLogger, testLogger } from "./loggers";
 import { ExitCode } from "./types/enums";
 
-const logger = devLogger();
+const logger = process.env.NODE_ENV === "test" ? testLogger() : devLogger();
 
 export const logAdapterCreated = (name: string): void => {
   logger

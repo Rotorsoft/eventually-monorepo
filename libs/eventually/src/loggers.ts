@@ -1,7 +1,7 @@
 import { Logger } from "./interfaces";
 import { CommittedEvent, LogLevel } from "./types";
 
-const { NODE_ENV, LOG_LEVEL } = process.env;
+const { LOG_LEVEL } = process.env;
 
 const Color = {
   red: 31,
@@ -166,30 +166,50 @@ export const plainLogger = (): Logger => {
     },
     events,
     trace: (message: string, details?: unknown, ...params: unknown[]) => {
-      NODE_ENV !== "test" &&
-        active("trace") &&
-        json("trace", message, details, params);
+      active("trace") && json("trace", message, details, params);
       return logger;
     },
     data: (message: string, details?: unknown, ...params: unknown[]) => {
-      NODE_ENV !== "test" &&
-        active("data") &&
-        json("data", message, details, params);
+      active("data") && json("data", message, details, params);
       return logger;
     },
     info: (message: string, details?: unknown, ...params: unknown[]) => {
-      NODE_ENV !== "test" &&
-        active("info") &&
-        json("info", message, details, params);
+      active("info") && json("info", message, details, params);
       return logger;
     },
     error: (error: any) => {
-      NODE_ENV !== "test" &&
-        console.error(
-          JSON.stringify({ level: "error", severity: "ERROR", ...error })
-        );
+      console.error(
+        JSON.stringify({ level: "error", severity: "ERROR", ...error })
+      );
       return logger;
     }
+  };
+  return logger;
+};
+
+export const testLogger = (): Logger => {
+  const logger: Logger = {
+    name: "test-logger",
+    dispose: () => Promise.resolve(),
+    red: () => logger,
+    green: () => logger,
+    yellow: () => logger,
+    blue: () => logger,
+    magenta: () => logger,
+    cyan: () => logger,
+    silver: () => logger,
+    gray: () => logger,
+    white: () => logger,
+    bold: () => logger,
+    dimmed: () => logger,
+    italic: () => logger,
+    underlined: () => logger,
+    write: () => logger,
+    events: () => {},
+    trace: () => logger,
+    data: () => logger,
+    info: () => logger,
+    error: () => logger
   };
   return logger;
 };

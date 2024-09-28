@@ -29,7 +29,7 @@ const matchStream1 = matchStream(matchId1);
 const matchStream2 = matchStream(matchId2);
 
 export const trace = async (): Promise<void> => {
-  //if (process.env.NODE_ENV === "test") return;
+  if (process.env.NODE_ENV === "test") return;
   const records = await client().read(MatchProjector, [
     customerStream1,
     customerStream2,

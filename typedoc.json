@@ -1,12 +1,10 @@
 {
-  "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
-    "./libs/eventually/src/index.ts",
-    "./libs/eventually-express/src/index.ts",
-    "./libs/eventually-pg/src/index.ts",
-    "./libs/eventually-broker/src/index.ts"
+    "libs/eventually",
+    "libs/eventually-express",
+    "libs/eventually-pg"
   ],
-  "out": "docs",
-  "excludePrivate": true,
-  "readme": "none"
+  "name": "Eventually Framework",
+  "entryPointStrategy": "packages",
+  "includeVersion": false
 }

@@ -1,6 +1,6 @@
 import { dispose, store } from "@rotorsoft/eventually";
-import { spawnTs } from "./spawn-ts";
 import { PostgresStore } from "@rotorsoft/eventually-pg";
+import { spawnTs } from "./spawn-ts";
 
 describe("pm workers", () => {
   beforeAll(async () => {
@@ -24,7 +24,7 @@ describe("pm workers", () => {
     const results = await Promise.all(
       workers.map(async (w) => spawnTs(`${__dirname}/worker.ts`, w.toString()))
     );
-    console.log(results);
+    // console.log(results);
     expect(results.length).toBe(workers.length);
   }, 60000);
 });

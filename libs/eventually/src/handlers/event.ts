@@ -7,8 +7,6 @@ import type {
   EventResponse,
   Message,
   Messages,
-  Policy,
-  ProcessManager,
   State
 } from "../types";
 import { bind, validateMessage } from "../utils";
@@ -30,24 +28,25 @@ export default async function event<
   event: CommittedEvent<E>
 ): Promise<EventResponse<S, C>> {
   log().magenta().trace(`\n>>> ${factory.name}`, event);
+  const { data } = validateMessage(event);
+  const { id, name, stream } = event;
 
   const artifact = factory();
   Object.setPrototypeOf(artifact, factory as object);
-  const { data } = validateMessage(event);
-  const { id, name, stream } = event;
-  const policy = artifact as Policy<C, E> | ProcessManager<S, C, E>;
+
+  const actor: string = "actor" in artifact ? artifact.actor[name](event) : "";
   const metadata: CommittedEventMetadata = {
     correlation: event.metadata?.correlation || randomUUID(),
     causation: { event: { name, stream, id } }
   };
+
   let cmd: Message<C> | undefined;
-  const actor: string = "actor" in artifact ? artifact.actor[name](event) : "";
   const snapshots = await message(
     factory,
     artifact,
     { actor },
     async (snapshot) => {
-      cmd = await policy.on[name](event, snapshot.state);
+      cmd = await artifact.on[name](event, snapshot.state);
       if (cmd) {
         // command side effects are handled synchronously, thus event handlers can fail
         await command<S, C, E>(

@@ -101,7 +101,8 @@ export const subscriptions = port(function subscriptions(
 export const log = port(function log(logger?: Logger) {
   if (logger) return logger;
   switch (config().env) {
-    // case "test": //-- to log when testing
+    case "test":
+      return loggers.testLogger(); //-- comment this line to log when testing
     case "development":
       return loggers.devLogger();
     default:
