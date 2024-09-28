@@ -1,3 +1,5 @@
+#### 2024-09-28 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.6...@rotorsoft/eventually-v5.8.7) @rotorsoft/eventually-v5.8.7
+  - PATCH [98e24d76](https://github.com/Rotorsoft/eventually-monorepo/commit/98e24d76e89cf33b263ccce42e528f9107477a30) fix: logs and gendocs
 #### 2024-09-26 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-openapi-v0.6.1...@rotorsoft/eventually-openapi-v0.6.2) @rotorsoft/eventually-openapi-v0.6.2
   - PATCH [5485fffe](https://github.com/Rotorsoft/eventually-monorepo/commit/5485fffe61aa0ef95e81848dcacab68c3be25912) fix: add openapi to ci-cd matrix
   - PATCH [a6257a52](https://github.com/Rotorsoft/eventually-monorepo/commit/a6257a52b5fb6df0cc93297d8260bf208c7fcf6a) fix: add array to zod map
