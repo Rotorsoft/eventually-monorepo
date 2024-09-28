@@ -161,3 +161,37 @@ export interface SubscriptionStore extends Disposable {
    */
   drop: () => Promise<void>;
 }
+
+/**
+ * High throughput FIFO message queue supporting multiple concurrent producers and
+ * a controlled dequeuing process guaranteeing at-least-once ordered delivery to consumers of the same stream.
+ *
+ * Adapters should implement mechanisms to ensure message ordering and delivery guarantees.
+ */
+export interface MessageQueue<M extends Messages> extends Disposable {
+  /**
+   * Enqueues messages
+   * @param messages the messages
+   */
+  enqueue: (messages: Message<M>[]) => Promise<void>;
+
+  /**
+   * Dequeues message on top of the queue after being processed by consumer callback
+   * @param callback consumer callback
+   * @param stream optional stream name to support independent concurrent consumers
+   */
+  dequeue: (
+    callback: (message: Message<M> & { created: Date }) => Promise<void>,
+    stream?: string
+  ) => Promise<void>;
+
+  /**
+   * Seeds the store
+   */
+  seed: () => Promise<void>;
+
+  /**
+   * Drops the store
+   */
+  drop: () => Promise<void>;
+}
