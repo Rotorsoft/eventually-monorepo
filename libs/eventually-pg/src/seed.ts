@@ -11,12 +11,12 @@ CREATE TABLE IF NOT EXISTS public."${table}"
 (
 	id serial PRIMARY KEY,
   name varchar(100) COLLATE pg_catalog."default" NOT NULL,
-  data json,
+  data jsonb,
   stream varchar(100) COLLATE pg_catalog."default" NOT NULL,
   version int NOT NULL,
   created timestamptz NOT NULL DEFAULT now(),
   actor varchar(100) COLLATE pg_catalog."default",
-  metadata json
+  metadata jsonb
 ) TABLESPACE pg_default;
 
 DO $$
@@ -40,7 +40,7 @@ ALTER TABLE public."${table}"
 ADD COLUMN IF NOT EXISTS actor varchar(100) COLLATE pg_catalog."default";
 
 ALTER TABLE public."${table}"
-ADD COLUMN IF NOT EXISTS metadata json;
+ADD COLUMN IF NOT EXISTS metadata jsonb;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "${table}_stream_ix"
   ON public."${table}" USING btree (stream COLLATE pg_catalog."default" ASC, version ASC)
@@ -83,8 +83,8 @@ const ZOD2PG: { [K in z.ZodFirstPartyTypeKind]?: string } = {
   [z.ZodFirstPartyTypeKind.ZodBoolean]: "BOOLEAN",
   [z.ZodFirstPartyTypeKind.ZodDate]: "TIMESTAMPTZ",
   [z.ZodFirstPartyTypeKind.ZodBigInt]: "BIGINT",
-  [z.ZodFirstPartyTypeKind.ZodObject]: "JSON",
-  [z.ZodFirstPartyTypeKind.ZodRecord]: "JSON",
+  [z.ZodFirstPartyTypeKind.ZodObject]: "JSONB",
+  [z.ZodFirstPartyTypeKind.ZodRecord]: "JSONB",
   [z.ZodFirstPartyTypeKind.ZodNativeEnum]: "TEXT",
   [z.ZodFirstPartyTypeKind.ZodEnum]: "TEXT"
 };
@@ -162,3 +162,16 @@ export const projector = <S extends State>(
     )
     .join("\n")}`;
 };
+
+export const message_queue = (table: string): string => `
+CREATE TABLE IF NOT EXISTS public."${table}"
+(
+  id serial PRIMARY KEY,
+  name varchar(100) COLLATE pg_catalog."default" NOT NULL,
+  stream varchar(100) COLLATE pg_catalog."default" NOT NULL,
+  data jsonb NOT NULL,
+  created timestamptz NOT NULL DEFAULT now(),
+  locked_until timestamptz,
+  CONSTRAINT message_queue_unique_stream_id UNIQUE (stream, id)
+) TABLESPACE pg_default;
+`;
