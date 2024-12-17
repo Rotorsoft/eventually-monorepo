@@ -62,9 +62,6 @@ export const PostgresMessageQueue = <M extends Messages>(
      * It uses a lock mechanism to ensure the message is only processed by one consumer at a time.
      */
     dequeue: async (callback, { stream, leaseMillis = 30_000 }) => {
-      const sql = `SELECT * FROM "${table}" WHERE stream = '${stream}' ORDER BY created ASC LIMIT 1`;
-      log().green().data("sql:", sql);
-
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
