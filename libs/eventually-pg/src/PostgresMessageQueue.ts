@@ -95,20 +95,17 @@ export const PostgresMessageQueue = <M extends Messages>(
         );
 
         // process the message using the provided callback
-        try {
-          await callback(message);
-          // delete message from the queue on success
-          await client.query(`DELETE FROM "${table}" WHERE id = $1`, [
-            message.id
-          ]);
-        } catch (err) {
-          // release the lock on failure (no need for additional actions as lock will expire)
-          log().red().error(err);
-        }
+        await callback(message);
+        // delete message from the queue on success
+        await client.query(`DELETE FROM "${table}" WHERE id = $1`, [
+          message.id
+        ]);
+
         await client.query("COMMIT");
       } catch (err) {
         await client.query("ROLLBACK");
         log().red().error(err);
+        throw err
       } finally {
         client.release();
       }
