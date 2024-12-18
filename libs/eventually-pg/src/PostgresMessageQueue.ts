@@ -81,27 +81,18 @@ export const PostgresMessageQueue = <M extends Messages>(
         if (next.length === 0) {
           log().yellow().trace(`No messages available for stream: ${stream}`);
           await client.query("ROLLBACK");
-          return;
+          return false;
         }
 
-        // update lock to prevent other consumers from accessing it
-        const message = next[0];
-        await client.query(
-          `
-          UPDATE "${table}" SET locked_until = NOW() + INTERVAL '1 millisecond' * $1
-          WHERE id = $2
-        `,
-          [leaseMillis, message.id]
-        );
-
         // process the message using the provided callback
+        const message = next[0];
         await callback(message);
         // delete message from the queue on success
         await client.query(`DELETE FROM "${table}" WHERE id = $1`, [
           message.id
         ]);
-
         await client.query("COMMIT");
+        return true;
       } catch (err) {
         await client.query("ROLLBACK");
         log().red().error(err);
