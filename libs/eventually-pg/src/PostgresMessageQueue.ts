@@ -1,8 +1,6 @@
 import {
   dispose,
   log,
-  logAdapterCreated,
-  logAdapterDisposed,
   Message,
   MessageQueue,
   Messages
@@ -23,8 +21,6 @@ export const PostgresMessageQueue = <M extends Messages>(
 
     seed: async () => {
       const seed = message_queue(table);
-      log().green().info(`>>> Seeding message queue table: ${table}`);
-      log().gray().info(seed);
       await pool.query(seed);
     },
 
@@ -32,10 +28,6 @@ export const PostgresMessageQueue = <M extends Messages>(
       await pool.query(`DROP TABLE IF EXISTS "${table}"`);
     },
 
-    /**
-     * Enqueues messages into the table.
-     * Each message should be inserted with its stream and a timestamp.
-     */
     enqueue: async (messages) => {
       const N = 3;
       const sql = `
@@ -49,45 +41,67 @@ export const PostgresMessageQueue = <M extends Messages>(
       `;
       const values = messages.flatMap((m) => [
         m.name,
-        m.stream || "", // empty stream for non-streamed messages
+        m.stream || "",
         JSON.stringify(m.data)
       ]);
 
-      log().green().data("sql:", sql, values);
       await pool.query(sql, values);
+      log().green().data("sql:", sql, values);
     },
 
     /**
      * Dequeues the oldest available message in the specified stream and passes it to the callback.
-     * It uses a lock mechanism to ensure the message is only processed by one consumer at a time.
+     * It uses a lock mechanism to ensure the message is only processed by one consumer at a time and
+     * also makes sure that no other messages from the same stream can be dequeued while the message
+     * is locked and being processed.
      */
     dequeue: async (callback, { stream }) => {
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
 
-        // select and lock the next message in the queue
+        // Only acquire advisory lock if stream is defined
+        if (stream !== undefined) {
+          const streamHash = BigInt(
+            Buffer.from(stream).reduce(
+              (acc, byte) => (acc * 31 + byte) & 0x7fffffff,
+              0
+            )
+          );
+
+          const { rows: lockResult } = await client.query(
+            "SELECT pg_try_advisory_xact_lock($1) as acquired",
+            [streamHash]
+          );
+
+          if (!lockResult[0].acquired) {
+            await client.query("ROLLBACK");
+            return false;
+          }
+        }
+
+        // Use FOR UPDATE SKIP LOCKED for unstreamed messages to allow concurrent processing
         const { rows: next } = await client.query<
           Message<M> & { id: number; created: Date }
         >(
           `
-          SELECT * FROM "${table}"
+          SELECT id, name, stream, data, created
+          FROM "${table}"
           WHERE stream = $1
-          ORDER BY created ASC LIMIT 1
-          FOR UPDATE SKIP LOCKED
-        `,
-          [stream]
+          ORDER BY created ASC, id ASC
+          LIMIT 1
+          ${stream === undefined ? "FOR UPDATE SKIP LOCKED" : "FOR UPDATE"}
+          `,
+          [stream || ""]
         );
+
         if (next.length === 0) {
-          log().yellow().trace(`No messages available for stream: ${stream}`);
           await client.query("ROLLBACK");
           return false;
         }
 
-        // process the message using the provided callback
         const message = next[0];
         await callback(message);
-        // delete message from the queue on success
         await client.query(`DELETE FROM "${table}" WHERE id = $1`, [
           message.id
         ]);
@@ -95,7 +109,6 @@ export const PostgresMessageQueue = <M extends Messages>(
         return true;
       } catch (err) {
         await client.query("ROLLBACK");
-        log().red().error(err);
         throw err;
       } finally {
         client.release();
@@ -103,10 +116,8 @@ export const PostgresMessageQueue = <M extends Messages>(
     }
   };
 
-  logAdapterCreated(queue.name);
   dispose(() => {
     if (queue.dispose) {
-      logAdapterDisposed(queue.name);
       return queue.dispose();
     }
     return Promise.resolve();
