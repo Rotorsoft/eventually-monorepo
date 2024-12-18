@@ -133,7 +133,7 @@ describe("message queue", () => {
     // Verify messages were processed in parallel
     const times = Array.from(processingTimes.values());
     const maxTimeDiff = Math.max(...times) - Math.min(...times);
-    expect(maxTimeDiff).toBeLessThan(20); // Should start within 100ms of each other
+    expect(maxTimeDiff).toBeLessThan(100); // Should start within 100ms of each other
   });
 
   it("should maintain message order within a single consumer", async () => {
