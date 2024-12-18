@@ -72,7 +72,7 @@ export const PostgresMessageQueue = <M extends Messages>(
         >(
           `
           SELECT * FROM "${table}"
-          WHERE stream = $1 AND (locked_until IS NULL OR locked_until < NOW())
+          WHERE stream = $1
           ORDER BY created ASC LIMIT 1
           FOR UPDATE SKIP LOCKED
         `,
