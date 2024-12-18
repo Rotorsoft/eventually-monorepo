@@ -172,6 +172,6 @@ CREATE TABLE IF NOT EXISTS public."${table}"
   data jsonb NOT NULL,
   created timestamptz NOT NULL DEFAULT now(),
   locked_until timestamptz,
-  CONSTRAINT message_queue_unique_stream_id UNIQUE (stream, id)
+  CONSTRAINT "${table}_queue_unique_stream_id" UNIQUE (stream, id)
 ) TABLESPACE pg_default;
 `;
