@@ -61,7 +61,7 @@ export const PostgresMessageQueue = <M extends Messages>(
      * Dequeues the oldest available message in the specified stream and passes it to the callback.
      * It uses a lock mechanism to ensure the message is only processed by one consumer at a time.
      */
-    dequeue: async (callback, { stream, leaseMillis = 30_000 }) => {
+    dequeue: async (callback, { stream }) => {
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
@@ -96,7 +96,7 @@ export const PostgresMessageQueue = <M extends Messages>(
       } catch (err) {
         await client.query("ROLLBACK");
         log().red().error(err);
-        throw err
+        throw err;
       } finally {
         client.release();
       }
