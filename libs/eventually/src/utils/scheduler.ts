@@ -63,7 +63,7 @@ export const scheduler = (name: string): Schedule => {
   const enqueue = (action: Action): void => {
     if (_status === "stopping" || _status === "paused") return;
     queue.push(action);
-    setImmediate(dequeue);
+    _status === "stopped" && setImmediate(dequeue);
   };
 
   const dequeue = async (): Promise<void> => {
