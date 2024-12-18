@@ -1,3 +1,11 @@
+#### 2024-12-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.6.3...@rotorsoft/eventually-pg-v5.6.4) @rotorsoft/eventually-pg-v5.6.4
+  - PATCH [41842d0b](https://github.com/Rotorsoft/eventually-monorepo/commit/41842d0bca1c9e676ebe2ddc3b2744d858e9593d) fix: mq do not use locked_until in query
+  - PATCH [97c40c74](https://github.com/Rotorsoft/eventually-monorepo/commit/97c40c7411fb2a6b0995b23b8387722b8b03dc42) fix: mq test
+  - PATCH [e91ade16](https://github.com/Rotorsoft/eventually-monorepo/commit/e91ade162e37b5f77f52a86c0c3c6668ca2d1e62) fix: mq more tests
+  - PATCH [63c40df1](https://github.com/Rotorsoft/eventually-monorepo/commit/63c40df1a69b61503bc8e89a7612318e2111571d) fix: mq remove mid-transaction lock update because it is superflous due to SELECT FOR UPDATE lock
+  - PATCH [7d58eea4](https://github.com/Rotorsoft/eventually-monorepo/commit/7d58eea410b5f6d813bae25b03724a623fbb9965) fix: mq seed unique constraint name
+  - PATCH [e21d71a4](https://github.com/Rotorsoft/eventually-monorepo/commit/e21d71a45df9071edc886d31697c32e46a8db36e) fix: mq immediately release lock and rethrow to dequeue caller on failure
+  - PATCH [5a61105d](https://github.com/Rotorsoft/eventually-monorepo/commit/5a61105d65dc8697e56c2479ae8ed08cf1b6f8af) fix: mq remove unused sql and logging
 #### 2024-12-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.8...@rotorsoft/eventually-v5.8.9) @rotorsoft/eventually-v5.8.9
   - PATCH [c41c760a](https://github.com/Rotorsoft/eventually-monorepo/commit/c41c760af29194fdf462d69dbd1a3f112ed1e75b) fix: mq remove unneeded leaseMillis interface option
   - PATCH [f074d4da](https://github.com/Rotorsoft/eventually-monorepo/commit/f074d4da6d27430076a0f2b2c0acf532fb1678ba) fix: mq return more information to dequeue caller

@@ -1,6 +1,6 @@
 {
   "name": "@rotorsoft/eventually-pg",
-  "version": "5.6.3",
+  "version": "5.6.4",
   "description": "Eventually Postgres Store Adapters",
   "author": {
     "name": "rotorsoft",
