@@ -180,13 +180,14 @@ export interface MessageQueue<M extends Messages> extends Disposable {
    * @param callback consumer callback that receives the message with storage attributes {id, created} and returns a promise or error
    * @param stream optional stream name to support independent concurrent consumers
    * @param leaseMillis optional lease duration in milliseconds, adapters should default to a meaningful value
-   */
+   * @returns promise that resolves true when message is successfully processed, resolves false when stream is empty, rejects when message is not processed
+  */
   dequeue: (
     callback: (
       message: Message<M> & { id: number | string; created: Date }
     ) => Promise<void>,
     opts: { stream?: string; leaseMillis?: number }
-  ) => Promise<void>;
+  ) => Promise<boolean>;
 
   /**
    * Seeds the store
