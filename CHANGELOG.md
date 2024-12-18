@@ -1,3 +1,6 @@
+#### 2024-12-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.8...@rotorsoft/eventually-v5.8.9) @rotorsoft/eventually-v5.8.9
+  - PATCH [c41c760a](https://github.com/Rotorsoft/eventually-monorepo/commit/c41c760af29194fdf462d69dbd1a3f112ed1e75b) fix: mq remove unneeded leaseMillis interface option
+  - PATCH [f074d4da](https://github.com/Rotorsoft/eventually-monorepo/commit/f074d4da6d27430076a0f2b2c0acf532fb1678ba) fix: mq return more information to dequeue caller
 #### 2024-09-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.6.2...@rotorsoft/eventually-pg-v5.6.3) @rotorsoft/eventually-pg-v5.6.3
   - PATCH [0ae4fff8](https://github.com/Rotorsoft/eventually-monorepo/commit/0ae4fff8cf7e32b179c001310d1920ec795d6bc4) fix: pg mq first draft
 #### 2024-09-29 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.7...@rotorsoft/eventually-v5.8.8) @rotorsoft/eventually-v5.8.8
