@@ -170,8 +170,15 @@ CREATE TABLE IF NOT EXISTS public."${table}"
   name varchar(100) COLLATE pg_catalog."default" NOT NULL,
   stream varchar(100) COLLATE pg_catalog."default" NOT NULL,
   data jsonb NOT NULL,
-  created timestamptz NOT NULL DEFAULT now()
+  created timestamptz NOT NULL DEFAULT now(),
+  locked_by varchar(20),
+  locked_until timestamptz
 ) TABLESPACE pg_default;
+
+-- Partial unique index that enforces only one locked message per stream
+CREATE UNIQUE INDEX IF NOT EXISTS "${table}_stream_lock_ix"
+  ON public."${table}" (stream)
+  WHERE locked_by IS NOT NULL;
 
 -- Index to support the ORDER BY created ASC, id ASC in dequeue
 CREATE INDEX IF NOT EXISTS "${table}_dequeue_ix"
