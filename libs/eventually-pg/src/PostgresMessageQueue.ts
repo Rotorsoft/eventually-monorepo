@@ -65,7 +65,10 @@ export const PostgresMessageQueue = <M extends Messages>(
      *   stream/queue is empty or lock cannot be acquired, rejects when message is not processed
      */
     dequeue: async (callback, opts) => {
-      const { stream, leaseMillis = 30000 } = opts;
+      const { stream, leaseMillis = 30000 } = opts || {
+        stream: undefined,
+        leaseMillis: 30000
+      };
       const client = await pool.connect();
       let acquiredMessage:
         | (Message<M> & { id: number; created: Date })
@@ -82,7 +85,7 @@ export const PostgresMessageQueue = <M extends Messages>(
           `WITH lockable_message AS (
              SELECT t.id, t.name, t.stream, t.data, t.created
              FROM "${table}" t
-             WHERE t.stream = COALESCE($1, t.stream)
+             WHERE ($1::text IS NULL OR t.stream = $1::text)
              AND NOT EXISTS (
                SELECT 1 FROM "${table}" t2
                WHERE t2.stream = t.stream
@@ -95,12 +98,12 @@ export const PostgresMessageQueue = <M extends Messages>(
              FOR UPDATE
            )
            UPDATE "${table}" t
-           SET locked_by = $2,
-               locked_until = NOW() + ($3 || ' milliseconds')::interval
+           SET locked_by = $2::integer,
+               locked_until = NOW() + ($3::integer || ' milliseconds')::interval
            FROM lockable_message l
            WHERE t.id = l.id
            RETURNING t.id, t.name, t.stream, t.data, t.created`,
-          [stream || "", pid, leaseMillis]
+          [stream || null, pid, leaseMillis]
         );
 
         if (next.length === 0) {

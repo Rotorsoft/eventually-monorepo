@@ -196,4 +196,92 @@ describe("message queue", () => {
     expect(result1).toBe(false);  // First handler failed
     expect(result2).toBe(true);   // Second handler should succeed
   });
+
+  it("should prevent message processing during aggressive concurrent attempts", async () => {
+    // Increase timeout since we're doing lots of concurrent operations
+    jest.setTimeout(30000);
+
+    // Enqueue initial messages for two different streams
+    await mq.enqueue([
+      { name: "aggressive", stream: "aggressive-test-1", data: { value: "1" } },
+      { name: "aggressive", stream: "aggressive-test-2", data: { value: "2" } }
+    ]);
+
+    const processedMessages: string[] = [];
+    let firstStreamStarted = false;
+    let secondStreamStarted = false;
+    const processingDelay = new Promise<void>(resolve => setTimeout(resolve, 500));
+
+    const slowHandler = async (message: Message) => {
+      const value = message.data.value as string;
+      processedMessages.push(value);
+      
+      if (value === "1") {
+        firstStreamStarted = true;
+      }
+      if (value === "2") {
+        secondStreamStarted = true;
+      }
+      await processingDelay;
+    };
+
+    // Start processing both streams without specifying streams
+    const firstDequeue = mq.dequeue(slowHandler);
+    const secondDequeue = mq.dequeue(slowHandler);
+
+    // Wait for both streams to start processing
+    while (!firstStreamStarted || !secondStreamStarted) {
+      await sleep(10);
+
+    }
+
+    // Try to aggressively process messages while first ones are still processing
+    // Reduced number of concurrent attempts to avoid connection pool exhaustion
+    const attempts = 100;
+    const concurrentAttempts = Array(attempts).fill(null).map(() => 
+      mq.dequeue(slowHandler)
+    );
+
+    const results = await Promise.all([firstDequeue, secondDequeue, ...concurrentAttempts]);
+
+    // First two dequeues should succeed, all others should fail
+    expect(results[0]).toBe(true);
+    expect(results[1]).toBe(true);
+    results.slice(2).forEach(result => {
+      expect(result).toBe(false);
+    });
+
+    // Only first two messages should be processed
+    expect(processedMessages).toHaveLength(2);
+    expect(new Set(processedMessages)).toEqual(new Set(["1", "2"]));
+
+  }); // Set timeout at test level as well
+
+  it("should dequeue any message when no stream name is provided", async () => {
+    // Enqueue messages with and without streams
+    await mq.enqueue([
+      { name: "no-opts", stream: "stream-1", data: { value: "1" } },
+      { name: "no-opts", data: { value: "2" } },  // No stream
+      { name: "no-opts", stream: "stream-2", data: { value: "3" } }
+    ]);
+
+    const processedMessages: string[] = [];
+    const handler = async (message: Message) => {
+      processedMessages.push(message.data.value as string);
+      await sleep(100);
+    };
+
+    // Dequeue without providing any options
+    const result1 = await mq.dequeue(handler);
+    const result2 = await mq.dequeue(handler);
+    const result3 = await mq.dequeue(handler);
+    const result4 = await mq.dequeue(handler);
+
+    expect(result1).toBe(true);
+    expect(result2).toBe(true);
+    expect(result3).toBe(true);
+    expect(result4).toBe(false);  // No more messages
+    expect(processedMessages.length).toBe(3);
+    expect(new Set(processedMessages)).toEqual(new Set(["1", "2", "3"]));
+  });
 });
