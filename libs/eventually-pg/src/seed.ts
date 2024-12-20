@@ -171,6 +171,19 @@ CREATE TABLE IF NOT EXISTS public."${table}"
   stream varchar(100) COLLATE pg_catalog."default" NOT NULL,
   data jsonb NOT NULL,
   created timestamptz NOT NULL DEFAULT now(),
+  locked_until timestamptz,
+  CONSTRAINT "${table}_queue_unique_stream_id" UNIQUE (stream, id)
+) TABLESPACE pg_default;
+`;
+
+export const ordered_message_queue = (table: string): string => `
+CREATE TABLE IF NOT EXISTS public."${table}"
+(
+  id serial PRIMARY KEY,
+  name varchar(100) COLLATE pg_catalog."default" NOT NULL,
+  stream varchar(100) COLLATE pg_catalog."default" NOT NULL,
+  data jsonb NOT NULL,
+  created timestamptz NOT NULL DEFAULT now(),
   locked_by varchar(20),
   locked_until timestamptz
 ) TABLESPACE pg_default;

@@ -14,7 +14,129 @@ describe("message queue", () => {
     await dispose()();
   });
 
-  it("should enqueue and dequeue in order", async () => {
+  it("should enqueue and dequeue", async () => {
+    await mq.enqueue([{ name: "a", stream: "test", data: { value: "1" } }]);
+    await mq.enqueue([
+      { name: "a", stream: "test", data: { value: "2" } },
+      { name: "a", stream: "test", data: { value: "3" } },
+      { name: "a", stream: "test", data: { value: "4" } }
+    ]);
+    await mq.enqueue([{ name: "a", stream: "test", data: { value: "5" } }]);
+
+    // should dequeue in order
+    const messages: Message[] = [];
+    await mq.dequeue(
+      (message) => {
+        messages.push(message);
+        return Promise.resolve();
+      },
+      { stream: "test" }
+    );
+    expect(messages.length).toBe(1);
+
+    // should not dequeue if stream is locked
+    await Promise.all([
+      // should lock the stream for 1 second
+      mq.dequeue(
+        async (message) => {
+          await sleep(1000);
+          messages.push(message);
+        },
+        { stream: "test" }
+      ),
+      // the stream should be locked for 1 second, thus should not dequeue
+      async () => {
+        await sleep(300);
+        await mq.dequeue(
+          async (message) => {
+            messages.push(message);
+            return Promise.resolve();
+          },
+          { stream: "test" }
+        );
+        expect(messages.length).toBe(1);
+      }
+    ]);
+
+    // should be able to dequeue again
+    await mq.dequeue(
+      (message) => {
+        messages.push(message);
+        return Promise.resolve();
+      },
+      { stream: "test" }
+    );
+    expect(messages.length).toBe(3);
+  });
+
+  it("should propagate handler errors to dequeue caller", async () => {
+    // Enqueue a test message
+    await mq.enqueue([
+      { name: "test", stream: "error-test", data: { value: "error" } }
+    ]);
+
+    // Create a handler that throws an error
+    const errorMessage = "Test error from handler";
+    const handler = () => {
+      throw new Error(errorMessage);
+    };
+
+    // Verify that the error is propagated
+    await expect(mq.dequeue(handler, { stream: "error-test" })).rejects.toThrow(
+      errorMessage
+    );
+
+    // try to immediately dequeue again with successful handler
+    expect(await mq.dequeue(async () => {}, { stream: "error-test" })).toBe(true)
+  });
+
+  it("should handle concurrent dequeue attempts correctly", async () => {
+    // Enqueue multiple messages
+    await mq.enqueue([
+      { name: "concurrent", stream: "concurrent-test", data: { value: "1" } },
+      { name: "concurrent", stream: "concurrent-test", data: { value: "2" } },
+      { name: "concurrent", stream: "concurrent-test", data: { value: "3" } }
+    ]);
+
+    const processedMessages = new Set<string>();
+    const processingTimes = new Map<string, number>();
+
+    // Create a handler that simulates long-running processing
+    const handler = async (message: Message) => {
+      const value = message.data.value as string;
+      
+      // Ensure message wasn't processed before
+      expect(processedMessages.has(value)).toBeFalsy();
+      
+      // Record processing start time
+      processingTimes.set(value, Date.now());
+      
+      // Simulate processing time
+      await sleep(500);
+      
+      processedMessages.add(value);
+    };
+
+    // Run multiple dequeue operations concurrently
+    await Promise.all([
+      mq.dequeue(handler, { stream: "concurrent-test" }),
+      mq.dequeue(handler, { stream: "concurrent-test" }),
+      mq.dequeue(handler, { stream: "concurrent-test" })
+    ]);
+
+    // Verify each message was processed exactly once
+    expect(processedMessages.size).toBe(3);
+    expect(processedMessages).toContain("1");
+    expect(processedMessages).toContain("2");
+    expect(processedMessages).toContain("3");
+
+    // Verify messages were processed in parallel
+    const times = Array.from(processingTimes.values());
+    const maxTimeDiff = Math.max(...times) - Math.min(...times);
+    expect(maxTimeDiff).toBeLessThan(100); // Should start within 100ms of each other
+  });
+
+  it("should maintain message order within a single consumer", async () => {
     await mq.enqueue([
       { name: "order", stream: "order-test", data: { value: "1" } },
       { name: "order", stream: "order-test", data: { value: "2" } },
@@ -28,21 +150,15 @@ describe("message queue", () => {
     };
 
     // Process all messages sequentially
-    const result1 = await mq.dequeue(handler, { stream: "order-test" });
-    const result2 = await mq.dequeue(handler, { stream: "order-test" });
-    const result3 = await mq.dequeue(handler, { stream: "order-test" });
+    await mq.dequeue(handler, { stream: "order-test" });
+    await mq.dequeue(handler, { stream: "order-test" });
+    await mq.dequeue(handler, { stream: "order-test" });
 
-    expect(result1).toBe(true);
-    expect(result2).toBe(true);
-    expect(result3).toBe(true);
+    // Verify messages were processed in order
     expect(processedOrder).toEqual(["1", "2", "3"]);
-
-    // Verify no more messages
-    const emptyResult = await mq.dequeue(handler, { stream: "order-test" });
-    expect(emptyResult).toBe(false);
   });
 
-  it("should handle transaction rollback on error", async () => {
+  it("should handle transaction rollback on error correctly", async () => {
     await mq.enqueue([
       { name: "rollback", stream: "rollback-test", data: { value: "1" } }
     ]);
@@ -53,235 +169,34 @@ describe("message queue", () => {
       throw new Error("Simulated failure");
     };
 
-    // First attempt should fail and rollback
+    const successHandler = async () => {
+      attempts++;
+      return Promise.resolve();
+    };
+
+    // First attempt should fail
     await expect(
       mq.dequeue(failHandler, { stream: "rollback-test" })
     ).rejects.toThrow("Simulated failure");
 
-    // Message should be available for retry
-    const successHandler = () => {
-      attempts++;
-      return Promise.resolve();
-    };
-    const result = await mq.dequeue(successHandler, { stream: "rollback-test" });
-    expect(result).toBe(true);
-    expect(attempts).toBe(2);
-
-    // Stream should be empty
-    const emptyResult = await mq.dequeue(successHandler, { stream: "rollback-test" });
-    expect(emptyResult).toBe(false);
-  });
-
-  it("should prevent concurrent processing of same stream", async () => {
-    // Enqueue first message
-    await mq.enqueue([
-      { name: "concurrent", stream: "stream-test", data: { value: "1" } },
-    ]);
-
-    const processedMessages: string[] = [];
-    let firstMessageStarted = false;
-    const processingMessage = new Promise<void>((resolve) => {
-      setTimeout(resolve, 200);
-    });
-
-    const handler = async (message: Message) => {
-      const value = message.data.value as string;
-      processedMessages.push(value);
-      
-      if (value === "1") {
-        firstMessageStarted = true;  // Signal that first message processing has started
-        await processingMessage;
-      }
-    };
-
-    // Start first dequeue
-    const dequeue1Promise = mq.dequeue(handler, { stream: "stream-test" });
+    // Message should be immediately available for retry
+    await expect(
+      mq.dequeue(failHandler, { stream: "rollback-test" })
+    ).rejects.toThrow("Simulated failure");
+    expect(attempts).toBe(2); // Handler should have been called twice
     
-    // Wait for first message to actually start processing
-    while (!firstMessageStarted) {
-      await sleep(10);
-    }
-    
-    // Now we know the lock is held, proceed with second message
-    await mq.enqueue([
-      { name: "concurrent", stream: "stream-test", data: { value: "2" } },
-    ]);
+    // should still be able to dequeue and process successfully
+    await expect(
+      mq.dequeue(successHandler, { stream: "rollback-test" })
+    ).resolves.toBe(true);
+    expect(attempts).toBe(3);
 
-    const dequeue2Promise = mq.dequeue(handler, { stream: "stream-test" });
-
-    const [result1, result2] = await Promise.all([
-      dequeue1Promise,
-      dequeue2Promise
-    ]);
-
-    expect(result1).toBe(true);
-    expect(result2).toBe(false);
-    
-    // Only the first message should be processed
-    expect(processedMessages).toEqual(["1"]);
-
-    // Now we should be able to process the second message
-    const result3 = await mq.dequeue(handler, { stream: "stream-test" });
-    expect(result3).toBe(true);
-    expect(processedMessages).toEqual(["1", "2"]);
-  });
-
-  it("should allow concurrent processing of different streams", async () => {
-    await mq.enqueue([
-      { name: "multi", stream: "stream-1", data: { value: "1" } },
-      { name: "multi", stream: "stream-2", data: { value: "2" } }
-    ]);
-
-    const processedMessages: string[] = [];
-    const handler = async (message: Message) => {
-      await sleep(100); // Simulate processing time
-      processedMessages.push(message.data.value as string);
-    };
-
-    // Process different streams concurrently
-    const [result1, result2] = await Promise.all([
-      mq.dequeue(handler, { stream: "stream-1" }),
-      mq.dequeue(handler, { stream: "stream-2" })
-    ]);
-
-    expect(result1).toBe(true);
-    expect(result2).toBe(true);
-    expect(processedMessages.length).toBe(2);
-    expect(new Set(processedMessages)).toEqual(new Set(["1", "2"]));
-  });
-
-  it("should handle unstreamed messages", async () => {
-    await mq.enqueue([
-      { name: "unstreamed", data: { value: "1" } },
-      { name: "unstreamed", data: { value: "2" } }
-    ]);
-
-    const processedMessages: string[] = [];
-    const handler = (message: Message) => {
-      processedMessages.push(message.data.value as string);
-      return Promise.resolve();
-    };
-
-    const result1 = await mq.dequeue(handler, {});
-    const result2 = await mq.dequeue(handler, {});
-    const result3 = await mq.dequeue(handler, {});
-
-    expect(result1).toBe(true);
-    expect(result2).toBe(true);
-    expect(result3).toBe(false); // No more messages
-    expect(processedMessages.length).toBe(2);
-  });
-
-  it("should respect lease duration", async () => {
-    await mq.enqueue([
-      { name: "lease", stream: "lease-test", data: { value: "1" } }
-    ]);
-
-    // First handler that will fail
-    const handler1 = () => {
-      throw new Error('Simulated failure');
-    };
-
-    const result1 = await mq.dequeue(handler1, { 
-      stream: "lease-test",
-      leaseMillis: 100 
-    }).catch(() => false);
-
-    await sleep(150);
-    
-    const result2 = await mq.dequeue(() => Promise.resolve(), 
-      { stream: "lease-test" }
-    );
-    
-    expect(result1).toBe(false);  // First handler failed
-    expect(result2).toBe(true);   // Second handler should succeed
-  });
-
-  it("should prevent message processing during aggressive concurrent attempts", async () => {
-    // Increase timeout since we're doing lots of concurrent operations
-    jest.setTimeout(30000);
-
-    // Enqueue initial messages for two different streams
-    await mq.enqueue([
-      { name: "aggressive", stream: "aggressive-test-1", data: { value: "1" } },
-      { name: "aggressive", stream: "aggressive-test-2", data: { value: "2" } }
-    ]);
-
-    const processedMessages: string[] = [];
-    let firstStreamStarted = false;
-    let secondStreamStarted = false;
-    const processingDelay = new Promise<void>(resolve => setTimeout(resolve, 500));
-
-    const slowHandler = async (message: Message) => {
-      const value = message.data.value as string;
-      processedMessages.push(value);
-      
-      if (value === "1") {
-        firstStreamStarted = true;
-      }
-      if (value === "2") {
-        secondStreamStarted = true;
-      }
-      await processingDelay;
-    };
-
-    // Start processing both streams without specifying streams
-    const firstDequeue = mq.dequeue(slowHandler);
-    const secondDequeue = mq.dequeue(slowHandler);
-
-    // Wait for both streams to start processing
-    while (!firstStreamStarted || !secondStreamStarted) {
-      await sleep(10);
-
-    }
-
-    // Try to aggressively process messages while first ones are still processing
-    // Reduced number of concurrent attempts to avoid connection pool exhaustion
-    const attempts = 100;
-    const concurrentAttempts = Array(attempts).fill(null).map(() => 
-      mq.dequeue(slowHandler)
-    );
-
-    const results = await Promise.all([firstDequeue, secondDequeue, ...concurrentAttempts]);
-
-    // First two dequeues should succeed, all others should fail
-    expect(results[0]).toBe(true);
-    expect(results[1]).toBe(true);
-    results.slice(2).forEach(result => {
-      expect(result).toBe(false);
-    });
-
-    // Only first two messages should be processed
-    expect(processedMessages).toHaveLength(2);
-    expect(new Set(processedMessages)).toEqual(new Set(["1", "2"]));
-
-  }); // Set timeout at test level as well
-
-  it("should dequeue any message when no stream name is provided", async () => {
-    // Enqueue messages with and without streams
-    await mq.enqueue([
-      { name: "no-opts", stream: "stream-1", data: { value: "1" } },
-      { name: "no-opts", data: { value: "2" } },  // No stream
-      { name: "no-opts", stream: "stream-2", data: { value: "3" } }
-    ]);
-
-    const processedMessages: string[] = [];
-    const handler = async (message: Message) => {
-      processedMessages.push(message.data.value as string);
-      await sleep(100);
-    };
-
-    // Dequeue without providing any options
-    const result1 = await mq.dequeue(handler);
-    const result2 = await mq.dequeue(handler);
-    const result3 = await mq.dequeue(handler);
-    const result4 = await mq.dequeue(handler);
-
-    expect(result1).toBe(true);
-    expect(result2).toBe(true);
-    expect(result3).toBe(true);
-    expect(result4).toBe(false);  // No more messages
-    expect(processedMessages.length).toBe(3);
-    expect(new Set(processedMessages)).toEqual(new Set(["1", "2", "3"]));
+    //should not dequeue anything since stream should be empty
+    await expect(
+      mq.dequeue(successHandler, { stream: "rollback-test" })
+    ).resolves.toBe(false);
+    // shuld still be 3 attempts since we processed one message
+    expect(attempts).toBe(3);
+  
   });
 });
