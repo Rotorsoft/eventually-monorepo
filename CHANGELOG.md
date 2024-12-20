@@ -1,3 +1,8 @@
+#### 2024-12-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.6.4...@rotorsoft/eventually-pg-v5.6.5) @rotorsoft/eventually-pg-v5.6.5
+  - PATCH [e581f2e3](https://github.com/Rotorsoft/eventually-monorepo/commit/e581f2e32d2222a2f3821094ad8029de8cc821ad) fix: mq separate new ordered message queue
+  - PATCH [6cd797c0](https://github.com/Rotorsoft/eventually-monorepo/commit/6cd797c03a5ba6e2d0dd0c2ba60e450557391df6) fix: mq improve interface, fix dequeue when no stream name is provided, more tests
+  - PATCH [cc4c3ff5](https://github.com/Rotorsoft/eventually-monorepo/commit/cc4c3ff5d40cd9c6dd74220088d632c51ad2f6f2) fix: mq allow concurrent processing of multiple streams with guaranteed ordering per stream.  See dequeue implementation comments for semantics.
+  - PATCH [d2d87bb0](https://github.com/Rotorsoft/eventually-monorepo/commit/d2d87bb09f3a17e3433996740b6c43f00d419f52) fix: mq only allow one message from a stream to be dequeued at any given time, unstreamed messages can be dequeued concurrently
 #### 2024-12-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.9...@rotorsoft/eventually-v5.8.10) @rotorsoft/eventually-v5.8.10
   - PATCH [f696d8e5](https://github.com/Rotorsoft/eventually-monorepo/commit/f696d8e5ec5bf1eae7e0b87f96c2d691cb0ac13a) fix: mq update interface docs
   - PATCH [6cd797c0](https://github.com/Rotorsoft/eventually-monorepo/commit/6cd797c03a5ba6e2d0dd0c2ba60e450557391df6) fix: mq improve interface, fix dequeue when no stream name is provided, more tests
