@@ -1,3 +1,7 @@
+#### 2024-12-20 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-v5.8.9...@rotorsoft/eventually-v5.8.10) @rotorsoft/eventually-v5.8.10
+  - PATCH [f696d8e5](https://github.com/Rotorsoft/eventually-monorepo/commit/f696d8e5ec5bf1eae7e0b87f96c2d691cb0ac13a) fix: mq update interface docs
+  - PATCH [6cd797c0](https://github.com/Rotorsoft/eventually-monorepo/commit/6cd797c03a5ba6e2d0dd0c2ba60e450557391df6) fix: mq improve interface, fix dequeue when no stream name is provided, more tests
+  - PATCH [cc4c3ff5](https://github.com/Rotorsoft/eventually-monorepo/commit/cc4c3ff5d40cd9c6dd74220088d632c51ad2f6f2) fix: mq allow concurrent processing of multiple streams with guaranteed ordering per stream.  See dequeue implementation comments for semantics.
 #### 2024-12-18 [+/-](https://github.com/Rotorsoft/eventually-monorepo/compare/@rotorsoft/eventually-pg-v5.6.3...@rotorsoft/eventually-pg-v5.6.4) @rotorsoft/eventually-pg-v5.6.4
   - PATCH [41842d0b](https://github.com/Rotorsoft/eventually-monorepo/commit/41842d0bca1c9e676ebe2ddc3b2744d858e9593d) fix: mq do not use locked_until in query
   - PATCH [97c40c74](https://github.com/Rotorsoft/eventually-monorepo/commit/97c40c7411fb2a6b0995b23b8387722b8b03dc42) fix: mq test
