@@ -175,3 +175,31 @@ CREATE TABLE IF NOT EXISTS public."${table}"
   CONSTRAINT "${table}_queue_unique_stream_id" UNIQUE (stream, id)
 ) TABLESPACE pg_default;
 `;
+
+export const ordered_message_queue = (table: string): string => `
+CREATE TABLE IF NOT EXISTS public."${table}"
+(
+  id serial PRIMARY KEY,
+  name varchar(100) COLLATE pg_catalog."default" NOT NULL,
+  stream varchar(100) COLLATE pg_catalog."default" NOT NULL,
+  data jsonb NOT NULL,
+  created timestamptz NOT NULL DEFAULT now(),
+  locked_by varchar(20),
+  locked_until timestamptz
+) TABLESPACE pg_default;
+
+-- Partial unique index that enforces only one locked message per stream
+CREATE UNIQUE INDEX IF NOT EXISTS "${table}_stream_lock_ix"
+  ON public."${table}" (stream)
+  WHERE locked_by IS NOT NULL;
+
+-- Index to support the ORDER BY created ASC, id ASC in dequeue
+CREATE INDEX IF NOT EXISTS "${table}_dequeue_ix"
+  ON public."${table}" USING btree (stream, created ASC, id ASC)
+  TABLESPACE pg_default;
+
+-- Index to support fast deletions by id
+CREATE INDEX IF NOT EXISTS "${table}_id_ix"
+  ON public."${table}" USING btree (id)
+  TABLESPACE pg_default;
+`;
