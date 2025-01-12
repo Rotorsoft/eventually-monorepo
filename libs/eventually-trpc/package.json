@@ -23,6 +23,6 @@
   "dependencies": {
     "@rotorsoft/eventually": "workspace:^",
     "@trpc/server": "^10.45.2",
-    "zod": "^3.23.8"
+    "zod": "^3.24.1"
   }
 }

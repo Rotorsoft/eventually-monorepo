@@ -4,3 +4,4 @@ packages:
   - "!libs/eventually-azure"
   - "!libs/eventually-gcp"
   - "services/**"
+  - "sites/**"

@@ -17,11 +17,11 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "@okta/oidc-middleware": "^5.4.1",
+    "@okta/oidc-middleware": "^5.4.2",
     "@rotorsoft/eventually-broker": "workspace:^",
-    "express-session": "^1.18.0"
+    "express-session": "^1.18.1"
   },
   "devDependencies": {
-    "@types/express-session": "^1.18.0"
+    "@types/express-session": "^1.18.1"
   }
 }
