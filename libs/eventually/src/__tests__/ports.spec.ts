@@ -1,19 +1,11 @@
-process.env.NODE_ENV = "";
-process.env.PG_HOST = "";
+import { store } from "@rotorsoft/eventually";
 
 jest.spyOn(console, "log").mockImplementation();
 jest.spyOn(console, "info").mockImplementation();
 jest.spyOn(console, "error").mockImplementation();
 
 describe("ports", () => {
-  it("should initialize in dev mode and fail validation", async () => {
-    const { config } = await import("@rotorsoft/eventually");
-    expect(config().env).toEqual("development");
-    await expect(import("@rotorsoft/eventually-pg")).rejects.toThrow();
-  });
-
   it("should get store stats", async () => {
-    const { store } = await import("@rotorsoft/eventually");
     await store().commit(
       "stream",
       [

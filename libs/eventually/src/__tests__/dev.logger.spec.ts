@@ -1,6 +1,3 @@
-process.env.NODE_ENV = "";
-process.env.PG_HOST = "";
-
 import { dispose, log } from "../";
 
 jest.spyOn(console, "log").mockImplementation();

@@ -1,6 +1,7 @@
 import {
   AggregateFactory,
   app,
+  config,
   dispose,
   Empty,
   PolicyFactory,
@@ -77,7 +78,7 @@ describe("Builder", () => {
   });
 
   it("should set default scopes", () => {
-    process.env.NODE_ENV = "development";
+    config().env = "development";
     app().with(Factory).with(Policy1).build();
     const artifacts = app().artifacts;
     expect(artifacts.get("Factory")?.inputs).toStrictEqual([
@@ -87,6 +88,6 @@ describe("Builder", () => {
     expect(artifacts.get("Policy1")?.inputs).toStrictEqual([
       { name: "Event1", scope: "private" }
     ]);
-    process.env.NODE_ENV = "test";
+    config().env = "test";
   });
 });
