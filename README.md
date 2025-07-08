@@ -4,6 +4,11 @@
 ![CodeQL Status](https://github.com/rotorsoft/eventually-monorepo/actions/workflows/codeql-analysis.yml/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/Rotorsoft/eventually-monorepo/badge.svg?branch=master)](https://coveralls.io/github/Rotorsoft/eventually-monorepo?branch=master)
 
+---
+#### ⚠️ This repository is no longer the main focus of my research, but I’ll do my best to support any questions or issues.
+#### 👉 If you starred this repo or are interested in this kind of project, please check out https://rotorsoft.github.io/act-root/ ... where active development is happening and contributions are very welcome!
+---
+
 ## Writing a Hotel Reservation System
 
 This tutorial was inspired by [https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68](https://medium.com/thedevproject/clean-architecture-a-basic-example-of-folders-organization-aab07f9eea68). Here we will show a different approach to coding the same API using [Eventually](./libs/eventually/README.md).
